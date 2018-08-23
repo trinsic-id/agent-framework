@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "Agency.Web": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "agent",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "http://localhost:5000/"
+    }
+  }
+}
