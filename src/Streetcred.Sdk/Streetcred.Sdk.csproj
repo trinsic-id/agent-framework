@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="MSBuild.Sdk.Extras/1.6.46">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;xamarinios10</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <AssemblyName>Streetcred.Sdk</AssemblyName>
     <Description>Streetcred SDK</Description>
@@ -10,9 +10,9 @@
     <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Hyperledger.Indy.Sdk" Version="1.6.2" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="Stateless" Version="4.2.1" />
+    <PackageReference Include="Hyperledger.Indy.Sdk" Version="1.6.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Sovrin.Agents.Model\Sovrin.Agents.Model.csproj" />
