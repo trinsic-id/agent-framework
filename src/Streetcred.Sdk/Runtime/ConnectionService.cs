@@ -6,6 +6,7 @@ using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PairwiseApi;
 using Hyperledger.Indy.WalletApi;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Sovrin.Agents.Model;
 using Sovrin.Agents.Model.Connections;
@@ -22,22 +23,27 @@ namespace Streetcred.Sdk.Runtime
         private readonly IRouterService _routerService;
         private readonly IEndpointService _endpointService;
         private readonly IMessageSerializer _messageSerializer;
+        private readonly ILogger<ConnectionService> _logger;
 
         public ConnectionService(
             IWalletRecordService recordService,
             IRouterService routerService,
             IEndpointService endpointService,
-            IMessageSerializer messageSerializer)
+            IMessageSerializer messageSerializer,
+            ILogger<ConnectionService> logger)
         {
             _routerService = routerService;
             _endpointService = endpointService;
             _messageSerializer = messageSerializer;
+            _logger = logger;
             _recordService = recordService;
         }
 
         /// <inheritdoc />
         public async Task<ConnectionInvitation> CreateInvitationAsync(Wallet wallet, string connectionId)
         {
+            _logger.LogInformation(LoggingEvents.CreateInvitation, "ConnectionId {0}", connectionId);
+
             var connectionKey = await Crypto.CreateKeyAsync(wallet, "{}");
 
             var connection = new ConnectionRecord();
@@ -57,6 +63,9 @@ namespace Streetcred.Sdk.Runtime
         /// <inheritdoc />
         public async Task<string> AcceptInvitationAsync(Wallet wallet, ConnectionInvitation invitation)
         {
+            _logger.LogInformation(LoggingEvents.AcceptInvitation, "Key {0}, Endpoint {1}",
+                                   invitation.ConnectionKey, invitation.Endpoint.Uri);
+
             var my = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
 
             var connection = new ConnectionRecord
@@ -95,6 +104,8 @@ namespace Streetcred.Sdk.Runtime
         /// <inheritdoc />
         public async Task<string> StoreRequestAsync(Wallet wallet, ConnectionRequest request)
         {
+            _logger.LogInformation(LoggingEvents.StoreConnectionRequest, "Key {0}", request.Key);
+
             var connectionSearch = await _recordService.SearchAsync<ConnectionRecord>(wallet,
                 new SearchRecordQuery { { "connectionKey", request.Key } }, null);
 
@@ -106,7 +117,7 @@ namespace Streetcred.Sdk.Runtime
 
             var my = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
 
-            await Did.StoreTheirDidAsync(wallet, new {did = their.Did, verkey = their.Verkey}.ToJson());
+            await Did.StoreTheirDidAsync(wallet, new { did = their.Did, verkey = their.Verkey }.ToJson());
 
             connection.Endpoint = their.Endpoint;
             connection.TheirDid = their.Did;
@@ -127,6 +138,8 @@ namespace Streetcred.Sdk.Runtime
         /// <returns></returns>
         public async Task AcceptRequestAsync(Wallet wallet, string connectionId)
         {
+            _logger.LogInformation(LoggingEvents.AcceptConnectionRequest, "ConnectionId {0}", connectionId);
+
             var connection = await GetAsync(wallet, connectionId);
 
             await connection.TriggerAsync(ConnectionTrigger.Request);
@@ -159,6 +172,8 @@ namespace Streetcred.Sdk.Runtime
         /// <inheritdoc />
         public async Task AcceptResponseAsync(Wallet wallet, ConnectionResponse response)
         {
+            _logger.LogInformation(LoggingEvents.AcceptConnectionResponse, "To {0}", response.To);
+
             var connectionSearch = await _recordService.SearchAsync<ConnectionRecord>(wallet,
                 new SearchRecordQuery { { "myDid", response.To } }, null);
 
@@ -169,9 +184,9 @@ namespace Streetcred.Sdk.Runtime
                 await Did.KeyForLocalDidAsync(wallet, response.To));
 
             await Did.StoreTheirDidAsync(wallet,
-                new {did = connectionDetails.Did, verkey = connectionDetails.Verkey}.ToJson());
+                new { did = connectionDetails.Did, verkey = connectionDetails.Verkey }.ToJson());
 
-            await Pairwise.CreateAsync(wallet, connectionDetails.Did, connection.MyDid,connectionDetails.Endpoint.ToJson());
+            await Pairwise.CreateAsync(wallet, connectionDetails.Did, connection.MyDid, connectionDetails.Endpoint.ToJson());
 
             connection.TheirDid = connectionDetails.Did;
             connection.Endpoint = connectionDetails.Endpoint;
@@ -185,7 +200,12 @@ namespace Streetcred.Sdk.Runtime
         /// <returns>The async.</returns>
         /// <param name="wallet">Wallet.</param>
         /// <param name="connectionId">Connection identifier.</param>
-        public Task<ConnectionRecord> GetAsync(Wallet wallet, string connectionId) => _recordService.GetAsync<ConnectionRecord>(wallet, connectionId);
+        public Task<ConnectionRecord> GetAsync(Wallet wallet, string connectionId)
+        {
+            _logger.LogInformation(LoggingEvents.GetConnection, "ConnectionId {0}", connectionId);
+
+            return _recordService.GetAsync<ConnectionRecord>(wallet, connectionId);
+        }
 
         /// <summary>
         /// Lists the async.
@@ -195,6 +215,11 @@ namespace Streetcred.Sdk.Runtime
         /// The async.
         /// </returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public Task<List<ConnectionRecord>> ListAsync(Wallet wallet) => _recordService.SearchAsync<ConnectionRecord>(wallet, null, null);
+        public Task<List<ConnectionRecord>> ListAsync(Wallet wallet)
+        {
+            _logger.LogInformation(LoggingEvents.ListConnections, "List Connections");
+
+            return _recordService.SearchAsync<ConnectionRecord>(wallet, null, null);
+        }
     }
 }
