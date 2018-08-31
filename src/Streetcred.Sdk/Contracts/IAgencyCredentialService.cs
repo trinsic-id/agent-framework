@@ -1,12 +1,30 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Sovrin.Agents.Model.Credentials;
+using Streetcred.Sdk.Model.Records;
+using Streetcred.Sdk.Model.Records.Search;
 
 namespace Streetcred.Sdk.Contracts
 {
-    public interface IAgencyCredentialService : ICredentialService
+    public interface IAgencyCredentialService
     {
+        /// <summary>
+        /// Gets credential record for the given identifier
+        /// </summary>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="credentialId">The credential identifier.</param>
+        /// <returns></returns>
+        Task<CredentialRecord> GetAsync(Wallet wallet, string credentialId);
+
+        /// <summary>
+        /// Lists the asynchronous.
+        /// </summary>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="query">The query.</param>
+        /// <returns></returns>
+        Task<List<CredentialRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null);
 
         /// <summary>
         /// Sends the offer.
@@ -37,7 +55,7 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="credentialRequest">The credential request.</param>
         /// <param name="connectionId">The connection identifier.</param>
         /// <returns></returns>
-        Task StoreCredentialRequest(Wallet wallet, CredentialRequest credentialRequest, string connectionId);
+        Task StoreCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest, string connectionId);
 
         /// <summary>
         /// Creates and sends a credential with the given credential identifier
@@ -48,5 +66,15 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="credentialId">The credential identifier.</param>
         /// <returns></returns>
         Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId);
+
+        /// <summary>
+        /// Revokes an issued credentials and writes the updated revocation state to the ledger
+        /// </summary>
+        /// <returns>The credential async.</returns>
+        /// <param name="pool">Pool.</param>
+        /// <param name="wallet">Wallet.</param>
+        /// <param name="credentialId">Identifier of the credential to be revoked.</param>
+        /// <param name="issuerDid">The DID of the issuer who issued the credential and owns the definitions</param>
+        Task RevokeCredentialAsync(Pool pool, Wallet wallet, string credentialId, string issuerDid);
     }
 }
