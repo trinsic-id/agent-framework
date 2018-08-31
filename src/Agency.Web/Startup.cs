@@ -27,6 +27,7 @@ namespace Agency.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+            services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Trace).AddConsole());
 
             services.AddAgent();
         }

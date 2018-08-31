@@ -12,6 +12,7 @@ using Sovrin.Agents.Model.Connections;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Model.Records.Search;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
@@ -37,8 +38,6 @@ namespace Streetcred.Sdk.Runtime
         /// <inheritdoc />
         public async Task<ConnectionInvitation> CreateInvitationAsync(Wallet wallet, string connectionId)
         {
-            if (string.IsNullOrWhiteSpace(connectionId)) throw new Exception("ConnectionId must have a value.");
-
             var connectionKey = await Crypto.CreateKeyAsync(wallet, "{}");
 
             var connection = new ConnectionRecord();
@@ -85,7 +84,7 @@ namespace Streetcred.Sdk.Runtime
             var forwardMessage = new ForwardToKeyEnvelopeMessage
             {
                 Key = invitation.ConnectionKey,
-                Content = JsonConvert.SerializeObject(request)
+                Content = request.ToJson()
             };
 
             await _routerService.ForwardAsync(forwardMessage, invitation.Endpoint);
@@ -107,7 +106,7 @@ namespace Streetcred.Sdk.Runtime
 
             var my = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
 
-            await Did.StoreTheirDidAsync(wallet, JsonConvert.SerializeObject(new { did = their.Did, verkey = their.Verkey }));
+            await Did.StoreTheirDidAsync(wallet, new {did = their.Did, verkey = their.Verkey}.ToJson());
 
             connection.Endpoint = their.Endpoint;
             connection.TheirDid = their.Did;
@@ -132,7 +131,7 @@ namespace Streetcred.Sdk.Runtime
 
             await connection.TriggerAsync(ConnectionTrigger.Request);
 
-            await Pairwise.CreateAsync(wallet, connection.TheirDid, connection.MyDid, JsonConvert.SerializeObject(connection.Endpoint));
+            await Pairwise.CreateAsync(wallet, connection.TheirDid, connection.MyDid, connection.Endpoint.ToJson());
             await _recordService.UpdateAsync(wallet, connection);
 
             // Send back response message
@@ -151,7 +150,7 @@ namespace Streetcred.Sdk.Runtime
             var forwardMessage = new ForwardEnvelopeMessage
             {
                 To = connection.TheirDid,
-                Content = JsonConvert.SerializeObject(responseMessage)
+                Content = responseMessage.ToJson()
             };
 
             await _routerService.ForwardAsync(forwardMessage, connection.Endpoint);
@@ -170,10 +169,9 @@ namespace Streetcred.Sdk.Runtime
                 await Did.KeyForLocalDidAsync(wallet, response.To));
 
             await Did.StoreTheirDidAsync(wallet,
-                JsonConvert.SerializeObject(new {did = connectionDetails.Did, verkey = connectionDetails.Verkey}));
+                new {did = connectionDetails.Did, verkey = connectionDetails.Verkey}.ToJson());
 
-            await Pairwise.CreateAsync(wallet, connectionDetails.Did, connection.MyDid,
-                JsonConvert.SerializeObject(connectionDetails.Endpoint));
+            await Pairwise.CreateAsync(wallet, connectionDetails.Did, connection.MyDid,connectionDetails.Endpoint.ToJson());
 
             connection.TheirDid = connectionDetails.Did;
             connection.Endpoint = connectionDetails.Endpoint;

@@ -5,6 +5,7 @@ using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Model.Wallets;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
@@ -29,8 +30,7 @@ namespace Streetcred.Sdk.Runtime
                 return wallet;
             }
 
-            wallet = await Wallet.OpenWalletAsync(JsonConvert.SerializeObject(configuration),
-                JsonConvert.SerializeObject(credentials));
+            wallet = await Wallet.OpenWalletAsync(configuration.ToJson(), credentials.ToJson());
 
             Wallets.TryAdd(configuration.Id, wallet);
 
@@ -45,8 +45,7 @@ namespace Streetcred.Sdk.Runtime
         /// <param name="credentials">Credentials.</param>
         public async Task CreateWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
         {
-            await Wallet.CreateWalletAsync(JsonConvert.SerializeObject(configuration),
-                JsonConvert.SerializeObject(credentials));
+            await Wallet.CreateWalletAsync(configuration.ToJson(), credentials.ToJson());
 
             // Create master secret. This should later be moved to a credential related context
             await AnonCreds.ProverCreateMasterSecretAsync(await GetWalletAsync(configuration, credentials),

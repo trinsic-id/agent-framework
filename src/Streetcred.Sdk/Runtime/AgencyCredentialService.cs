@@ -7,6 +7,7 @@ using Hyperledger.Indy.BlobStorageApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Sovrin.Agents.Model;
@@ -14,11 +15,14 @@ using Sovrin.Agents.Model.Credentials;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Model.Records.Search;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
     public class AgencyCredentialService : CredentialService, IAgencyCredentialService
     {
+        private readonly ILogger<AgencyCredentialService> _logger;
+
         public AgencyCredentialService(
             IRouterService routerService,
             ILedgerService ledgerService,
@@ -26,7 +30,8 @@ namespace Streetcred.Sdk.Runtime
             IWalletRecordService recordService,
             IMessageSerializer messageSerializer,
             ISchemaService schemaService,
-            ITailsService tailsService)
+            ITailsService tailsService,
+            ILogger<AgencyCredentialService> logger)
             : base(routerService,
                 ledgerService,
                 connectionService,
@@ -35,18 +40,18 @@ namespace Streetcred.Sdk.Runtime
                 schemaService,
                 tailsService)
         {
+            _logger = logger;
         }
 
         /// <inheritdoc />
         public async Task<CredentialOffer> CreateOfferAsync(string credentialDefinitionId, string connectionId,
             Wallet wallet, string issuerDid)
         {
+            _logger.LogInformation(LoggingEvents.CreateOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
+                credentialDefinitionId, connectionId, issuerDid);
+
             var connection = await ConnectionService.GetAsync(wallet, connectionId);
-
-            // Generate credential offer
             var offerJson = await AnonCreds.IssuerCreateCredentialOfferAsync(wallet, credentialDefinitionId);
-
-            // Extract nonce - used to search for the credential record later
             var nonce = JObject.Parse(offerJson)["nonce"].ToObject<string>();
 
             // Write offer record to local wallet
@@ -64,13 +69,8 @@ namespace Streetcred.Sdk.Runtime
             };
             await RecordService.AddAsync(wallet, credentialRecord);
 
-            // Send credential offer using A2A
-            var offerDetails = new CredentialOfferDetails
-            {
-                OfferJson = offerJson
-            };
             var credentialOffer = await MessageSerializer.PackSealedAsync<CredentialOffer>(
-                new CredentialOfferDetails { OfferJson = offerJson },
+                new CredentialOfferDetails {OfferJson = offerJson},
                 wallet,
                 await Did.KeyForLocalDidAsync(wallet, issuerDid),
                 await Did.KeyForLocalDidAsync(wallet, connection.TheirDid));
@@ -81,12 +81,15 @@ namespace Streetcred.Sdk.Runtime
         public async Task SendOfferAsync(string credentialDefinitionId, string connectionId, Wallet wallet,
             string issuerDid)
         {
+            _logger.LogInformation(LoggingEvents.SendOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
+                credentialDefinitionId, connectionId, issuerDid);
+
             var connection = await ConnectionService.GetAsync(wallet, connectionId);
             var offer = await CreateOfferAsync(credentialDefinitionId, connectionId, wallet, issuerDid);
 
             await RouterService.ForwardAsync(new ForwardEnvelopeMessage
             {
-                Content = JsonConvert.SerializeObject(offer),
+                Content = offer.ToJson(),
                 To = connection.TheirDid
             }, connection.Endpoint);
         }
@@ -95,14 +98,17 @@ namespace Streetcred.Sdk.Runtime
         public async Task StoreCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest,
             string connectionId)
         {
+            _logger.LogInformation(LoggingEvents.StoreCredentialRequest, "ConnectionId {0},", connectionId);
+
             var connection = await ConnectionService.GetAsync(wallet, connectionId);
-            var (details, _) = await MessageSerializer.UnpackSealedAsync<CredentialRequestDetails>(credentialRequest.Content, wallet,
+            var (details, _) = await MessageSerializer.UnpackSealedAsync<CredentialRequestDetails>(
+                credentialRequest.Content, wallet,
                 await Did.KeyForLocalDidAsync(wallet, connection.MyDid));
 
             var request = JObject.Parse(details.CredentialRequestJson);
             var nonce = request["nonce"].ToObject<string>();
 
-            var query = new SearchRecordQuery { { "nonce", nonce } };
+            var query = new SearchRecordQuery {{"nonce", nonce}};
             var credentialSearch = await RecordService.SearchAsync<CredentialRecord>(wallet, query, null);
 
             var credential = credentialSearch.Single();
@@ -159,7 +165,7 @@ namespace Streetcred.Sdk.Runtime
 
             await RouterService.ForwardAsync(new ForwardEnvelopeMessage
             {
-                Content = JsonConvert.SerializeObject(credential),
+                Content = credential.ToJson(),
                 To = connection.TheirDid
             }, connection.Endpoint);
         }

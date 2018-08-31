@@ -7,6 +7,7 @@ using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Model.Records;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
@@ -40,8 +41,7 @@ namespace Streetcred.Sdk.Runtime
             string version,
             string[] attributeNames)
         {
-            var schema = await AnonCreds.IssuerCreateSchemaAsync(issuerDid, name, version,
-                JsonConvert.SerializeObject(attributeNames));
+            var schema = await AnonCreds.IssuerCreateSchemaAsync(issuerDid, name, version, attributeNames.ToJson());
 
             var schemaRecord = new SchemaRecord {SchemaId = schema.SchemaId};
 
@@ -68,8 +68,7 @@ namespace Streetcred.Sdk.Runtime
             var schema = await _ledgerService.LookupSchemaAsync(pool, issuerDid, schemaId);
 
             var credentialDefinition = await AnonCreds.IssuerCreateAndStoreCredentialDefAsync(wallet, issuerDid,
-                schema.ObjectJson, "Tag", null,
-                JsonConvert.SerializeObject(new {supports_revocation = supportsRevocation}));
+                schema.ObjectJson, "Tag", null, new {supports_revocation = supportsRevocation}.ToJson());
 
             await _ledgerService.RegisterCredentialDefinitionAsync(wallet, pool, issuerDid,
                 credentialDefinition.CredDefJson);
