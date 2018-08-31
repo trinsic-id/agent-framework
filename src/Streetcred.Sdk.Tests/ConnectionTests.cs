@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 using Hyperledger.Indy.WalletApi;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using Sovrin.Agents.Model;
@@ -39,10 +40,11 @@ namespace Streetcred.Sdk.Tests
 
             var endpointMock = new Mock<IEndpointService>();
             endpointMock.Setup(x => x.GetEndpointAsync(It.IsAny<Wallet>()))
-                .Returns(Task.FromResult(new AgentEndpoint()));
+                        .Returns(Task.FromResult(new AgentEndpoint { Uri = "http://mock" }));
 
             _connectionService = new ConnectionService(new WalletRecordService(), routingMock.Object,
-                new Mock<IEndpointService>().Object, messageSerializer);
+                                                       endpointMock.Object, messageSerializer,
+                                                       new Mock<ILogger<ConnectionService>>().Object);
         }
 
         public async Task InitializeAsync()
