@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Model.Records.Search;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
@@ -28,8 +29,8 @@ namespace Streetcred.Sdk.Runtime
             return NonSecrets.AddRecordAsync(wallet,
                 record.GetTypeName(),
                 record.GetId(),
-                JsonConvert.SerializeObject(record),
-                JsonConvert.SerializeObject(record.Tags));
+                record.ToJson(),
+                record.Tags.ToJson());
         }
 
         /// <summary>
@@ -43,12 +44,12 @@ namespace Streetcred.Sdk.Runtime
         public async Task<List<T>> SearchAsync<T>(Wallet wallet, SearchRecordQuery query, SearchRecordOptions options)
             where T : WalletRecord, new()
         {
-            using (var search = await NonSecrets.OpenSearchAsync(wallet,
-                new T().GetTypeName(),
-                JsonConvert.SerializeObject(query ?? new SearchRecordQuery()),
-                JsonConvert.SerializeObject(options ?? new SearchRecordOptions())))
+            using (var search = await NonSecrets.OpenSearchAsync(wallet, new T().GetTypeName(),
+                (query ?? new SearchRecordQuery()).ToJson(),
+                (options ?? new SearchRecordOptions()).ToJson()))
             {
-                var result = JsonConvert.DeserializeObject<SearchRecordResult>(await search.NextAsync(wallet, 10)); // TODO: Add support for pagination
+                var result = JsonConvert.DeserializeObject<SearchRecordResult>(await search.NextAsync(wallet, 10));
+                // TODO: Add support for pagination
 
                 return result.Records?
                            .Select(x =>
@@ -74,12 +75,12 @@ namespace Streetcred.Sdk.Runtime
             await NonSecrets.UpdateRecordValueAsync(wallet,
                 record.GetTypeName(),
                 record.GetId(),
-                JsonConvert.SerializeObject(record));
+                record.ToJson());
 
             await NonSecrets.UpdateRecordTagsAsync(wallet, 
                 record.GetTypeName(), 
                 record.GetId(),
-                JsonConvert.SerializeObject(record.Tags));
+                record.Tags.ToJson());
         }
 
         /// <summary>
@@ -96,7 +97,7 @@ namespace Streetcred.Sdk.Runtime
                 var recordJson = await NonSecrets.GetRecordAsync(wallet,
                     new T().GetTypeName(),
                     id,
-                    JsonConvert.SerializeObject(new SearchRecordOptions()));
+                    new SearchRecordOptions().ToJson());
 
                 if (recordJson == null) return null;
 

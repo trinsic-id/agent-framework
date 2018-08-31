@@ -13,6 +13,7 @@ using Sovrin.Agents.Model.Credentials;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Model.Records.Search;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
@@ -100,7 +101,7 @@ namespace Streetcred.Sdk.Runtime
 
             await RouterService.ForwardAsync(new ForwardEnvelopeMessage
             {
-                Content = JsonConvert.SerializeObject(requestMessage),
+                Content = requestMessage.ToJson(),
                 To = connection.TheirDid
             }, connection.Endpoint);
         }
