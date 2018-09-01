@@ -78,7 +78,7 @@ namespace Agency.Web.Controllers
                     await _connectionService.StoreRequestAsync(wallet, request);
                     break;
                 case CredentialRequest request:
-                    await _credentialService.StoreCredentialRequest(wallet, request, did);
+                    await _credentialService.StoreCredentialRequestAsync(wallet, request, did);
                     break;
                 case Proof _:
                     break;

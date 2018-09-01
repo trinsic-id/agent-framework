@@ -10,7 +10,7 @@ namespace Streetcred.Sdk.Runtime
     /// <summary>
     /// Credential service.
     /// </summary>
-    public abstract class CredentialService : ICredentialService
+    public abstract class CredentialService
     {
         protected readonly IRouterService RouterService;
         protected readonly ILedgerService LedgerService;
