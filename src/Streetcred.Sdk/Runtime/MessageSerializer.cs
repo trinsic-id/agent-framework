@@ -6,6 +6,7 @@ using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json;
 using Sovrin.Agents.Model;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
@@ -22,8 +23,7 @@ namespace Streetcred.Sdk.Runtime
         public async Task<T> PackSealedAsync<T>(object message, Wallet wallet, string myKey, string theirKey)
             where T : IContentMessage, new()
         {
-            var json = JsonConvert.SerializeObject(message);
-            var messageData = Encoding.UTF8.GetBytes(json);
+            var messageData = Encoding.UTF8.GetBytes(message.ToJson());
             var encrypted = await Crypto.AuthCryptAsync(wallet, myKey, theirKey, messageData);
             
             return new T { Content = Convert.ToBase64String(encrypted) };
@@ -54,8 +54,7 @@ namespace Streetcred.Sdk.Runtime
         /// <returns></returns>
         public async Task<byte[]> PackAsync(object message, string key)
         {
-            var json = JsonConvert.SerializeObject(message);
-            var messageData = Encoding.UTF8.GetBytes(json);
+            var messageData = Encoding.UTF8.GetBytes( message.ToJson());
             var encrypted = await Crypto.AnonCryptAsync(key, messageData);
 
             return encrypted;
