@@ -17,4 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Sovrin.Agents.Model\Sovrin.Agents.Model.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Contracts\ICredentialService.cs" />
+  </ItemGroup>
 </Project>

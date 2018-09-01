@@ -70,7 +70,7 @@ namespace Streetcred.Sdk.Runtime
                 OfferJson = offerJson
             };
             var credentialOffer = await MessageSerializer.PackSealedAsync<CredentialOffer>(
-                offerDetails,
+                new CredentialOfferDetails { OfferJson = offerJson },
                 wallet,
                 await Did.KeyForLocalDidAsync(wallet, issuerDid),
                 await Did.KeyForLocalDidAsync(wallet, connection.TheirDid));
@@ -92,7 +92,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task StoreCredentialRequest(Wallet wallet, CredentialRequest credentialRequest,
+        public async Task StoreCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest,
             string connectionId)
         {
             var connection = await ConnectionService.GetAsync(wallet, connectionId);
@@ -102,9 +102,8 @@ namespace Streetcred.Sdk.Runtime
             var request = JObject.Parse(details.CredentialRequestJson);
             var nonce = request["nonce"].ToObject<string>();
 
-            var credentialSearch =
-                await RecordService.SearchAsync<CredentialRecord>(wallet, new SearchRecordQuery { { "nonce", nonce } },
-                    null);
+            var query = new SearchRecordQuery { { "nonce", nonce } };
+            var credentialSearch = await RecordService.SearchAsync<CredentialRecord>(wallet, query, null);
 
             var credential = credentialSearch.Single();
             // Offer should already be present
@@ -141,7 +140,7 @@ namespace Streetcred.Sdk.Runtime
 
             if (definitionRecord.Revocable)
             {
-                await LedgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid, issuedCredential.RevocId,
+                await LedgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid, definitionRecord.RevocationRegistryId,
                     "CL_ACCUM", issuedCredential.RevocRegDeltaJson);
             }
 
@@ -165,5 +164,27 @@ namespace Streetcred.Sdk.Runtime
             }, connection.Endpoint);
         }
 
+        /// <inheritdoc />
+        public async Task RevokeCredentialAsync(Pool pool, Wallet wallet, string credentialId, string issuerDid)
+        {
+            var credential = await GetAsync(wallet, credentialId);
+            var definition = await SchemaService.GetCredentialDefinitionAsync(wallet, credential.CredentialDefinitionId);
+
+            // Check if the state machine is valid for revocation
+            await credential.TriggerAsync(CredentialTrigger.Revoke);
+
+            // Revoke the credential
+            var tailsReader = await TailsService.GetBlobStorageReaderAsync(definition.TailsStorageId);
+            var revocRegistryDeltaJson = await AnonCreds.IssuerRevokeCredentialAsync(wallet, tailsReader,
+                                                                                     definition.RevocationRegistryId,
+                                                                                     credential.RevocId);
+
+            // Write the delta state on the ledger for the corresponding revocation registry
+            await LedgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid, definition.RevocationRegistryId,
+                                                                 "CL_ACCUM", revocRegistryDeltaJson);
+
+            // Update local credential record
+            await RecordService.UpdateAsync(wallet, credential);
+        }
     }
 }
