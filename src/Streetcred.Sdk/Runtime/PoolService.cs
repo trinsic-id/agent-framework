@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Hyperledger.Indy.PoolApi;
 using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
@@ -32,7 +33,7 @@ namespace Streetcred.Sdk.Runtime
             {
                 await Pool.SetProtocolVersionAsync(2);
 
-                var poolConfig = JsonConvert.SerializeObject(new { genesis_txn = genesisFile });
+                var poolConfig = new {genesis_txn = genesisFile}.ToJson();
 
                 await Pool.CreatePoolLedgerConfigAsync(poolName, poolConfig);
             }

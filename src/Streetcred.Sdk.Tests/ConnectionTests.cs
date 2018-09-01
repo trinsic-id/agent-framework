@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 using Hyperledger.Indy.WalletApi;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using Sovrin.Agents.Model;
@@ -14,14 +15,14 @@ using Xunit;
 
 namespace Streetcred.Sdk.Tests
 {
-    public class ConnectionTests : IDisposable
+    public class ConnectionTests : IAsyncLifetime
     {
         private const string IssuerConfig = "{\"id\":\"issuer_test_wallet\"}";
         private const string HolderConfig = "{\"id\":\"holder_test_wallet\"}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
 
-        private readonly Wallet _issuerWallet;
-        private readonly Wallet _holderWallet;
+        private Wallet _issuerWallet;
+        private Wallet _holderWallet;
 
         private readonly IConnectionService _connectionService;
 
@@ -32,20 +33,6 @@ namespace Streetcred.Sdk.Tests
             _messages = new ConcurrentBag<IEnvelopeMessage>();
             var messageSerializer = new MessageSerializer();
 
-            var createIssuerTask = Wallet.CreateWalletAsync(IssuerConfig, Credentials);
-            var openIssuerTask = Wallet.OpenWalletAsync(IssuerConfig, Credentials);
-
-            var createHolderTask = Wallet.CreateWalletAsync(HolderConfig, Credentials);
-            var openHolderTask = Wallet.OpenWalletAsync(HolderConfig, Credentials);
-
-            Task.WaitAll(createIssuerTask
-                .ContinueWith(async _ => await openIssuerTask)
-                .ContinueWith(async _ => await createHolderTask)
-                .ContinueWith(async _ => await openHolderTask));
-
-            _issuerWallet = openIssuerTask.Result;
-            _holderWallet = openHolderTask.Result;
-
             var routingMock = new Mock<IRouterService>();
             routingMock.Setup(x => x.ForwardAsync(It.IsNotNull<IEnvelopeMessage>(), It.IsAny<AgentEndpoint>()))
                 .Callback((IEnvelopeMessage content, AgentEndpoint endpoint) => { _messages.Add(content); })
@@ -53,10 +40,20 @@ namespace Streetcred.Sdk.Tests
 
             var endpointMock = new Mock<IEndpointService>();
             endpointMock.Setup(x => x.GetEndpointAsync(It.IsAny<Wallet>()))
-                .Returns(Task.FromResult(new AgentEndpoint()));
+                        .Returns(Task.FromResult(new AgentEndpoint { Uri = "http://mock" }));
 
             _connectionService = new ConnectionService(new WalletRecordService(), routingMock.Object,
-                new Mock<IEndpointService>().Object, messageSerializer);
+                                                       endpointMock.Object, messageSerializer,
+                                                       new Mock<ILogger<ConnectionService>>().Object);
+        }
+
+        public async Task InitializeAsync()
+        {
+            await Wallet.CreateWalletAsync(IssuerConfig, Credentials);
+            await Wallet.CreateWalletAsync(HolderConfig, Credentials);
+
+            _issuerWallet = await Wallet.OpenWalletAsync(IssuerConfig, Credentials);
+            _holderWallet = await Wallet.OpenWalletAsync(HolderConfig, Credentials);
         }
 
         [Fact]
@@ -119,12 +116,12 @@ namespace Streetcred.Sdk.Tests
         private IContentMessage GetContentMessage(IEnvelopeMessage message)
             => JsonConvert.DeserializeObject<IContentMessage>(message.Content);
 
-        public void Dispose()
+        public async Task DisposeAsync()
         {
-            _issuerWallet.CloseAsync().Wait();
-            _holderWallet.CloseAsync().Wait();
-            Wallet.DeleteWalletAsync(IssuerConfig, Credentials).Wait();
-            Wallet.DeleteWalletAsync(HolderConfig, Credentials).Wait();
+            await _issuerWallet.CloseAsync();
+            await _holderWallet.CloseAsync();
+            await Wallet.DeleteWalletAsync(IssuerConfig, Credentials);
+            await Wallet.DeleteWalletAsync(HolderConfig, Credentials);
         }
     }
 }

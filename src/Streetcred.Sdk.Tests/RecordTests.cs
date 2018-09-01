@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Hyperledger.Indy.WalletApi;
@@ -10,25 +10,25 @@ using Xunit;
 
 namespace Streetcred.Sdk.Tests
 {
-    public class RecordTests : IDisposable
+    public class RecordTests : IAsyncLifetime
     {
         private const string Config = "{\"id\":\"test_wallet\"}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
 
-        private readonly Wallet _wallet;
+        private Wallet _wallet;
 
         private readonly IWalletRecordService _recordService;
 
         public RecordTests()
         {
-            var createTask = Wallet.CreateWalletAsync(Config, Credentials);
-            var openTask = Wallet.OpenWalletAsync(Config, Credentials);
-
-            Task.WaitAll(createTask, openTask);
-
-            _wallet = openTask.Result;
-
             _recordService = new WalletRecordService();
+        }
+
+        public async Task InitializeAsync()
+        {
+            var task = Wallet.CreateWalletAsync(Config, Credentials);
+            await task;
+            _wallet = await Wallet.OpenWalletAsync(Config, Credentials);
         }
 
         [Fact]
@@ -128,10 +128,10 @@ namespace Streetcred.Sdk.Tests
         //    System.Diagnostics.Debug.WriteLine(offer);
         //}
 
-        public void Dispose()
+        public async Task DisposeAsync()
         {
-            _wallet.CloseAsync().Wait();
-            Wallet.DeleteWalletAsync(Config, Credentials).Wait();
+            await _wallet.CloseAsync();
+            await Wallet.DeleteWalletAsync(Config, Credentials);
         }
     }
 }

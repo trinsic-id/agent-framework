@@ -2,8 +2,10 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Sovrin.Agents.Model;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
@@ -13,14 +15,16 @@ namespace Streetcred.Sdk.Runtime
     public class RouterService : IRouterService
     {
         private readonly IMessageSerializer _messageSerializer;
+        private readonly ILogger<RouterService> _logger;
         private readonly HttpClient _httpClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:Streetcred.Sdk.Runtime.RouterService"/> class.
         /// </summary>
-        public RouterService(IMessageSerializer messageSerializer)
+        public RouterService(IMessageSerializer messageSerializer, ILogger<RouterService> logger)
         {
             _messageSerializer = messageSerializer;
+            _logger = logger;
             _httpClient = new HttpClient();
         }
 
@@ -32,6 +36,7 @@ namespace Streetcred.Sdk.Runtime
         /// <returns></returns>
         public async Task ForwardAsync(IEnvelopeMessage envelope, AgentEndpoint endpoint)
         {
+            _logger.LogInformation(LoggingEvents.Forward, "Envelope {0}, Endpoint {1}", envelope.Type, endpoint.Uri);
 
             var encrypted = await _messageSerializer.PackAsync(envelope, endpoint.Verkey);
 
