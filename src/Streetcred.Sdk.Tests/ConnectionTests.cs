@@ -20,6 +20,7 @@ namespace Streetcred.Sdk.Tests
         private const string IssuerConfig = "{\"id\":\"issuer_test_wallet\"}";
         private const string HolderConfig = "{\"id\":\"holder_test_wallet\"}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
+        private const string MockEndpointUri = "http://mock";
 
         private Wallet _issuerWallet;
         private Wallet _holderWallet;
@@ -40,7 +41,7 @@ namespace Streetcred.Sdk.Tests
 
             var endpointMock = new Mock<IEndpointService>();
             endpointMock.Setup(x => x.GetEndpointAsync(It.IsAny<Wallet>()))
-                        .Returns(Task.FromResult(new AgentEndpoint { Uri = "http://mock" }));
+                        .Returns(Task.FromResult(new AgentEndpoint { Uri = MockEndpointUri }));
 
             _connectionService = new ConnectionService(new WalletRecordService(), routingMock.Object,
                                                        endpointMock.Object, messageSerializer,
@@ -111,6 +112,9 @@ namespace Streetcred.Sdk.Tests
 
             Assert.Equal(connectionIssuer.MyDid, connectionHolder.TheirDid);
             Assert.Equal(connectionIssuer.TheirDid, connectionHolder.MyDid);
+
+            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
+            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
         }
 
         private IContentMessage GetContentMessage(IEnvelopeMessage message)
