@@ -21,10 +21,10 @@ namespace Agency.Web.Controllers
         private readonly IEndpointService _endpointService;
         private readonly IWalletService _walletService;
         private readonly IMessageSerializer _messageSerializer;
-        private readonly IAgencyCredentialService _credentialService;
+        private readonly ICredentialService _credentialService;
 
         public AgentController(IConnectionService connectionService, IEndpointService endpointService,
-            IWalletService walletService, IMessageSerializer messageSerializer, IAgencyCredentialService credentialService)
+            IWalletService walletService, IMessageSerializer messageSerializer, ICredentialService credentialService)
         {
             _connectionService = connectionService;
             _endpointService = endpointService;
@@ -52,39 +52,6 @@ namespace Agency.Web.Controllers
         {
             var wallet = await _walletService.GetWalletAsync(WalletUtils.Configuration, WalletUtils.Credentials);
             return await _connectionService.ListAsync(wallet);
-        }
-
-        /// <summary>
-        /// A2A endpoint supporting message types in the Sovrin ecosystem
-        /// </summary>
-        /// <param name="body">The body.</param>
-        /// <returns></returns>
-        /// <exception cref="System.Exception">Unsupported return result</exception>
-        [HttpPost]
-        public async Task<IActionResult> Post([FromBody] byte[] body)
-        {
-            var wallet = await _walletService.GetWalletAsync(WalletUtils.Configuration, WalletUtils.Credentials);
-            var endpoint = await _endpointService.GetEndpointAsync(wallet);
-
-            var decrypted =
-                await _messageSerializer.UnpackAsync<IEnvelopeMessage>(body, wallet, endpoint.Verkey);
-
-            var decoded = JsonConvert.DeserializeObject<IContentMessage>(decrypted.Content);
-            var (did, _) = _messageSerializer.DecodeType(decoded.Type);
-
-            switch (decoded)
-            {
-                case ConnectionRequest request:
-                    await _connectionService.StoreRequestAsync(wallet, request);
-                    break;
-                case CredentialRequest request:
-                    await _credentialService.StoreCredentialRequestAsync(wallet, request, did);
-                    break;
-                case Proof _:
-                    break;
-            }
-
-            throw new Exception("Unsupported return result");
         }
     }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Agency.Web.Utils;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Streetcred.Sdk.Extensions;
+using Streetcred.Sdk.Extensions.Options;
 using Streetcred.Sdk.Model.Wallets;
 
 namespace Agency.Web
@@ -32,7 +34,15 @@ namespace Agency.Web
                                 .AddConsole()
                                 .AddDebug());
 
-            services.AddAgent();
+            services.AddIssuerAgency(config =>
+            {
+                config
+                    .WithWalletOptions(Configuration.GetSection("WalletOptions").Get<WalletOptions>())
+                    .WithPoolOptions(new PoolOptions
+                    {
+                        GenesisFilename = Path.GetFullPath("pool_genesis.txn")
+                    });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -43,15 +53,10 @@ namespace Agency.Web
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseMvc();
+            // Add before MVC middleware
+            app.UseIssuerAgency("/agent");
 
-            app.UseAgent(options =>
-            {
-                options
-                    .AsPublicAgent("http://localhost:5000")
-                    .WithPool("DefaultPool", "pool_genesis.txn")
-                    .WithWallet(WalletUtils.Configuration, WalletUtils.Credentials);
-            });
+            app.UseMvc();
         }
     }
 }
