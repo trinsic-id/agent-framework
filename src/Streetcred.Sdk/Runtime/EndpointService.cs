@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Hyperledger.Indy.WalletApi;
 using Sovrin.Agents.Model;
 using Streetcred.Sdk.Contracts;

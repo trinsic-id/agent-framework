@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.WalletApi;
-using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Model.Wallets;
 using Streetcred.Sdk.Utils;

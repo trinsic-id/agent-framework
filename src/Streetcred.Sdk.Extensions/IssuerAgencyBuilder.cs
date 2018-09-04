@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Sovrin.Agents.Model;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Extensions.Options;
-using Streetcred.Sdk.Model.Wallets;
 
 namespace Streetcred.Sdk.Extensions
 {
@@ -19,22 +14,24 @@ namespace Streetcred.Sdk.Extensions
         private string _issuerSeed;
         private string _agentSeed;
         private string _publicUri = "http://localhost:5000/";
-
-        private List<Task> createTasks;
-        private readonly IWalletService walletService;
-        private readonly IPoolService poolService;
-        private readonly IEndpointService endpointService;
+        
+        private readonly IWalletService _walletService;
+        private readonly IPoolService _poolService;
+        private readonly IEndpointService _endpointService;
 
         internal IssuerAgencyBuilder(IWalletService walletService,
                               IPoolService poolService,
                               IEndpointService endpointService)
         {
-            createTasks = new List<Task>();
-            this.walletService = walletService;
-            this.poolService = poolService;
-            this.endpointService = endpointService;
+            this._walletService = walletService;
+            this._poolService = poolService;
+            this._endpointService = endpointService;
         }
-
+        /// <summary>
+        /// Set the issuer seed for generating detemerinistic DID and VerKey
+        /// </summary>
+        /// <param name="issuerSeed">The issuer seed.</param>
+        /// <returns></returns>
         public IssuerAgencyBuilder WithIssuerSeed(string issuerSeed)
         {
             _issuerSeed = issuerSeed;
@@ -42,9 +39,26 @@ namespace Streetcred.Sdk.Extensions
             return this;
         }
 
+        /// <summary>
+        /// Set the agent seed for generating detemerinistic DID and VerKey
+        /// </summary>
+        /// <param name="agentSeed">The agent seed.</param>
+        /// <returns></returns>
         public IssuerAgencyBuilder WithAgentSeed(string agentSeed)
         {
             _agentSeed = agentSeed;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the agent endpoint uri
+        /// </summary>
+        /// <param name="uri">The URI.</param>
+        /// <returns></returns>
+        public IssuerAgencyBuilder WithEndpoint(string uri)
+        {
+            _publicUri = uri;
 
             return this;
         }
@@ -55,15 +69,16 @@ namespace Streetcred.Sdk.Extensions
             {
                 try
                 {
-                    await walletService.CreateWalletAsync(walletOptions.WalletConfiguration, walletOptions.WalletCredentials);
+                    await _walletService.CreateWalletAsync(walletOptions.WalletConfiguration, walletOptions.WalletCredentials);
                 }
                 catch (WalletExistsException)
                 {
                     // Wallet already exists, swallow exception
                 }
+
                 try
                 {
-                    await poolService.CreatePoolAsync(poolOptions.PoolName, poolOptions.GenesisFilename);
+                    await _poolService.CreatePoolAsync(poolOptions.PoolName, poolOptions.GenesisFilename);
                 }
                 catch (PoolLedgerConfigExistsException)
                 {
@@ -73,7 +88,7 @@ namespace Streetcred.Sdk.Extensions
                 if (string.IsNullOrEmpty(_publicUri))
                     return;
 
-                var wallet = await walletService.GetWalletAsync(walletOptions.WalletConfiguration,
+                var wallet = await _walletService.GetWalletAsync(walletOptions.WalletConfiguration,
                                                                 walletOptions.WalletCredentials);
 
                 var agent = await Did.CreateAndStoreMyDidAsync(
@@ -81,7 +96,7 @@ namespace Streetcred.Sdk.Extensions
                         ? "{}"
                         : JsonConvert.SerializeObject(new { seed = _agentSeed }));
 
-                await endpointService.StoreEndpointAsync(wallet, new AgentEndpoint
+                await _endpointService.StoreEndpointAsync(wallet, new AgentEndpoint
                 {
                     Uri = _publicUri,
                     Did = agent.Did,

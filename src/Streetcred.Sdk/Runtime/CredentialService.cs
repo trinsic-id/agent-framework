@@ -8,7 +8,6 @@ using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Sovrin.Agents.Model;
 using Sovrin.Agents.Model.Credentials;

@@ -1,12 +1,10 @@
-﻿using System;
-using Streetcred.Sdk.Extensions.Options;
-using Streetcred.Sdk.Model.Wallets;
+﻿using Streetcred.Sdk.Extensions.Options;
 
 namespace Streetcred.Sdk.Extensions
 {
     public class IssuerAgencyConfiguration
     {
-        public IssuerAgencyConfiguration()
+        internal IssuerAgencyConfiguration()
         {
             WalletOptions = new WalletOptions();
             PoolOptions = new PoolOptions();
@@ -15,6 +13,11 @@ namespace Streetcred.Sdk.Extensions
         internal WalletOptions WalletOptions { get; private set; }
         internal PoolOptions PoolOptions { get; private set; }
 
+        /// <summary>
+        /// Sets the <see cref="WalletOptions" /> for this agent
+        /// </summary>
+        /// <param name="walletOptions">The wallet options.</param>
+        /// <returns></returns>
         public IssuerAgencyConfiguration WithWalletOptions(WalletOptions walletOptions)
         {
             WalletOptions = walletOptions;
@@ -22,6 +25,11 @@ namespace Streetcred.Sdk.Extensions
             return this;
         }
 
+        /// <summary>
+        /// Sets the <see cref="PoolOptions"/> for this agent
+        /// </summary>
+        /// <param name="poolOptions">The pool options.</param>
+        /// <returns></returns>
         public IssuerAgencyConfiguration WithPoolOptions(PoolOptions poolOptions)
         {
             PoolOptions = poolOptions;

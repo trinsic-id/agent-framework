@@ -7,7 +7,6 @@ using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PairwiseApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Sovrin.Agents.Model;
 using Sovrin.Agents.Model.Connections;
 using Streetcred.Sdk.Contracts;
