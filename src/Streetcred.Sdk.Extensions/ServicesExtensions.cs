@@ -11,11 +11,7 @@ namespace Streetcred.Sdk.Extensions
 {
     public static class ServicesExtensions
     {
-        /// <summary>
-        /// Adds services registration for all SDK services
-        /// </summary>
-        /// <param name="services">The services.</param>
-        public static void AddAgent(this IServiceCollection services)
+        private static void RegisterServices(this IServiceCollection services)
         {
             services.AddSingleton<IRouterService, RouterService>();
             services.AddSingleton<ITailsService, TailsService>();
@@ -32,9 +28,14 @@ namespace Streetcred.Sdk.Extensions
             services.AddOptions<PoolOptions>();
         }
 
-        public static void AddIssuerAgency(this IServiceCollection services, Action<IssuerAgencyConfiguration> agentConfiguration)
+        /// <summary>
+        /// Adds a sovrin issuer agent with the provided configuration
+        /// </summary>
+        /// <param name="services">The services.</param>
+        /// <param name="agentConfiguration">The agent configuration.</param>
+        public static void AddIssuerAgency(this IServiceCollection services, Action<IssuerAgencyConfiguration> agentConfiguration = null)
         {
-            AddAgent(services);
+            RegisterServices(services);
 
             var defaultConfiguration = new IssuerAgencyConfiguration();
             agentConfiguration?.Invoke(defaultConfiguration);
@@ -56,6 +57,7 @@ namespace Streetcred.Sdk.Extensions
         /// Allows default agent configuration
         /// </summary>
         /// <param name="app">App.</param>
+        /// <param name="route">The route.</param>
         /// <param name="options">Options.</param>
         public static void UseIssuerAgency(this IApplicationBuilder app, string route, Action<IssuerAgencyBuilder> options = null)
         {

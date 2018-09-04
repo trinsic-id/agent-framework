@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Agency.Web.Utils;
+﻿using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Streetcred.Sdk.Extensions;
 using Streetcred.Sdk.Extensions.Options;
-using Streetcred.Sdk.Model.Wallets;
 
 namespace Agency.Web
 {
@@ -38,10 +31,7 @@ namespace Agency.Web
             {
                 config
                     .WithWalletOptions(Configuration.GetSection("WalletOptions").Get<WalletOptions>())
-                    .WithPoolOptions(new PoolOptions
-                    {
-                        GenesisFilename = Path.GetFullPath("pool_genesis.txn")
-                    });
+                    .WithPoolOptions(new PoolOptions {GenesisFilename = Path.GetFullPath("pool_genesis.txn")});
             });
         }
 
@@ -54,7 +44,10 @@ namespace Agency.Web
             }
 
             // Add before MVC middleware
-            app.UseIssuerAgency("/agent");
+            app.UseIssuerAgency("/agent", builder => 
+                builder
+                    .WithEndpoint("http://localhost:5000/agent")
+                    .WithIssuerSeed("000000000000000000000000Steward1"));
 
             app.UseMvc();
         }

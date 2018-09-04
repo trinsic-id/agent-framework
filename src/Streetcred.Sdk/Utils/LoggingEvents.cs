@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.Extensions.Logging;
-
-namespace Streetcred.Sdk.Utils
+﻿namespace Streetcred.Sdk.Utils
 {
     public class LoggingEvents
     {

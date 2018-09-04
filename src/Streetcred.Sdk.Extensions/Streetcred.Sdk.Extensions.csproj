@@ -18,13 +18,4 @@
     <ProjectReference Include="..\Streetcred.Sdk\Streetcred.Sdk.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Options\" />
-    <Folder Include="Handlers\" />
-    <Folder Include="Model\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="ContextProvider\DefaultConfigurationContextProvider.cs" />
-    <Compile Remove="Model\IndyContext.cs" />
-  </ItemGroup>
 </Project>
