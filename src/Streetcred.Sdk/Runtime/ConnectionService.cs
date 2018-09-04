@@ -152,6 +152,7 @@ namespace Streetcred.Sdk.Runtime
             var response = new ConnectionDetails
             {
                 Did = connection.MyDid,
+                Endpoint = await _endpointService.GetEndpointAsync(wallet),
                 Verkey = myKey
             };
 
@@ -187,9 +188,12 @@ namespace Streetcred.Sdk.Runtime
                 new { did = connectionDetails.Did, verkey = connectionDetails.Verkey }.ToJson());
 
             await Pairwise.CreateAsync(wallet, connectionDetails.Did, connection.MyDid, connectionDetails.Endpoint.ToJson());
-
+            
             connection.TheirDid = connectionDetails.Did;
-            connection.Endpoint = connectionDetails.Endpoint;
+
+            if (connectionDetails.Endpoint != null)
+                connection.Endpoint = connectionDetails.Endpoint;
+
             connection.Tags.Add("theirDid", connectionDetails.Did);
             await _recordService.UpdateAsync(wallet, connection);
         }
