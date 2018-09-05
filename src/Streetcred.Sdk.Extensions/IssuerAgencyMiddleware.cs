@@ -20,7 +20,7 @@ namespace Streetcred.Sdk.Extensions
         private readonly IMessageSerializer _messageSerializer;
         private readonly IConnectionService _connectionService;
         private readonly ICredentialService _credentialService;
-        private readonly IEndpointService _endpointService;
+        private readonly IProvisioningService _provisioningService;
         private readonly PoolOptions _poolOptions;
         private readonly WalletOptions _walletOptions;
 
@@ -30,7 +30,7 @@ namespace Streetcred.Sdk.Extensions
                                       IMessageSerializer messageSerializer,
                                       IConnectionService connectionService,
                                       ICredentialService credentialService,
-                                      IEndpointService endpointService,
+                                      IProvisioningService provisioningService,
                                       IOptions<WalletOptions> walletOptions,
                                       IOptions<PoolOptions> poolOptions)
         {
@@ -40,7 +40,7 @@ namespace Streetcred.Sdk.Extensions
             _messageSerializer = messageSerializer;
             _connectionService = connectionService;
             _credentialService = credentialService;
-            _endpointService = endpointService;
+            _provisioningService = provisioningService;
             _poolOptions = poolOptions.Value;
             _walletOptions = walletOptions.Value;
         }
@@ -55,13 +55,13 @@ namespace Streetcred.Sdk.Extensions
 
             var pool = await _poolService.GetPoolAsync(_poolOptions.PoolName);
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
-            var endpoint = await _endpointService.GetEndpointAsync(wallet);
+            var endpoint = await _provisioningService.GetProvisioningAsync(wallet);
 
             var body = new byte[(int)context.Request.ContentLength];
 
             await context.Request.Body.ReadAsync(body, 0, body.Length);
 
-            var decrypted = await _messageSerializer.UnpackAsync<IEnvelopeMessage>(body, wallet, endpoint.Verkey);
+            var decrypted = await _messageSerializer.UnpackAsync<IEnvelopeMessage>(body, wallet, endpoint.Endpoint.Verkey);
             var decoded = JsonConvert.DeserializeObject<IContentMessage>(decrypted.Content);
             (var did, var _) = _messageSerializer.DecodeType(decoded.Type);
 

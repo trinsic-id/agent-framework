@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Agency.Web.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Sovrin.Agents.Model;
@@ -16,25 +15,25 @@ namespace Agency.Web.Controllers
     public class AgentController : Controller
     {
         private readonly IConnectionService _connectionService;
-        private readonly IEndpointService _endpointService;
+        private readonly IProvisioningService _provisioningService;
         private readonly IWalletService _walletService;
         private readonly WalletOptions _walletOptions;
 
-        public AgentController(IConnectionService connectionService, IEndpointService endpointService,
+        public AgentController(IConnectionService connectionService, IProvisioningService provisioningService,
             IWalletService walletService, IMessageSerializer messageSerializer, ICredentialService credentialService,
             IOptions<WalletOptions> walletOptions)
         {
             _connectionService = connectionService;
-            _endpointService = endpointService;
+            _provisioningService = provisioningService;
             _walletService = walletService;
             _walletOptions = walletOptions.Value;
         }
 
         [HttpGet]
-        public async Task<AgentEndpoint> Get()
+        public async Task<ProvisioningRecord> Get()
         {
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
-            return await _endpointService.GetEndpointAsync(wallet);
+            return await _provisioningService.GetProvisioningAsync(wallet);
         }
 
         [HttpGet("invite")]
