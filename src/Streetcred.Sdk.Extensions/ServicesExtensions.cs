@@ -23,7 +23,7 @@ namespace Streetcred.Sdk.Extensions
             services.AddSingleton<IConnectionService, ConnectionService>();
             services.AddSingleton<IMessageSerializer, MessageSerializer>();
             services.AddSingleton<ICredentialService, CredentialService>();
-            services.AddSingleton<IEndpointService, EndpointService>();
+            services.AddSingleton<IProvisioningService, ProvisioningService>();
             services.AddOptions<WalletOptions>();
             services.AddOptions<PoolOptions>();
         }
@@ -63,7 +63,7 @@ namespace Streetcred.Sdk.Extensions
         {
             var walletService = app.ApplicationServices.GetService<IWalletService>();
             var poolService = app.ApplicationServices.GetService<IPoolService>();
-            var endpointService = app.ApplicationServices.GetService<IEndpointService>();
+            var endpointService = app.ApplicationServices.GetService<IProvisioningService>();
 
             var builder = new IssuerAgencyBuilder(walletService, poolService, endpointService);
 
@@ -72,7 +72,7 @@ namespace Streetcred.Sdk.Extensions
             var walletOptions = app.ApplicationServices.GetService<IOptions<WalletOptions>>();
             var poolOptions = app.ApplicationServices.GetService<IOptions<PoolOptions>>();
 
-            builder.Initialize(walletOptions.Value, poolOptions.Value);
+            builder.Build(walletOptions.Value, poolOptions.Value);
 
             app.Map(PathString.FromUriComponent(route), a =>
             {

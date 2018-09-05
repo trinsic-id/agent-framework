@@ -20,19 +20,19 @@ namespace Streetcred.Sdk.Runtime
     {
         private readonly IWalletRecordService _recordService;
         private readonly IRouterService _routerService;
-        private readonly IEndpointService _endpointService;
+        private readonly IProvisioningService _provisioningService;
         private readonly IMessageSerializer _messageSerializer;
         private readonly ILogger<ConnectionService> _logger;
 
         public ConnectionService(
             IWalletRecordService recordService,
             IRouterService routerService,
-            IEndpointService endpointService,
+            IProvisioningService provisioningService,
             IMessageSerializer messageSerializer,
             ILogger<ConnectionService> logger)
         {
             _routerService = routerService;
-            _endpointService = endpointService;
+            _provisioningService = provisioningService;
             _messageSerializer = messageSerializer;
             _logger = logger;
             _recordService = recordService;
@@ -52,9 +52,10 @@ namespace Streetcred.Sdk.Runtime
             await connection.TriggerAsync(ConnectionTrigger.InvitationCreate);
             await _recordService.AddAsync(wallet, connection);
 
+            var provisioning = await _provisioningService.GetProvisioningAsync(wallet);
             return new ConnectionInvitation
             {
-                Endpoint = await _endpointService.GetEndpointAsync(wallet),
+                Endpoint = provisioning.Endpoint,
                 ConnectionKey = connectionKey
             };
         }
@@ -78,11 +79,12 @@ namespace Streetcred.Sdk.Runtime
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await _recordService.AddAsync(wallet, connection);
 
+            var provisioning = await _provisioningService.GetProvisioningAsync(wallet);
             var connectionDetails = new ConnectionDetails
             {
                 Did = my.Did,
                 Verkey = my.VerKey,
-                Endpoint = await _endpointService.GetEndpointAsync(wallet)
+                Endpoint = provisioning.Endpoint
             };
 
             var request = await _messageSerializer.PackSealedAsync<ConnectionRequest>(connectionDetails, wallet, my.VerKey,
@@ -148,10 +150,11 @@ namespace Streetcred.Sdk.Runtime
 
             // Send back response message
             var myKey = await Did.KeyForLocalDidAsync(wallet, connection.MyDid);
+            var provisioning = await _provisioningService.GetProvisioningAsync(wallet);
             var response = new ConnectionDetails
             {
                 Did = connection.MyDid,
-                Endpoint = await _endpointService.GetEndpointAsync(wallet),
+                Endpoint = provisioning.Endpoint,
                 Verkey = myKey
             };
 

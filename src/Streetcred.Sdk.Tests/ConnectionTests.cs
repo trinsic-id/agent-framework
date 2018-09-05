@@ -27,11 +27,10 @@ namespace Streetcred.Sdk.Tests
 
         private readonly IConnectionService _connectionService;
 
-        private readonly ConcurrentBag<IEnvelopeMessage> _messages;
+        private readonly ConcurrentBag<IEnvelopeMessage> _messages = new ConcurrentBag<IEnvelopeMessage>();
 
         public ConnectionTests()
         {
-            _messages = new ConcurrentBag<IEnvelopeMessage>();
             var messageSerializer = new MessageSerializer();
 
             var routingMock = new Mock<IRouterService>();
@@ -39,13 +38,16 @@ namespace Streetcred.Sdk.Tests
                 .Callback((IEnvelopeMessage content, AgentEndpoint endpoint) => { _messages.Add(content); })
                 .Returns(Task.CompletedTask);
 
-            var endpointMock = new Mock<IEndpointService>();
-            endpointMock.Setup(x => x.GetEndpointAsync(It.IsAny<Wallet>()))
-                        .Returns(Task.FromResult(new AgentEndpoint { Uri = MockEndpointUri }));
+            var provisioningMock = new Mock<IProvisioningService>();
+            provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
+                        .Returns(Task.FromResult(new ProvisioningRecord { Endpoint = new AgentEndpoint { Uri = MockEndpointUri } }));
 
-            _connectionService = new ConnectionService(new WalletRecordService(), routingMock.Object,
-                                                       endpointMock.Object, messageSerializer,
-                                                       new Mock<ILogger<ConnectionService>>().Object);
+            _connectionService = new ConnectionService(
+                new WalletRecordService(),
+                routingMock.Object,
+                provisioningMock.Object,
+                messageSerializer,
+                new Mock<ILogger<ConnectionService>>().Object);
         }
 
         public async Task InitializeAsync()
