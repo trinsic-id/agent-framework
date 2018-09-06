@@ -11,7 +11,7 @@ using Streetcred.Sdk.Model.Records;
 
 namespace Agency.Web.Controllers
 {
-    [Route("agent")]
+    [Route("api")]
     public class AgentController : Controller
     {
         private readonly IConnectionService _connectionService;

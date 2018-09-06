@@ -44,7 +44,7 @@ namespace Agency.Web
             }
 
             // Add before MVC middleware
-            app.UseIssuerAgency("/agent", builder => 
+            app.UseIssuerAgency("/agent", builder =>
                 builder
                     .WithEndpoint("http://localhost:5000/agent")
                     .WithIssuerSeed("000000000000000000000000Steward1"));
