@@ -1,7 +1,5 @@
-﻿using System.Diagnostics;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Hyperledger.Indy.PoolApi;
-using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Utils;
 
@@ -29,18 +27,11 @@ namespace Streetcred.Sdk.Runtime
         /// <returns>The pool async.</returns>
         public async Task CreatePoolAsync(string poolName, string genesisFile)
         {
-            try
-            {
-                await Pool.SetProtocolVersionAsync(2);
+            await Pool.SetProtocolVersionAsync(2);
 
-                var poolConfig = new {genesis_txn = genesisFile}.ToJson();
+            var poolConfig = new {genesis_txn = genesisFile}.ToJson();
 
-                await Pool.CreatePoolLedgerConfigAsync(poolName, poolConfig);
-            }
-            catch (PoolLedgerConfigExistsException)
-            {
-                Debug.WriteLine("Pool configuration exists");
-            }
+            await Pool.CreatePoolLedgerConfigAsync(poolName, poolConfig);
         }
     }
 }
