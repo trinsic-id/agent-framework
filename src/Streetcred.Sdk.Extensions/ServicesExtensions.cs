@@ -33,7 +33,8 @@ namespace Streetcred.Sdk.Extensions
         /// </summary>
         /// <param name="services">The services.</param>
         /// <param name="agentConfiguration">The agent configuration.</param>
-        public static void AddIssuerAgency(this IServiceCollection services, Action<IssuerAgencyConfiguration> agentConfiguration = null)
+        public static void AddIssuerAgency(this IServiceCollection services,
+            Action<IssuerAgencyConfiguration> agentConfiguration = null)
         {
             RegisterServices(services);
 
@@ -59,7 +60,8 @@ namespace Streetcred.Sdk.Extensions
         /// <param name="app">App.</param>
         /// <param name="route">The route.</param>
         /// <param name="options">Options.</param>
-        public static void UseIssuerAgency(this IApplicationBuilder app, string route, Action<IssuerAgencyBuilder> options = null)
+        public static void UseIssuerAgency(this IApplicationBuilder app, string route,
+            Action<IssuerAgencyBuilder> options = null)
         {
             var walletService = app.ApplicationServices.GetService<IWalletService>();
             var poolService = app.ApplicationServices.GetService<IPoolService>();
@@ -74,10 +76,9 @@ namespace Streetcred.Sdk.Extensions
 
             builder.Build(walletOptions.Value, poolOptions.Value);
 
-            app.Map(PathString.FromUriComponent(route), a =>
-            {
-                a.UseMiddleware<IssuerAgencyMiddleware>();
-            });
+            app.MapWhen(
+                context => context.Request.Path.StartsWithSegments(route),
+                appBuilder => { appBuilder.UseMiddleware<IssuerAgencyMiddleware>(); });
         }
     }
 }

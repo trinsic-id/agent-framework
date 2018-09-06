@@ -43,7 +43,7 @@ namespace Streetcred.Sdk.Runtime
             if (record != null) throw new StreetcredSdkException("Wallet is already provisioned.");
 
             var agent = await Did.CreateAndStoreMyDidAsync(wallet,
-                provisioningRequest.AgentSeed == null
+                provisioningRequest.AgentSeed != null
                     ? new {seed = provisioningRequest.AgentSeed}.ToJson()
                     : "{}");
 
@@ -62,7 +62,7 @@ namespace Streetcred.Sdk.Runtime
             if (provisioningRequest.CreateIssuer)
             {
                 var issuer = await Did.CreateAndStoreMyDidAsync(wallet,
-                    provisioningRequest.IssuerSeed == null
+                    provisioningRequest.IssuerSeed != null
                         ? new {seed = provisioningRequest.IssuerSeed}.ToJson()
                         : "{}");
 

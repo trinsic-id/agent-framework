@@ -6,6 +6,7 @@ using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json;
 using Sovrin.Agents.Model;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Exceptions;
 using Streetcred.Sdk.Extensions.Options;
 using Streetcred.Sdk.Model;
 
@@ -91,12 +92,19 @@ namespace Streetcred.Sdk.Extensions
                 var wallet = await _walletService.GetWalletAsync(walletOptions.WalletConfiguration,
                     walletOptions.WalletCredentials);
 
-                await _provisioningService.ProvisionAgentAsync(wallet, new ProvisioningRequest
+                try
                 {
-                    AgentSeed = _agentSeed,
-                    EndpointUri = new Uri(_publicUri),
-                    CreateIssuer = true
-                });
+                    await _provisioningService.ProvisionAgentAsync(wallet, new ProvisioningRequest
+                    {
+                        AgentSeed = _agentSeed,
+                        EndpointUri = new Uri(_publicUri),
+                        CreateIssuer = true
+                    });
+                }
+                catch (StreetcredSdkException)
+                {
+                    // Wallet already provisioned
+                }
             });
 
             createAgentTask.Wait();

@@ -3,7 +3,7 @@
     "Agency.Web": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "agent",
+      "launchUrl": "api",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
