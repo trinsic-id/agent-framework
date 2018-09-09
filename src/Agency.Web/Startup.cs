@@ -27,11 +27,11 @@ namespace Agency.Web
                                 .AddConsole()
                                 .AddDebug());
 
-            services.AddIssuerAgency(config =>
+            services.AddAgent(config =>
             {
                 config
-                    .WithWalletOptions(Configuration.GetSection("WalletOptions").Get<WalletOptions>())
-                    .WithPoolOptions(new PoolOptions {GenesisFilename = Path.GetFullPath("pool_genesis.txn")});
+                    .SetWalletOptions(Configuration.GetSection("WalletOptions").Get<WalletOptions>())
+                    .SetPoolOptions(new PoolOptions {GenesisFilename = Path.GetFullPath("pool_genesis.txn")});
             });
         }
 
@@ -44,10 +44,8 @@ namespace Agency.Web
             }
 
             // Add before MVC middleware
-            app.UseIssuerAgency("/agent", builder =>
-                builder
-                    .WithEndpoint("http://localhost:5000/agent")
-                    .WithIssuerSeed("000000000000000000000000Steward1"));
+            app.UseAgent("http://localhost:5000/agent",
+                builder => builder.AddIssuer("000000000000000000000000Steward1"));
 
             app.UseMvc();
         }

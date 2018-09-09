@@ -2,11 +2,10 @@
 using System.Threading.Tasks;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.WalletApi;
-using Sovrin.Agents.Model;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Exceptions;
-using Streetcred.Sdk.Model;
 using Streetcred.Sdk.Model.Records;
+using Streetcred.Sdk.Model.Wallets;
 using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
@@ -18,7 +17,7 @@ namespace Streetcred.Sdk.Runtime
 
         public ProvisioningService(IWalletRecordService walletRecord)
         {
-            this._recordService = walletRecord;
+            _recordService = walletRecord;
         }
 
 
@@ -28,42 +27,42 @@ namespace Streetcred.Sdk.Runtime
 
         /// <inheritdoc cref="IProvisioningService.ProvisionAgentAsync"/>
         /// <exception cref="System.ArgumentNullException">
-        /// provisioningRequest
+        /// provisioningConfiguration
         /// or
         /// EndpointUri
         /// </exception>
-        /// <exception cref="StreetcredSdkException">Wallet is already provisioned.</exception>
-        public async Task ProvisionAgentAsync(Wallet wallet, ProvisioningRequest provisioningRequest)
+        /// <exception cref="WalletAlreadyProvisionedException">Wallet is already provisioned.</exception>
+        public async Task ProvisionAgentAsync(Wallet wallet, ProvisioningConfiguration provisioningConfiguration)
         {
-            if (provisioningRequest == null) throw new ArgumentNullException(nameof(provisioningRequest));
-            if (provisioningRequest.EndpointUri == null)
-                throw new ArgumentNullException(nameof(provisioningRequest.EndpointUri));
+            if (provisioningConfiguration == null) throw new ArgumentNullException(nameof(provisioningConfiguration));
+            if (provisioningConfiguration.EndpointUri == null)
+                throw new ArgumentNullException(nameof(provisioningConfiguration.EndpointUri));
 
             var record = await GetProvisioningAsync(wallet);
-            if (record != null) throw new StreetcredSdkException("Wallet is already provisioned.");
+            if (record != null) throw new WalletAlreadyProvisionedException();
 
             var agent = await Did.CreateAndStoreMyDidAsync(wallet,
-                provisioningRequest.AgentSeed != null
-                    ? new {seed = provisioningRequest.AgentSeed}.ToJson()
+                provisioningConfiguration.AgentSeed != null
+                    ? new {seed = provisioningConfiguration.AgentSeed}.ToJson()
                     : "{}");
 
             record = new ProvisioningRecord
             {
-                IssuerSeed = provisioningRequest.IssuerSeed,
-                AgentSeed = provisioningRequest.AgentSeed,
+                IssuerSeed = provisioningConfiguration.IssuerSeed,
+                AgentSeed = provisioningConfiguration.AgentSeed,
                 Endpoint =
                 {
-                    Uri = provisioningRequest.EndpointUri.ToString(),
+                    Uri = provisioningConfiguration.EndpointUri.ToString(),
                     Did = agent.Did,
                     Verkey = agent.VerKey
                 }
             };
 
-            if (provisioningRequest.CreateIssuer)
+            if (provisioningConfiguration.CreateIssuer)
             {
                 var issuer = await Did.CreateAndStoreMyDidAsync(wallet,
-                    provisioningRequest.IssuerSeed != null
-                        ? new {seed = provisioningRequest.IssuerSeed}.ToJson()
+                    provisioningConfiguration.IssuerSeed != null
+                        ? new {seed = provisioningConfiguration.IssuerSeed}.ToJson()
                         : "{}");
 
                 record.IssuerDid = issuer.Did;

@@ -3,8 +3,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Sovrin.Agents.Model;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Model;
 using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime

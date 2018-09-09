@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Streetcred.Sdk.Contracts;
@@ -24,6 +23,7 @@ namespace Streetcred.Sdk.Extensions
             services.AddSingleton<IMessageSerializer, MessageSerializer>();
             services.AddSingleton<ICredentialService, CredentialService>();
             services.AddSingleton<IProvisioningService, ProvisioningService>();
+            services.AddTransient<AgentBuilder>();
             services.AddOptions<WalletOptions>();
             services.AddOptions<PoolOptions>();
         }
@@ -33,12 +33,12 @@ namespace Streetcred.Sdk.Extensions
         /// </summary>
         /// <param name="services">The services.</param>
         /// <param name="agentConfiguration">The agent configuration.</param>
-        public static void AddIssuerAgency(this IServiceCollection services,
-            Action<IssuerAgencyConfiguration> agentConfiguration = null)
+        public static void AddAgent(this IServiceCollection services,
+            Action<AgentConfiguration> agentConfiguration = null)
         {
             RegisterServices(services);
 
-            var defaultConfiguration = new IssuerAgencyConfiguration();
+            var defaultConfiguration = new AgentConfiguration();
             agentConfiguration?.Invoke(defaultConfiguration);
 
             services.Configure<WalletOptions>((obj) =>
@@ -58,27 +58,32 @@ namespace Streetcred.Sdk.Extensions
         /// Allows default agent configuration
         /// </summary>
         /// <param name="app">App.</param>
-        /// <param name="route">The route.</param>
+        /// <param name="endpointUri">The endpointUri.</param>
         /// <param name="options">Options.</param>
-        public static void UseIssuerAgency(this IApplicationBuilder app, string route,
-            Action<IssuerAgencyBuilder> options = null)
-        {
-            var walletService = app.ApplicationServices.GetService<IWalletService>();
-            var poolService = app.ApplicationServices.GetService<IPoolService>();
-            var endpointService = app.ApplicationServices.GetService<IProvisioningService>();
+        public static void UseAgent(this IApplicationBuilder app, string endpointUri,
+            Action<AgentBuilder> options = null) => UseAgent<AgentMiddleware>(app, endpointUri, options);
 
-            var builder = new IssuerAgencyBuilder(walletService, poolService, endpointService);
+        /// <summary>
+        /// Allows agent configuration by specifyig a custom middleware
+        /// </summary>
+        /// <param name="app">App.</param>
+        /// <param name="endpointUri">The endpointUri.</param>
+        /// <param name="options">Options.</param>
+        public static void UseAgent<T>(this IApplicationBuilder app, string endpointUri,
+            Action<AgentBuilder> options = null)
+        {
+            if (string.IsNullOrWhiteSpace(endpointUri)) throw new ArgumentNullException(nameof(endpointUri));
+
+            var builder = app.ApplicationServices.GetService<AgentBuilder>();
 
             options?.Invoke(builder);
-
-            var walletOptions = app.ApplicationServices.GetService<IOptions<WalletOptions>>();
-            var poolOptions = app.ApplicationServices.GetService<IOptions<PoolOptions>>();
-
-            builder.Build(walletOptions.Value, poolOptions.Value);
+            
+            var endpoint = new Uri(endpointUri);
+            builder.Build(endpoint).GetAwaiter().GetResult();
 
             app.MapWhen(
-                context => context.Request.Path.StartsWithSegments(route),
-                appBuilder => { appBuilder.UseMiddleware<IssuerAgencyMiddleware>(); });
+                context => context.Request.Path.StartsWithSegments(endpoint.AbsolutePath),
+                appBuilder => { appBuilder.UseMiddleware<T>(); });
         }
     }
 }

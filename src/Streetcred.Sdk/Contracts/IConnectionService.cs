@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Hyperledger.Indy.WalletApi;
-using Sovrin.Agents.Model.Connections;
+using Streetcred.Sdk.Model.Connections;
 using Streetcred.Sdk.Model.Records;
 
 namespace Streetcred.Sdk.Contracts
