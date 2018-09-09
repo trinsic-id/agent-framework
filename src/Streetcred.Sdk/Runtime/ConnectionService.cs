@@ -7,9 +7,9 @@ using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PairwiseApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
-using Sovrin.Agents.Model;
-using Sovrin.Agents.Model.Connections;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Model;
+using Streetcred.Sdk.Model.Connections;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Model.Records.Search;
 using Streetcred.Sdk.Utils;
@@ -123,8 +123,8 @@ namespace Streetcred.Sdk.Runtime
             connection.Endpoint = their.Endpoint;
             connection.TheirDid = their.Did;
             connection.MyDid = my.Did;
-            connection.Tags.Add("myDid", my.Did);
-            connection.Tags.Add("theirDid", their.Did);
+            connection.Tags["myDid"] = my.Did;
+            connection.Tags["theirDid"] = their.Did;
 
             await _recordService.UpdateAsync(wallet, connection);
 

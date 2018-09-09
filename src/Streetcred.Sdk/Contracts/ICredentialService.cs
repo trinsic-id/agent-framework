@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
-using Sovrin.Agents.Model.Credentials;
+using Streetcred.Sdk.Model.Credentials;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Model.Records.Search;
 

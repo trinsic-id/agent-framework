@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Sovrin.Agents.Model;
 using Stateless;
 
 namespace Streetcred.Sdk.Model.Records

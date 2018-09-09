@@ -6,9 +6,9 @@ using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
-using Sovrin.Agents.Model;
-using Sovrin.Agents.Model.Connections;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Model;
+using Streetcred.Sdk.Model.Connections;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Runtime;
 using Xunit;
@@ -52,11 +52,16 @@ namespace Streetcred.Sdk.Tests
 
         public async Task InitializeAsync()
         {
-            await Wallet.CreateWalletAsync(IssuerConfig, Credentials);
-            await Wallet.CreateWalletAsync(HolderConfig, Credentials);
-
-            _issuerWallet = await Wallet.OpenWalletAsync(IssuerConfig, Credentials);
-            _holderWallet = await Wallet.OpenWalletAsync(HolderConfig, Credentials);
+            try
+            {
+                await Wallet.CreateWalletAsync(IssuerConfig, Credentials);
+                await Wallet.CreateWalletAsync(HolderConfig, Credentials);
+            }
+            finally
+            {
+                _issuerWallet = await Wallet.OpenWalletAsync(IssuerConfig, Credentials);
+                _holderWallet = await Wallet.OpenWalletAsync(HolderConfig, Credentials);
+            }
         }
 
         [Fact]
@@ -126,6 +131,7 @@ namespace Streetcred.Sdk.Tests
         {
             await _issuerWallet.CloseAsync();
             await _holderWallet.CloseAsync();
+
             await Wallet.DeleteWalletAsync(IssuerConfig, Credentials);
             await Wallet.DeleteWalletAsync(HolderConfig, Credentials);
         }

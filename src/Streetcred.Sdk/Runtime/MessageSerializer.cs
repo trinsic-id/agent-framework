@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json;
-using Sovrin.Agents.Model;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Model;
 using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime

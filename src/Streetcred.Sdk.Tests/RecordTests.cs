@@ -26,9 +26,14 @@ namespace Streetcred.Sdk.Tests
 
         public async Task InitializeAsync()
         {
-            var task = Wallet.CreateWalletAsync(Config, Credentials);
-            await task;
-            _wallet = await Wallet.OpenWalletAsync(Config, Credentials);
+            try
+            {
+                await Wallet.CreateWalletAsync(Config, Credentials);
+            }
+            finally
+            {
+                _wallet = await Wallet.OpenWalletAsync(Config, Credentials);
+            }
         }
 
         [Fact]
@@ -112,21 +117,6 @@ namespace Streetcred.Sdk.Tests
             var record = await _recordService.SearchAsync<ConnectionRecord>(_wallet, new SearchRecordQuery { { Guid.NewGuid().ToString(), Guid.NewGuid().ToString() } }, null);
             Assert.False(record.Any());
         }
-
-        //[Fact]
-        //public async Task Debug()
-        //{
-        //    var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
-
-        //    var schema = await AnonCreds.IssuerCreateSchemaAsync(my.Did, "TestSchema", "1.0",
-        //        JsonConvert.SerializeObject(new[] {"name", "age"}));
-        //    var definition = await AnonCreds.IssuerCreateAndStoreCredentialDefAsync(_wallet, my.Did, schema.SchemaJson,
-        //        "tag1", null, "{\"support_revocation\":false}");
-
-        //    var offer = await AnonCreds.IssuerCreateCredentialOfferAsync(_wallet, definition.CredDefId);
-
-        //    System.Diagnostics.Debug.WriteLine(offer);
-        //}
 
         public async Task DisposeAsync()
         {

@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Sovrin.Agents.Model;
+using Streetcred.Sdk.Model;
 
 namespace Streetcred.Sdk.Contracts
 {

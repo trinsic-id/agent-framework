@@ -13,7 +13,7 @@ namespace Streetcred.Sdk.Exceptions
         {
         }
 
-        public StreetcredSdkException(string message, System.Exception innerException) : base(message, innerException)
+        public StreetcredSdkException(string message, Exception innerException) : base(message, innerException)
         {
         }
 

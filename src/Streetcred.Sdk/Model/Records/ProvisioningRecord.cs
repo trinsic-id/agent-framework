@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Sovrin.Agents.Model;
-
-namespace Streetcred.Sdk.Model.Records
+﻿namespace Streetcred.Sdk.Model.Records
 {
     public class ProvisioningRecord : WalletRecord
     {
