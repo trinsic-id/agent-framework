@@ -19,7 +19,7 @@ namespace Streetcred.Sdk.Contracts
         /// <summary>
         /// Lists the async.
         /// </summary>
-        /// <param name="wallet">The wallet.</param>
+        /// <param name="wallet">Wallet</param>
         /// <returns>
         /// The async.
         /// </returns>
@@ -28,8 +28,9 @@ namespace Streetcred.Sdk.Contracts
         /// <summary>
         /// Creates the invitation asynchronous.
         /// </summary>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="connectionId">The connection identifier.</param>
+        /// <param name="wallet">Wallet.</param>
+        /// <param name="connectionId">Connection identifier.</param>
+        /// <param name="config">An optional configuration object used to configure the resulting invitations presentation</param>
         /// <returns></returns>
         Task<ConnectionInvitation> CreateInvitationAsync(Wallet wallet, string connectionId);
 
@@ -56,8 +57,8 @@ namespace Streetcred.Sdk.Contracts
         /// <summary>
         /// Accepts the connection request and sends a connection response
         /// </summary>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="connectionId">The connection identifier.</param>
+        /// <param name="wallet">Wallet.</param>
+        /// <param name="connectionId">Connection identifier.</param>
         /// <returns></returns>
         Task AcceptRequestAsync(Wallet wallet, string connectionId);
 
@@ -70,5 +71,13 @@ namespace Streetcred.Sdk.Contracts
         /// The response async.
         /// </returns>
         Task AcceptResponseAsync(Wallet wallet, ConnectionResponse response);
+
+        /// <summary>
+        /// Deletes a connection from the local store
+        /// </summary>
+        /// <param name="wallet">Wallet.</param>
+        /// <param name="connectionId">Connection Identifier.</param>
+        /// <returns>Boolean indicating if deletion occured sucessfully</returns>
+        Task<bool> Delete(Wallet wallet, string connectionId);
     }
 }

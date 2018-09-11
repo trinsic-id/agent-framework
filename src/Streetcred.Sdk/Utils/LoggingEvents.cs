@@ -15,5 +15,6 @@
         public const int AcceptConnectionResponse = 4004;
         public const int GetConnection = 4010;
         public const int ListConnections = 4011;
+        public const int DeleteConnection = 4012;
     }
 }

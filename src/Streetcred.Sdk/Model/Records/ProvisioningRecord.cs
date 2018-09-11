@@ -1,4 +1,6 @@
-﻿namespace Streetcred.Sdk.Model.Records
+﻿using Streetcred.Sdk.Model.Connections;
+
+namespace Streetcred.Sdk.Model.Records
 {
     public class ProvisioningRecord : WalletRecord
     {
@@ -8,6 +10,7 @@
         public ProvisioningRecord()
         {
             Endpoint = new AgentEndpoint();
+            Owner = new AgentOwner();
         }
 
         internal const string RecordId = "SingleRecord";
@@ -17,6 +20,8 @@
         public override string GetTypeName() => "ProvisioningRecord";
 
         public AgentEndpoint Endpoint { get; set; }
+
+        public AgentOwner Owner { get; set; }
         
         public string AgentSeed { get; set; }
 

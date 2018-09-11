@@ -48,5 +48,14 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="id">Identifier.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
         Task<T> GetAsync<T>(Wallet wallet, string id) where T : WalletRecord, new();
+
+        /// <summary>
+        /// Deletes the record async.
+        /// </summary>
+        /// <typeparam name="T">The 1st type parameter.</typeparam>
+        /// <param name="wallet">Wallet.</param>
+        /// <param name="id">Record Identifier.</param>
+        /// <returns>Boolean status indicating if the removal succeed</returns>
+        Task<bool> DeleteAsync<T>(Wallet wallet, string id) where T : WalletRecord, new();
     }
 }

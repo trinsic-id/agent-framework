@@ -24,5 +24,13 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="configuration">Configuration.</param>
         /// <param name="credentials">Credentials.</param>
         Task CreateWalletAsync(WalletConfiguration configuration, WalletCredentials credentials);
+
+        /// <summary>
+        /// Deletes the wallet async.
+        /// </summary>
+        /// <returns>Async Task</returns>
+        /// <param name="configuration">Configuration.</param>
+        /// <param name="credentials">Credentials.</param>
+        Task DeleteWalletAsync(WalletConfiguration configuration, WalletCredentials credentials);
     }
 }
