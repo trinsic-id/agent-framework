@@ -15,6 +15,9 @@ namespace Streetcred.Sdk.Extensions
         private string _issuerSeed;
         private string _agentSeed;
 
+        private string _agentOwnerName;
+        private string _agentOwnerImageUrl;
+
         private readonly IWalletService _walletService;
         private readonly IPoolService _poolService;
         private readonly IProvisioningService _provisioningService;
@@ -33,6 +36,14 @@ namespace Streetcred.Sdk.Extensions
             _provisioningService = provisioningService;
             _walletOptions = walletOptions.Value;
             _poolOptions = poolOptions.Value;
+        }
+
+        public AgentBuilder AddOwnershipInfo(string name, string imageUrl)
+        {
+            _agentOwnerName = name;
+            _agentOwnerImageUrl = imageUrl;
+
+            return this;
         }
 
         /// <summary>
@@ -92,7 +103,9 @@ namespace Streetcred.Sdk.Extensions
                     AgentSeed = _agentSeed,
                     EndpointUri = endpointUri,
                     CreateIssuer = _createIssuer,
-                    IssuerSeed = _issuerSeed
+                    IssuerSeed = _issuerSeed,
+                    OwnerName = _agentOwnerName,
+                    OwnerImageUrl = _agentOwnerImageUrl
                 });
             }
             catch (WalletAlreadyProvisionedException)

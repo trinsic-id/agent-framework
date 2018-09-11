@@ -42,6 +42,21 @@ namespace Agency.Web.Controllers
             return await _connectionService.CreateInvitationAsync(wallet, Guid.NewGuid().ToString());
         }
 
+        [HttpDelete("connections/{connectionId}")]
+        public async Task<ActionResult> DeleteConnection(string connectionId)
+        {
+            var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
+
+            var connection = await _connectionService.GetAsync(wallet, connectionId);
+
+            if (connection == null)
+                return NotFound();
+
+            if (await _connectionService.Delete(wallet, connectionId))
+                return Ok();
+            return BadRequest("Failed to delete the connection");
+        }
+
         [HttpGet("connections")]
         public async Task<List<ConnectionRecord>> ListConnections()
         {

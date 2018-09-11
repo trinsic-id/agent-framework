@@ -45,7 +45,11 @@ namespace Agency.Web
 
             // Add before MVC middleware
             app.UseAgent("http://localhost:5000/agent",
-                builder => builder.AddIssuer("000000000000000000000000Steward1"));
+                builder =>
+                {
+                    builder.AddIssuer("000000000000000000000000Steward1");
+                    builder.AddOwnershipInfo("StreetCred", "https://streetcred.id/images/streetcred_logo.png");
+                });
 
             app.UseMvc();
         }

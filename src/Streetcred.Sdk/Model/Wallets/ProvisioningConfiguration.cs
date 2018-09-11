@@ -5,6 +5,22 @@ namespace Streetcred.Sdk.Model.Wallets
     public class ProvisioningConfiguration
     {
         /// <summary>
+        /// Gets or sets the name of the owner of the agent
+        /// </summary>
+        /// <value>
+        /// The agent owner name 
+        /// </value>
+        public string OwnerName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the imageUrl of the owner of the agent
+        /// </summary>
+        /// <value>
+        /// The agent owner image url
+        /// </value>
+        public string OwnerImageUrl { get; set; }
+
+        /// <summary>
         /// Gets or sets the agent seed used to generate deterministic DID and Verkey. (32 characters)
         /// <remarks>Leave <c>null</c> to generate random agent did and verkey</remarks>
         /// </summary>
