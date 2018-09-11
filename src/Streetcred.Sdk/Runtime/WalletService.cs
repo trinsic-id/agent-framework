@@ -8,6 +8,7 @@ using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
+    /// <inheritdoc />
     public class WalletService : IWalletService
     {
         private static readonly ConcurrentDictionary<string, Wallet> Wallets =
@@ -15,12 +16,7 @@ namespace Streetcred.Sdk.Runtime
 
         public const string MasterSecretName = "master_secret";
 
-        /// <summary>
-        /// Gets the wallet async.
-        /// </summary>
-        /// <returns>The wallet async.</returns>
-        /// <param name="configuration">Configuration.</param>
-        /// <param name="credentials">Credentials.</param>
+        /// <inheritdoc />
         public async Task<Wallet> GetWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
         {
 
@@ -36,12 +32,7 @@ namespace Streetcred.Sdk.Runtime
             return wallet;
         }
 
-        /// <summary>
-        /// Creates the wallet async.
-        /// </summary>
-        /// <returns>The wallet async.</returns>
-        /// <param name="configuration">Configuration.</param>
-        /// <param name="credentials">Credentials.</param>
+        /// <inheritdoc />
         public async Task CreateWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
         {
             await Wallet.CreateWalletAsync(configuration.ToJson(), credentials.ToJson());
@@ -49,6 +40,12 @@ namespace Streetcred.Sdk.Runtime
             // Create master secret. This should later be moved to a credential related context
             await AnonCreds.ProverCreateMasterSecretAsync(await GetWalletAsync(configuration, credentials),
                 MasterSecretName);
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
+        {
+            await Wallet.DeleteWalletAsync(configuration.ToJson(), credentials.ToJson());
         }
     }
 }

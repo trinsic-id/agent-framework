@@ -16,6 +16,7 @@ using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
+    /// <inheritdoc />
     public class ConnectionService : IConnectionService
     {
         private readonly IWalletRecordService _recordService;
@@ -53,11 +54,19 @@ namespace Streetcred.Sdk.Runtime
             await _recordService.AddAsync(wallet, connection);
 
             var provisioning = await _provisioningService.GetProvisioningAsync(wallet);
-            return new ConnectionInvitation
+
+            var invite = new ConnectionInvitation
             {
                 Endpoint = provisioning.Endpoint,
                 ConnectionKey = connectionKey
             };
+
+            if (provisioning.Owner == null) return invite;
+
+            invite.Name = provisioning.Owner.Name;
+            invite.ImageUrl = provisioning.Owner.ImageUrl;
+
+            return invite;
         }
 
         /// <inheritdoc />
@@ -131,12 +140,7 @@ namespace Streetcred.Sdk.Runtime
             return connection.GetId();
         }
 
-        /// <summary>
-        /// Accepts the connection request and sends a connection response
-        /// </summary>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="connectionId">The connection identifier.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task AcceptRequestAsync(Wallet wallet, string connectionId)
         {
             _logger.LogInformation(LoggingEvents.AcceptConnectionRequest, "ConnectionId {0}", connectionId);
@@ -200,12 +204,7 @@ namespace Streetcred.Sdk.Runtime
             await _recordService.UpdateAsync(wallet, connection);
         }
 
-        /// <summary>
-        /// Gets the async.
-        /// </summary>
-        /// <returns>The async.</returns>
-        /// <param name="wallet">Wallet.</param>
-        /// <param name="connectionId">Connection identifier.</param>
+        /// <inheritdoc />
         public Task<ConnectionRecord> GetAsync(Wallet wallet, string connectionId)
         {
             _logger.LogInformation(LoggingEvents.GetConnection, "ConnectionId {0}", connectionId);
@@ -213,19 +212,22 @@ namespace Streetcred.Sdk.Runtime
             return _recordService.GetAsync<ConnectionRecord>(wallet, connectionId);
         }
 
-        /// <summary>
-        /// Lists the async.
-        /// </summary>
-        /// <param name="wallet">The wallet.</param>
-        /// <returns>
-        /// The async.
-        /// </returns>
-        /// <exception cref="System.NotImplementedException"></exception>
+        /// <inheritdoc />
         public Task<List<ConnectionRecord>> ListAsync(Wallet wallet)
         {
             _logger.LogInformation(LoggingEvents.ListConnections, "List Connections");
 
             return _recordService.SearchAsync<ConnectionRecord>(wallet, null, null);
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> Delete(Wallet wallet, string connectionId)
+        {
+            _logger.LogInformation(LoggingEvents.DeleteConnection, "ConnectionId {0}", connectionId);
+
+            //TODO should we be discarding the parwise did's that could be linked to the current connection?
+
+            return await _recordService.DeleteAsync<ConnectionRecord>(wallet, connectionId);
         }
     }
 }

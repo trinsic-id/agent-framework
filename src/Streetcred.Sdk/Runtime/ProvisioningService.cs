@@ -20,7 +20,6 @@ namespace Streetcred.Sdk.Runtime
             _recordService = walletRecord;
         }
 
-
         /// <inheritdoc cref="IProvisioningService.GetProvisioningAsync"/>
         public Task<ProvisioningRecord> GetProvisioningAsync(Wallet wallet) =>
             _recordService.GetAsync<ProvisioningRecord>(wallet, ProvisioningRecord.RecordId);
@@ -55,6 +54,11 @@ namespace Streetcred.Sdk.Runtime
                     Uri = provisioningConfiguration.EndpointUri.ToString(),
                     Did = agent.Did,
                     Verkey = agent.VerKey
+                },
+                Owner =
+                {
+                    Name = provisioningConfiguration.OwnerName,
+                    ImageUrl = provisioningConfiguration.OwnerImageUrl
                 }
             };
 

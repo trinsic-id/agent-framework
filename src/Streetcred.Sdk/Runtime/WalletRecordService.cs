@@ -11,18 +11,10 @@ using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
-    /// <summary>
-    /// Wallet record service.
-    /// </summary>
+    /// <inheritdoc />
     public class WalletRecordService : IWalletRecordService
     {
-        /// <summary>
-        /// Adds the record async.
-        /// </summary>
-        /// <returns>The record async.</returns>
-        /// <param name="wallet">Wallet.</param>
-        /// <param name="record">Record.</param>
-        /// <typeparam name="T">The 1st type parameter.</typeparam>
+        /// <inheritdoc />
         public Task AddAsync<T>(Wallet wallet, T record)
             where T : WalletRecord, new()
         {
@@ -33,14 +25,7 @@ namespace Streetcred.Sdk.Runtime
                 record.Tags.ToJson());
         }
 
-        /// <summary>
-        /// Searchs the records async.
-        /// </summary>
-        /// <returns>The records async.</returns>
-        /// <param name="wallet">Wallet.</param>
-        /// <param name="query">Query.</param>
-        /// <param name="options">Options.</param>
-        /// <typeparam name="T">The 1st type parameter.</typeparam>
+        /// <inheritdoc />
         public async Task<List<T>> SearchAsync<T>(Wallet wallet, SearchRecordQuery query, SearchRecordOptions options)
             where T : WalletRecord, new()
         {
@@ -63,13 +48,7 @@ namespace Streetcred.Sdk.Runtime
             }
         }
 
-        /// <summary>
-        /// Updates the record async.
-        /// </summary>
-        /// <returns>The record async.</returns>
-        /// <param name="wallet">Wallet.</param>
-        /// <param name="record">Credential record.</param>
-        /// <typeparam name="T">The 1st type parameter.</typeparam>
+        /// <inheritdoc />
         public async Task UpdateAsync<T>(Wallet wallet, T record) where T : WalletRecord, new()
         {
             await NonSecrets.UpdateRecordValueAsync(wallet,
@@ -83,13 +62,7 @@ namespace Streetcred.Sdk.Runtime
                 record.Tags.ToJson());
         }
 
-        /// <summary>
-        /// Gets the record async.
-        /// </summary>
-        /// <returns>The record async.</returns>
-        /// <param name="wallet">Wallet.</param>
-        /// <param name="id">Identifier.</param>
-        /// <typeparam name="T">The 1st type parameter.</typeparam>
+        /// <inheritdoc />
         public async Task<T> GetAsync<T>(Wallet wallet, string id) where T : WalletRecord, new()
         {
             try
@@ -110,6 +83,23 @@ namespace Streetcred.Sdk.Runtime
             catch (WalletItemNotFoundException)
             {
                 return null;
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> DeleteAsync<T>(Wallet wallet, string id) where T : WalletRecord, new()
+        {
+            try
+            {
+               await NonSecrets.DeleteRecordAsync(wallet,
+                    new T().GetTypeName(),
+                    id);
+
+                return true;
+            }
+            catch (WalletItemNotFoundException)
+            {
+                return false;
             }
         }
     }
