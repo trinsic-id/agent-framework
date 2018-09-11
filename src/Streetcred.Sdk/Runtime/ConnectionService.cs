@@ -225,7 +225,8 @@ namespace Streetcred.Sdk.Runtime
         {
             _logger.LogInformation(LoggingEvents.DeleteConnection, "ConnectionId {0}", connectionId);
 
-            //TODO should we be discarding the parwise did's that could be linked to the current connection?
+            if (_recordService.GetAsync<ConnectionRecord>(wallet, connectionId) == null)
+                return true;
 
             return await _recordService.DeleteAsync<ConnectionRecord>(wallet, connectionId);
         }
