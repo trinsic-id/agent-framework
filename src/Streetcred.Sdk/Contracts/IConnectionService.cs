@@ -77,7 +77,7 @@ namespace Streetcred.Sdk.Contracts
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="connectionId">Connection Identifier.</param>
-        /// <returns>Boolean indicating if deletion occured sucessfully</returns>
-        Task<bool> Delete(Wallet wallet, string connectionId);
+        /// <returns>The response async with a boolean indicating if deletion occured sucessfully</returns>
+        Task<bool> DeleteAsync(Wallet wallet, string connectionId);
     }
 }

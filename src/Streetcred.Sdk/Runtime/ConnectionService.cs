@@ -221,11 +221,11 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<bool> Delete(Wallet wallet, string connectionId)
+        public async Task<bool> DeleteAsync(Wallet wallet, string connectionId)
         {
             _logger.LogInformation(LoggingEvents.DeleteConnection, "ConnectionId {0}", connectionId);
 
-            if (_recordService.GetAsync<ConnectionRecord>(wallet, connectionId) == null)
+            if ((await _recordService.GetAsync<ConnectionRecord>(wallet, connectionId)) == null)
                 return true;
 
             return await _recordService.DeleteAsync<ConnectionRecord>(wallet, connectionId);
