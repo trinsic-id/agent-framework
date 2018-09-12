@@ -40,7 +40,10 @@ namespace Streetcred.Sdk.Tests
 
             var provisioningMock = new Mock<IProvisioningService>();
             provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
-                        .Returns(Task.FromResult(new ProvisioningRecord { Endpoint = new AgentEndpoint { Uri = MockEndpointUri } }));
+                .Returns(Task.FromResult(new ProvisioningRecord
+                {
+                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri}
+                }));
 
             _connectionService = new ConnectionService(
                 new WalletRecordService(),

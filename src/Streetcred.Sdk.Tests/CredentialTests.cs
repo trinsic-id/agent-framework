@@ -39,8 +39,8 @@ namespace Streetcred.Sdk.Tests
         private readonly IConnectionService _connectionService;
         private readonly ICredentialService _credentialService;
 
-        private SchemaService _schemaService;
-        private PoolService _poolService;
+        private readonly ISchemaService _schemaService;
+        private readonly IPoolService _poolService;
 
         private readonly ConcurrentBag<IEnvelopeMessage> _messages = new ConcurrentBag<IEnvelopeMessage>();
 
@@ -60,7 +60,11 @@ namespace Streetcred.Sdk.Tests
 
             var provisioningMock = new Mock<IProvisioningService>();
             provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
-                            .Returns(Task.FromResult(new ProvisioningRecord { Endpoint = new AgentEndpoint { Uri = MockEndpointUri }, MasterSecretId = MasterSecretId }));
+                .Returns(Task.FromResult(new ProvisioningRecord
+                {
+                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri},
+                    MasterSecretId = MasterSecretId
+                }));
 
             _connectionService = new ConnectionService(
                 recordService,
@@ -88,7 +92,9 @@ namespace Streetcred.Sdk.Tests
                 await Wallet.CreateWalletAsync(IssuerConfig, Credentials);
                 await Wallet.CreateWalletAsync(HolderConfig, Credentials);
             }
-            catch (WalletExistsException) { }
+            catch (WalletExistsException)
+            {
+            }
             finally
             {
                 _issuerWallet = await Wallet.OpenWalletAsync(IssuerConfig, Credentials);
@@ -99,7 +105,9 @@ namespace Streetcred.Sdk.Tests
             {
                 await _poolService.CreatePoolAsync(PoolName, Path.GetFullPath("pool_genesis.txn"));
             }
-            catch (PoolLedgerConfigExistsException) { }
+            catch (PoolLedgerConfigExistsException)
+            {
+            }
             finally
             {
                 _pool = await _poolService.GetPoolAsync(PoolName);
@@ -117,11 +125,15 @@ namespace Streetcred.Sdk.Tests
             var (issuerConnection, holderConnection) = await EstablishConnectionAsync();
 
             // Create an issuer DID/VK. Can also be created during provisioning
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet, new { seed = "000000000000000000000000Steward1" }.ToJson());
+            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
+                new {seed = "000000000000000000000000Steward1"}.ToJson());
 
             // Creata a schema and credential definition for this issuer
-            var schemaId = await _schemaService.CreateSchemaAsync(_pool, _issuerWallet, issuer.Did, $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", new[] { "first_name", "last_name" });
-            var definitionId = await _schemaService.CreateCredentialDefinitionAsync(_pool, _issuerWallet, schemaId, issuer.Did, true, 100);
+            var schemaId = await _schemaService.CreateSchemaAsync(_pool, _issuerWallet, issuer.Did,
+                $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", new[] {"first_name", "last_name"});
+            var definitionId =
+                await _schemaService.CreateCredentialDefinitionAsync(_pool, _issuerWallet, schemaId, issuer.Did, true,
+                    100);
 
             // Send an offer to the holder using the established connection channel
             await _credentialService.SendOfferAsync(definitionId, issuerConnection.GetId(), _issuerWallet, issuer.Did);
@@ -130,24 +142,28 @@ namespace Streetcred.Sdk.Tests
             var credentialOffer = FindContentMessage<CredentialOffer>();
 
             // Holder stores the credential offer
-            var holderCredentialId = await _credentialService.StoreOfferAsync(_holderWallet, credentialOffer, holderConnection.GetId());
+            var holderCredentialId =
+                await _credentialService.StoreOfferAsync(_holderWallet, credentialOffer, holderConnection.GetId());
 
             // Holder creates master secret. Will also be created during wallet agent provisioning
             await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet, MasterSecretId);
 
             // Holder accepts the credential offer and sends a credential request
-            await _credentialService.AcceptOfferAsync(_holderWallet, _pool, holderCredentialId, new Dictionary<string, string>
-            {
-                { "first_name", "Jane" },
-                { "last_name", "Doe" }
-            });
+            await _credentialService.AcceptOfferAsync(_holderWallet, _pool, holderCredentialId,
+                new Dictionary<string, string>
+                {
+                    {"first_name", "Jane"},
+                    {"last_name", "Doe"}
+                });
 
             // Issuer retrieves credential request from cloud agent
             var credentialRequest = FindContentMessage<CredentialRequest>();
             Assert.NotNull(credentialRequest);
 
             // Issuer stores the credential request
-            var issuerCredentialId = await _credentialService.StoreCredentialRequestAsync(_issuerWallet, credentialRequest, issuerConnection.GetId());
+            var issuerCredentialId =
+                await _credentialService.StoreCredentialRequestAsync(_issuerWallet, credentialRequest,
+                    issuerConnection.GetId());
 
             // Issuer accepts the credential requests and issues a credential
             await _credentialService.IssueCredentialAsync(_pool, _issuerWallet, issuer.Did, issuerCredentialId);
@@ -209,7 +225,7 @@ namespace Streetcred.Sdk.Tests
         private IContentMessage GetContentMessage(IEnvelopeMessage message)
             => JsonConvert.DeserializeObject<IContentMessage>(message.Content);
 
-        private T FindContentMessage<T>() where T: IContentMessage
+        private T FindContentMessage<T>() where T : IContentMessage
             => _messages.Select(GetContentMessage).OfType<T>().Single();
 
         public async Task DisposeAsync()
@@ -220,9 +236,14 @@ namespace Streetcred.Sdk.Tests
             await Wallet.DeleteWalletAsync(IssuerConfig, Credentials);
             await Wallet.DeleteWalletAsync(HolderConfig, Credentials);
 
-            try { await _pool.CloseAsync(); }
+            try
+            {
+                await _pool.CloseAsync();
+            }
 #pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
-            catch (Exception) { }
+            catch (Exception)
+            {
+            }
 #pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
             await Pool.DeletePoolLedgerConfigAsync(PoolName);
         }
