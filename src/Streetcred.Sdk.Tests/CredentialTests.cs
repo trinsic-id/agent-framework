@@ -88,27 +88,32 @@ namespace Streetcred.Sdk.Tests
                 await Wallet.CreateWalletAsync(IssuerConfig, Credentials);
                 await Wallet.CreateWalletAsync(HolderConfig, Credentials);
             }
+            catch (WalletExistsException) { }
             finally
             {
                 _issuerWallet = await Wallet.OpenWalletAsync(IssuerConfig, Credentials);
                 _holderWallet = await Wallet.OpenWalletAsync(HolderConfig, Credentials);
             }
 
-            try 
+            try
             {
                 await _poolService.CreatePoolAsync(PoolName, Path.GetFullPath("pool_genesis.txn"));
             }
+            catch (PoolLedgerConfigExistsException) { }
             finally
             {
                 _pool = await _poolService.GetPoolAsync(PoolName);
             }
         }
 
+        /// <summary>
+        /// This test requires a local running node accessible at 127.0.0.1
+        /// </summary>
+        /// <returns>The issuance demo.</returns>
         [Fact]
         public async Task CredentialIssuanceDemo()
         {
-            if (_pool == null) throw new Exception("This test reuquires a pool connection.");
-
+            // Setup secure connection between issuer and holder
             var (issuerConnection, holderConnection) = await EstablishConnectionAsync();
 
             // Create an issuer DID/VK. Can also be created during provisioning
@@ -118,21 +123,48 @@ namespace Streetcred.Sdk.Tests
             var schemaId = await _schemaService.CreateSchemaAsync(_pool, _issuerWallet, issuer.Did, $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", new[] { "first_name", "last_name" });
             var definitionId = await _schemaService.CreateCredentialDefinitionAsync(_pool, _issuerWallet, schemaId, issuer.Did, true, 100);
 
+            // Send an offer to the holder using the established connection channel
             await _credentialService.SendOfferAsync(definitionId, issuerConnection.GetId(), _issuerWallet, issuer.Did);
 
+            // Holder retrives message from their cloud agent
             var credentialOffer = FindContentMessage<CredentialOffer>();
 
+            // Holder stores the credential offer
             var holderCredentialId = await _credentialService.StoreOfferAsync(_holderWallet, credentialOffer, holderConnection.GetId());
 
+            // Holder creates master secret. Will also be created during wallet agent provisioning
             await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet, MasterSecretId);
 
+            // Holder accepts the credential offer and sends a credential request
             await _credentialService.AcceptOfferAsync(_holderWallet, _pool, holderCredentialId, new Dictionary<string, string>
             {
                 { "first_name", "Jane" },
                 { "last_name", "Doe" }
             });
 
+            // Issuer retrieves credential request from cloud agent
             var credentialRequest = FindContentMessage<CredentialRequest>();
+            Assert.NotNull(credentialRequest);
+
+            // Issuer stores the credential request
+            var issuerCredentialId = await _credentialService.StoreCredentialRequestAsync(_issuerWallet, credentialRequest, issuerConnection.GetId());
+
+            // Issuer accepts the credential requests and issues a credential
+            await _credentialService.IssueCredentialAsync(_pool, _issuerWallet, issuer.Did, issuerCredentialId);
+
+            // Holder retrieves the credential from their cloud agent
+            var credential = FindContentMessage<Credential>();
+            Assert.NotNull(credential);
+
+            // Holder stores the credential in their wallet
+            await _credentialService.StoreCredentialAsync(_pool, _holderWallet, credential, holderConnection.GetId());
+
+            // Verify states of both credential records are set to 'Issued'
+            var issuerCredential = await _credentialService.GetAsync(_issuerWallet, issuerCredentialId);
+            var holderCredential = await _credentialService.GetAsync(_holderWallet, holderCredentialId);
+
+            Assert.Equal(issuerCredential.State, holderCredential.State);
+            Assert.Equal(CredentialState.Issued, issuerCredential.State);
         }
 
         private async Task<(ConnectionRecord issuer, ConnectionRecord holder)> EstablishConnectionAsync()
@@ -188,7 +220,10 @@ namespace Streetcred.Sdk.Tests
             await Wallet.DeleteWalletAsync(IssuerConfig, Credentials);
             await Wallet.DeleteWalletAsync(HolderConfig, Credentials);
 
-            await _pool.CloseAsync();
+            try { await _pool.CloseAsync(); }
+#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
+            catch (Exception) { }
+#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
             await Pool.DeletePoolLedgerConfigAsync(PoolName);
         }
     }

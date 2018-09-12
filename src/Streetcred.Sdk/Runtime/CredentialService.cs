@@ -63,7 +63,9 @@ namespace Streetcred.Sdk.Runtime
 
         /// <inheritdoc />
         public async Task<string> StoreOfferAsync(Wallet wallet, CredentialOffer credentialOffer,
-            string connectionId)
+                                                  string connectionId) 
+        // TODO: Remove 'connectionId' parameter and resolve the connection
+        // from the @type which should include DID details
         {
             var connection = await ConnectionService.GetAsync(wallet, connectionId);
             var (offerDetails, _) = await MessageSerializer.UnpackSealedAsync<CredentialOfferDetails>(
@@ -117,7 +119,7 @@ namespace Streetcred.Sdk.Runtime
             {
                 OfferJson = credential.OfferJson,
                 CredentialRequestJson = request.CredentialRequestJson,
-                CredentialValuesJson = FormatCredentialValues(values)
+                CredentialValuesJson = CredentialUtils.FormatCredentialValues(values)
             };
 
             var requestMessage =
@@ -131,25 +133,10 @@ namespace Streetcred.Sdk.Runtime
             }, connection.Endpoint);
         }
 
-        private string FormatCredentialValues(Dictionary<string, string> values)
-        {
-            var result = new Dictionary<string, Dictionary<string, string>>();
-            foreach (var item in values)
-            {
-                result.Add(item.Key, EncodeValue(item.Value));
-            }
-            return result.ToJson();
-        }
-
-        private Dictionary<string, string> EncodeValue(string value) => new Dictionary<string, string>
-        {
-            { "raw", value },
-            { "encoded", "1234567890" } // TODO: Add value encoding
-        };
-
-
         /// <inheritdoc />
         public async Task StoreCredentialAsync(Pool pool, Wallet wallet, Credential credential, string connectionId)
+        // TODO: Remove 'connectionId' parameter and resolve the connection
+        // from the @type which should include DID details
         {
             var connection = await ConnectionService.GetAsync(wallet, connectionId);
             var (details, _) = await MessageSerializer.UnpackSealedAsync<CredentialDetails>(credential.Content,
@@ -157,7 +144,7 @@ namespace Streetcred.Sdk.Runtime
 
             var offer = JObject.Parse(details.CredentialJson);
             var definitionId = offer["cred_def_id"].ToObject<string>();
-            var schemaId = offer["schemaId"].ToObject<string>();
+            var schemaId = offer["schema_id"].ToObject<string>();
             var revRegId = offer["rev_reg_id"]?.ToObject<string>();
 
             var credentialSearch =
@@ -210,6 +197,7 @@ namespace Streetcred.Sdk.Runtime
                 CredentialDefinitionId = credentialDefinitionId,
                 OfferJson = offerJson,
                 State = CredentialState.Offered,
+                ConnectionId = connection.GetId(),
                 Tags = new Dictionary<string, string>
                 {
                     {"nonce", nonce},
@@ -244,8 +232,10 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task StoreCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest,
+        public async Task<string> StoreCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest,
             string connectionId)
+        // TODO: Remove 'connectionId' parameter and resolve the connection
+        // from the @type which should include DID details
         {
             _logger.LogInformation(LoggingEvents.StoreCredentialRequest, "ConnectionId {0},", connectionId);
 
@@ -254,7 +244,7 @@ namespace Streetcred.Sdk.Runtime
                 credentialRequest.Content, wallet,
                 await Did.KeyForLocalDidAsync(wallet, connection.MyDid));
 
-            var request = JObject.Parse(details.CredentialRequestJson);
+            var request = JObject.Parse(details.OfferJson);
             var nonce = request["nonce"].ToObject<string>();
 
             var query = new SearchRecordQuery { { "nonce", nonce } };
@@ -266,7 +256,10 @@ namespace Streetcred.Sdk.Runtime
             credential.ValuesJson = details.CredentialValuesJson;
             credential.RequestJson = details.CredentialRequestJson;
 
+            await credential.TriggerAsync(CredentialTrigger.Request);
+
             await RecordService.UpdateAsync(wallet, credential);
+            return credential.GetId();
         }
 
         /// <inheritdoc />
@@ -286,7 +279,7 @@ namespace Streetcred.Sdk.Runtime
             BlobStorageReader tailsReader = null;
             if (definitionRecord.Revocable)
             {
-                revocationRegistryId = credentialRecord.RevocId;
+                revocationRegistryId = definitionRecord.RevocationRegistryId;
                 tailsReader = await TailsService.GetBlobStorageReaderAsync(definitionRecord.TailsStorageId);
             }
 
@@ -297,20 +290,21 @@ namespace Streetcred.Sdk.Runtime
             {
                 await LedgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid, definitionRecord.RevocationRegistryId,
                     "CL_ACCUM", issuedCredential.RevocRegDeltaJson);
+                credentialRecord.CredentialRevocationId = issuedCredential.RevocId;
             }
 
             var credentialDetails = new CredentialDetails
             {
                 CredentialJson = issuedCredential.CredentialJson,
-                RevocationRegistryId = issuedCredential.RevocId
+                RevocationRegistryId = revocationRegistryId
             };
 
             await credentialRecord.TriggerAsync(CredentialTrigger.Issue);
             await RecordService.UpdateAsync(wallet, credentialRecord);
 
             var credential = await MessageSerializer.PackSealedAsync<Credential>(credentialDetails, wallet,
-                await Did.KeyForLocalDidAsync(wallet, connection.MyDid),
-                await Did.KeyForLocalDidAsync(wallet, connection.TheirDid));
+                                                                                 connection.MyVk,
+                                                                                 connection.TheirVk);
 
             await RouterService.ForwardAsync(new ForwardEnvelopeMessage
             {
@@ -332,7 +326,7 @@ namespace Streetcred.Sdk.Runtime
             var tailsReader = await TailsService.GetBlobStorageReaderAsync(definition.TailsStorageId);
             var revocRegistryDeltaJson = await AnonCreds.IssuerRevokeCredentialAsync(wallet, tailsReader,
                                                                                      definition.RevocationRegistryId,
-                                                                                     credential.RevocId);
+                                                                                     credential.CredentialRevocationId);
 
             // Write the delta state on the ledger for the corresponding revocation registry
             await LedgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid, definition.RevocationRegistryId,
