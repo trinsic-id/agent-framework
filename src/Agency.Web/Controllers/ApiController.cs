@@ -46,13 +46,8 @@ namespace Agency.Web.Controllers
         public async Task<ActionResult> DeleteConnection(string connectionId)
         {
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
-
-            var connection = await _connectionService.GetAsync(wallet, connectionId);
-
-            if (connection == null)
-                return NotFound();
-
-            if (await _connectionService.Delete(wallet, connectionId))
+            
+            if (await _connectionService.DeleteAsync(wallet, connectionId))
                 return Ok();
             return BadRequest("Failed to delete the connection");
         }
