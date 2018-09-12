@@ -81,6 +81,7 @@ namespace Streetcred.Sdk.Runtime
             {
                 Endpoint = invitation.Endpoint,
                 MyDid = my.Did,
+                MyVk = my.VerKey,
                 ConnectionId = Guid.NewGuid().ToString().ToLowerInvariant()
             };
             connection.Tags.Add("myDid", my.Did);
@@ -131,7 +132,9 @@ namespace Streetcred.Sdk.Runtime
 
             connection.Endpoint = their.Endpoint;
             connection.TheirDid = their.Did;
+            connection.TheirVk = their.Verkey;
             connection.MyDid = my.Did;
+            connection.MyVk = my.VerKey;
             connection.Tags["myDid"] = my.Did;
             connection.Tags["theirDid"] = their.Did;
 
@@ -196,6 +199,7 @@ namespace Streetcred.Sdk.Runtime
             await Pairwise.CreateAsync(wallet, connectionDetails.Did, connection.MyDid, connectionDetails.Endpoint.ToJson());
             
             connection.TheirDid = connectionDetails.Did;
+            connection.TheirVk = connectionDetails.Verkey;
 
             if (connectionDetails.Endpoint != null)
                 connection.Endpoint = connectionDetails.Endpoint;

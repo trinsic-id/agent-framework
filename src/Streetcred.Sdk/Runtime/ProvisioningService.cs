@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Contracts;
@@ -45,10 +46,13 @@ namespace Streetcred.Sdk.Runtime
                     ? new {seed = provisioningConfiguration.AgentSeed}.ToJson()
                     : "{}");
 
+            var masterSecretId = await AnonCreds.ProverCreateMasterSecretAsync(wallet, null);
+
             record = new ProvisioningRecord
             {
                 IssuerSeed = provisioningConfiguration.IssuerSeed,
                 AgentSeed = provisioningConfiguration.AgentSeed,
+                MasterSecretId = masterSecretId,
                 Endpoint =
                 {
                     Uri = provisioningConfiguration.EndpointUri.ToString(),

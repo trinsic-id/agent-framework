@@ -27,6 +27,7 @@ namespace Streetcred.Sdk.Runtime
         protected readonly IMessageSerializer MessageSerializer;
         protected readonly ISchemaService SchemaService;
         protected readonly ITailsService TailsService;
+        private readonly IProvisioningService _provisioningService;
         private readonly ILogger<CredentialService> _logger;
 
         public CredentialService(
@@ -37,6 +38,7 @@ namespace Streetcred.Sdk.Runtime
             IMessageSerializer messageSerializer,
             ISchemaService schemaService,
             ITailsService tailsService,
+            IProvisioningService provisioningService,
             ILogger<CredentialService> logger)
         {
             RouterService = routerService;
@@ -46,6 +48,7 @@ namespace Streetcred.Sdk.Runtime
             MessageSerializer = messageSerializer;
             SchemaService = schemaService;
             TailsService = tailsService;
+            _provisioningService = provisioningService;
             _logger = logger;
         }
 
@@ -70,7 +73,7 @@ namespace Streetcred.Sdk.Runtime
 
             var offer = JObject.Parse(offerJson);
             var definitionId = offer["cred_def_id"].ToObject<string>();
-            var schemaId = offer["schemaId"].ToObject<string>();
+            var schemaId = offer["schema_id"].ToObject<string>();
             var nonce = offer["nonce"].ToObject<string>();
 
             // Write offer record to local wallet
@@ -100,9 +103,10 @@ namespace Streetcred.Sdk.Runtime
             var credential = await RecordService.GetAsync<CredentialRecord>(wallet, credentialId);
             var connection = await ConnectionService.GetAsync(wallet, credential.ConnectionId);
             var definition = await LedgerService.LookupDefinitionAsync(pool, connection.MyDid, credential.CredentialDefinitionId);
+            var provisioning = await _provisioningService.GetProvisioningAsync(wallet);
 
             var request = await AnonCreds.ProverCreateCredentialReqAsync(wallet, connection.MyDid, credential.OfferJson,
-                definition.ObjectJson, "");
+                                                                         definition.ObjectJson, provisioning.MasterSecretId);
 
             // Update local credential record with new info and advance the state
             credential.CredentialRequestMetadataJson = request.CredentialRequestMetadataJson;
@@ -113,12 +117,12 @@ namespace Streetcred.Sdk.Runtime
             {
                 OfferJson = credential.OfferJson,
                 CredentialRequestJson = request.CredentialRequestJson,
-                CredentialValuesJson = "TODO" // TODO
+                CredentialValuesJson = FormatCredentialValues(values)
             };
 
             var requestMessage =
-                await MessageSerializer.PackSealedAsync<CredentialRequest>(details, wallet, connection.MyDid,
-                    connection.TheirDid);
+                await MessageSerializer.PackSealedAsync<CredentialRequest>(details, wallet, connection.MyVk,
+                                                                           connection.TheirVk);
 
             await RouterService.ForwardAsync(new ForwardEnvelopeMessage
             {
@@ -126,6 +130,22 @@ namespace Streetcred.Sdk.Runtime
                 To = connection.TheirDid
             }, connection.Endpoint);
         }
+
+        private string FormatCredentialValues(Dictionary<string, string> values)
+        {
+            var result = new Dictionary<string, Dictionary<string, string>>();
+            foreach (var item in values)
+            {
+                result.Add(item.Key, EncodeValue(item.Value));
+            }
+            return result.ToJson();
+        }
+
+        private Dictionary<string, string> EncodeValue(string value) => new Dictionary<string, string>
+        {
+            { "raw", value },
+            { "encoded", "1234567890" } // TODO: Add value encoding
+        };
 
 
         /// <inheritdoc />
@@ -201,8 +221,8 @@ namespace Streetcred.Sdk.Runtime
             var credentialOffer = await MessageSerializer.PackSealedAsync<CredentialOffer>(
                 new CredentialOfferDetails { OfferJson = offerJson },
                 wallet,
-                await Did.KeyForLocalDidAsync(wallet, issuerDid),
-                await Did.KeyForLocalDidAsync(wallet, connection.TheirDid));
+                connection.MyVk,
+                connection.TheirVk);
             return credentialOffer;
         }
 

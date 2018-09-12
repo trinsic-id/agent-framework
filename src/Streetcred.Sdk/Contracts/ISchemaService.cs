@@ -29,9 +29,11 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="schemaId">The schema identifier.</param>
         /// <param name="issuerDid">The issuer did.</param>
         /// <param name="supportsRevocation">if set to <c>true</c> [supports revocation].</param>
+        /// <param name="maxCredentialCount">Maximum number of credentials supported by this definition.
+        /// This parameter is only used if <paramref name="supportsRevocation"/> is <c>true</c>.</param>
         /// <returns></returns>
         Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId, string issuerDid,
-            bool supportsRevocation);
+            bool supportsRevocation, int maxCredentialCount);
 
         /// <summary>
         /// Gets the schemas asynchronous.
