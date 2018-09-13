@@ -42,8 +42,7 @@ namespace Streetcred.Sdk.Model.Records
         public string ValuesJson { get; set; }
         public string OfferJson { get; set; }
         public string CredentialJson { get; set; }
-        public string RevocId { get; set; }
-        public string RevocRegDeltaJson { get; set; }
+        public string CredentialRevocationId { get; set; }
         public string ConnectionId { get; set; }
         public string CredentialRequestMetadataJson { get; set; }
         public string CredentialId { get; set; }

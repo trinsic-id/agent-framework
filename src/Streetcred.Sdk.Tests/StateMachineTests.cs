@@ -34,7 +34,7 @@ namespace Streetcred.Sdk.Tests
         [Fact]
         public async Task CanTransitionFromNegotiatingToConnectedWithRequest()
         {
-            var record = new ConnectionRecord() { State = ConnectionState.Negotiating };
+            var record = new ConnectionRecord() {State = ConnectionState.Negotiating};
 
             Assert.True(ConnectionState.Negotiating == record.State);
 
@@ -46,7 +46,7 @@ namespace Streetcred.Sdk.Tests
         [Fact]
         public async Task CanTransitionFromNegotiatingToConnectedWithRespone()
         {
-            var record = new ConnectionRecord() { State = ConnectionState.Negotiating };
+            var record = new ConnectionRecord() {State = ConnectionState.Negotiating};
 
             Assert.True(ConnectionState.Negotiating == record.State);
 
@@ -63,7 +63,8 @@ namespace Streetcred.Sdk.Tests
             Assert.True(ConnectionState.Disconnected == record.State);
 
             var exception =
-               await Assert.ThrowsAsync<InvalidOperationException>(() => record.TriggerAsync(ConnectionTrigger.Request));
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => record.TriggerAsync(ConnectionTrigger.Request));
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => record.TriggerAsync(ConnectionTrigger.Response));
 
