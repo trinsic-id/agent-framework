@@ -17,8 +17,8 @@ namespace Streetcred.Sdk.Tests
 {
     public class ConnectionTests : IAsyncLifetime
     {
-        private const string IssuerConfig = "{\"id\":\"issuer_test_wallet_1\"}";
-        private const string HolderConfig = "{\"id\":\"holder_test_wallet_1\"}";
+        private const string IssuerConfig = "{\"id\":\"issuer_test_wallet\"}";
+        private const string HolderConfig = "{\"id\":\"holder_test_wallet\"}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
         private const string MockEndpointUri = "http://mock";
 
