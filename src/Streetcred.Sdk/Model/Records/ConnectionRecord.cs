@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Stateless;
+using Streetcred.Sdk.Model.Connections;
 
 namespace Streetcred.Sdk.Model.Records
 {
@@ -50,6 +51,12 @@ namespace Streetcred.Sdk.Model.Records
         /// </summary>
         /// <value>Their vk.</value>
         public string TheirVk { get; set; }
+
+        /// <summary>
+        /// Gets or sets the alias associated to the connection.
+        /// </summary>
+        /// <value>The connection alias.</value>
+        public ConnectionAlias Alias { get; set; }
 
         /// <summary>
         /// Gets or sets the endpoint.
