@@ -187,7 +187,7 @@ namespace Streetcred.Sdk.Tests
         {
             // Create invitation by the issuer
             var issuerConnectionId = Guid.NewGuid().ToString();
-            var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet, issuerConnectionId);
+            var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet, new CreateInviteConfiguration() { ConnectionId = issuerConnectionId });
             var connectionIssuer = await _connectionService.GetAsync(_issuerWallet, issuerConnectionId);
 
             // Holder accepts invitation and sends a message request
