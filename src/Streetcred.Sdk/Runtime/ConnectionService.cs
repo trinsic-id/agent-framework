@@ -40,14 +40,8 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<ConnectionInvitation> CreateInvitationAsync(Wallet wallet, CreateInviteConfiguration config = null)
+        public async Task<ConnectionInvitation> CreateInvitationAsync(Wallet wallet, string connectionId)
         {
-            string connectionId;
-            if (!string.IsNullOrEmpty(config?.ConnectionId))
-                connectionId = config.ConnectionId;
-            else
-                connectionId = Guid.NewGuid().ToString();
-
             _logger.LogInformation(LoggingEvents.CreateInvitation, "ConnectionId {0}", connectionId);
 
             var connectionKey = await Crypto.CreateKeyAsync(wallet, "{}");
@@ -55,13 +49,6 @@ namespace Streetcred.Sdk.Runtime
             var connection = new ConnectionRecord();
             connection.ConnectionId = connectionId;
             connection.Tags.Add("connectionKey", connectionKey);
-
-            if (config?.TheirAlias != null)
-            {
-                connection.Alias = config.TheirAlias;
-                if (!string.IsNullOrEmpty(config.TheirAlias.Name))
-                    connection.Tags.Add("alias", config.TheirAlias.Name);
-            }
 
             await connection.TriggerAsync(ConnectionTrigger.InvitationCreate);
             await _recordService.AddAsync(wallet, connection);
@@ -73,16 +60,11 @@ namespace Streetcred.Sdk.Runtime
                 Endpoint = provisioning.Endpoint,
                 ConnectionKey = connectionKey
             };
-            
-            if (!string.IsNullOrEmpty(provisioning.Owner?.Name))
-                invite.Name = provisioning.Owner.Name;
-            if (!string.IsNullOrEmpty(provisioning.Owner?.ImageUrl))
-                invite.ImageUrl = provisioning.Owner.ImageUrl;
 
-            if (!string.IsNullOrEmpty(config?.MyAlias?.Name))
-                invite.Name = config.MyAlias.Name;
-            if (!string.IsNullOrEmpty(config?.MyAlias?.ImageUrl))
-                invite.ImageUrl = config.MyAlias.ImageUrl;
+            if (provisioning.Owner == null) return invite;
+
+            invite.Name = provisioning.Owner.Name;
+            invite.ImageUrl = provisioning.Owner.ImageUrl;
 
             return invite;
         }
@@ -103,18 +85,6 @@ namespace Streetcred.Sdk.Runtime
                 ConnectionId = Guid.NewGuid().ToString().ToLowerInvariant()
             };
             connection.Tags.Add("myDid", my.Did);
-
-            if (!string.IsNullOrEmpty(invitation.Name) || !string.IsNullOrEmpty(invitation.ImageUrl))
-            {
-                connection.Alias = new ConnectionAlias()
-                {
-                    Name = invitation.Name,
-                    ImageUrl = invitation.ImageUrl
-                };
-
-                if (string.IsNullOrEmpty(invitation.Name))
-                    connection.Tags.Add("aliasName", invitation.Name);
-            }
 
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await _recordService.AddAsync(wallet, connection);

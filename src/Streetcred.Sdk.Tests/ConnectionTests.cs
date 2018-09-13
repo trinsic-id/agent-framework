@@ -72,7 +72,7 @@ namespace Streetcred.Sdk.Tests
         {
             var connectionId = Guid.NewGuid().ToString();
 
-            var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet, new CreateInviteConfiguration() { ConnectionId = connectionId });
+            var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet, connectionId);
 
             var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
 
@@ -85,26 +85,7 @@ namespace Streetcred.Sdk.Tests
         {
             // Create invitation by the issuer
             var issuerConnectionId = Guid.NewGuid().ToString();
-
-            var inviteConfig = new CreateInviteConfiguration()
-            {
-                ConnectionId = issuerConnectionId,
-                MyAlias = new ConnectionAlias()
-                {
-                    Name = "Issuer",
-                    ImageUrl = "www.issuerdomain.com/profilephoto"
-                },
-                TheirAlias = new ConnectionAlias()
-                {
-                Name = "Holder",
-                ImageUrl = "www.holderdomain.com/profilephoto"
-                }
-            };
-           
-            var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet, inviteConfig);
-
-            Assert.True(invitation.Name == inviteConfig.MyAlias.Name && invitation.ImageUrl == inviteConfig.MyAlias.ImageUrl);
-
+            var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet, issuerConnectionId);
             var connectionIssuer = await _connectionService.GetAsync(_issuerWallet, issuerConnectionId);
 
             // Holder accepts invitation and sends a message request
@@ -135,9 +116,6 @@ namespace Streetcred.Sdk.Tests
             // Retrieve updated connection state for both issuer and holder
             connectionIssuer = await _connectionService.GetAsync(_issuerWallet, issuerConnectionId);
             connectionHolder = await _connectionService.GetAsync(_holderWallet, holderConnectionId);
-
-            Assert.True(connectionIssuer.Alias.Name == inviteConfig.TheirAlias.Name && connectionIssuer.Alias.ImageUrl == inviteConfig.TheirAlias.ImageUrl);
-            Assert.True(connectionHolder.Alias.Name == inviteConfig.MyAlias.Name && connectionHolder.Alias.ImageUrl == inviteConfig.MyAlias.ImageUrl);
 
             Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
             Assert.Equal(ConnectionState.Connected, connectionHolder.State);
