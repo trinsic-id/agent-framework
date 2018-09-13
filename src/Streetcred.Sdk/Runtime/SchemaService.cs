@@ -26,19 +26,9 @@ namespace Streetcred.Sdk.Runtime
             _tailsService = tailsService;
         }
 
-        /// <summary>
-        /// Creates the schema asynchronous.
-        /// </summary>
-        /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="issuerDid">The issuer did.</param>
-        /// <param name="name">The name.</param>
-        /// <param name="version">The version.</param>
-        /// <param name="attributeNames">The attribute names.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string name,
-            string version,
-            string[] attributeNames)
+            string version, string[] attributeNames)
         {
             var schema = await AnonCreds.IssuerCreateSchemaAsync(issuerDid, name, version, attributeNames.ToJson());
 
@@ -47,27 +37,18 @@ namespace Streetcred.Sdk.Runtime
             await _ledgerService.RegisterSchemaAsync(pool, wallet, issuerDid, schema.SchemaJson);
             await _recordService.AddAsync(wallet, schemaRecord);
 
-            return schema.SchemaId;
+            return schemaRecord.SchemaId;
         }
 
-        /// <summary>
-        /// Creates the credential definition asynchronous.
-        /// </summary>
-        /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="schemaId">The schema identifier.</param>
-        /// <param name="issuerDid">The issuer did.</param>
-        /// <param name="supportsRevocation">if set to <c>true</c> [supports revocation].</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
-            string issuerDid,
-            bool supportsRevocation)
+            string issuerDid, bool supportsRevocation, int maxCredentialCount)
         {
             var definitionRecord = new DefinitionRecord();
             var schema = await _ledgerService.LookupSchemaAsync(pool, issuerDid, schemaId);
 
             var credentialDefinition = await AnonCreds.IssuerCreateAndStoreCredentialDefAsync(wallet, issuerDid,
-                schema.ObjectJson, "Tag", null, new {supports_revocation = supportsRevocation}.ToJson());
+                schema.ObjectJson, "Tag", null, new {support_revocation = supportsRevocation}.ToJson());
 
             await _ledgerService.RegisterCredentialDefinitionAsync(wallet, pool, issuerDid,
                 credentialDefinition.CredDefJson);
@@ -80,12 +61,12 @@ namespace Streetcred.Sdk.Runtime
                 var storageId = Guid.NewGuid().ToString().ToLowerInvariant();
                 var blobWriter = await _tailsService.GetBlobStorageWriterAsync(storageId);
 
-                var revRegDefConfig = "{\"issuance_type\":\"ISSUANCE_ON_DEMAND\",\"max_cred_num\":1000}";
+                var revRegDefConfig = "{\"issuance_type\":\"ISSUANCE_ON_DEMAND\",\"max_cred_num\":5}";//new { issuance_type = "ISSUANCE_ON_DEMAND", max_cred_num = maxCredentialCount}.ToJson();
                 var revocationRegistry = await AnonCreds.IssuerCreateAndStoreRevocRegAsync(wallet, issuerDid, null,
-                    "Tag", credentialDefinition.CredDefId, revRegDefConfig, blobWriter);
+                    "Tag2", credentialDefinition.CredDefId, revRegDefConfig, blobWriter);
 
                 await _ledgerService.RegisterRevocationRegistryDefinitionAsync(wallet, pool, issuerDid,
-                    revocationRegistry.RevRegEntryJson);
+                                                                               revocationRegistry.RevRegDefJson);
                 await _ledgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid,
                     revocationRegistry.RevRegId, "CL_ACCUM", revocationRegistry.RevRegEntryJson);
 
@@ -98,11 +79,7 @@ namespace Streetcred.Sdk.Runtime
             return credentialDefinition.CredDefId;
         }
 
-        /// <summary>
-        /// Gets the schemas asynchronous.
-        /// </summary>
-        /// <param name="wallet">The wallet.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         /// <exception cref="NotImplementedException"></exception>
         public Task<List<SchemaRecord>> ListSchemasAsync(Wallet wallet) =>
             _recordService.SearchAsync<SchemaRecord>(wallet, null, null);

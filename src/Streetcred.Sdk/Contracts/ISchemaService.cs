@@ -17,7 +17,7 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="name">The name.</param>
         /// <param name="version">The version.</param>
         /// <param name="attributeNames">The attribute names.</param>
-        /// <returns></returns>
+        /// <returns>The shema identifier of the stored schema object. This identifier can be used for ledger schema lookup.</returns>
         Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string name, string version,
             string[] attributeNames);
 
@@ -29,22 +29,24 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="schemaId">The schema identifier.</param>
         /// <param name="issuerDid">The issuer did.</param>
         /// <param name="supportsRevocation">if set to <c>true</c> [supports revocation].</param>
-        /// <returns></returns>
+        /// <param name="maxCredentialCount">Maximum number of credentials supported by this definition.
+        /// This parameter is only used if <paramref name="supportsRevocation"/> is <c>true</c>.</param>
+        /// <returns>The credential definition identifier of the stored definition record. This identifier can be used for ledger definition lookup.</returns>
         Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId, string issuerDid,
-            bool supportsRevocation);
+            bool supportsRevocation, int maxCredentialCount);
 
         /// <summary>
         /// Gets the schemas asynchronous.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
-        /// <returns></returns>
+        /// <returns>A list of schema records that this issuer has created</returns>
         Task<List<SchemaRecord>> ListSchemasAsync(Wallet wallet);
 
         /// <summary>
         /// Gets the credential definitions asynchronous.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
-        /// <returns></returns>
+        /// <returns>A list of credential definition records that this issuer has created</returns>
         Task<List<DefinitionRecord>> ListCredentialDefinitionsAsync(Wallet wallet);
 
         /// <summary>
@@ -52,7 +54,7 @@ namespace Streetcred.Sdk.Contracts
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialDefinitionId">The credential definition identifier.</param>
-        /// <returns></returns>
+        /// <returns>The credential definition record.</returns>
         Task<DefinitionRecord> GetCredentialDefinitionAsync(Wallet wallet, string credentialDefinitionId);
     }
 }

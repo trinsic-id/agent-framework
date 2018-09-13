@@ -25,8 +25,8 @@ namespace Streetcred.Sdk.Runtime
         {
             var messageData = Encoding.UTF8.GetBytes(message.ToJson());
             var encrypted = await Crypto.AuthCryptAsync(wallet, myKey, theirKey, messageData);
-            
-            return new T { Content = Convert.ToBase64String(encrypted) };
+
+            return new T {Content = Convert.ToBase64String(encrypted)};
         }
 
         /// <summary>
@@ -37,7 +37,8 @@ namespace Streetcred.Sdk.Runtime
         /// <param name="wallet">The wallet.</param>
         /// <param name="myKey">The myKey.</param>
         /// <returns></returns>
-        public async Task<(T Message, string TheirKey)> UnpackSealedAsync<T>(string content, Wallet wallet, string myKey)
+        public async Task<(T Message, string TheirKey)> UnpackSealedAsync<T>(string content, Wallet wallet,
+            string myKey)
         {
             var decoded = Convert.FromBase64String(content);
             var decrypted = await Crypto.AuthDecryptAsync(wallet, myKey, decoded);
@@ -54,7 +55,7 @@ namespace Streetcred.Sdk.Runtime
         /// <returns></returns>
         public async Task<byte[]> PackAsync(object message, string key)
         {
-            var messageData = Encoding.UTF8.GetBytes( message.ToJson());
+            var messageData = Encoding.UTF8.GetBytes(message.ToJson());
             var encrypted = await Crypto.AnonCryptAsync(key, messageData);
 
             return encrypted;

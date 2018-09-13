@@ -31,6 +31,8 @@ namespace Streetcred.Sdk.Model.Records
 
         public string IssuerVerkey { get; set; }
 
+        public string MasterSecretId { get; set; }
+
         /// <summary>
         /// Determines whether this wallet is provisioned as issuer.
         /// </summary>

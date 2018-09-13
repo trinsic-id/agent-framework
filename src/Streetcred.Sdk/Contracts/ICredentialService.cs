@@ -15,7 +15,7 @@ namespace Streetcred.Sdk.Contracts
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialId">The credential identifier.</param>
-        /// <returns></returns>
+        /// <returns>The stored credental record</returns>
         Task<CredentialRecord> GetAsync(Wallet wallet, string credentialId);
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace Streetcred.Sdk.Contracts
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="query">The query.</param>
-        /// <returns></returns>
+        /// <returns>A list of credential records matchinc the search criteria</returns>
         Task<List<CredentialRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null);
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialOffer">The credential offer.</param>
         /// <param name="connectionId">The connection identifier.</param>
-        /// <returns>The credential identifier of the stored record</returns>
+        /// <returns>The credential identifier of the stored credential record</returns>
         Task<string> StoreOfferAsync(Wallet wallet, CredentialOffer credentialOffer, string connectionId);
 
         /// <summary>
@@ -85,8 +85,8 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialRequest">The credential request.</param>
         /// <param name="connectionId">The connection identifier.</param>
-        /// <returns></returns>
-        Task StoreCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest, string connectionId);
+        /// <returns>The credential identifier of the stored credential record.</returns>
+        Task<string> StoreCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest, string connectionId);
 
         /// <summary>
         /// Creates and sends a credential with the given credential identifier

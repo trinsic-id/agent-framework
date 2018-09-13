@@ -34,17 +34,22 @@ namespace Streetcred.Sdk.Model.Records
         public string MyDid { get; set; }
 
         /// <summary>
+        /// Gets or sets my verkey
+        /// </summary>
+        /// <value>My vk.</value>
+        public string MyVk { get; set; }
+
+        /// <summary>
         /// Gets or sets their did.
         /// </summary>
         /// <value>Their did.</value>
         public string TheirDid { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this
-        /// <see cref="T:Streetcred.Services.Domain.Connections.ConnectionRecord"/> is trusted.
+        /// Gets or sets their verkey.
         /// </summary>
-        /// <value><c>true</c> if trusted; otherwise, <c>false</c>.</value>
-        public bool Trusted { get; set; }
+        /// <value>Their vk.</value>
+        public string TheirVk { get; set; }
 
         /// <summary>
         /// Gets or sets the endpoint.
