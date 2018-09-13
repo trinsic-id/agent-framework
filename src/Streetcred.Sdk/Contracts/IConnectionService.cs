@@ -29,10 +29,9 @@ namespace Streetcred.Sdk.Contracts
         /// Creates the invitation asynchronous.
         /// </summary>
         /// <param name="wallet">Wallet.</param>
-        /// <param name="connectionId">Connection identifier.</param>
         /// <param name="config">An optional configuration object used to configure the resulting invitations presentation</param>
         /// <returns></returns>
-        Task<ConnectionInvitation> CreateInvitationAsync(Wallet wallet, string connectionId);
+        Task<ConnectionInvitation> CreateInvitationAsync(Wallet wallet, CreateInviteConfiguration config = null);
 
         /// <summary>
         /// Accepts the invitation async.
