@@ -35,11 +35,11 @@ namespace Agency.Web.Controllers
             return await _provisioningService.GetProvisioningAsync(wallet);
         }
 
-        [HttpPost("invite")]
-        public async Task<ConnectionInvitation> CreateInvitation([FromBody] CreateInviteConfiguration config = null)
+        [HttpGet("invite")]
+        public async Task<ConnectionInvitation> CreateInvitation()
         {
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
-            return await _connectionService.CreateInvitationAsync(wallet, config);
+            return await _connectionService.CreateInvitationAsync(wallet, Guid.NewGuid().ToString());
         }
 
         [HttpDelete("connections/{connectionId}")]
