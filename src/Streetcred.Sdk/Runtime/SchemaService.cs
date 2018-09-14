@@ -32,7 +32,7 @@ namespace Streetcred.Sdk.Runtime
         {
             var schema = await AnonCreds.IssuerCreateSchemaAsync(issuerDid, name, version, attributeNames.ToJson());
 
-            var schemaRecord = new SchemaRecord {SchemaId = schema.SchemaId};
+            var schemaRecord = new SchemaRecord { SchemaId = schema.SchemaId };
 
             await _ledgerService.RegisterSchemaAsync(pool, wallet, issuerDid, schema.SchemaJson);
             await _recordService.AddAsync(wallet, schemaRecord);
@@ -48,7 +48,7 @@ namespace Streetcred.Sdk.Runtime
             var schema = await _ledgerService.LookupSchemaAsync(pool, issuerDid, schemaId);
 
             var credentialDefinition = await AnonCreds.IssuerCreateAndStoreCredentialDefAsync(wallet, issuerDid,
-                schema.ObjectJson, "Tag", null, new {support_revocation = supportsRevocation}.ToJson());
+                schema.ObjectJson, "Tag", null, new { support_revocation = supportsRevocation }.ToJson());
 
             await _ledgerService.RegisterCredentialDefinitionAsync(wallet, pool, issuerDid,
                 credentialDefinition.CredDefJson);
@@ -82,7 +82,7 @@ namespace Streetcred.Sdk.Runtime
         /// <inheritdoc />
         /// <exception cref="NotImplementedException"></exception>
         public Task<List<SchemaRecord>> ListSchemasAsync(Wallet wallet) =>
-            _recordService.SearchAsync<SchemaRecord>(wallet, null, null);
+            _recordService.SearchAsync<SchemaRecord>(wallet, null, null, 100);
 
         /// <summary>
         /// Gets the credential definitions asynchronous.
@@ -91,7 +91,7 @@ namespace Streetcred.Sdk.Runtime
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
         public Task<List<DefinitionRecord>> ListCredentialDefinitionsAsync(Wallet wallet) =>
-            _recordService.SearchAsync<DefinitionRecord>(wallet, null, null);
+            _recordService.SearchAsync<DefinitionRecord>(wallet, null, null, 100);
 
         /// <summary>
         /// Gets the credential definition asynchronous.

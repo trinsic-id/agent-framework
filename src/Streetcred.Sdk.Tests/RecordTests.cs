@@ -39,10 +39,10 @@ namespace Streetcred.Sdk.Tests
         [Fact]
         public async Task CanStoreAndRetrieveRecordWithTags()
         {
-            var record = new ConnectionRecord {ConnectionId = "123"};
+            var record = new ConnectionRecord { ConnectionId = "123" };
             record.Tags.Add("tag1", "tagValue1");
 
-           await _recordService.AddAsync(_wallet, record);
+            await _recordService.AddAsync(_wallet, record);
 
             var retrieved = await _recordService.GetAsync<ConnectionRecord>(_wallet, "123");
 
@@ -65,7 +65,7 @@ namespace Streetcred.Sdk.Tests
 
             var search =
                 await _recordService.SearchAsync<ConnectionRecord>(_wallet,
-                    new SearchRecordQuery() {{tagName, tagValue}}, null);
+                    new SearchRecordQuery() { { tagName, tagValue } }, null, 100);
 
             var retrieved = search.Single();
 
@@ -87,7 +87,7 @@ namespace Streetcred.Sdk.Tests
             record.Tags.Add(tagName, tagValue);
 
             await _recordService.AddAsync(_wallet, record);
-            
+
             var retrieved = await _recordService.GetAsync<ConnectionRecord>(_wallet, id);
 
             retrieved.MyDid = "123";
@@ -114,7 +114,9 @@ namespace Streetcred.Sdk.Tests
         [Fact]
         public async Task ReturnsEmptyListForNonExistentRecord()
         {
-            var record = await _recordService.SearchAsync<ConnectionRecord>(_wallet, new SearchRecordQuery { { Guid.NewGuid().ToString(), Guid.NewGuid().ToString() } }, null);
+            var record = await _recordService.SearchAsync<ConnectionRecord>(
+                _wallet,
+                new SearchRecordQuery { { Guid.NewGuid().ToString(), Guid.NewGuid().ToString() } }, null, 100);
             Assert.False(record.Any());
         }
 
