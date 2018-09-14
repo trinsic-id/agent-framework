@@ -120,6 +120,24 @@ namespace Streetcred.Sdk.Tests
             Assert.False(record.Any());
         }
 
+        [Fact]
+        public void InitialConnectionRecordIsInvitedAndHasTag()
+        {
+            var record = new ConnectionRecord();
+
+            Assert.True(record.State == ConnectionState.Invited);
+            Assert.True(record.Tags["State"] == ConnectionState.Invited.ToString("G"));
+        }
+
+        [Fact]
+        public void InitialCredentialRecordIsOfferedAndHasTag()
+        {
+            var record = new CredentialRecord();
+
+            Assert.True(record.State == CredentialState.Offered);
+            Assert.True(record.Tags["State"] == CredentialState.Offered.ToString("G"));
+        }
+
         public async Task DisposeAsync()
         {
             await _wallet.CloseAsync();

@@ -20,8 +20,10 @@ namespace Streetcred.Sdk.Extensions
         /// <param name="connectionService">Connection service.</param>
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
-        public static Task<List<ConnectionRecord>> ListNegotiatingConnectionsAsync(this IConnectionService connectionService, Wallet wallet, int count = 100)
-            => connectionService.ListAsync(wallet, new SearchRecordQuery { { "State", ConnectionState.Negotiating.ToString("G") } }, count);
+        public static Task<List<ConnectionRecord>> ListNegotiatingConnectionsAsync(
+            this IConnectionService connectionService, Wallet wallet, int count = 100)
+            => connectionService.ListAsync(wallet,
+                new SearchRecordQuery {{"State", ConnectionState.Negotiating.ToString("G")}}, count);
 
         /// <summary>
         /// Retrieves a list of <see cref="ConnectionRecord"/> that are in <see cref="ConnectionState.Connected"/> state.
@@ -30,8 +32,10 @@ namespace Streetcred.Sdk.Extensions
         /// <param name="connectionService">Connection service.</param>
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
-        public static Task<List<ConnectionRecord>> ListConnectedConnectionsAsync(this IConnectionService connectionService, Wallet wallet, int count = 100)
-            => connectionService.ListAsync(wallet, new SearchRecordQuery { { "State", ConnectionState.Connected.ToString("G") } }, count);
+        public static Task<List<ConnectionRecord>> ListConnectedConnectionsAsync(
+            this IConnectionService connectionService, Wallet wallet, int count = 100)
+            => connectionService.ListAsync(wallet,
+                new SearchRecordQuery {{"State", ConnectionState.Connected.ToString("G")}}, count);
 
         /// <summary>
         /// Retrieves a list of <see cref="ConnectionRecord"/> that are in <see cref="ConnectionState.Invited"/> state.
@@ -40,7 +44,9 @@ namespace Streetcred.Sdk.Extensions
         /// <param name="connectionService">Connection service.</param>
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
-        public static Task<List<ConnectionRecord>> ListInvitedConnectionsAsync(this IConnectionService connectionService, Wallet wallet, int count = 100)
-            => connectionService.ListAsync(wallet, new SearchRecordQuery { { "State", ConnectionState.Invited.ToString("G") } }, count);
+        public static Task<List<ConnectionRecord>> ListInvitedConnectionsAsync(
+            this IConnectionService connectionService, Wallet wallet, int count = 100)
+            => connectionService.ListAsync(wallet,
+                new SearchRecordQuery {{"State", ConnectionState.Invited.ToString("G")}}, count);
     }
 }

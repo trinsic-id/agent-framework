@@ -40,7 +40,9 @@ namespace Streetcred.Sdk.Runtime
                            .Select(x =>
                            {
                                var record = JsonConvert.DeserializeObject<T>(x.Value);
-                               record.Tags = x.Tags;
+                               record.Tags.Clear();
+                               foreach (var tag in x.Tags)
+                                   record.Tags.Add(tag.Key, tag.Value);
                                return record;
                            })
                            .ToList()
@@ -77,7 +79,9 @@ namespace Streetcred.Sdk.Runtime
                 var item = JsonConvert.DeserializeObject<SearchRecordItem>(recordJson);
 
                 var record = JsonConvert.DeserializeObject<T>(item.Value);
-                record.Tags = item.Tags;
+                record.Tags.Clear();
+                foreach (var tag in item.Tags)
+                    record.Tags.Add(tag.Key, tag.Value);
                 return record;
             }
             catch (WalletItemNotFoundException)

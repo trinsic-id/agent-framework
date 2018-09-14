@@ -76,7 +76,7 @@ namespace Streetcred.Sdk.Tests
 
             var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
 
-            Assert.Equal(ConnectionState.Negotiating, connection.State);
+            Assert.Equal(ConnectionState.Invited, connection.State);
             Assert.Equal(connectionId, connection.GetId());
         }
 
