@@ -103,14 +103,14 @@ namespace Streetcred.Sdk.Tests
 
             try
             {
-                await _poolService.CreatePoolAsync(PoolName, Path.GetFullPath("pool_genesis.txn"));
+                await _poolService.CreatePoolAsync(PoolName, Path.GetFullPath("pool_genesis.txn"), 2);
             }
             catch (PoolLedgerConfigExistsException)
             {
             }
             finally
             {
-                _pool = await _poolService.GetPoolAsync(PoolName);
+                _pool = await _poolService.GetPoolAsync(PoolName, 2);
             }
         }
 

@@ -9,17 +9,23 @@ namespace Streetcred.Sdk.Contracts
     public interface IPoolService
     {
         /// <summary>
-        /// Gets the pool async.
+        /// Opens the pool configuration with the specified name.
         /// </summary>
-        /// <returns>The pool async.</returns>
-        Task<Pool> GetPoolAsync(string poolName = "DefaultPool");
+        /// <param name="poolName">Name of the pool configuration.</param>
+        /// <param name="protocolVersion">The protocol version of the nodes.</param>
+        /// <returns>
+        /// A handle to the pool.
+        /// </returns>
+        Task<Pool> GetPoolAsync(string poolName, int protocolVersion);
 
         /// <summary>
-        /// Creates the pool async.
+        /// Creates a pool configuration.
         /// </summary>
-        /// <returns>The pool async.</returns>
-        /// <param name="poolName">Pool name.</param>
-        /// <param name="genesisFile">Genesis file.</param>
-        Task CreatePoolAsync(string poolName, string genesisFile);
+        /// <param name="poolName">The name of the pool configuration.</param>
+        /// <param name="genesisFile">Genesis transaction file.</param>
+        /// <param name="protocolVersion">The protocol version of the nodes.</param>
+        /// <returns>
+        /// </returns>
+        Task CreatePoolAsync(string poolName, string genesisFile, int protocolVersion);
     }
 }
