@@ -13,6 +13,11 @@ namespace Streetcred.Sdk.Model.Records
     {
         private CredentialState _state;
 
+        public CredentialRecord()
+        {
+            State = CredentialState.Offered;
+        }
+
         /// <summary>
         /// Gets the identifier.
         /// </summary>
@@ -44,7 +49,7 @@ namespace Streetcred.Sdk.Model.Records
             set
             {
                 _state = value;
-                Tags[nameof(State)] = value.ToString("G");
+                Tags["State"] = value.ToString("G");
             }
         }
 

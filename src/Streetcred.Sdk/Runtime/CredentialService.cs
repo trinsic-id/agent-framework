@@ -64,8 +64,8 @@ namespace Streetcred.Sdk.Runtime
         /// <inheritdoc />
         public async Task<string> StoreOfferAsync(Wallet wallet, CredentialOffer credentialOffer,
                 string connectionId)
-        // TODO: Remove 'connectionId' parameter and resolve the connection
-        // from the @type which should include DID details
+            // TODO: Remove 'connectionId' parameter and resolve the connection
+            // from the @type which should include DID details
         {
             var connection = await _connectionService.GetAsync(wallet, connectionId);
             var (offerDetails, _) = await _messageSerializer.UnpackSealedAsync<CredentialOfferDetails>(
@@ -85,15 +85,13 @@ namespace Streetcred.Sdk.Runtime
                 OfferJson = offerJson,
                 ConnectionId = connection.GetId(),
                 CredentialDefinitionId = definitionId,
-                State = CredentialState.Offered,
-                Tags = new Dictionary<string, string>
-                {
-                    {"connectionId", connection.GetId()},
-                    {"nonce", nonce},
-                    {"schemaId", schemaId},
-                    {"definitionId", definitionId}
-                }
+                State = CredentialState.Offered
             };
+            credentialRecord.Tags.Add("connectionId", connection.GetId());
+            credentialRecord.Tags.Add("nonce", nonce);
+            credentialRecord.Tags.Add("schemaId", schemaId);
+            credentialRecord.Tags.Add("definitionId", definitionId);
+
             await _recordService.AddAsync(wallet, credentialRecord);
 
             return credentialRecord.GetId();
@@ -137,8 +135,8 @@ namespace Streetcred.Sdk.Runtime
 
         /// <inheritdoc />
         public async Task StoreCredentialAsync(Pool pool, Wallet wallet, Credential credential, string connectionId)
-        // TODO: Remove 'connectionId' parameter and resolve the connection
-        // from the @type which should include DID details
+            // TODO: Remove 'connectionId' parameter and resolve the connection
+            // from the @type which should include DID details
         {
             var connection = await _connectionService.GetAsync(wallet, connectionId);
             var (details, _) = await _messageSerializer.UnpackSealedAsync<CredentialDetails>(credential.Content,
@@ -200,16 +198,14 @@ namespace Streetcred.Sdk.Runtime
                 OfferJson = offerJson,
                 State = CredentialState.Offered,
                 ConnectionId = connection.GetId(),
-                Tags = new Dictionary<string, string>
-                {
-                    {"nonce", nonce},
-                    {"connectionId", connection.GetId()}
-                }
             };
+            credentialRecord.Tags.Add("nonce", nonce);
+            credentialRecord.Tags.Add("connectionId", connection.GetId());
+
             await _recordService.AddAsync(wallet, credentialRecord);
 
             var credentialOffer = await _messageSerializer.PackSealedAsync<CredentialOffer>(
-                new CredentialOfferDetails { OfferJson = offerJson },
+                new CredentialOfferDetails {OfferJson = offerJson},
                 wallet,
                 connection.MyVk,
                 connection.TheirVk);
@@ -236,8 +232,8 @@ namespace Streetcred.Sdk.Runtime
         /// <inheritdoc />
         public async Task<string> StoreCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest,
                 string connectionId)
-        // TODO: Remove 'connectionId' parameter and resolve the connection
-        // from the @type which should include DID details
+            // TODO: Remove 'connectionId' parameter and resolve the connection
+            // from the @type which should include DID details
         {
             _logger.LogInformation(LoggingEvents.StoreCredentialRequest, "ConnectionId {0},", connectionId);
 
@@ -249,7 +245,7 @@ namespace Streetcred.Sdk.Runtime
             var request = JObject.Parse(details.OfferJson);
             var nonce = request["nonce"].ToObject<string>();
 
-            var query = new SearchRecordQuery { { "nonce", nonce } };
+            var query = new SearchRecordQuery {{"nonce", nonce}};
             var credentialSearch = await _recordService.SearchAsync<CredentialRecord>(wallet, query, null, 1);
 
             var credential = credentialSearch.Single();

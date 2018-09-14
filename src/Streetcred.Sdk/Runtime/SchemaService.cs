@@ -32,7 +32,7 @@ namespace Streetcred.Sdk.Runtime
         {
             var schema = await AnonCreds.IssuerCreateSchemaAsync(issuerDid, name, version, attributeNames.ToJson());
 
-            var schemaRecord = new SchemaRecord { SchemaId = schema.SchemaId };
+            var schemaRecord = new SchemaRecord {SchemaId = schema.SchemaId};
 
             await _ledgerService.RegisterSchemaAsync(pool, wallet, issuerDid, schema.SchemaJson);
             await _recordService.AddAsync(wallet, schemaRecord);
@@ -48,7 +48,7 @@ namespace Streetcred.Sdk.Runtime
             var schema = await _ledgerService.LookupSchemaAsync(pool, issuerDid, schemaId);
 
             var credentialDefinition = await AnonCreds.IssuerCreateAndStoreCredentialDefAsync(wallet, issuerDid,
-                schema.ObjectJson, "Tag", null, new { support_revocation = supportsRevocation }.ToJson());
+                schema.ObjectJson, "Tag", null, new {support_revocation = supportsRevocation}.ToJson());
 
             await _ledgerService.RegisterCredentialDefinitionAsync(wallet, pool, issuerDid,
                 credentialDefinition.CredDefJson);
@@ -61,12 +61,13 @@ namespace Streetcred.Sdk.Runtime
                 var storageId = Guid.NewGuid().ToString().ToLowerInvariant();
                 var blobWriter = await _tailsService.GetBlobStorageWriterAsync(storageId);
 
-                var revRegDefConfig = "{\"issuance_type\":\"ISSUANCE_ON_DEMAND\",\"max_cred_num\":5}";//new { issuance_type = "ISSUANCE_ON_DEMAND", max_cred_num = maxCredentialCount}.ToJson();
+                var revRegDefConfig =
+                    new {issuance_type = "ISSUANCE_ON_DEMAND", max_cred_num = maxCredentialCount}.ToJson();
                 var revocationRegistry = await AnonCreds.IssuerCreateAndStoreRevocRegAsync(wallet, issuerDid, null,
                     "Tag2", credentialDefinition.CredDefId, revRegDefConfig, blobWriter);
 
                 await _ledgerService.RegisterRevocationRegistryDefinitionAsync(wallet, pool, issuerDid,
-                                                                               revocationRegistry.RevRegDefJson);
+                    revocationRegistry.RevRegDefJson);
                 await _ledgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid,
                     revocationRegistry.RevRegId, "CL_ACCUM", revocationRegistry.RevRegEntryJson);
 

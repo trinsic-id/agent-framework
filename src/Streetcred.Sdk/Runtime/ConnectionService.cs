@@ -40,7 +40,8 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<ConnectionInvitation> CreateInvitationAsync(Wallet wallet, CreateInviteConfiguration config = null)
+        public async Task<ConnectionInvitation> CreateInvitationAsync(Wallet wallet,
+            CreateInviteConfiguration config = null)
         {
             string connectionId;
             if (!string.IsNullOrEmpty(config?.ConnectionId))
@@ -148,7 +149,7 @@ namespace Streetcred.Sdk.Runtime
             _logger.LogInformation(LoggingEvents.StoreConnectionRequest, "Key {0}", request.Key);
 
             var connectionSearch = await _recordService.SearchAsync<ConnectionRecord>(wallet,
-                new SearchRecordQuery { { "connectionKey", request.Key } }, null, 1);
+                new SearchRecordQuery {{"connectionKey", request.Key}}, null, 1);
 
             var connection = connectionSearch.Single();
 
@@ -159,7 +160,7 @@ namespace Streetcred.Sdk.Runtime
 
             var my = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
 
-            await Did.StoreTheirDidAsync(wallet, new { did = their.Did, verkey = their.Verkey }.ToJson());
+            await Did.StoreTheirDidAsync(wallet, new {did = their.Did, verkey = their.Verkey}.ToJson());
 
             connection.Endpoint = their.Endpoint;
             connection.TheirDid = their.Did;
@@ -216,7 +217,7 @@ namespace Streetcred.Sdk.Runtime
             _logger.LogInformation(LoggingEvents.AcceptConnectionResponse, "To {0}", response.To);
 
             var connectionSearch = await _recordService.SearchAsync<ConnectionRecord>(wallet,
-                new SearchRecordQuery { { "myDid", response.To } }, null, 1);
+                new SearchRecordQuery {{"myDid", response.To}}, null, 1);
 
             var connection = connectionSearch.Single();
             await connection.TriggerAsync(ConnectionTrigger.Response);
@@ -226,7 +227,7 @@ namespace Streetcred.Sdk.Runtime
                 connection.MyVk);
 
             await Did.StoreTheirDidAsync(wallet,
-                new { did = connectionDetails.Did, verkey = connectionDetails.Verkey }.ToJson());
+                new {did = connectionDetails.Did, verkey = connectionDetails.Verkey}.ToJson());
 
             await Pairwise.CreateAsync(wallet, connectionDetails.Did, connection.MyDid,
                 connectionDetails.Endpoint.ToJson());

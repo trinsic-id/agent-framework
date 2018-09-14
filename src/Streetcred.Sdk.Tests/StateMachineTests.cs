@@ -20,11 +20,11 @@ namespace Streetcred.Sdk.Tests
         }
 
         [Fact]
-        public async Task CanTransitionFromNegotiatingToConnectedWithRequest()
+        public async Task CanTransitionFromInvitedToConnectedWithRequest()
         {
-            var record = new ConnectionRecord() { State = ConnectionState.Negotiating };
+            var record = new ConnectionRecord() { State = ConnectionState.Invited };
 
-            Assert.True(ConnectionState.Negotiating == record.State);
+            Assert.True(ConnectionState.Invited == record.State);
 
             await record.TriggerAsync(ConnectionTrigger.Request);
 
@@ -44,17 +44,29 @@ namespace Streetcred.Sdk.Tests
         }
 
         [Fact]
-        public async Task CannotTransitionFromDisconnectedToConnectedWithRequestOrResponse()
+        public async Task CannotTransitionFromNegotiatingToConnectedWithRequest()
         {
-            var record = new ConnectionRecord();
+            var record = new ConnectionRecord { State = ConnectionState.Negotiating};
 
-            Assert.True(ConnectionState.Invited == record.State);
+            Assert.True(ConnectionState.Negotiating == record.State);
 
             var exception =
                 await Assert.ThrowsAsync<InvalidOperationException>(
                     () => record.TriggerAsync(ConnectionTrigger.Request));
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => record.TriggerAsync(ConnectionTrigger.Response));
+            Assert.Equal("Stateless", exception.Source);
+        }
+
+        [Fact]
+        public async Task CannotTransitionFromInvitedWithAccept()
+        {
+            var record = new ConnectionRecord { State = ConnectionState.Negotiating};
+
+            Assert.True(ConnectionState.Negotiating == record.State);
+
+            var exception =
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => record.TriggerAsync(ConnectionTrigger.InvitationAccept));
 
             Assert.Equal("Stateless", exception.Source);
         }

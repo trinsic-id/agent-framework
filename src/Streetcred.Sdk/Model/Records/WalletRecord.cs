@@ -21,6 +21,6 @@ namespace Streetcred.Sdk.Model.Records
         public abstract string GetTypeName();
 
         [JsonIgnore]
-        public Dictionary<string, string> Tags { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, string> Tags { get; } = new Dictionary<string, string>();
     }
 }
