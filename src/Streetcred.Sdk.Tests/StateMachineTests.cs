@@ -8,23 +8,11 @@ namespace Streetcred.Sdk.Tests
     public class StateMachineTests
     {
         [Fact]
-        public async Task CanTransitionFromDisconnetedToNegotiatingWithInvitationCreate()
-        {
-            var record = new ConnectionRecord();
-
-            Assert.True(ConnectionState.Disconnected == record.State);
-
-            await record.TriggerAsync(ConnectionTrigger.InvitationCreate);
-
-            Assert.True(ConnectionState.Negotiating == record.State);
-        }
-
-        [Fact]
         public async Task CanTransitionFromDisconnetedToNegotiatingWithInvitationAccept()
         {
             var record = new ConnectionRecord();
 
-            Assert.True(ConnectionState.Disconnected == record.State);
+            Assert.True(ConnectionState.Invited == record.State);
 
             await record.TriggerAsync(ConnectionTrigger.InvitationAccept);
 
@@ -34,7 +22,7 @@ namespace Streetcred.Sdk.Tests
         [Fact]
         public async Task CanTransitionFromNegotiatingToConnectedWithRequest()
         {
-            var record = new ConnectionRecord() {State = ConnectionState.Negotiating};
+            var record = new ConnectionRecord() { State = ConnectionState.Negotiating };
 
             Assert.True(ConnectionState.Negotiating == record.State);
 
@@ -46,7 +34,7 @@ namespace Streetcred.Sdk.Tests
         [Fact]
         public async Task CanTransitionFromNegotiatingToConnectedWithRespone()
         {
-            var record = new ConnectionRecord() {State = ConnectionState.Negotiating};
+            var record = new ConnectionRecord() { State = ConnectionState.Negotiating };
 
             Assert.True(ConnectionState.Negotiating == record.State);
 
@@ -60,7 +48,7 @@ namespace Streetcred.Sdk.Tests
         {
             var record = new ConnectionRecord();
 
-            Assert.True(ConnectionState.Disconnected == record.State);
+            Assert.True(ConnectionState.Invited == record.State);
 
             var exception =
                 await Assert.ThrowsAsync<InvalidOperationException>(

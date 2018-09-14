@@ -58,14 +58,14 @@ namespace Streetcred.Sdk.Runtime
             _recordService.GetAsync<CredentialRecord>(wallet, credentialId);
 
         /// <inheritdoc />
-        public Task<List<CredentialRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null) =>
-            _recordService.SearchAsync<CredentialRecord>(wallet, query, null);
+        public Task<List<CredentialRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100) =>
+            _recordService.SearchAsync<CredentialRecord>(wallet, query, null, count);
 
         /// <inheritdoc />
         public async Task<string> StoreOfferAsync(Wallet wallet, CredentialOffer credentialOffer,
                 string connectionId)
-            // TODO: Remove 'connectionId' parameter and resolve the connection
-            // from the @type which should include DID details
+        // TODO: Remove 'connectionId' parameter and resolve the connection
+        // from the @type which should include DID details
         {
             var connection = await _connectionService.GetAsync(wallet, connectionId);
             var (offerDetails, _) = await _messageSerializer.UnpackSealedAsync<CredentialOfferDetails>(
@@ -137,8 +137,8 @@ namespace Streetcred.Sdk.Runtime
 
         /// <inheritdoc />
         public async Task StoreCredentialAsync(Pool pool, Wallet wallet, Credential credential, string connectionId)
-            // TODO: Remove 'connectionId' parameter and resolve the connection
-            // from the @type which should include DID details
+        // TODO: Remove 'connectionId' parameter and resolve the connection
+        // from the @type which should include DID details
         {
             var connection = await _connectionService.GetAsync(wallet, connectionId);
             var (details, _) = await _messageSerializer.UnpackSealedAsync<CredentialDetails>(credential.Content,
@@ -155,7 +155,7 @@ namespace Streetcred.Sdk.Runtime
                     {"schemaId", schemaId},
                     {"definitionId", definitionId},
                     {"connectionId", connectionId}
-                }, null);
+                }, null, 1);
 
             var credentialRecord = credentialSearch.Single();
             // TODO: Should throw or resolve conflict gracefully if multiple credential records are found
@@ -209,7 +209,7 @@ namespace Streetcred.Sdk.Runtime
             await _recordService.AddAsync(wallet, credentialRecord);
 
             var credentialOffer = await _messageSerializer.PackSealedAsync<CredentialOffer>(
-                new CredentialOfferDetails {OfferJson = offerJson},
+                new CredentialOfferDetails { OfferJson = offerJson },
                 wallet,
                 connection.MyVk,
                 connection.TheirVk);
@@ -236,8 +236,8 @@ namespace Streetcred.Sdk.Runtime
         /// <inheritdoc />
         public async Task<string> StoreCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest,
                 string connectionId)
-            // TODO: Remove 'connectionId' parameter and resolve the connection
-            // from the @type which should include DID details
+        // TODO: Remove 'connectionId' parameter and resolve the connection
+        // from the @type which should include DID details
         {
             _logger.LogInformation(LoggingEvents.StoreCredentialRequest, "ConnectionId {0},", connectionId);
 
@@ -249,8 +249,8 @@ namespace Streetcred.Sdk.Runtime
             var request = JObject.Parse(details.OfferJson);
             var nonce = request["nonce"].ToObject<string>();
 
-            var query = new SearchRecordQuery {{"nonce", nonce}};
-            var credentialSearch = await _recordService.SearchAsync<CredentialRecord>(wallet, query, null);
+            var query = new SearchRecordQuery { { "nonce", nonce } };
+            var credentialSearch = await _recordService.SearchAsync<CredentialRecord>(wallet, query, null, 1);
 
             var credential = credentialSearch.Single();
             // Offer should already be present

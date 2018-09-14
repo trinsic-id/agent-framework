@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Model.Connections;
 using Streetcred.Sdk.Model.Records;
+using Streetcred.Sdk.Model.Records.Search;
 
 namespace Streetcred.Sdk.Contracts
 {
@@ -17,13 +18,13 @@ namespace Streetcred.Sdk.Contracts
         Task<ConnectionRecord> GetAsync(Wallet wallet, string connectionId);
 
         /// <summary>
-        /// Lists the async.
+        /// Retrieves a list of <see cref="ConnectionRecord"/> items for the given search criteria
         /// </summary>
-        /// <param name="wallet">Wallet</param>
-        /// <returns>
-        /// The async.
-        /// </returns>
-        Task<List<ConnectionRecord>> ListAsync(Wallet wallet);
+        /// <returns>The async.</returns>
+        /// <param name="wallet">The wallet to search</param>
+        /// <param name="query">The query used to filter the search results.</param>
+        /// <param name="count">The maximum item count of items to return to return.</param>
+        Task<List<ConnectionRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100);
 
         /// <summary>
         /// Creates the invitation asynchronous.

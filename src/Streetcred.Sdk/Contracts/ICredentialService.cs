@@ -19,12 +19,13 @@ namespace Streetcred.Sdk.Contracts
         Task<CredentialRecord> GetAsync(Wallet wallet, string credentialId);
 
         /// <summary>
-        /// Lists the asynchronous.
+        /// Retreives a list of <see cref="CredentialRecord"/> items for the given search criteria
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="query">The query.</param>
+        /// <param name="count">The number of items to return</param>
         /// <returns>A list of credential records matchinc the search criteria</returns>
-        Task<List<CredentialRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null);
+        Task<List<CredentialRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100);
 
         /// <summary>
         /// Stores the offer asynchronous.

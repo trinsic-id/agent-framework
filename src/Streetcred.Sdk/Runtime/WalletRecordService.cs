@@ -26,14 +26,14 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<List<T>> SearchAsync<T>(Wallet wallet, SearchRecordQuery query, SearchRecordOptions options)
+        public async Task<List<T>> SearchAsync<T>(Wallet wallet, SearchRecordQuery query, SearchRecordOptions options, int count)
             where T : WalletRecord, new()
         {
             using (var search = await NonSecrets.OpenSearchAsync(wallet, new T().GetTypeName(),
                 (query ?? new SearchRecordQuery()).ToJson(),
                 (options ?? new SearchRecordOptions()).ToJson()))
             {
-                var result = JsonConvert.DeserializeObject<SearchRecordResult>(await search.NextAsync(wallet, 10));
+                var result = JsonConvert.DeserializeObject<SearchRecordResult>(await search.NextAsync(wallet, count));
                 // TODO: Add support for pagination
 
                 return result.Records?
@@ -56,8 +56,8 @@ namespace Streetcred.Sdk.Runtime
                 record.GetId(),
                 record.ToJson());
 
-            await NonSecrets.UpdateRecordTagsAsync(wallet, 
-                record.GetTypeName(), 
+            await NonSecrets.UpdateRecordTagsAsync(wallet,
+                record.GetTypeName(),
                 record.GetId(),
                 record.Tags.ToJson());
         }
@@ -91,9 +91,9 @@ namespace Streetcred.Sdk.Runtime
         {
             try
             {
-               await NonSecrets.DeleteRecordAsync(wallet,
-                    new T().GetTypeName(),
-                    id);
+                await NonSecrets.DeleteRecordAsync(wallet,
+                     new T().GetTypeName(),
+                     id);
 
                 return true;
             }
