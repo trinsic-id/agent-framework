@@ -100,7 +100,8 @@ namespace Streetcred.Sdk.Model.Records
         {
             var state = new StateMachine<ConnectionState, ConnectionTrigger>(() => State, x => State = x);
             state.Configure(ConnectionState.Invited).Permit(ConnectionTrigger.InvitationAccept, ConnectionState.Negotiating);
-            state.Configure(ConnectionState.Invited).Permit(ConnectionTrigger.Request, ConnectionState.Connected);
+            state.Configure(ConnectionState.Invited).Permit(ConnectionTrigger.Request, ConnectionState.Negotiating);
+            state.Configure(ConnectionState.Negotiating).Permit(ConnectionTrigger.Request, ConnectionState.Connected);
             state.Configure(ConnectionState.Negotiating).Permit(ConnectionTrigger.Response, ConnectionState.Connected);
             return state;
         }
