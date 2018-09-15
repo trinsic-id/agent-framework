@@ -43,11 +43,9 @@ namespace Streetcred.Sdk.Runtime
         public async Task<ConnectionInvitation> CreateInvitationAsync(Wallet wallet,
             CreateInviteConfiguration config = null)
         {
-            string connectionId;
-            if (!string.IsNullOrEmpty(config?.ConnectionId))
-                connectionId = config.ConnectionId;
-            else
-                connectionId = Guid.NewGuid().ToString();
+            var connectionId = !string.IsNullOrEmpty(config?.ConnectionId)
+                ? config.ConnectionId
+                : Guid.NewGuid().ToString();
 
             _logger.LogInformation(LoggingEvents.CreateInvitation, "ConnectionId {0}", connectionId);
 
@@ -157,6 +155,8 @@ namespace Streetcred.Sdk.Runtime
                 await _messageSerializer.UnpackSealedAsync<ConnectionDetails>(request.Content, wallet, request.Key);
 
             if (!their.Verkey.Equals(theirKey)) throw new ArgumentException("Signed and enclosed keys don't match");
+
+            await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
 
             var my = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
 
