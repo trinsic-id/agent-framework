@@ -61,12 +61,13 @@ namespace Streetcred.Sdk.Runtime
                 var storageId = Guid.NewGuid().ToString().ToLowerInvariant();
                 var blobWriter = await _tailsService.GetBlobStorageWriterAsync(storageId);
 
-                var revRegDefConfig = "{\"issuance_type\":\"ISSUANCE_ON_DEMAND\",\"max_cred_num\":5}";//new { issuance_type = "ISSUANCE_ON_DEMAND", max_cred_num = maxCredentialCount}.ToJson();
+                var revRegDefConfig =
+                    new {issuance_type = "ISSUANCE_ON_DEMAND", max_cred_num = maxCredentialCount}.ToJson();
                 var revocationRegistry = await AnonCreds.IssuerCreateAndStoreRevocRegAsync(wallet, issuerDid, null,
                     "Tag2", credentialDefinition.CredDefId, revRegDefConfig, blobWriter);
 
                 await _ledgerService.RegisterRevocationRegistryDefinitionAsync(wallet, pool, issuerDid,
-                                                                               revocationRegistry.RevRegDefJson);
+                    revocationRegistry.RevRegDefJson);
                 await _ledgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid,
                     revocationRegistry.RevRegId, "CL_ACCUM", revocationRegistry.RevRegEntryJson);
 
@@ -82,7 +83,7 @@ namespace Streetcred.Sdk.Runtime
         /// <inheritdoc />
         /// <exception cref="NotImplementedException"></exception>
         public Task<List<SchemaRecord>> ListSchemasAsync(Wallet wallet) =>
-            _recordService.SearchAsync<SchemaRecord>(wallet, null, null);
+            _recordService.SearchAsync<SchemaRecord>(wallet, null, null, 100);
 
         /// <summary>
         /// Gets the credential definitions asynchronous.
@@ -91,7 +92,7 @@ namespace Streetcred.Sdk.Runtime
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
         public Task<List<DefinitionRecord>> ListCredentialDefinitionsAsync(Wallet wallet) =>
-            _recordService.SearchAsync<DefinitionRecord>(wallet, null, null);
+            _recordService.SearchAsync<DefinitionRecord>(wallet, null, null, 100);
 
         /// <summary>
         /// Gets the credential definition asynchronous.
