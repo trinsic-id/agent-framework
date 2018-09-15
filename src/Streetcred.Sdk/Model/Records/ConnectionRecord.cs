@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Stateless;
@@ -8,6 +9,13 @@ namespace Streetcred.Sdk.Model.Records
 {
     public class ConnectionRecord : WalletRecord
     {
+        private ConnectionState _state;
+
+        public ConnectionRecord()
+        {
+            State = ConnectionState.Invited;
+        }
+
         /// <summary>
         /// Gets the identifier.
         /// </summary>
@@ -71,7 +79,15 @@ namespace Streetcred.Sdk.Model.Records
         /// </summary>
         /// <value>The state.</value>
         [JsonConverter(typeof(StringEnumConverter))]
-        public ConnectionState State { get; set; }
+        public ConnectionState State
+        {
+            get => _state;
+            set
+            {
+                _state = value;
+                Tags["State"] = value.ToString("G");
+            }
+        }
 
         /// <summary>
         /// Triggers the async.
@@ -83,8 +99,8 @@ namespace Streetcred.Sdk.Model.Records
         private StateMachine<ConnectionState, ConnectionTrigger> GetStateMachine()
         {
             var state = new StateMachine<ConnectionState, ConnectionTrigger>(() => State, x => State = x);
-            state.Configure(ConnectionState.Disconnected).Permit(ConnectionTrigger.InvitationCreate, ConnectionState.Negotiating);
-            state.Configure(ConnectionState.Disconnected).Permit(ConnectionTrigger.InvitationAccept, ConnectionState.Negotiating);
+            state.Configure(ConnectionState.Invited).Permit(ConnectionTrigger.InvitationAccept, ConnectionState.Negotiating);
+            state.Configure(ConnectionState.Invited).Permit(ConnectionTrigger.Request, ConnectionState.Negotiating);
             state.Configure(ConnectionState.Negotiating).Permit(ConnectionTrigger.Request, ConnectionState.Connected);
             state.Configure(ConnectionState.Negotiating).Permit(ConnectionTrigger.Response, ConnectionState.Connected);
             return state;
@@ -95,14 +111,13 @@ namespace Streetcred.Sdk.Model.Records
 
     public enum ConnectionState
     {
-        Disconnected,
+        Invited = 0,
         Negotiating,
         Connected
     }
 
     public enum ConnectionTrigger
     {
-        InvitationCreate,
         InvitationAccept,
         Request,
         Response

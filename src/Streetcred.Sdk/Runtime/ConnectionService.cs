@@ -40,13 +40,12 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<ConnectionInvitation> CreateInvitationAsync(Wallet wallet, CreateInviteConfiguration config = null)
+        public async Task<ConnectionInvitation> CreateInvitationAsync(Wallet wallet,
+            CreateInviteConfiguration config = null)
         {
-            string connectionId;
-            if (!string.IsNullOrEmpty(config?.ConnectionId))
-                connectionId = config.ConnectionId;
-            else
-                connectionId = Guid.NewGuid().ToString();
+            var connectionId = !string.IsNullOrEmpty(config?.ConnectionId)
+                ? config.ConnectionId
+                : Guid.NewGuid().ToString();
 
             _logger.LogInformation(LoggingEvents.CreateInvitation, "ConnectionId {0}", connectionId);
 
@@ -63,7 +62,6 @@ namespace Streetcred.Sdk.Runtime
                     connection.Tags.Add("alias", config.TheirAlias.Name);
             }
 
-            await connection.TriggerAsync(ConnectionTrigger.InvitationCreate);
             await _recordService.AddAsync(wallet, connection);
 
             var provisioning = await _provisioningService.GetProvisioningAsync(wallet);
@@ -73,7 +71,7 @@ namespace Streetcred.Sdk.Runtime
                 Endpoint = provisioning.Endpoint,
                 ConnectionKey = connectionKey
             };
-            
+
             if (!string.IsNullOrEmpty(provisioning.Owner?.Name))
                 invite.Name = provisioning.Owner.Name;
             if (!string.IsNullOrEmpty(provisioning.Owner?.ImageUrl))
@@ -149,7 +147,7 @@ namespace Streetcred.Sdk.Runtime
             _logger.LogInformation(LoggingEvents.StoreConnectionRequest, "Key {0}", request.Key);
 
             var connectionSearch = await _recordService.SearchAsync<ConnectionRecord>(wallet,
-                new SearchRecordQuery {{"connectionKey", request.Key}}, null);
+                new SearchRecordQuery {{"connectionKey", request.Key}}, null, 1);
 
             var connection = connectionSearch.Single();
 
@@ -157,6 +155,8 @@ namespace Streetcred.Sdk.Runtime
                 await _messageSerializer.UnpackSealedAsync<ConnectionDetails>(request.Content, wallet, request.Key);
 
             if (!their.Verkey.Equals(theirKey)) throw new ArgumentException("Signed and enclosed keys don't match");
+
+            await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
 
             var my = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
 
@@ -217,7 +217,7 @@ namespace Streetcred.Sdk.Runtime
             _logger.LogInformation(LoggingEvents.AcceptConnectionResponse, "To {0}", response.To);
 
             var connectionSearch = await _recordService.SearchAsync<ConnectionRecord>(wallet,
-                new SearchRecordQuery {{"myDid", response.To}}, null);
+                new SearchRecordQuery {{"myDid", response.To}}, null, 1);
 
             var connection = connectionSearch.Single();
             await connection.TriggerAsync(ConnectionTrigger.Response);
@@ -251,11 +251,11 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public Task<List<ConnectionRecord>> ListAsync(Wallet wallet)
+        public Task<List<ConnectionRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100)
         {
             _logger.LogInformation(LoggingEvents.ListConnections, "List Connections");
 
-            return _recordService.SearchAsync<ConnectionRecord>(wallet, null, null);
+            return _recordService.SearchAsync<ConnectionRecord>(wallet, query, null, count);
         }
 
         /// <inheritdoc />

@@ -8,23 +8,11 @@ namespace Streetcred.Sdk.Tests
     public class StateMachineTests
     {
         [Fact]
-        public async Task CanTransitionFromDisconnetedToNegotiatingWithInvitationCreate()
-        {
-            var record = new ConnectionRecord();
-
-            Assert.True(ConnectionState.Disconnected == record.State);
-
-            await record.TriggerAsync(ConnectionTrigger.InvitationCreate);
-
-            Assert.True(ConnectionState.Negotiating == record.State);
-        }
-
-        [Fact]
         public async Task CanTransitionFromDisconnetedToNegotiatingWithInvitationAccept()
         {
             var record = new ConnectionRecord();
 
-            Assert.True(ConnectionState.Disconnected == record.State);
+            Assert.True(ConnectionState.Invited == record.State);
 
             await record.TriggerAsync(ConnectionTrigger.InvitationAccept);
 
@@ -32,21 +20,21 @@ namespace Streetcred.Sdk.Tests
         }
 
         [Fact]
-        public async Task CanTransitionFromNegotiatingToConnectedWithRequest()
+        public async Task CanTransitionFromInvitedToNegotiatingWithRequest()
         {
-            var record = new ConnectionRecord() {State = ConnectionState.Negotiating};
+            var record = new ConnectionRecord() { State = ConnectionState.Invited };
 
-            Assert.True(ConnectionState.Negotiating == record.State);
+            Assert.True(ConnectionState.Invited == record.State);
 
             await record.TriggerAsync(ConnectionTrigger.Request);
 
-            Assert.True(ConnectionState.Connected == record.State);
+            Assert.True(ConnectionState.Negotiating == record.State);
         }
 
         [Fact]
         public async Task CanTransitionFromNegotiatingToConnectedWithRespone()
         {
-            var record = new ConnectionRecord() {State = ConnectionState.Negotiating};
+            var record = new ConnectionRecord() { State = ConnectionState.Negotiating };
 
             Assert.True(ConnectionState.Negotiating == record.State);
 
@@ -56,17 +44,27 @@ namespace Streetcred.Sdk.Tests
         }
 
         [Fact]
-        public async Task CannotTransitionFromDisconnectedToConnectedWithRequestOrResponse()
+        public async Task CanTransitionFromNegotiatingToConnectedWithRequest()
         {
-            var record = new ConnectionRecord();
+            var record = new ConnectionRecord { State = ConnectionState.Negotiating};
 
-            Assert.True(ConnectionState.Disconnected == record.State);
+            Assert.True(ConnectionState.Negotiating == record.State);
+
+            await record.TriggerAsync(ConnectionTrigger.Request);
+
+            Assert.True(ConnectionState.Connected == record.State);
+        }
+
+        [Fact]
+        public async Task CannotTransitionFromInvitedWithAccept()
+        {
+            var record = new ConnectionRecord { State = ConnectionState.Negotiating};
+
+            Assert.True(ConnectionState.Negotiating == record.State);
 
             var exception =
                 await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => record.TriggerAsync(ConnectionTrigger.Request));
-
-            await Assert.ThrowsAsync<InvalidOperationException>(() => record.TriggerAsync(ConnectionTrigger.Response));
+                    () => record.TriggerAsync(ConnectionTrigger.InvitationAccept));
 
             Assert.Equal("Stateless", exception.Source);
         }

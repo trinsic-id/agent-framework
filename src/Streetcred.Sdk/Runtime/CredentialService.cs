@@ -58,8 +58,8 @@ namespace Streetcred.Sdk.Runtime
             _recordService.GetAsync<CredentialRecord>(wallet, credentialId);
 
         /// <inheritdoc />
-        public Task<List<CredentialRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null) =>
-            _recordService.SearchAsync<CredentialRecord>(wallet, query, null);
+        public Task<List<CredentialRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100) =>
+            _recordService.SearchAsync<CredentialRecord>(wallet, query, null, count);
 
         /// <inheritdoc />
         public async Task<string> StoreOfferAsync(Wallet wallet, CredentialOffer credentialOffer,
@@ -85,15 +85,13 @@ namespace Streetcred.Sdk.Runtime
                 OfferJson = offerJson,
                 ConnectionId = connection.GetId(),
                 CredentialDefinitionId = definitionId,
-                State = CredentialState.Offered,
-                Tags = new Dictionary<string, string>
-                {
-                    {"connectionId", connection.GetId()},
-                    {"nonce", nonce},
-                    {"schemaId", schemaId},
-                    {"definitionId", definitionId}
-                }
+                State = CredentialState.Offered
             };
+            credentialRecord.Tags.Add("connectionId", connection.GetId());
+            credentialRecord.Tags.Add("nonce", nonce);
+            credentialRecord.Tags.Add("schemaId", schemaId);
+            credentialRecord.Tags.Add("definitionId", definitionId);
+
             await _recordService.AddAsync(wallet, credentialRecord);
 
             return credentialRecord.GetId();
@@ -155,7 +153,7 @@ namespace Streetcred.Sdk.Runtime
                     {"schemaId", schemaId},
                     {"definitionId", definitionId},
                     {"connectionId", connectionId}
-                }, null);
+                }, null, 1);
 
             var credentialRecord = credentialSearch.Single();
             // TODO: Should throw or resolve conflict gracefully if multiple credential records are found
@@ -200,12 +198,10 @@ namespace Streetcred.Sdk.Runtime
                 OfferJson = offerJson,
                 State = CredentialState.Offered,
                 ConnectionId = connection.GetId(),
-                Tags = new Dictionary<string, string>
-                {
-                    {"nonce", nonce},
-                    {"connectionId", connection.GetId()}
-                }
             };
+            credentialRecord.Tags.Add("nonce", nonce);
+            credentialRecord.Tags.Add("connectionId", connection.GetId());
+
             await _recordService.AddAsync(wallet, credentialRecord);
 
             var credentialOffer = await _messageSerializer.PackSealedAsync<CredentialOffer>(
@@ -250,7 +246,7 @@ namespace Streetcred.Sdk.Runtime
             var nonce = request["nonce"].ToObject<string>();
 
             var query = new SearchRecordQuery {{"nonce", nonce}};
-            var credentialSearch = await _recordService.SearchAsync<CredentialRecord>(wallet, query, null);
+            var credentialSearch = await _recordService.SearchAsync<CredentialRecord>(wallet, query, null, 1);
 
             var credential = credentialSearch.Single();
             // Offer should already be present
