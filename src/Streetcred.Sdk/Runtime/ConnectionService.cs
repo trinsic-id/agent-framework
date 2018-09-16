@@ -134,7 +134,6 @@ namespace Streetcred.Sdk.Runtime
             var forwardMessage = new ForwardToKeyEnvelopeMessage
             {
                 Type = MessageUtils.FormatKeyMessageType(invitation.ConnectionKey, MessageTypes.ForwardToKey),
-                Key = invitation.ConnectionKey,
                 Content = request.ToJson()
             };
 

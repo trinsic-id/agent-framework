@@ -44,8 +44,10 @@ namespace Streetcred.Sdk.Tests
         [Fact]
         public async Task CanFilterSearchableProperties()
         {
-            await _recordService.AddAsync(_wallet, new ConnectionRecord { ConnectionId = "1", State = ConnectionState.Invited});
-            await _recordService.AddAsync(_wallet, new ConnectionRecord {ConnectionId = "2", State = ConnectionState.Connected});
+            await _recordService.AddAsync(_wallet,
+                new ConnectionRecord {ConnectionId = "1", State = ConnectionState.Invited});
+            await _recordService.AddAsync(_wallet,
+                new ConnectionRecord {ConnectionId = "2", State = ConnectionState.Connected});
 
             var searchResult = await _recordService.SearchAsync<ConnectionRecord>(_wallet,
                 new SearchRecordQuery {{"State", ConnectionState.Invited.ToString("G")}}, null, 10);

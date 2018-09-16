@@ -62,7 +62,7 @@ namespace Streetcred.Sdk.Tests
             provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(Task.FromResult(new ProvisioningRecord
                 {
-                    Endpoint = new AgentEndpoint { Uri = MockEndpointUri },
+                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri},
                     MasterSecretId = MasterSecretId
                 }));
 
@@ -126,11 +126,11 @@ namespace Streetcred.Sdk.Tests
 
             // Create an issuer DID/VK. Can also be created during provisioning
             var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
-                new { seed = "000000000000000000000000Steward1" }.ToJson());
+                new {seed = "000000000000000000000000Steward1"}.ToJson());
 
             // Creata a schema and credential definition for this issuer
             var schemaId = await _schemaService.CreateSchemaAsync(_pool, _issuerWallet, issuer.Did,
-                $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", new[] { "first_name", "last_name" });
+                $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", new[] {"first_name", "last_name"});
             var definitionId =
                 await _schemaService.CreateCredentialDefinitionAsync(_pool, _issuerWallet, schemaId, issuer.Did, true,
                     100);
@@ -186,7 +186,8 @@ namespace Streetcred.Sdk.Tests
         {
             // Create invitation by the issuer
             var issuerConnectionId = Guid.NewGuid().ToString();
-            var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet, new CreateInviteConfiguration() { ConnectionId = issuerConnectionId });
+            var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet,
+                new CreateInviteConfiguration() {ConnectionId = issuerConnectionId});
             var connectionIssuer = await _connectionService.GetAsync(_issuerWallet, issuerConnectionId);
 
             // Holder accepts invitation and sends a message request
@@ -195,7 +196,7 @@ namespace Streetcred.Sdk.Tests
 
             // Issuer processes incoming message
             var issuerMessage = _messages.OfType<ForwardToKeyEnvelopeMessage>()
-                .First(x => x.Key == connectionIssuer.Tags.Single(item => item.Key == "connectionKey").Value);
+                .First(x => x.Type.Contains(connectionIssuer.Tags.Single(item => item.Key == "connectionKey").Value));
 
             var requestMessage = GetContentMessage(issuerMessage) as ConnectionRequest;
             Assert.NotNull(requestMessage);
@@ -206,7 +207,7 @@ namespace Streetcred.Sdk.Tests
 
             // Holder processes incoming message
             var holderMessage = _messages.OfType<ForwardEnvelopeMessage>()
-                                         .First(x => x.Type.Contains(connectionHolder.MyDid));
+                .First(x => x.Type.Contains(connectionHolder.MyDid));
 
             var responseMessage = GetContentMessage(holderMessage) as ConnectionResponse;
             Assert.NotNull(responseMessage);

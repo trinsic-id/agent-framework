@@ -42,7 +42,7 @@ namespace Streetcred.Sdk.Tests
             provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(Task.FromResult(new ProvisioningRecord
                 {
-                    Endpoint = new AgentEndpoint { Uri = MockEndpointUri }
+                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri}
                 }));
 
             _connectionService = new ConnectionService(
@@ -75,7 +75,8 @@ namespace Streetcred.Sdk.Tests
         {
             var connectionId = Guid.NewGuid().ToString();
 
-            var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet, new CreateInviteConfiguration() { ConnectionId = connectionId });
+            var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet,
+                new CreateInviteConfiguration() {ConnectionId = connectionId});
 
             var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
 
@@ -121,7 +122,7 @@ namespace Streetcred.Sdk.Tests
 
             // Issuer processes incoming message
             var issuerMessage = _messages.OfType<ForwardToKeyEnvelopeMessage>()
-                .First(x => x.Key == connectionIssuer.Tags.Single(item => item.Key == "connectionKey").Value);
+                .First(x => x.Type.Contains(connectionIssuer.Tags.Single(item => item.Key == "connectionKey").Value));
 
             var requestMessage = GetContentMessage(issuerMessage) as ConnectionRequest;
             Assert.NotNull(requestMessage);
@@ -140,7 +141,7 @@ namespace Streetcred.Sdk.Tests
 
             // Holder processes incoming message
             var holderMessage = _messages.OfType<ForwardEnvelopeMessage>()
-                                         .First(x => x.Type.Contains(connectionHolder.MyDid));
+                .First(x => x.Type.Contains(connectionHolder.MyDid));
 
             var responseMessage = GetContentMessage(holderMessage) as ConnectionResponse;
             Assert.NotNull(responseMessage);
