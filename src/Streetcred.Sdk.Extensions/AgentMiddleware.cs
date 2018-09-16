@@ -63,7 +63,6 @@ namespace Streetcred.Sdk.Extensions
 
             var decrypted = await _messageSerializer.UnpackAsync<IEnvelopeMessage>(body, wallet, endpoint.Endpoint.Verkey);
             var decoded = JsonConvert.DeserializeObject<IContentMessage>(decrypted.Content);
-            //(var did, var _) = _messageSerializer.DecodeType(decoded.Type);
 
             switch (decoded)
             {
@@ -75,19 +74,19 @@ namespace Streetcred.Sdk.Extensions
                     await _connectionService.AcceptResponseAsync(wallet, response);
                     break;
                 case CredentialOffer offer:
-                    await _credentialService.StoreOfferAsync(wallet, offer, "");
+                    await _credentialService.StoreOfferAsync(wallet, offer);
                     break;
                 case CredentialRequest request:
-                    await _credentialService.StoreCredentialRequestAsync(wallet, request, "");
+                    await _credentialService.StoreCredentialRequestAsync(wallet, request);
                     break;
                 case Credential credential:
-                    await _credentialService.StoreCredentialAsync(pool, wallet, credential, "");
+                    await _credentialService.StoreCredentialAsync(pool, wallet, credential);
                     break;
                 case Proof _:
                     break;
             }
 
-            context.Response.StatusCode = 200;                
+            context.Response.StatusCode = 200;
             await context.Response.WriteAsync(string.Empty);
             return;
         }

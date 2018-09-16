@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Streetcred.Sdk.Model;
 using Streetcred.Sdk.Model.Connections;
+using Streetcred.Sdk.Utils;
 using Xunit;
 
 namespace Streetcred.Sdk.Tests
@@ -35,30 +36,38 @@ namespace Streetcred.Sdk.Tests
         [Fact]
         public void CanConvertEnvelopeMessage()
         {
-            var expected = new ForwardEnvelopeMessage { To = "123" };
+            var type = MessageUtils.FormatDidMessageType("3NnbYBdhyHfuFZnbaZhuU6", MessageTypes.ConnectionRequest);
+
+            var expected = new ForwardEnvelopeMessage { Type = type };
             var json = JsonConvert.SerializeObject(expected);
 
             var actual = JsonConvert.DeserializeObject<IEnvelopeMessage>(json);
 
             Assert.IsType<ForwardEnvelopeMessage>(actual);
-            Assert.Equal("123", ((ForwardEnvelopeMessage)actual).To);
+            Assert.Equal(type, ((ForwardEnvelopeMessage)actual).Type);
         }
 
         [Fact]
         public void CanConvertContentMessage()
         {
-            var expected = new ConnectionRequest { Key = "123" };
+            var type = MessageUtils.FormatKeyMessageType("2J6h65V5CjvWceHDMq7htRkG6EdCE2SiDEtCRyfngwfw", MessageTypes.ConnectionRequest);
+
+            var expected = new ConnectionRequest
+            {
+                Key = "2J6h65V5CjvWceHDMq7htRkG6EdCE2SiDEtCRyfngwfw",
+                Type = type
+            };
             var json = JsonConvert.SerializeObject(expected);
 
             var actual = JsonConvert.DeserializeObject<IContentMessage>(json);
 
             Assert.IsType<ConnectionRequest>(actual);
-            Assert.Equal("123", ((ConnectionRequest)actual).Key);
+            Assert.Equal(type, ((ConnectionRequest)actual).Type);
         }
 
         public void Dispose()
         {
-            
+
         }
     }
 }

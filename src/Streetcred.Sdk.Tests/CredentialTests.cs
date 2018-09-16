@@ -62,7 +62,7 @@ namespace Streetcred.Sdk.Tests
             provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(Task.FromResult(new ProvisioningRecord
                 {
-                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri},
+                    Endpoint = new AgentEndpoint { Uri = MockEndpointUri },
                     MasterSecretId = MasterSecretId
                 }));
 
@@ -126,11 +126,11 @@ namespace Streetcred.Sdk.Tests
 
             // Create an issuer DID/VK. Can also be created during provisioning
             var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
-                new {seed = "000000000000000000000000Steward1"}.ToJson());
+                new { seed = "000000000000000000000000Steward1" }.ToJson());
 
             // Creata a schema and credential definition for this issuer
             var schemaId = await _schemaService.CreateSchemaAsync(_pool, _issuerWallet, issuer.Did,
-                $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", new[] {"first_name", "last_name"});
+                $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", new[] { "first_name", "last_name" });
             var definitionId =
                 await _schemaService.CreateCredentialDefinitionAsync(_pool, _issuerWallet, schemaId, issuer.Did, true,
                     100);
@@ -143,7 +143,7 @@ namespace Streetcred.Sdk.Tests
 
             // Holder stores the credential offer
             var holderCredentialId =
-                await _credentialService.StoreOfferAsync(_holderWallet, credentialOffer, holderConnection.GetId());
+                await _credentialService.StoreOfferAsync(_holderWallet, credentialOffer);
 
             // Holder creates master secret. Will also be created during wallet agent provisioning
             await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet, MasterSecretId);
@@ -162,8 +162,7 @@ namespace Streetcred.Sdk.Tests
 
             // Issuer stores the credential request
             var issuerCredentialId =
-                await _credentialService.StoreCredentialRequestAsync(_issuerWallet, credentialRequest,
-                    issuerConnection.GetId());
+                await _credentialService.StoreCredentialRequestAsync(_issuerWallet, credentialRequest);
 
             // Issuer accepts the credential requests and issues a credential
             await _credentialService.IssueCredentialAsync(_pool, _issuerWallet, issuer.Did, issuerCredentialId);
@@ -173,7 +172,7 @@ namespace Streetcred.Sdk.Tests
             Assert.NotNull(credential);
 
             // Holder stores the credential in their wallet
-            await _credentialService.StoreCredentialAsync(_pool, _holderWallet, credential, holderConnection.GetId());
+            await _credentialService.StoreCredentialAsync(_pool, _holderWallet, credential);
 
             // Verify states of both credential records are set to 'Issued'
             var issuerCredential = await _credentialService.GetAsync(_issuerWallet, issuerCredentialId);
@@ -207,7 +206,7 @@ namespace Streetcred.Sdk.Tests
 
             // Holder processes incoming message
             var holderMessage = _messages.OfType<ForwardEnvelopeMessage>()
-                .First(x => x.To == connectionHolder.MyDid);
+                                         .First(x => x.Type.Contains(connectionHolder.MyDid));
 
             var responseMessage = GetContentMessage(holderMessage) as ConnectionResponse;
             Assert.NotNull(responseMessage);

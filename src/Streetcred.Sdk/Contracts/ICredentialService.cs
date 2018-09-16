@@ -32,9 +32,8 @@ namespace Streetcred.Sdk.Contracts
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialOffer">The credential offer.</param>
-        /// <param name="connectionId">The connection identifier.</param>
         /// <returns>The credential identifier of the stored credential record</returns>
-        Task<string> StoreOfferAsync(Wallet wallet, CredentialOffer credentialOffer, string connectionId);
+        Task<string> StoreOfferAsync(Wallet wallet, CredentialOffer credentialOffer);
 
         /// <summary>
         /// Accepts the offer asynchronous.
@@ -53,9 +52,8 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="pool">The pool.</param>
         /// <param name="wallet">The wallet.</param>
         /// <param name="credential">The credential.</param>
-        /// <param name="connectionId">The connection identifier.</param>
         /// <returns></returns>
-        Task StoreCredentialAsync(Pool pool, Wallet wallet, Credential credential, string connectionId);
+        Task StoreCredentialAsync(Pool pool, Wallet wallet, Credential credential);
 
 
         /// <summary>
@@ -85,9 +83,8 @@ namespace Streetcred.Sdk.Contracts
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialRequest">The credential request.</param>
-        /// <param name="connectionId">The connection identifier.</param>
         /// <returns>The credential identifier of the stored credential record.</returns>
-        Task<string> StoreCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest, string connectionId);
+        Task<string> StoreCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest);
 
         /// <summary>
         /// Creates and sends a credential with the given credential identifier

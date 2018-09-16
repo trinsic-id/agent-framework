@@ -9,16 +9,6 @@ namespace Streetcred.Sdk.Model
     public class ForwardEnvelopeMessage : IEnvelopeMessage
     {
         /// <summary>
-        /// Gets or sets to.
-        /// </summary>
-        /// <value>
-        /// To.
-        /// </value>
-        [JsonProperty("to")]
-        public string To { get; set; }
-
-
-        /// <summary>
         /// Gets or sets the type.
         /// </summary>
         /// <value>

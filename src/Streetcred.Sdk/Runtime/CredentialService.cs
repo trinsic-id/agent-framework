@@ -62,12 +62,15 @@ namespace Streetcred.Sdk.Runtime
             _recordService.SearchAsync<CredentialRecord>(wallet, query, null, count);
 
         /// <inheritdoc />
-        public async Task<string> StoreOfferAsync(Wallet wallet, CredentialOffer credentialOffer,
-                string connectionId)
-            // TODO: Remove 'connectionId' parameter and resolve the connection
-            // from the @type which should include DID details
+        public async Task<string> StoreOfferAsync(Wallet wallet, CredentialOffer credentialOffer)
         {
-            var connection = await _connectionService.GetAsync(wallet, connectionId);
+            var (didOrKey, _) = MessageUtils.ParseMessageType(credentialOffer.Type);
+
+            var connectionSearch = await _connectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
+            if (!connectionSearch.Any())
+                throw new Exception($"Can't find connection record for type {credentialOffer.Type}");
+            var connection = connectionSearch.First();
+
             var (offerDetails, _) = await _messageSerializer.UnpackSealedAsync<CredentialOfferDetails>(
                 credentialOffer.Content,
                 wallet, await Did.KeyForLocalDidAsync(wallet, connection.MyDid));
@@ -125,20 +128,25 @@ namespace Streetcred.Sdk.Runtime
             var requestMessage =
                 await _messageSerializer.PackSealedAsync<CredentialRequest>(details, wallet, connection.MyVk,
                     connection.TheirVk);
+            requestMessage.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.CredentialRequest);
 
             await _routerService.ForwardAsync(new ForwardEnvelopeMessage
             {
                 Content = requestMessage.ToJson(),
-                To = connection.TheirDid
+                Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.Forward)
             }, connection.Endpoint);
         }
 
         /// <inheritdoc />
-        public async Task StoreCredentialAsync(Pool pool, Wallet wallet, Credential credential, string connectionId)
-            // TODO: Remove 'connectionId' parameter and resolve the connection
-            // from the @type which should include DID details
+        public async Task StoreCredentialAsync(Pool pool, Wallet wallet, Credential credential)
         {
-            var connection = await _connectionService.GetAsync(wallet, connectionId);
+            var (didOrKey, _) = MessageUtils.ParseMessageType(credential.Type);
+
+            var connectionSearch = await _connectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
+            if (!connectionSearch.Any())
+                throw new Exception($"Can't find connection record for type {credential.Type}");
+            var connection = connectionSearch.First();
+
             var (details, _) = await _messageSerializer.UnpackSealedAsync<CredentialDetails>(credential.Content,
                 wallet, await Did.KeyForLocalDidAsync(wallet, connection.MyDid));
 
@@ -152,7 +160,7 @@ namespace Streetcred.Sdk.Runtime
                 {
                     {"schemaId", schemaId},
                     {"definitionId", definitionId},
-                    {"connectionId", connectionId}
+                    {"connectionId", connection.GetId()}
                 }, null, 1);
 
             var credentialRecord = credentialSearch.Single();
@@ -205,10 +213,12 @@ namespace Streetcred.Sdk.Runtime
             await _recordService.AddAsync(wallet, credentialRecord);
 
             var credentialOffer = await _messageSerializer.PackSealedAsync<CredentialOffer>(
-                new CredentialOfferDetails {OfferJson = offerJson},
+                new CredentialOfferDetails { OfferJson = offerJson },
                 wallet,
                 connection.MyVk,
                 connection.TheirVk);
+            credentialOffer.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.CredentialOffer);
+
             return credentialOffer;
         }
 
@@ -225,19 +235,22 @@ namespace Streetcred.Sdk.Runtime
             await _routerService.ForwardAsync(new ForwardEnvelopeMessage
             {
                 Content = offer.ToJson(),
-                To = connection.TheirDid
+                Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.Forward)
             }, connection.Endpoint);
         }
 
         /// <inheritdoc />
-        public async Task<string> StoreCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest,
-                string connectionId)
-            // TODO: Remove 'connectionId' parameter and resolve the connection
-            // from the @type which should include DID details
+        public async Task<string> StoreCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest)
         {
-            _logger.LogInformation(LoggingEvents.StoreCredentialRequest, "ConnectionId {0},", connectionId);
+            _logger.LogInformation(LoggingEvents.StoreCredentialRequest, "Type {0},", credentialRequest.Type);
 
-            var connection = await _connectionService.GetAsync(wallet, connectionId);
+            var (didOrKey, _) = MessageUtils.ParseMessageType(credentialRequest.Type);
+
+            var connectionSearch = await _connectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
+            if (!connectionSearch.Any())
+                throw new Exception($"Can't find connection record for type {credentialRequest.Type}");
+            var connection = connectionSearch.First();
+
             var (details, _) = await _messageSerializer.UnpackSealedAsync<CredentialRequestDetails>(
                 credentialRequest.Content, wallet,
                 await Did.KeyForLocalDidAsync(wallet, connection.MyDid));
@@ -245,7 +258,7 @@ namespace Streetcred.Sdk.Runtime
             var request = JObject.Parse(details.OfferJson);
             var nonce = request["nonce"].ToObject<string>();
 
-            var query = new SearchRecordQuery {{"nonce", nonce}};
+            var query = new SearchRecordQuery { { "nonce", nonce } };
             var credentialSearch = await _recordService.SearchAsync<CredentialRecord>(wallet, query, null, 1);
 
             var credential = credentialSearch.Single();
@@ -304,11 +317,12 @@ namespace Streetcred.Sdk.Runtime
             var credential = await _messageSerializer.PackSealedAsync<Credential>(credentialDetails, wallet,
                 connection.MyVk,
                 connection.TheirVk);
+            credential.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.Credential);
 
             await _routerService.ForwardAsync(new ForwardEnvelopeMessage
             {
                 Content = credential.ToJson(),
-                To = connection.TheirDid
+                Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.Forward)
             }, connection.Endpoint);
         }
 
