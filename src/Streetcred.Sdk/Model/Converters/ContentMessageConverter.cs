@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Model.Connections;
 using Streetcred.Sdk.Model.Credentials;
 using Streetcred.Sdk.Model.Proofs;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Model.Converters
 {
@@ -21,9 +22,10 @@ namespace Streetcred.Sdk.Model.Converters
             JsonSerializer serializer)
         {
             var item = JObject.Load(reader);
+            var (_, messageType) = MessageUtils.ParseMessageType(item["@type"].ToObject<string>());
 
             IContentMessage message;
-            switch (item["@type"].ToObject<string>())
+            switch (messageType)
             {
                 case MessageTypes.ConnectionRequest:
                     message = new ConnectionRequest();

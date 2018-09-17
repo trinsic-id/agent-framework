@@ -12,7 +12,7 @@ namespace Streetcred.Sdk.Model.Credentials
         /// The type.
         /// </value>
         [JsonProperty("@type")]
-        public string Type { get; set; } = MessageTypes.CredentialOffer;
+        public string Type { get; set; }
 
         /// <summary>
         /// Gets or sets the content of the message.

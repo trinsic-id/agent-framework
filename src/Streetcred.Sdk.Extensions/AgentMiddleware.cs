@@ -57,39 +57,42 @@ namespace Streetcred.Sdk.Extensions
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
             var endpoint = await _provisioningService.GetProvisioningAsync(wallet);
 
-            var body = new byte[(int)context.Request.ContentLength];
-
-            await context.Request.Body.ReadAsync(body, 0, body.Length);
-
-            var decrypted = await _messageSerializer.UnpackAsync<IEnvelopeMessage>(body, wallet, endpoint.Endpoint.Verkey);
-            var decoded = JsonConvert.DeserializeObject<IContentMessage>(decrypted.Content);
-            //(var did, var _) = _messageSerializer.DecodeType(decoded.Type);
-
-            switch (decoded)
+            if (context.Request.ContentLength != null)
             {
-                case ConnectionRequest request:
-                    var connectionId = await _connectionService.StoreRequestAsync(wallet, request);
-                    await _connectionService.AcceptRequestAsync(wallet, connectionId);
-                    break;
-                case ConnectionResponse response:
-                    await _connectionService.AcceptResponseAsync(wallet, response);
-                    break;
-                case CredentialOffer offer:
-                    await _credentialService.StoreOfferAsync(wallet, offer, "");
-                    break;
-                case CredentialRequest request:
-                    await _credentialService.StoreCredentialRequestAsync(wallet, request, "");
-                    break;
-                case Credential credential:
-                    await _credentialService.StoreCredentialAsync(pool, wallet, credential, "");
-                    break;
-                case Proof _:
-                    break;
-            }
+                var body = new byte[(int)context.Request.ContentLength];
 
-            context.Response.StatusCode = 200;                
-            await context.Response.WriteAsync(string.Empty);
-            return;
+                await context.Request.Body.ReadAsync(body, 0, body.Length);
+
+                var decrypted = await _messageSerializer.UnpackAsync<IEnvelopeMessage>(body, wallet, endpoint.Endpoint.Verkey);
+                var decoded = JsonConvert.DeserializeObject<IContentMessage>(decrypted.Content);
+
+                switch (decoded)
+                {
+                    case ConnectionRequest request:
+                        var connectionId = await _connectionService.StoreRequestAsync(wallet, request);
+                        await _connectionService.AcceptRequestAsync(wallet, connectionId);
+                        break;
+                    case ConnectionResponse response:
+                        await _connectionService.AcceptResponseAsync(wallet, response);
+                        break;
+                    case CredentialOffer offer:
+                        await _credentialService.StoreOfferAsync(wallet, offer);
+                        break;
+                    case CredentialRequest request:
+                        await _credentialService.StoreCredentialRequestAsync(wallet, request);
+                        break;
+                    case Credential credential:
+                        await _credentialService.StoreCredentialAsync(pool, wallet, credential);
+                        break;
+                    case Proof _:
+                        break;
+                }
+
+                context.Response.StatusCode = 200;
+                await context.Response.WriteAsync(string.Empty);
+                return;
+            }
+            throw new Exception("Empty content length");
         }
     }
 }
