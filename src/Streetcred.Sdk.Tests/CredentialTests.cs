@@ -143,7 +143,7 @@ namespace Streetcred.Sdk.Tests
 
             // Holder stores the credential offer
             var holderCredentialId =
-                await _credentialService.StoreOfferAsync(_holderWallet, credentialOffer, holderConnection.GetId());
+                await _credentialService.StoreOfferAsync(_holderWallet, credentialOffer);
 
             // Holder creates master secret. Will also be created during wallet agent provisioning
             await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet, MasterSecretId);
@@ -162,8 +162,7 @@ namespace Streetcred.Sdk.Tests
 
             // Issuer stores the credential request
             var issuerCredentialId =
-                await _credentialService.StoreCredentialRequestAsync(_issuerWallet, credentialRequest,
-                    issuerConnection.GetId());
+                await _credentialService.StoreCredentialRequestAsync(_issuerWallet, credentialRequest);
 
             // Issuer accepts the credential requests and issues a credential
             await _credentialService.IssueCredentialAsync(_pool, _issuerWallet, issuer.Did, issuerCredentialId);
@@ -173,7 +172,7 @@ namespace Streetcred.Sdk.Tests
             Assert.NotNull(credential);
 
             // Holder stores the credential in their wallet
-            await _credentialService.StoreCredentialAsync(_pool, _holderWallet, credential, holderConnection.GetId());
+            await _credentialService.StoreCredentialAsync(_pool, _holderWallet, credential);
 
             // Verify states of both credential records are set to 'Issued'
             var issuerCredential = await _credentialService.GetAsync(_issuerWallet, issuerCredentialId);
@@ -187,7 +186,8 @@ namespace Streetcred.Sdk.Tests
         {
             // Create invitation by the issuer
             var issuerConnectionId = Guid.NewGuid().ToString();
-            var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet, new CreateInviteConfiguration() { ConnectionId = issuerConnectionId });
+            var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet,
+                new CreateInviteConfiguration() {ConnectionId = issuerConnectionId});
             var connectionIssuer = await _connectionService.GetAsync(_issuerWallet, issuerConnectionId);
 
             // Holder accepts invitation and sends a message request
@@ -196,7 +196,7 @@ namespace Streetcred.Sdk.Tests
 
             // Issuer processes incoming message
             var issuerMessage = _messages.OfType<ForwardToKeyEnvelopeMessage>()
-                .First(x => x.Key == connectionIssuer.Tags.Single(item => item.Key == "connectionKey").Value);
+                .First(x => x.Type.Contains(connectionIssuer.Tags.Single(item => item.Key == "connectionKey").Value));
 
             var requestMessage = GetContentMessage(issuerMessage) as ConnectionRequest;
             Assert.NotNull(requestMessage);
@@ -207,7 +207,7 @@ namespace Streetcred.Sdk.Tests
 
             // Holder processes incoming message
             var holderMessage = _messages.OfType<ForwardEnvelopeMessage>()
-                .First(x => x.To == connectionHolder.MyDid);
+                .First(x => x.Type.Contains(connectionHolder.MyDid));
 
             var responseMessage = GetContentMessage(holderMessage) as ConnectionResponse;
             Assert.NotNull(responseMessage);

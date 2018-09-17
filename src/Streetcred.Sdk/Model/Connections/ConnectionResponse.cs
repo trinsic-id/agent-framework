@@ -14,8 +14,7 @@ namespace Streetcred.Sdk.Model.Connections
         /// To.
         /// </value>
         public string To { get; set; }
-
-
+        
         /// <summary>
         /// Gets or sets the type.
         /// </summary>
@@ -23,7 +22,7 @@ namespace Streetcred.Sdk.Model.Connections
         /// The type.
         /// </value>
         [JsonProperty("@type")]
-        public string Type { get; set; } = MessageTypes.ConnectionResponse;
+        public string Type { get; set; }
 
         /// <summary>
         /// Gets or sets the content.

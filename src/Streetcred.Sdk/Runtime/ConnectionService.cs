@@ -104,7 +104,7 @@ namespace Streetcred.Sdk.Runtime
 
             if (!string.IsNullOrEmpty(invitation.Name) || !string.IsNullOrEmpty(invitation.ImageUrl))
             {
-                connection.Alias = new ConnectionAlias()
+                connection.Alias = new ConnectionAlias
                 {
                     Name = invitation.Name,
                     ImageUrl = invitation.ImageUrl
@@ -129,10 +129,11 @@ namespace Streetcred.Sdk.Runtime
                 my.VerKey,
                 invitation.ConnectionKey);
             request.Key = invitation.ConnectionKey;
+            request.Type = MessageUtils.FormatKeyMessageType(invitation.ConnectionKey, MessageTypes.ConnectionRequest);
 
             var forwardMessage = new ForwardToKeyEnvelopeMessage
             {
-                Key = invitation.ConnectionKey,
+                Type = MessageUtils.FormatKeyMessageType(invitation.ConnectionKey, MessageTypes.ForwardToKey),
                 Content = request.ToJson()
             };
 
@@ -146,8 +147,10 @@ namespace Streetcred.Sdk.Runtime
         {
             _logger.LogInformation(LoggingEvents.StoreConnectionRequest, "Key {0}", request.Key);
 
+            var (didOrKey, _) = MessageUtils.ParseMessageType(request.Type);
+
             var connectionSearch = await _recordService.SearchAsync<ConnectionRecord>(wallet,
-                new SearchRecordQuery {{"connectionKey", request.Key}}, null, 1);
+                new SearchRecordQuery { { "connectionKey", didOrKey } }, null, 1);
 
             var connection = connectionSearch.Single();
 
@@ -160,7 +163,7 @@ namespace Streetcred.Sdk.Runtime
 
             var my = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
 
-            await Did.StoreTheirDidAsync(wallet, new {did = their.Did, verkey = their.Verkey}.ToJson());
+            await Did.StoreTheirDidAsync(wallet, new { did = their.Did, verkey = their.Verkey }.ToJson());
 
             connection.Endpoint = their.Endpoint;
             connection.TheirDid = their.Did;
@@ -199,12 +202,12 @@ namespace Streetcred.Sdk.Runtime
             var responseMessage =
                 await _messageSerializer.PackSealedAsync<ConnectionResponse>(response, wallet, connection.MyVk,
                     connection.TheirVk);
+            responseMessage.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.ConnectionResponse);
             responseMessage.To = connection.TheirDid;
-
 
             var forwardMessage = new ForwardEnvelopeMessage
             {
-                To = connection.TheirDid,
+                Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.Forward),
                 Content = responseMessage.ToJson()
             };
 
@@ -216,8 +219,10 @@ namespace Streetcred.Sdk.Runtime
         {
             _logger.LogInformation(LoggingEvents.AcceptConnectionResponse, "To {0}", response.To);
 
+            var (didOrKey, _) = MessageUtils.ParseMessageType(response.Type);
+
             var connectionSearch = await _recordService.SearchAsync<ConnectionRecord>(wallet,
-                new SearchRecordQuery {{"myDid", response.To}}, null, 1);
+                new SearchRecordQuery { { "myDid", didOrKey } }, null, 1);
 
             var connection = connectionSearch.Single();
             await connection.TriggerAsync(ConnectionTrigger.Response);
@@ -227,7 +232,7 @@ namespace Streetcred.Sdk.Runtime
                 connection.MyVk);
 
             await Did.StoreTheirDidAsync(wallet,
-                new {did = connectionDetails.Did, verkey = connectionDetails.Verkey}.ToJson());
+                new { did = connectionDetails.Did, verkey = connectionDetails.Verkey }.ToJson());
 
             await Pairwise.CreateAsync(wallet, connectionDetails.Did, connection.MyDid,
                 connectionDetails.Endpoint.ToJson());

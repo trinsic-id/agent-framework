@@ -8,28 +8,18 @@ namespace Streetcred.Sdk.Model.Connections
     public class ConnectionRequest : IContentMessage
     {
         /// <summary>
-        /// Gets or sets the key.
+        /// Gets or sets the connection key.
         /// </summary>
         /// <value>
         /// The key.
         /// </value>
         public string Key { get; set; }
 
-        /// <summary>
-        /// Gets or sets the type.
-        /// </summary>
-        /// <value>
-        /// The type.
-        /// </value>
+        /// <inheritdoc />
         [JsonProperty("@type")]
-        public string Type { get; set; } = MessageTypes.ConnectionRequest;
+        public string Type { get; set; }
 
-        /// <summary>
-        /// Gets or sets the content.
-        /// </summary>
-        /// <value>
-        /// The content.
-        /// </value>
+        /// <inheritdoc />
         public string Content { get; set; }
     }
 }
