@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Model.Proofs;
+using Streetcred.Sdk.Model.Wallets;
 
 namespace Streetcred.Sdk.Contracts
 {
@@ -13,16 +15,16 @@ namespace Streetcred.Sdk.Contracts
         /// <returns>The async.</returns>
         /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="wallet">Wallet.</param>
-        /// <param name="attributes">An enumeration of attribute we wish the prover to disclose.</param>
-        Task SendProofRequestAsync(string connectionId, Wallet wallet, IEnumerable<string> attributes);
+        /// <param name="proofRequest">Proof request object describing the proof request.</param>
+        Task SendProofRequestAsync(string connectionId, Wallet wallet, ProofRequestObject proofRequest);
 
         /// <summary>
         /// Sends a proof request
         /// </summary>
-        /// <returns>The async.</returns>
-        /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
-        /// <param name="wallet">Wallet.</param>
-        /// <param name="proofRequestJson">A string representation of proof request json object.</param>
+        /// <param name="connectionId">The connection identifier.</param>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="proofRequestJson">The proof request json.</param>
+        /// <returns></returns>
         Task SendProofRequestAsync(string connectionId, Wallet wallet, string proofRequestJson);
 
         /// <summary>
@@ -31,8 +33,8 @@ namespace Streetcred.Sdk.Contracts
         /// <returns>The proof request.</returns>
         /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="wallet">Wallet.</param>
-        /// <param name="attributes">An enumeration of attribute we wish the prover to disclose.</param>
-        Task<ProofRequest> CreateProofRequestAsync(string connectionId, Wallet wallet, IEnumerable<string> attributes);
+        /// <param name="proofRequestObject">An enumeration of attribute we wish the prover to disclose.</param>
+        Task<ProofRequest> CreateProofRequestAsync(string connectionId, Wallet wallet, ProofRequestObject proofRequestObject);
 
         /// <summary>
         /// Creates a proof request
@@ -62,18 +64,24 @@ namespace Streetcred.Sdk.Contracts
         /// <summary>
         /// Creates a proof
         /// </summary>
-        /// <returns>The proof.</returns>
         /// <param name="wallet">Wallet.</param>
+        /// <param name="pool">The pool.</param>
         /// <param name="proofRequestId">Identifier of the proof request.</param>
-        Task<Proof> CreateProof(Wallet wallet, string proofRequestId);
+        /// <returns>
+        /// The proof.
+        /// </returns>
+        Task<Proof> CreateProofAsync(Wallet wallet, Pool pool, string proofRequestId);
 
         /// <summary>
         /// Accepts a proof request by generating a proof and sending it to the requestor
         /// </summary>
-        /// <returns>The proof.</returns>
         /// <param name="wallet">Wallet.</param>
+        /// <param name="pool">The pool.</param>
         /// <param name="proofRequestId">Identifier of the proof request.</param>
-        Task AcceptProofRequestAsync(Wallet wallet, string proofRequestId);
+        /// <returns>
+        /// The proof.
+        /// </returns>
+        Task AcceptProofRequestAsync(Wallet wallet, Pool pool, string proofRequestId);
 
         /// <summary>
         /// Rejects a proof request
@@ -84,12 +92,13 @@ namespace Streetcred.Sdk.Contracts
         Task RejectProofRequestAsync(Wallet wallet, string proofRequestId);
 
         /// <summary>
-        /// Verifies a proof 
+        /// Verifies a proof
         /// </summary>
         /// <param name="wallet">Wallet.</param>
+        /// <param name="pool">The pool.</param>
         /// <param name="proofRecId">Identifier of the proof record.</param>
         /// <returns></returns>
-        Task<bool> VerifyProofAsync(Wallet wallet, string proofRecId);
+        Task<bool> VerifyProofAsync(Wallet wallet, Pool pool, string proofRecId);
 
         /// <summary>
         /// Gets an enumeration of proofs stored in the wallet

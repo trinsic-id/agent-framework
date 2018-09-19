@@ -19,6 +19,7 @@ using Streetcred.Sdk.Model.Connections;
 using Streetcred.Sdk.Model.Credentials;
 using Streetcred.Sdk.Model.Proofs;
 using Streetcred.Sdk.Model.Records;
+using Streetcred.Sdk.Model.Wallets;
 using Streetcred.Sdk.Runtime;
 using Streetcred.Sdk.Utils;
 using Xunit;
@@ -55,6 +56,7 @@ namespace Streetcred.Sdk.Tests
             var recordService = new WalletRecordService();
             var ledgerService = new LedgerService();
             var tailsService = new TailsService();
+
             _poolService = new PoolService();
             _schemaService = new SchemaService(recordService, ledgerService, tailsService);
 
@@ -100,6 +102,8 @@ namespace Streetcred.Sdk.Tests
                 recordService,
                 provisionMock.Object,
                 _schemaService,
+                ledgerService,
+                _credentialService,
                 new Mock<ILogger<ProofService>>().Object);
         }
 
@@ -143,8 +147,19 @@ namespace Streetcred.Sdk.Tests
             //Requestor initialize a connection with the holder
             var (holderConnection, requestorConnection) = await EstablishConnectionAsync(_holderWallet, _requestorWallet);
 
+            var proofRequestObject = new ProofRequestObject
+            {
+                Name = "ProofReq",
+                Version = "1.0",
+                RequestedAttributes = new Dictionary<string, ProofAttributeInfo>
+                {
+                    {"proof.first_name", new ProofAttributeInfo {Name = "first_name"}},
+                    {"proof.last_name", new ProofAttributeInfo {Name = "last_name"}}
+                }
+            };
+
             //Requestor sends a proof request
-            await _proofService.SendProofRequestAsync(requestorConnection.ConnectionId, _holderWallet, new[] { "first_name", "last_name" });
+            await _proofService.SendProofRequestAsync(requestorConnection.ConnectionId, _holderWallet, proofRequestObject);
 
             //Holder retrives proof request message from their cloud agent
             var proofRequest = FindContentMessage<ProofRequest>();
@@ -154,7 +169,7 @@ namespace Streetcred.Sdk.Tests
             var holderProofRequestId = await _proofService.StoreProofRequestAsync(_holderWallet, proofRequest);
 
             //Holder accepts the proof request and sends a proof
-            await _proofService.AcceptProofRequestAsync(_holderWallet, holderProofRequestId);
+            await _proofService.AcceptProofRequestAsync(_holderWallet, _pool, holderProofRequestId);
 
             //Requestor retrives proof message from their cloud agent
             var proof = FindContentMessage<Proof>();
@@ -165,7 +180,7 @@ namespace Streetcred.Sdk.Tests
                 await _proofService.StoreProofAsync(_requestorWallet, proof);
 
             //Requestor verifies proof
-            var requestorVerifyResult = await _proofService.VerifyProofAsync(_requestorWallet, requestorProofId);
+            var requestorVerifyResult = await _proofService.VerifyProofAsync(_requestorWallet, _pool, requestorProofId);
 
             //Verify the proof is valid
             Assert.True(requestorVerifyResult);

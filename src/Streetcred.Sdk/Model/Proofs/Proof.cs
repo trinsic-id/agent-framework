@@ -12,7 +12,7 @@ namespace Streetcred.Sdk.Model.Proofs
         /// The type.
         /// </value>
         [JsonProperty("@type")]
-        public string Type { get; set; } = MessageTypes.DisclosedProof;
+        public string Type { get; set; }
 
         /// <summary>
         /// Gets or sets the content of the message.
