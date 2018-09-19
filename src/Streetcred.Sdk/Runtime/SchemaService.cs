@@ -91,21 +91,11 @@ namespace Streetcred.Sdk.Runtime
         public Task<List<SchemaRecord>> ListSchemasAsync(Wallet wallet) =>
             _recordService.SearchAsync<SchemaRecord>(wallet, null, null, 100);
 
-        /// <summary>
-        /// Gets the credential definitions asynchronous.
-        /// </summary>
-        /// <param name="wallet">The wallet.</param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
+        /// <inheritdoc />
         public Task<List<DefinitionRecord>> ListCredentialDefinitionsAsync(Wallet wallet) =>
             _recordService.SearchAsync<DefinitionRecord>(wallet, null, null, 100);
 
-        /// <summary>
-        /// Gets the credential definition asynchronous.
-        /// </summary>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="credentialDefinitionId">The credential definition identifier.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public Task<DefinitionRecord> GetCredentialDefinitionAsync(Wallet wallet, string credentialDefinitionId) =>
             _recordService.GetAsync<DefinitionRecord>(wallet, credentialDefinitionId);
     }

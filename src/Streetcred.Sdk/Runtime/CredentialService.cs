@@ -193,7 +193,7 @@ namespace Streetcred.Sdk.Runtime
         public async Task<CredentialOffer> CreateOfferAsync(string credentialDefinitionId, string connectionId,
             Wallet wallet, string issuerDid)
         {
-            _logger.LogInformation(LoggingEvents.CreateOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
+            _logger.LogInformation(LoggingEvents.CreateCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
                 credentialDefinitionId, connectionId, issuerDid);
 
             var connection = await _connectionService.GetAsync(wallet, connectionId);
@@ -228,7 +228,7 @@ namespace Streetcred.Sdk.Runtime
         public async Task SendOfferAsync(string credentialDefinitionId, string connectionId, Wallet wallet,
             string issuerDid)
         {
-            _logger.LogInformation(LoggingEvents.SendOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
+            _logger.LogInformation(LoggingEvents.SendCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
                 credentialDefinitionId, connectionId, issuerDid);
 
             var connection = await _connectionService.GetAsync(wallet, connectionId);

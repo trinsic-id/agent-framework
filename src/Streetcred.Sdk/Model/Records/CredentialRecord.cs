@@ -36,23 +36,6 @@ namespace Streetcred.Sdk.Model.Records
         /// <value>The identifier.</value>
         public string Id { get; set; }
 
-        #region State Machine Implementation
-
-        /// <summary>
-        /// Gets or sets the state.
-        /// </summary>
-        /// <value>The state.</value>
-        [JsonConverter(typeof(StringEnumConverter))]
-        public CredentialState State
-        {
-            get => _state;
-            set
-            {
-                _state = value;
-                Tags["State"] = value.ToString("G");
-            }
-        }
-
         /// <summary>
         /// Gets or sets the definition identifier of this credential.
         /// </summary>
@@ -110,6 +93,22 @@ namespace Streetcred.Sdk.Model.Records
         /// </summary>
         /// <value>The credential identifier.</value>
         public string CredentialId { get; set; }
+
+        #region State Machine Implementation
+        /// <summary>
+        /// Gets or sets the state.
+        /// </summary>
+        /// <value>The state.</value>
+        [JsonConverter(typeof(StringEnumConverter))]
+        public CredentialState State
+        {
+            get => _state;
+            set
+            {
+                _state = value;
+                Tags["State"] = value.ToString("G");
+            }
+        }
 
         /// <summary>
         /// Triggers the async.

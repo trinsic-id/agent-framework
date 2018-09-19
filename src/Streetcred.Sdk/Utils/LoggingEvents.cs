@@ -2,10 +2,15 @@
 {
     public class LoggingEvents
     {
-        public const int CreateOffer = 1000;
-        public const int SendOffer = 1001;
+        //Credential events
+        public const int CreateCredentialOffer = 1000;
+        public const int SendCredentialOffer = 1001;
         public const int StoreCredentialRequest = 1002;
-        public const int Forward = 3000;
+
+        //Proof events
+        public const int CreateProofRequest = 2000;
+        public const int SendProofRequest = 2001;
+        public const int StoreProofRequest = 2002;
 
         // Connection events
         public const int CreateInvitation = 4000;
@@ -16,5 +21,7 @@
         public const int GetConnection = 4010;
         public const int ListConnections = 4011;
         public const int DeleteConnection = 4012;
+
+        public const int Forward = 3000;
     }
 }
