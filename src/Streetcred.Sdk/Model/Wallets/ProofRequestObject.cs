@@ -96,18 +96,18 @@ namespace Streetcred.Sdk.Model.Wallets
     [JsonConverter(typeof(StringEnumConverter))]
     public enum AttributeFilter
     {
-        //[EnumMember(Value = "schema_id")] 
-        schema_id,
-        //[EnumMember(Value = "schema_issuer_did")] 
-        schema_issuer_did,
-        //[EnumMember(Value = "schema_name")] 
-        schema_name,
-        //[EnumMember(Value = "schema_version")] 
-        schema_version,
-        //[EnumMember(Value = "issuer_did")] 
-        issuer_did,
-        //[EnumMember(Value = "cred_def_id")] 
-        cred_def_id
+        [EnumMember(Value = "schema_id")]
+        SchemaId,
+        [EnumMember(Value = "schema_issuer_did")]
+        SchemaIssuerDid,
+        [EnumMember(Value = "schema_name")]
+        SchemaName,
+        [EnumMember(Value = "schema_version")]
+        SchemaVersion,
+        [EnumMember(Value = "issuer_did")]
+        IssuerDid,
+        [EnumMember(Value = "cred_def_id")]
+        CredentialDefinitionId
     }
 
     /// <summary>
@@ -166,7 +166,7 @@ namespace Streetcred.Sdk.Model.Wallets
         /// </summary>
         /// <value>The self attested attributes.</value>
         [JsonProperty("self_attested_attributes")]
-        public Dictionary<string, string> SelfAttestedAttributes { get; set; } 
+        public Dictionary<string, string> SelfAttestedAttributes { get; set; }
             = new Dictionary<string, string>();
 
         /// <summary>

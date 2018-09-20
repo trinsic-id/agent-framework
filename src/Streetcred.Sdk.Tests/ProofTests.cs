@@ -62,7 +62,7 @@ namespace Streetcred.Sdk.Tests
 
             var provisionMock = new Mock<IProvisioningService>();
             provisionMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
-                .Returns(Task.FromResult<ProvisioningRecord>(new ProvisioningRecord() {MasterSecretId = MasterSecretId}));
+                .Returns(Task.FromResult<ProvisioningRecord>(new ProvisioningRecord() { MasterSecretId = MasterSecretId }));
 
             var routingMock = new Mock<IRouterService>();
             routingMock.Setup(x => x.ForwardAsync(It.IsNotNull<IEnvelopeMessage>(), It.IsAny<AgentEndpoint>()))
@@ -142,10 +142,18 @@ namespace Streetcred.Sdk.Tests
         public async Task CredentialProofDemo()
         {
             //Setup a connection and issue the credentials to the holder
-            await IssueCredentialsAsync();
+            var (issuerConnection, _) = await Scenarios.EstablishConnectionAsync(
+                _connectionService, _messages, _issuerWallet, _holderWallet);
+
+            var (_, _) = await Scenarios.IssueCredentialAsync(
+                _schemaService, _credentialService, _messages, issuerConnection.GetId(),
+                _issuerWallet, _holderWallet, _pool, MasterSecretId);
+
+            _messages.Clear();
 
             //Requestor initialize a connection with the holder
-            var (holderConnection, requestorConnection) = await EstablishConnectionAsync(_holderWallet, _requestorWallet);
+            var (holderRequestorConnection, requestorConnection) = await Scenarios.EstablishConnectionAsync(
+                _connectionService, _messages, _holderWallet, _requestorWallet);
 
             var proofRequestObject = new ProofRequestObject
             {
@@ -159,7 +167,7 @@ namespace Streetcred.Sdk.Tests
             };
 
             //Requestor sends a proof request
-            await _proofService.SendProofRequestAsync(requestorConnection.ConnectionId, _holderWallet, proofRequestObject);
+            await _proofService.SendProofRequestAsync(requestorConnection.ConnectionId, _requestorWallet, proofRequestObject);
 
             //Holder retrives proof request message from their cloud agent
             var proofRequest = FindContentMessage<ProofRequest>();
@@ -176,7 +184,7 @@ namespace Streetcred.Sdk.Tests
             Assert.NotNull(proof);
 
             //Requestor stores proof
-            var requestorProofId = 
+            var requestorProofId =
                 await _proofService.StoreProofAsync(_requestorWallet, proof);
 
             //Requestor verifies proof
@@ -193,108 +201,6 @@ namespace Streetcred.Sdk.Tests
             Assert.Equal(requestorProof, holderProof);
         }
 
-        private async Task<(ConnectionRecord connectionParty1, ConnectionRecord connectionParty2)> EstablishConnectionAsync(Wallet party1, Wallet party2)
-        {
-            // Create invitation by the party1
-            var party1ConnectionId = Guid.NewGuid().ToString();
-            var invitation = await _connectionService.CreateInvitationAsync(party1,
-                new CreateInviteConfiguration() { ConnectionId = party1ConnectionId });
-            var connectionParty1 = await _connectionService.GetAsync(party1, party1ConnectionId);
-
-            // Party2 accepts invitation and sends a message request
-            var party2ConnectionId = await _connectionService.AcceptInvitationAsync(party2, invitation);
-            var connectionParty2 = await _connectionService.GetAsync(party2, party2ConnectionId);
-
-            // Party1 processes incoming message
-            var party1Message = _messages.OfType<ForwardToKeyEnvelopeMessage>()
-                .First(x => x.Type.Contains(connectionParty1.Tags.Single(item => item.Key == "connectionKey").Value));
-
-            var requestMessage = GetContentMessage(party1Message) as ConnectionRequest;
-            Assert.NotNull(requestMessage);
-
-            // Party1 stores and accepts the request
-            await _connectionService.StoreRequestAsync(party1, requestMessage);
-            await _connectionService.AcceptRequestAsync(party1, party1ConnectionId);
-
-            // Party2 processes incoming message
-            var party2Message = _messages.OfType<ForwardEnvelopeMessage>()
-                .First(x => x.Type.Contains(connectionParty2.MyDid));
-
-            var responseMessage = GetContentMessage(party2Message) as ConnectionResponse;
-            Assert.NotNull(responseMessage);
-
-            // Party2 accepts response message
-            await _connectionService.AcceptResponseAsync(party2, responseMessage);
-
-            // Retrieve updated connection state for both party1 and party2
-            connectionParty1 = await _connectionService.GetAsync(party1, party1ConnectionId);
-            connectionParty2 = await _connectionService.GetAsync(party2, party2ConnectionId);
-
-            return (connectionParty1, connectionParty2);
-        }
-
-        private async Task IssueCredentialsAsync()
-        {
-            // Setup secure connection between issuer and holder
-            var (issuerConnection, holderConnection) = await EstablishConnectionAsync(_issuerWallet, _holderWallet);
-
-            // Create an issuer DID/VK. Can also be created during provisioning
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
-                new { seed = "000000000000000000000000Steward1" }.ToJson());
-
-            // Creata a schema and credential definition for this issuer
-            var schemaId = await _schemaService.CreateSchemaAsync(_pool, _issuerWallet, issuer.Did,
-                $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", new[] { "first_name", "last_name" });
-            var definitionId =
-                await _schemaService.CreateCredentialDefinitionAsync(_pool, _issuerWallet, schemaId, issuer.Did, true,
-                    100);
-
-            // Send an offer to the holder using the established connection channel
-            await _credentialService.SendOfferAsync(definitionId, issuerConnection.GetId(), _issuerWallet, issuer.Did);
-
-            // Holder retrives message from their cloud agent
-            var credentialOffer = FindContentMessage<CredentialOffer>();
-
-            // Holder stores the credential offer
-            var holderCredentialId =
-                await _credentialService.StoreOfferAsync(_holderWallet, credentialOffer);
-
-            // Holder creates master secret. Will also be created during wallet agent provisioning
-            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet, MasterSecretId);
-
-            // Holder accepts the credential offer and sends a credential request
-            await _credentialService.AcceptOfferAsync(_holderWallet, _pool, holderCredentialId,
-                new Dictionary<string, string>
-                {
-                    {"first_name", "Jane"},
-                    {"last_name", "Doe"}
-                });
-
-            // Issuer retrieves credential request from cloud agent
-            var credentialRequest = FindContentMessage<CredentialRequest>();
-            Assert.NotNull(credentialRequest);
-
-            // Issuer stores the credential request
-            var issuerCredentialId =
-                await _credentialService.StoreCredentialRequestAsync(_issuerWallet, credentialRequest);
-
-            // Issuer accepts the credential requests and issues a credential
-            await _credentialService.IssueCredentialAsync(_pool, _issuerWallet, issuer.Did, issuerCredentialId);
-
-            // Holder retrieves the credential from their cloud agent
-            var credential = FindContentMessage<Credential>();
-            Assert.NotNull(credential);
-
-            // Holder stores the credential in their wallet
-            await _credentialService.StoreCredentialAsync(_pool, _holderWallet, credential);
-
-            // Verify states of both credential records are set to 'Issued'
-            var issuerCredential = await _credentialService.GetAsync(_issuerWallet, issuerCredentialId);
-            var holderCredential = await _credentialService.GetAsync(_holderWallet, holderCredentialId);
-
-            Assert.Equal(issuerCredential.State, holderCredential.State);
-            Assert.Equal(CredentialState.Issued, issuerCredential.State);
-        }
 
         private IContentMessage GetContentMessage(IEnvelopeMessage message)
             => JsonConvert.DeserializeObject<IContentMessage>(message.Content);

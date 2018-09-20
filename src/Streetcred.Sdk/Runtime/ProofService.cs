@@ -102,7 +102,8 @@ namespace Streetcred.Sdk.Runtime
             var proofRecord = new ProofRecord
             {
                 Id = Guid.NewGuid().ToString(),
-                ConnectionId = connection.ConnectionId
+                ConnectionId = connection.ConnectionId,
+                RequestJson = proofRequestJson
             };
             proofRecord.Tags["nonce"] = proofJobj["nonce"].ToObject<string>();
             proofRecord.Tags["connectionId"] = connection.GetId();
@@ -110,12 +111,12 @@ namespace Streetcred.Sdk.Runtime
             await _recordService.AddAsync(wallet, proofRecord);
 
             var proofRequest = await _messageSerializer.PackSealedAsync<ProofRequest>(
-                new ProofRequestDetails {ProofRequestJson = proofRequestJson},
+                new ProofRequestDetails { ProofRequestJson = proofRequestJson },
                 wallet,
                 connection.MyVk,
                 connection.TheirVk);
             proofRequest.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.ProofRequest);
-            
+
             return proofRequest;
         }
 
@@ -133,7 +134,7 @@ namespace Streetcred.Sdk.Runtime
                 wallet, await Did.KeyForLocalDidAsync(wallet, connection.MyDid));
             var proofJson = requestDetails.ProofJson;
 
-                var proofRecordSearch = await _recordService.SearchAsync<ProofRecord>(wallet, new SearchRecordQuery { { "myDid", didOrKey } }, null, 1);
+            var proofRecordSearch = await _recordService.SearchAsync<ProofRecord>(wallet, new SearchRecordQuery { { "myDid", didOrKey } }, null, 1);
             if (!proofRecordSearch.Any())
                 throw new Exception($"Can't find proof record");
             var proofRecord = proofRecordSearch.Single();
@@ -196,7 +197,7 @@ namespace Streetcred.Sdk.Runtime
             //return result.ToString();
 
             var result = new Dictionary<string, string>();
-        
+
             foreach (var schemaId in schemaIds)
             {
                 var ledgerSchema = await _ledgerService.LookupSchemaAsync(pool, null, schemaId); // TODO: null support need to be added in dotnet wrapper, its available in libindy
