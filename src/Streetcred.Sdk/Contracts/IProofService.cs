@@ -34,7 +34,8 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="wallet">Wallet.</param>
         /// <param name="proofRequestObject">An enumeration of attribute we wish the prover to disclose.</param>
-        Task<ProofRequest> CreateProofRequestAsync(string connectionId, Wallet wallet, ProofRequestObject proofRequestObject);
+        Task<ProofRequest> CreateProofRequestAsync(string connectionId, Wallet wallet,
+            ProofRequestObject proofRequestObject);
 
         /// <summary>
         /// Creates a proof request
@@ -67,10 +68,11 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="pool">The pool.</param>
         /// <param name="proofRequestId">Identifier of the proof request.</param>
+        /// <param name="requestedCredentials">The requested credentials.</param>
         /// <returns>
         /// The proof.
         /// </returns>
-        Task<Proof> CreateProofAsync(Wallet wallet, Pool pool, string proofRequestId);
+        Task<Proof> CreateProofAsync(Wallet wallet, Pool pool, string proofRequestId, RequestedCredentialsDto requestedCredentials);
 
         /// <summary>
         /// Accepts a proof request by generating a proof and sending it to the requestor
@@ -78,10 +80,11 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="pool">The pool.</param>
         /// <param name="proofRequestId">Identifier of the proof request.</param>
+        /// <param name="requestedCredentials">The requested credentials.</param>
         /// <returns>
         /// The proof.
         /// </returns>
-        Task AcceptProofRequestAsync(Wallet wallet, Pool pool, string proofRequestId);
+        Task AcceptProofRequestAsync(Wallet wallet, Pool pool, string proofRequestId, RequestedCredentialsDto requestedCredentials);
 
         /// <summary>
         /// Rejects a proof request
@@ -116,19 +119,16 @@ namespace Streetcred.Sdk.Contracts
         Task<string> GetProof(Wallet wallet, string proofRecId);
 
         /// <summary>
-        /// Gets an enumeration of proof requests stored in the wallet
+        /// Lists the credentials available for the given proof request.
         /// </summary>
-        /// <param name="wallet">Wallet.</param>
-        /// <returns>A list of proofs requests.</returns>
-        Task<IEnumerable<string>> GetProofRequests(Wallet wallet); //TODO this will have some search parameters
-
-        /// <summary>
-        /// Gets a particular proof request stored in the wallet
-        /// </summary>
-        /// <param name="wallet">Wallet.</param>
-        /// <param name="proofRecId">Identifier of the proof record.</param>
-        /// <returns>The proof.</returns>
-        Task<string> GetProofRequest(Wallet wallet, string proofRecId);
-
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="proofRequestObject">The proof request object.</param>
+        /// <param name="attributeReferent">The attribute referent.</param>
+        /// <returns>
+        /// A collection of <see cref="CredentialObject" /> that are available
+        /// for building a proof for the given proof request
+        /// </returns>
+        Task<List<CredentialInfo>> ListCredentialsForProofRequestAsync(Wallet wallet,
+            ProofRequestObject proofRequestObject, string attributeReferent);
     }
 }

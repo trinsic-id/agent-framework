@@ -107,7 +107,7 @@ namespace Streetcred.Sdk.Tests
             ISchemaService schemaService, ICredentialService credentialService,
             IProducerConsumerCollection<IEnvelopeMessage> messages,
             string issuerConnectionId, Wallet issuerWallet, Wallet holderWallet,
-            Pool pool, string proverMasterSecretId)
+            Pool pool, string proverMasterSecretId, bool revocable)
         {
 
             // Create an issuer DID/VK. Can also be created during provisioning
@@ -118,8 +118,7 @@ namespace Streetcred.Sdk.Tests
             var schemaId = await schemaService.CreateSchemaAsync(pool, issuerWallet, issuer.Did,
                 $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", new[] { "first_name", "last_name" });
             var definitionId =
-                await schemaService.CreateCredentialDefinitionAsync(pool, issuerWallet, schemaId, issuer.Did, true,
-                    100);
+                await schemaService.CreateCredentialDefinitionAsync(pool, issuerWallet, schemaId, issuer.Did, revocable, 100);
 
             // Send an offer to the holder using the established connection channel
             await credentialService.SendOfferAsync(definitionId, issuerConnectionId, issuerWallet, issuer.Did);

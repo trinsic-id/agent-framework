@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Hyperledger.Indy.AnonCredsApi;
@@ -7,6 +8,7 @@ using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Model;
@@ -31,14 +33,14 @@ namespace Streetcred.Sdk.Runtime
         private readonly ILogger<ProofService> _logger;
 
         public ProofService(IConnectionService connectionService,
-                            IRouterService routerService,
-                            IMessageSerializer messageSerializer,
-                            IWalletRecordService recordService,
-                            IProvisioningService provisioningService,
-                            ISchemaService schemaService,
-                            ILedgerService ledgerService,
-                            ICredentialService credentialService,
-                            ILogger<ProofService> logger)
+            IRouterService routerService,
+            IMessageSerializer messageSerializer,
+            IWalletRecordService recordService,
+            IProvisioningService provisioningService,
+            ISchemaService schemaService,
+            ILedgerService ledgerService,
+            ICredentialService credentialService,
+            ILogger<ProofService> logger)
         {
             _connectionService = connectionService;
             _routerService = routerService;
@@ -82,10 +84,12 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<ProofRequest> CreateProofRequestAsync(string connectionId, Wallet wallet, ProofRequestObject proofRequestObject)
+        public async Task<ProofRequest> CreateProofRequestAsync(string connectionId, Wallet wallet,
+            ProofRequestObject proofRequestObject)
         {
             if (string.IsNullOrWhiteSpace(proofRequestObject.Nonce))
-                proofRequestObject.Nonce = Guid.NewGuid().ToString();
+                throw new ArgumentNullException("Nonce must be set.");
+            // For some reason, search API throws if nonce contians 'dash' symbol
 
             return await CreateProofRequestAsync(connectionId, wallet, proofRequestObject.ToJson());
         }
@@ -111,7 +115,7 @@ namespace Streetcred.Sdk.Runtime
             await _recordService.AddAsync(wallet, proofRecord);
 
             var proofRequest = await _messageSerializer.PackSealedAsync<ProofRequest>(
-                new ProofRequestDetails { ProofRequestJson = proofRequestJson },
+                new ProofRequestDetails {ProofRequestJson = proofRequestJson},
                 wallet,
                 connection.MyVk,
                 connection.TheirVk);
@@ -124,7 +128,8 @@ namespace Streetcred.Sdk.Runtime
         {
             var (didOrKey, _) = MessageUtils.ParseMessageType(proof.Type);
 
-            var connectionSearch = await _connectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
+            var connectionSearch =
+                await _connectionService.ListAsync(wallet, new SearchRecordQuery {{"myDid", didOrKey}});
             if (!connectionSearch.Any())
                 throw new Exception($"Can't find connection record for type {proof.Type}");
             var connection = connectionSearch.First();
@@ -134,7 +139,9 @@ namespace Streetcred.Sdk.Runtime
                 wallet, await Did.KeyForLocalDidAsync(wallet, connection.MyDid));
             var proofJson = requestDetails.ProofJson;
 
-            var proofRecordSearch = await _recordService.SearchAsync<ProofRecord>(wallet, new SearchRecordQuery { { "myDid", didOrKey } }, null, 1);
+            var proofRecordSearch =
+                await _recordService.SearchAsync<ProofRecord>(wallet,
+                    new SearchRecordQuery {{"nonce", requestDetails.RequestNonce}}, null, 1);
             if (!proofRecordSearch.Any())
                 throw new Exception($"Can't find proof record");
             var proofRecord = proofRecordSearch.Single();
@@ -150,7 +157,8 @@ namespace Streetcred.Sdk.Runtime
         {
             var (didOrKey, _) = MessageUtils.ParseMessageType(proofRequest.Type);
 
-            var connectionSearch = await _connectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
+            var connectionSearch =
+                await _connectionService.ListAsync(wallet, new SearchRecordQuery {{"myDid", didOrKey}});
             if (!connectionSearch.Any())
                 throw new Exception($"Can't find connection record for type {proofRequest.Type}");
             var connection = connectionSearch.First();
@@ -179,114 +187,70 @@ namespace Streetcred.Sdk.Runtime
             return proofRecord.GetId();
         }
 
-        private async Task<string> GetSchemasForProof(Wallet wallet, Pool pool, List<string> schemaIds)
+        private async Task<string> GetSchemasForProof(Pool pool, IEnumerable<string> schemaIds, string submitterDid)
         {
-            // TODO: TM: Schema details must be retrieved from ledger during verification,
-            // as most likely schema records won't be availble in the wallet, unless the verifier is 
-            // veryfing against their own schema objects
-
-            //var allSchemas = await _schemaService.ListSchemasAsync(wallet);
-
-            //var schemas = allSchemas.Where(_ => schemaIds.Contains(_.SchemaId));
-
-            //JObject result = new JObject();
-
-            //foreach (var schema in schemas)
-            //    result.Add(schema.SchemaId, schema.SchemaJson);
-
-            //return result.ToString();
-
-            var result = new Dictionary<string, string>();
+            var result = new Dictionary<string, JObject>();
 
             foreach (var schemaId in schemaIds)
             {
-                var ledgerSchema = await _ledgerService.LookupSchemaAsync(pool, null, schemaId); // TODO: null support need to be added in dotnet wrapper, its available in libindy
-                result.Add(schemaId, ledgerSchema.ObjectJson);
+                var ledgerSchema =
+                    await _ledgerService.LookupSchemaAsync(pool, submitterDid,
+                        schemaId); // TODO: null support need to be added in dotnet wrapper, its available in libindy
+                result.Add(schemaId, JObject.Parse(ledgerSchema.ObjectJson));
             }
 
             return result.ToJson();
         }
 
-        private async Task<string> GetCredentialDefsForProof(Wallet wallet, List<string> credentialDefIds)
+        private async Task<string> GetCredentialDefsForProof(Pool pool, IEnumerable<string> credentialDefIds, string submitterDid)
         {
-            var allCredentials = await _credentialService.ListAsync(wallet);
+            var result = new Dictionary<string, JObject>();
 
-            var credentials = allCredentials.Where(_ => credentialDefIds.Contains(_.GetId()));
-
-            JObject result = new JObject();
-
-            foreach (var credential in credentials)
-                result.Add(credential.GetId(), credential.CredentialJson);
-
-            return result.ToString();
-        }
-
-        private async Task<string> GenerateProof(Wallet wallet, Pool pool, string requestJson, string masterSecret)
-        {
-            //Result arrays
-            List<(string credId, string credVal, string credRef)> results = new List<(string credId, string credVal, string credRef)>();
-            List<string> schemaIds = new List<string>();
-            List<string> credDefIds = new List<string>();
-
-            //Create a credentials search based on the proof request
-            var credentialsSearch = await AnonCreds.ProverSearchCredentialsForProofRequestAsync(wallet, requestJson);
-
-            //Fetch the attributes and their referents from the proof request
-            Dictionary<string, string> attribsAndRefs = ProofUtils.GetReferentsAndAttributes(requestJson);
-
-            //For each requested attribute check the credential search for a match
-            foreach (var attribsAndRef in attribsAndRefs)
+            foreach (var schemaId in credentialDefIds)
             {
-                //Fetch just one credential from the list
-                var result = await credentialsSearch.NextAsync(1, attribsAndRef.Key);
-
-                if (!String.IsNullOrEmpty(result))
-                    continue;
-
-                var credArray = JArray.Parse(result);
-
-                if (credArray.Count == 0)
-                    continue;
-
-                //Get the credential id and value from the search result
-                var credId = credArray[0]["cred_info"]["referent"].ToString();
-                var credVal = credArray[0]["cred_info"]["attrs"].ToString();
-
-                //Add the result with the referent to the result array
-                results.Add((credId: credId, credVal: credVal, credRef: attribsAndRef.Key));
-
-                //Fetch the schema and cred def id for the current credential, note this list will have duplicates
-                schemaIds.Add(credArray[0]["cred_info"]["schema_id"].ToString());
-                credDefIds.Add(credArray[0]["cred_info"]["cred_def_id"].ToString());
+                var ledgerDefinition =
+                    await _ledgerService.LookupDefinitionAsync(pool, submitterDid,
+                        schemaId); // TODO: null support need to be added in dotnet wrapper, its available in libindy
+                result.Add(schemaId, JObject.Parse(ledgerDefinition.ObjectJson));
             }
 
-            //Format the resulting fetched credentials into the request credentials parameter for the CreateProof method
-            var requestedCredentials = ProofUtils.GenerateRequestedCredentials(results);
-
-            //Format the schemas in the required format for the CreateProof method
-            var schemas = await GetSchemasForProof(wallet, pool, schemaIds.Distinct().ToList());
-
-            //Format the credential definitions in the required format for the CreateProof method
-            var credentialDefs = await GetCredentialDefsForProof(wallet, credDefIds.Distinct().ToList());
-
-            return await AnonCreds.ProverCreateProofAsync(wallet, requestJson, requestedCredentials, masterSecret, schemas, credentialDefs, "");
+            return result.ToJson();
         }
 
-        //TODO add support for self attested credentials
-        public async Task<Proof> CreateProofAsync(Wallet wallet, Pool pool, string proofRequestId)
+        public async Task<Proof> CreateProofAsync(Wallet wallet, Pool pool, string proofRequestId,
+            RequestedCredentialsDto requestedCredentials)
         {
             var request = await _recordService.GetAsync<ProofRecord>(wallet, proofRequestId);
             var connection = await _connectionService.GetAsync(wallet, request.ConnectionId);
 
             var provisioningRecord = await _provisioningService.GetProvisioningAsync(wallet);
 
-            var proofJson = await GenerateProof(wallet, pool, request.RequestJson, provisioningRecord.MasterSecretId);
+            var credentialObjects = new List<CredentialObject>();
+            foreach (var credId in requestedCredentials.GetCredentialIdentifiers())
+            {
+                credentialObjects.Add(
+                    JsonConvert.DeserializeObject<CredentialObject>(
+                        await AnonCreds.ProverGetCredentialAsync(wallet, credId)));
+            }
+
+            var schemas = await GetSchemasForProof(pool, credentialObjects.Select(x => x.SchemaId).Distinct(),
+                connection.MyDid);
+            var definitions = await GetCredentialDefsForProof(pool,
+                credentialObjects.Select(x => x.CredentialDefinitionId).Distinct(), connection.MyDid);
+
+            var proofJson = await AnonCreds.ProverCreateProofAsync(wallet, request.RequestJson,
+                requestedCredentials.ToJson(),
+                provisioningRecord.MasterSecretId, schemas, definitions, "{}");
 
             request.ProofJson = proofJson;
             await _recordService.UpdateAsync(wallet, request);
 
             var proof = await _messageSerializer.PackSealedAsync<Proof>(
-                new ProofDetails() { ProofJson = proofJson },
+                new ProofDetails
+                {
+                    ProofJson = proofJson,
+                    RequestNonce = JsonConvert.DeserializeObject<ProofRequestObject>(request.RequestJson).Nonce
+                },
                 wallet,
                 connection.MyVk,
                 connection.TheirVk);
@@ -295,12 +259,13 @@ namespace Streetcred.Sdk.Runtime
             return proof;
         }
 
-        public async Task AcceptProofRequestAsync(Wallet wallet, Pool pool, string proofRequestId)
+        public async Task AcceptProofRequestAsync(Wallet wallet, Pool pool, string proofRequestId,
+            RequestedCredentialsDto requestedCredentials)
         {
             var request = await _recordService.GetAsync<ProofRecord>(wallet, proofRequestId);
             var connection = await _connectionService.GetAsync(wallet, request.ConnectionId);
 
-            var proof = await CreateProofAsync(wallet, pool, proofRequestId);
+            var proof = await CreateProofAsync(wallet, pool, proofRequestId, requestedCredentials);
 
             var proofRecord = await _recordService.GetAsync<ProofRecord>(wallet, proofRequestId);
 
@@ -334,14 +299,16 @@ namespace Streetcred.Sdk.Runtime
             throw new NotImplementedException();
         }
 
-        public Task<IEnumerable<string>> GetProofRequests(Wallet wallet)
+        public async Task<List<CredentialInfo>> ListCredentialsForProofRequestAsync(Wallet wallet,
+            ProofRequestObject proofRequestObject, string attributeReferent)
         {
-            throw new NotImplementedException();
-        }
+            var search =
+                await AnonCreds.ProverSearchCredentialsForProofRequestAsync(wallet, proofRequestObject.ToJson());
+            var searchResult =
+                await AnonCreds.ProverFetchCredentialsForProofRequestAsync(search, attributeReferent, 100);
 
-        public Task<string> GetProofRequest(Wallet wallet, string proofRecId)
-        {
-            throw new NotImplementedException();
+            await AnonCreds.ProverCloseCredentialsSearchForProofRequestAsync(search);
+            return JsonConvert.DeserializeObject<List<CredentialInfo>>(searchResult);
         }
     }
 }

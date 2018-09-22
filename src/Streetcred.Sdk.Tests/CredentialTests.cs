@@ -128,7 +128,7 @@ namespace Streetcred.Sdk.Tests
 
             var (issuerCredential, holderCredential) = await Scenarios.IssueCredentialAsync(
                 _schemaService, _credentialService, _messages, issuerConnection.GetId(),
-                _issuerWallet, _holderWallet, _pool, MasterSecretId);
+                _issuerWallet, _holderWallet, _pool, MasterSecretId, true);
 
             Assert.Equal(issuerCredential.State, holderCredential.State);
             Assert.Equal(CredentialState.Issued, issuerCredential.State);

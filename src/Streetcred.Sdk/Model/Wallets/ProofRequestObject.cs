@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -42,7 +43,7 @@ namespace Streetcred.Sdk.Model.Wallets
         /// Gets or sets the requested predicates.
         /// </summary>
         /// <value>The requested predicates.</value>
-        [JsonProperty("requested_predicates")]
+        [JsonProperty("requested_predicates", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, ProofPredicateInfo> RequestedPredicates { get; set; } =
             new Dictionary<string, ProofPredicateInfo>();
 
@@ -50,8 +51,8 @@ namespace Streetcred.Sdk.Model.Wallets
         /// Gets or sets the non revoked.
         /// </summary>
         /// <value>The non revoked.</value>
-        [JsonProperty("non_revoked")]
-        public ProofRevocationInterval NonRevoked { get; set; }
+        [JsonProperty("non_revoked", NullValueHandling = NullValueHandling.Ignore)]
+        public RevocationInterval NonRevoked { get; set; }
     }
 
     /// <summary>
@@ -81,16 +82,15 @@ namespace Streetcred.Sdk.Model.Wallets
         ///    }
         /// </example>
         /// <value>The restrictions.</value>
-        [JsonProperty("restrictions")]
-        public Dictionary<AttributeFilter, string> Restrictions { get; set; } =
-            new Dictionary<AttributeFilter, string>();
+        [JsonProperty("restrictions", NullValueHandling = NullValueHandling.Ignore)]
+        public Dictionary<AttributeFilter, string> Restrictions { get; set; }
 
         /// <summary>
         /// Gets or sets the non revoked.
         /// </summary>
         /// <value>The non revoked.</value>
-        [JsonProperty("non_revoked")]
-        public ProofRevocationInterval NonRevoked { get; set; }
+        [JsonProperty("non_revoked", NullValueHandling = NullValueHandling.Ignore)]
+        public RevocationInterval NonRevoked { get; set; }
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
@@ -113,7 +113,7 @@ namespace Streetcred.Sdk.Model.Wallets
     /// <summary>
     /// Proof revokation interval.
     /// </summary>
-    public class ProofRevocationInterval
+    public class RevocationInterval
     {
         /// <summary>
         /// Gets or sets from.
@@ -176,6 +176,19 @@ namespace Streetcred.Sdk.Model.Wallets
         [JsonProperty("requested_predicates")]
         public Dictionary<string, RequestedAttributeDto> RequestedPredicates { get; set; }
             = new Dictionary<string, RequestedAttributeDto>();
+
+
+        /// <summary>
+        /// Gets a collection of distinct credential identifiers found in this object.
+        /// </summary>
+        /// <returns></returns>
+        internal IEnumerable<string> GetCredentialIdentifiers()
+        {
+            var credIds = new List<string>();
+            credIds.AddRange(RequestedAttributes.Values.Select(x => x.CredentialId));
+            credIds.AddRange(RequestedPredicates.Values.Select(x => x.CredentialId));
+            return credIds.Distinct();
+        }
     }
 
     /// <summary>
@@ -189,6 +202,15 @@ namespace Streetcred.Sdk.Model.Wallets
         /// <value>The credential identifier.</value>
         [JsonProperty("cred_id")]
         public string CredentialId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the timestamp.
+        /// </summary>
+        /// <value>
+        /// The timestamp.
+        /// </value>
+        [JsonProperty("timestamp", NullValueHandling = NullValueHandling.Ignore)]
+        public long? Timestamp { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this

@@ -9,5 +9,13 @@
         /// The proof json.
         /// </value>
         public string ProofJson { get; set; }
+
+        /// <summary>
+        /// Gets or sets the proof request nonce.
+        /// </summary>
+        /// <value>
+        /// The request nonce.
+        /// </value>
+        public string RequestNonce { get; set; }
     }
 }
