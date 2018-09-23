@@ -66,7 +66,8 @@ namespace Streetcred.Sdk.Runtime
         {
             var (didOrKey, _) = MessageUtils.ParseMessageType(credentialOffer.Type);
 
-            var connectionSearch = await _connectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
+            var connectionSearch =
+                await _connectionService.ListAsync(wallet, new SearchRecordQuery {{"myDid", didOrKey}});
             if (!connectionSearch.Any())
                 throw new Exception($"Can't find connection record for type {credentialOffer.Type}");
             var connection = connectionSearch.First();
@@ -128,7 +129,8 @@ namespace Streetcred.Sdk.Runtime
             var requestMessage =
                 await _messageSerializer.PackSealedAsync<CredentialRequest>(details, wallet, connection.MyVk,
                     connection.TheirVk);
-            requestMessage.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.CredentialRequest);
+            requestMessage.Type =
+                MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.CredentialRequest);
 
             await _routerService.ForwardAsync(new ForwardEnvelopeMessage
             {
@@ -142,7 +144,8 @@ namespace Streetcred.Sdk.Runtime
         {
             var (didOrKey, _) = MessageUtils.ParseMessageType(credential.Type);
 
-            var connectionSearch = await _connectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
+            var connectionSearch =
+                await _connectionService.ListAsync(wallet, new SearchRecordQuery {{"myDid", didOrKey}});
             if (!connectionSearch.Any())
                 throw new Exception($"Can't find connection record for type {credential.Type}");
             var connection = connectionSearch.First();
@@ -213,7 +216,7 @@ namespace Streetcred.Sdk.Runtime
             await _recordService.AddAsync(wallet, credentialRecord);
 
             var credentialOffer = await _messageSerializer.PackSealedAsync<CredentialOffer>(
-                new CredentialOfferDetails { OfferJson = offerJson },
+                new CredentialOfferDetails {OfferJson = offerJson},
                 wallet,
                 connection.MyVk,
                 connection.TheirVk);
@@ -246,7 +249,8 @@ namespace Streetcred.Sdk.Runtime
 
             var (didOrKey, _) = MessageUtils.ParseMessageType(credentialRequest.Type);
 
-            var connectionSearch = await _connectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
+            var connectionSearch =
+                await _connectionService.ListAsync(wallet, new SearchRecordQuery {{"myDid", didOrKey}});
             if (!connectionSearch.Any())
                 throw new Exception($"Can't find connection record for type {credentialRequest.Type}");
             var connection = connectionSearch.First();
@@ -258,7 +262,7 @@ namespace Streetcred.Sdk.Runtime
             var request = JObject.Parse(details.OfferJson);
             var nonce = request["nonce"].ToObject<string>();
 
-            var query = new SearchRecordQuery { { "nonce", nonce } };
+            var query = new SearchRecordQuery {{"nonce", nonce}};
             var credentialSearch = await _recordService.SearchAsync<CredentialRecord>(wallet, query, null, 1);
 
             var credential = credentialSearch.Single();
@@ -291,7 +295,7 @@ namespace Streetcred.Sdk.Runtime
             if (definitionRecord.Revocable)
             {
                 revocationRegistryId = definitionRecord.RevocationRegistryId;
-                tailsReader = await _tailsService.GetBlobStorageReaderAsync(definitionRecord.TailsStorageId);
+                tailsReader = await _tailsService.GetTailsReaderAsync(definitionRecord.TailsStorageId);
             }
 
             var issuedCredential = await AnonCreds.IssuerCreateCredentialAsync(wallet, credentialRecord.OfferJson,
@@ -337,7 +341,7 @@ namespace Streetcred.Sdk.Runtime
             await credential.TriggerAsync(CredentialTrigger.Revoke);
 
             // Revoke the credential
-            var tailsReader = await _tailsService.GetBlobStorageReaderAsync(definition.TailsStorageId);
+            var tailsReader = await _tailsService.GetTailsReaderAsync(definition.TailsStorageId);
             var revocRegistryDeltaJson = await AnonCreds.IssuerRevokeCredentialAsync(wallet, tailsReader,
                 definition.RevocationRegistryId,
                 credential.CredentialRevocationId);

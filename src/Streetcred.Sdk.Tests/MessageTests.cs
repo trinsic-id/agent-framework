@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Hyperledger.Indy.AnonCredsApi;
@@ -45,6 +46,34 @@ namespace Streetcred.Sdk.Tests
 
             Assert.Equal(key, parsedKey);
             Assert.Equal(parsedType, MessageTypes.ForwardToKey);
+        }
+
+        [Fact]
+        public void FindDidInsideRevocationRegistryId()
+        {
+            var revocationRegistryIdentifier =
+                "Th7MpTaRZVRYnPiabds81Y:4:Th7MpTaRZVRYnPiabds81Y:3:CL:124:Tag:CL_ACCUM:Tag2";
+
+            string did = null;
+            var found = MessageUtils.FindFirstDid(revocationRegistryIdentifier, ref did);
+
+            Assert.True(found);
+            Assert.Equal("Th7MpTaRZVRYnPiabds81Y", did);
+        }
+
+        [Fact]
+        public void FindAllDidsInsideRevocationRegistryId()
+        {
+            var revocationRegistryIdentifier =
+                "4cU41vWW82ArfxJxHkzXPG:4:Th7MpTaRZVRYnPiabds81Y:3:CL:124:Tag:CL_ACCUM:Tag2";
+
+            IEnumerable<string> dids = null;
+            var found = MessageUtils.FindAllDids(revocationRegistryIdentifier, ref dids);
+
+            Assert.True(found);
+            var collection = dids.ToArray();
+            Assert.Contains("Th7MpTaRZVRYnPiabds81Y", collection);
+            Assert.Contains("4cU41vWW82ArfxJxHkzXPG", collection);
         }
 
         public async Task InitializeAsync()

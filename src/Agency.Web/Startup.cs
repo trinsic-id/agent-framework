@@ -31,7 +31,7 @@ namespace Agency.Web
             {
                 config
                     .SetWalletOptions(Configuration.GetSection("WalletOptions").Get<WalletOptions>())
-                    .SetPoolOptions(new PoolOptions {GenesisFilename = Path.GetFullPath("pool_genesis.txn")});
+                    .SetPoolOptions(new PoolOptions { GenesisFilename = Path.GetFullPath("pool_genesis.txn") });
             });
         }
 
@@ -48,6 +48,7 @@ namespace Agency.Web
                 builder =>
                 {
                     builder.AddIssuer("000000000000000000000000Steward1");
+                    builder.SetTailsBaseUri("http://localhost:5000/tails");
                     builder.AddOwnershipInfo("StreetCred", "https://streetcred.id/images/streetcred_logo.png");
                 });
 

@@ -49,9 +49,8 @@ namespace Streetcred.Sdk.Tests
             var messageSerializer = new MessageSerializer();
             var recordService = new WalletRecordService();
             var ledgerService = new LedgerService();
-            var tailsService = new TailsService();
+            var tailsService = new TailsService(ledgerService);
             _poolService = new PoolService();
-            _schemaService = new SchemaService(recordService, ledgerService, tailsService);
 
             var routingMock = new Mock<IRouterService>();
             routingMock.Setup(x => x.ForwardAsync(It.IsNotNull<IEnvelopeMessage>(), It.IsAny<AgentEndpoint>()))
@@ -63,8 +62,11 @@ namespace Streetcred.Sdk.Tests
                 .Returns(Task.FromResult(new ProvisioningRecord
                 {
                     Endpoint = new AgentEndpoint {Uri = MockEndpointUri},
-                    MasterSecretId = MasterSecretId
+                    MasterSecretId = MasterSecretId,
+                    TailsBaseUri = MockEndpointUri
                 }));
+
+            _schemaService = new SchemaService(recordService, ledgerService, tailsService, provisioningMock.Object);
 
             _connectionService = new ConnectionService(
                 recordService,
