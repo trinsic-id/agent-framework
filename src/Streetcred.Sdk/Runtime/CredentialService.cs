@@ -295,7 +295,7 @@ namespace Streetcred.Sdk.Runtime
             if (definitionRecord.Revocable)
             {
                 revocationRegistryId = definitionRecord.RevocationRegistryId;
-                tailsReader = await _tailsService.GetTailsReaderAsync(definitionRecord.TailsStorageId);
+                tailsReader = await _tailsService.GetTailsAsync(definitionRecord.TailsStorageId);
             }
 
             var issuedCredential = await AnonCreds.IssuerCreateCredentialAsync(wallet, credentialRecord.OfferJson,
@@ -341,7 +341,7 @@ namespace Streetcred.Sdk.Runtime
             await credential.TriggerAsync(CredentialTrigger.Revoke);
 
             // Revoke the credential
-            var tailsReader = await _tailsService.GetTailsReaderAsync(definition.TailsStorageId);
+            var tailsReader = await _tailsService.GetTailsAsync(definition.TailsStorageId);
             var revocRegistryDeltaJson = await AnonCreds.IssuerRevokeCredentialAsync(wallet, tailsReader,
                 definition.RevocationRegistryId,
                 credential.CredentialRevocationId);

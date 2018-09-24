@@ -11,6 +11,8 @@ using System.Linq;
 using System.Text;
 using System.Net.Http;
 using System.IO;
+using Hyperledger.Indy.WalletApi;
+using Newtonsoft.Json.Linq;
 
 namespace Streetcred.Sdk.Runtime
 {
@@ -23,19 +25,22 @@ namespace Streetcred.Sdk.Runtime
             new ConcurrentDictionary<string, BlobStorageWriter>();
 
         private readonly ILedgerService _ledgerService;
+        private readonly IProvisioningService _provisioningService;
         private readonly HttpClient _httpClient;
 
-        public TailsService(ILedgerService ledgerService)
+        public TailsService(ILedgerService ledgerService,
+                            IProvisioningService provisioningService)
         {
             _ledgerService = ledgerService;
+            _provisioningService = provisioningService;
             _httpClient = new HttpClient();
         }
 
         /// <inheritdoc />
-        public async Task<BlobStorageReader> GetTailsReaderAsync(string revocationRegistryId, Pool pool = null)
+        public async Task<BlobStorageReader> GetTailsAsync(string revocationRegistryId, Pool pool = null)
         {
             var baseDir = EnvironmentUtils.GetIndyHomePath("tails").Replace('\\', '/');
-            var (attributeName, filename) = GetTailsAtribute(revocationRegistryId);
+            var filename = Multibase.Base58.Encode(Encoding.UTF8.GetBytes(revocationRegistryId));
 
             var tailsWriterConfig = new
             {
@@ -51,13 +56,7 @@ namespace Streetcred.Sdk.Runtime
 
             if (pool != null)
             {
-
-                string targetDid = null;
-                MessageUtils.FindFirstDid(revocationRegistryId, ref targetDid);
-                var tailsUri = await _ledgerService.LookupAttributeAsync(pool, targetDid, attributeName);
-
-                File.WriteAllBytes(path: Path.Combine(baseDir, filename),
-                    bytes: await FetchTailsFileAsync(tailsUri));
+                await FetchTailsAsync(pool, revocationRegistryId, Path.Combine(baseDir, filename));
             }
 
             blobReader = await BlobStorage.OpenReaderAsync("default", tailsWriterConfig.ToJson());
@@ -67,7 +66,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         //// <inheritdoc />
-        public async Task<BlobStorageWriter> GetTailsWriterAsync(string revocationRegistryId)
+        public async Task<BlobStorageWriter> CreateTailsAsync(string revocationRegistryId)
         {
             var tailsWriterConfig = new
             {
@@ -88,15 +87,22 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public Task<byte[]> FetchTailsFileAsync(string tailsUri) => _httpClient.GetByteArrayAsync(tailsUri);
+        public async Task FetchTailsAsync(Pool pool, string revocationRegistryId, string filename)
+        {
+            var revocationRegistry = await _ledgerService.LookupRevocationRegistryDefinitionAsync(pool, null, revocationRegistryId);
+            var tailsUri = JObject.Parse(revocationRegistry.ObjectJson)["value"]["tailsLocation"].ToObject<string>();
 
-        /// <summary>
-        /// Gets the name of the tails location attribute on the ledger.
-        /// </summary>
-        /// <returns>The attribute name.</returns>
-        /// <param name="revocationRegistryId">Revocation registry identifier.</param>
-        public static (string attributeName, string tailsFilename) GetTailsAtribute(string revocationRegistryId) => (
-            $"tails:location#{revocationRegistryId}",
-            Multibase.Base58.Encode(Encoding.UTF8.GetBytes(revocationRegistryId)));
+            File.WriteAllBytes(path: filename,
+                               bytes: await _httpClient.GetByteArrayAsync(tailsUri));
+        }
+
+        /// <inheritdoc />
+        public async Task<string> FormatTailsLocationAsync(Wallet wallet, string revocationRegistryId)
+        {
+            var provisioning = await _provisioningService.GetProvisioningAsync(wallet);
+            var uri = $"{provisioning.TailsBaseUri}/{Multibase.Base58.Encode(Encoding.UTF8.GetBytes(revocationRegistryId))}";
+
+            return uri;
+        }
     }
 }

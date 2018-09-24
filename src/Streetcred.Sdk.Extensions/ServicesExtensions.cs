@@ -77,13 +77,23 @@ namespace Streetcred.Sdk.Extensions
             var builder = app.ApplicationServices.GetService<AgentBuilder>();
 
             options?.Invoke(builder);
-            
+
             var endpoint = new Uri(endpointUri);
+
             builder.Build(endpoint).GetAwaiter().GetResult();
 
             app.MapWhen(
                 context => context.Request.Path.StartsWithSegments(endpoint.AbsolutePath),
                 appBuilder => { appBuilder.UseMiddleware<T>(); });
+
+            if (builder.TailsBaseUri != null)
+            {
+                var tailsEndpoint = new Uri(builder.TailsBaseUri);
+
+                app.MapWhen(
+                    context => context.Request.Path.StartsWithSegments(tailsEndpoint.AbsolutePath),
+                    appBuilder => { appBuilder.UseMiddleware<TailsMiddleware>(); });
+            }
         }
     }
 }

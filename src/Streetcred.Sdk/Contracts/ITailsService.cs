@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Hyperledger.Indy.BlobStorageApi;
 using Hyperledger.Indy.PoolApi;
+using Hyperledger.Indy.WalletApi;
 
 namespace Streetcred.Sdk.Contracts
 {
@@ -15,20 +16,30 @@ namespace Streetcred.Sdk.Contracts
         /// <returns>The tails reader async.</returns>
         /// <param name="revocationRegistryId">Revocation registry identifier.</param>
         /// <param name="pool">Pool.</param>
-        Task<BlobStorageReader> GetTailsReaderAsync(string revocationRegistryId, Pool pool = null);
+        Task<BlobStorageReader> GetTailsAsync(string revocationRegistryId, Pool pool = null);
 
         /// <summary>
         /// Gets the BLOB storage writer async.
         /// </summary>
         /// <returns>The BLOB storage writer async.</returns>
         /// <param name="revocationRegistryId">Storage identifier.</param>
-        Task<BlobStorageWriter> GetTailsWriterAsync(string revocationRegistryId);
+        Task<BlobStorageWriter> CreateTailsAsync(string revocationRegistryId);
 
         /// <summary>
-        /// Fetchs the tails file from a remote URI endpoint
+        /// Retrieves the tails file from a remote URI endpoint
         /// </summary>
-        /// <returns>The tails file async.</returns>
-        /// <param name="tailsUri">Tails URI.</param>
-        Task<byte[]> FetchTailsFileAsync(string tailsUri);
+        /// <returns>The tails async.</returns>
+        /// <param name="pool">Pool.</param>
+        /// <param name="revocationRegistryId">Revocation registry identifier.</param>
+        /// <param name="filename">The local tails filename where registry data will be stored.</param>
+        Task FetchTailsAsync(Pool pool, string revocationRegistryId, string filename);
+
+        /// <summary>
+        /// Gets the tails location URI that will be stored on the ledger with the revocation registry definition.
+        /// </summary>
+        /// <returns>The tails URI.</returns>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="revocationRegistryId">Revocation registry identifier.</param>
+        Task<string> FormatTailsLocationAsync(Wallet wallet, string revocationRegistryId);
     }
 }
