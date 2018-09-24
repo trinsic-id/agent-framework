@@ -22,5 +22,15 @@ namespace Streetcred.Sdk.Utils
             pathParts.Insert(0, GetIndyHomePath());
             return Path.Combine(pathParts.ToArray());
         }
+
+        public static string GetTailsPath()
+        {
+            return Path.Combine(GetIndyHomePath(), "tails").Replace("\\", "/");
+        }
+
+        public static string GetTailsPath(string filename)
+        {
+            return Path.Combine(GetTailsPath(), filename);
+        }
     }
 }

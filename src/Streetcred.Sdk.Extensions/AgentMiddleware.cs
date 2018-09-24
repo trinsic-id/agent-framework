@@ -25,14 +25,14 @@ namespace Streetcred.Sdk.Extensions
         private readonly WalletOptions _walletOptions;
 
         public AgentMiddleware(RequestDelegate next,
-                                      IWalletService walletService,
-                                      IPoolService poolService,
-                                      IMessageSerializer messageSerializer,
-                                      IConnectionService connectionService,
-                                      ICredentialService credentialService,
-                                      IProvisioningService provisioningService,
-                                      IOptions<WalletOptions> walletOptions,
-                                      IOptions<PoolOptions> poolOptions)
+            IWalletService walletService,
+            IPoolService poolService,
+            IMessageSerializer messageSerializer,
+            IConnectionService connectionService,
+            ICredentialService credentialService,
+            IProvisioningService provisioningService,
+            IOptions<WalletOptions> walletOptions,
+            IOptions<PoolOptions> poolOptions)
         {
             _next = next;
             _walletService = walletService;
@@ -54,16 +54,18 @@ namespace Streetcred.Sdk.Extensions
             }
 
             var pool = await _poolService.GetPoolAsync(_poolOptions.PoolName, _poolOptions.ProtocolVersion);
-            var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
+            var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
+                _walletOptions.WalletCredentials);
             var endpoint = await _provisioningService.GetProvisioningAsync(wallet);
 
             if (context.Request.ContentLength != null)
             {
-                var body = new byte[(int)context.Request.ContentLength];
+                var body = new byte[(int) context.Request.ContentLength];
 
                 await context.Request.Body.ReadAsync(body, 0, body.Length);
 
-                var decrypted = await _messageSerializer.UnpackAsync<IEnvelopeMessage>(body, wallet, endpoint.Endpoint.Verkey);
+                var decrypted =
+                    await _messageSerializer.UnpackAsync<IEnvelopeMessage>(body, wallet, endpoint.Endpoint.Verkey);
                 var decoded = JsonConvert.DeserializeObject<IContentMessage>(decrypted.Content);
 
                 switch (decoded)
@@ -92,6 +94,7 @@ namespace Streetcred.Sdk.Extensions
                 await context.Response.WriteAsync(string.Empty);
                 return;
             }
+
             throw new Exception("Empty content length");
         }
     }

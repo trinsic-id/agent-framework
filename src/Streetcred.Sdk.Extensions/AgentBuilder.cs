@@ -27,7 +27,8 @@ namespace Streetcred.Sdk.Extensions
         private readonly PoolOptions _poolOptions;
         private bool _createIssuer;
 
-        public AgentBuilder(IWalletService walletService,
+        public AgentBuilder(
+            IWalletService walletService,
             IPoolService poolService,
             IProvisioningService provisioningService,
             IOptions<WalletOptions> walletOptions,
@@ -99,7 +100,8 @@ namespace Streetcred.Sdk.Extensions
 
             try
             {
-                await _poolService.CreatePoolAsync(_poolOptions.PoolName, _poolOptions.GenesisFilename, _poolOptions.ProtocolVersion);
+                await _poolService.CreatePoolAsync(_poolOptions.PoolName, _poolOptions.GenesisFilename,
+                    _poolOptions.ProtocolVersion);
             }
             catch (PoolLedgerConfigExistsException)
             {

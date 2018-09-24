@@ -292,16 +292,16 @@ namespace Streetcred.Sdk.Runtime
 
             string revocationRegistryId = null;
             BlobStorageReader tailsReader = null;
-            if (definitionRecord.Revocable)
+            if (definitionRecord.SupportsRevocation)
             {
                 revocationRegistryId = definitionRecord.RevocationRegistryId;
-                tailsReader = await _tailsService.GetTailsAsync(definitionRecord.TailsStorageId);
+                tailsReader = await _tailsService.OpenTailsAsync(revocationRegistryId);
             }
 
             var issuedCredential = await AnonCreds.IssuerCreateCredentialAsync(wallet, credentialRecord.OfferJson,
                 credentialRecord.RequestJson, credentialRecord.ValuesJson, revocationRegistryId, tailsReader);
 
-            if (definitionRecord.Revocable)
+            if (definitionRecord.SupportsRevocation)
             {
                 await _ledgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid,
                     definitionRecord.RevocationRegistryId,
@@ -341,10 +341,9 @@ namespace Streetcred.Sdk.Runtime
             await credential.TriggerAsync(CredentialTrigger.Revoke);
 
             // Revoke the credential
-            var tailsReader = await _tailsService.GetTailsAsync(definition.TailsStorageId);
+            var tailsReader = await _tailsService.OpenTailsAsync(definition.RevocationRegistryId);
             var revocRegistryDeltaJson = await AnonCreds.IssuerRevokeCredentialAsync(wallet, tailsReader,
-                definition.RevocationRegistryId,
-                credential.CredentialRevocationId);
+                definition.RevocationRegistryId, credential.CredentialRevocationId);
 
             // Write the delta state on the ledger for the corresponding revocation registry
             await _ledgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid,

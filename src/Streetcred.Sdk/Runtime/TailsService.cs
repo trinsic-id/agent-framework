@@ -29,7 +29,7 @@ namespace Streetcred.Sdk.Runtime
         private readonly HttpClient _httpClient;
 
         public TailsService(ILedgerService ledgerService,
-                            IProvisioningService provisioningService)
+            IProvisioningService provisioningService)
         {
             _ledgerService = ledgerService;
             _provisioningService = provisioningService;
@@ -37,10 +37,10 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<BlobStorageReader> GetTailsAsync(string revocationRegistryId, Pool pool = null)
+        public async Task<BlobStorageReader> OpenTailsAsync(string revocationRegistryId, Pool pool = null)
         {
-            var baseDir = EnvironmentUtils.GetIndyHomePath("tails").Replace('\\', '/');
-            var filename = Multibase.Base58.Encode(Encoding.UTF8.GetBytes(revocationRegistryId));
+            var baseDir = EnvironmentUtils.GetTailsPath();
+            var filename = revocationRegistryId.ToBase58();
 
             var tailsWriterConfig = new
             {
@@ -56,7 +56,7 @@ namespace Streetcred.Sdk.Runtime
 
             if (pool != null)
             {
-                await FetchTailsAsync(pool, revocationRegistryId, Path.Combine(baseDir, filename));
+                await DownloadTailsAsync(pool, revocationRegistryId, Path.Combine(baseDir, filename));
             }
 
             blobReader = await BlobStorage.OpenReaderAsync("default", tailsWriterConfig.ToJson());
@@ -70,9 +70,9 @@ namespace Streetcred.Sdk.Runtime
         {
             var tailsWriterConfig = new
             {
-                base_dir = EnvironmentUtils.GetIndyHomePath("tails").Replace('\\', '/'),
+                base_dir = EnvironmentUtils.GetTailsPath(),
                 uri_pattern = string.Empty,
-                file = Multibase.Base58.Encode(Encoding.UTF8.GetBytes(revocationRegistryId))
+                file = revocationRegistryId.ToBase58()
             };
 
             if (BlobWriters.TryGetValue(revocationRegistryId, out var blobWriter))
@@ -86,23 +86,14 @@ namespace Streetcred.Sdk.Runtime
             return blobWriter;
         }
 
-        /// <inheritdoc />
-        public async Task FetchTailsAsync(Pool pool, string revocationRegistryId, string filename)
+        private async Task DownloadTailsAsync(Pool pool, string revocationRegistryId, string filename)
         {
-            var revocationRegistry = await _ledgerService.LookupRevocationRegistryDefinitionAsync(pool, null, revocationRegistryId);
+            var revocationRegistry =
+                await _ledgerService.LookupRevocationRegistryDefinitionAsync(pool, null, revocationRegistryId);
             var tailsUri = JObject.Parse(revocationRegistry.ObjectJson)["value"]["tailsLocation"].ToObject<string>();
 
             File.WriteAllBytes(path: filename,
-                               bytes: await _httpClient.GetByteArrayAsync(tailsUri));
-        }
-
-        /// <inheritdoc />
-        public async Task<string> FormatTailsLocationAsync(Wallet wallet, string revocationRegistryId)
-        {
-            var provisioning = await _provisioningService.GetProvisioningAsync(wallet);
-            var uri = $"{provisioning.TailsBaseUri}/{Multibase.Base58.Encode(Encoding.UTF8.GetBytes(revocationRegistryId))}";
-
-            return uri;
+                bytes: await _httpClient.GetByteArrayAsync(tailsUri));
         }
     }
 }
