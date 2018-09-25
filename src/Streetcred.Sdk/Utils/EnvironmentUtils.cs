@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Streetcred.Sdk.Utils
 {
-    internal static class EnvironmentUtils
+    public static class EnvironmentUtils
     {
         public static string GetUserPath()
         {

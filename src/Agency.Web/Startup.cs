@@ -23,15 +23,15 @@ namespace Agency.Web
         {
             services.AddMvc();
             services.AddLogging(builder => builder
-                                .SetMinimumLevel(LogLevel.Trace)
-                                .AddConsole()
-                                .AddDebug());
+                .SetMinimumLevel(LogLevel.Trace)
+                .AddConsole()
+                .AddDebug());
 
             services.AddAgent(config =>
             {
                 config
                     .SetWalletOptions(Configuration.GetSection("WalletOptions").Get<WalletOptions>())
-                    .SetPoolOptions(new PoolOptions { GenesisFilename = Path.GetFullPath("pool_genesis.txn") });
+                    .SetPoolOptions(new PoolOptions {GenesisFilename = Path.GetFullPath("pool_genesis.txn")});
             });
         }
 

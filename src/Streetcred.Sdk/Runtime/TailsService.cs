@@ -37,10 +37,10 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<BlobStorageReader> OpenTailsAsync(string revocationRegistryId, Pool pool = null)
+        public async Task<BlobStorageReader> OpenTailsAsync(string credentialDefinitionId, Pool pool = null)
         {
             var baseDir = EnvironmentUtils.GetTailsPath();
-            var filename = revocationRegistryId.ToBase58();
+            var filename = credentialDefinitionId.ToBase58();
 
             var tailsWriterConfig = new
             {
@@ -49,39 +49,39 @@ namespace Streetcred.Sdk.Runtime
                 file = filename
             };
 
-            if (BlobReaders.TryGetValue(revocationRegistryId, out var blobReader))
+            if (BlobReaders.TryGetValue(credentialDefinitionId, out var blobReader))
             {
                 return blobReader;
             }
 
             if (pool != null)
             {
-                await DownloadTailsAsync(pool, revocationRegistryId, Path.Combine(baseDir, filename));
+                await DownloadTailsAsync(pool, credentialDefinitionId, Path.Combine(baseDir, filename));
             }
 
             blobReader = await BlobStorage.OpenReaderAsync("default", tailsWriterConfig.ToJson());
 
-            BlobReaders.TryAdd(revocationRegistryId, blobReader);
+            BlobReaders.TryAdd(credentialDefinitionId, blobReader);
             return blobReader;
         }
 
         //// <inheritdoc />
-        public async Task<BlobStorageWriter> CreateTailsAsync(string revocationRegistryId)
+        public async Task<BlobStorageWriter> CreateTailsAsync(string credentialDefinitionId)
         {
             var tailsWriterConfig = new
             {
                 base_dir = EnvironmentUtils.GetTailsPath(),
                 uri_pattern = string.Empty,
-                file = revocationRegistryId.ToBase58()
+                file = credentialDefinitionId.ToBase58()
             };
 
-            if (BlobWriters.TryGetValue(revocationRegistryId, out var blobWriter))
+            if (BlobWriters.TryGetValue(credentialDefinitionId, out var blobWriter))
             {
                 return blobWriter;
             }
 
             blobWriter = await BlobStorage.OpenWriterAsync("default", tailsWriterConfig.ToJson());
-            BlobWriters.TryAdd(revocationRegistryId, blobWriter);
+            BlobWriters.TryAdd(credentialDefinitionId, blobWriter);
 
             return blobWriter;
         }

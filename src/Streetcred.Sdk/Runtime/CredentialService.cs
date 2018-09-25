@@ -73,8 +73,7 @@ namespace Streetcred.Sdk.Runtime
             var connection = connectionSearch.First();
 
             var (offerDetails, _) = await _messageSerializer.UnpackSealedAsync<CredentialOfferDetails>(
-                credentialOffer.Content,
-                wallet, await Did.KeyForLocalDidAsync(wallet, connection.MyDid));
+                credentialOffer.Content, wallet, connection.MyVk);
             var offerJson = offerDetails.OfferJson;
 
             var offer = JObject.Parse(offerJson);
@@ -151,7 +150,7 @@ namespace Streetcred.Sdk.Runtime
             var connection = connectionSearch.First();
 
             var (details, _) = await _messageSerializer.UnpackSealedAsync<CredentialDetails>(credential.Content,
-                wallet, await Did.KeyForLocalDidAsync(wallet, connection.MyDid));
+                wallet, connection.MyVk);
 
             var offer = JObject.Parse(details.CredentialJson);
             var definitionId = offer["cred_def_id"].ToObject<string>();
@@ -256,8 +255,7 @@ namespace Streetcred.Sdk.Runtime
             var connection = connectionSearch.First();
 
             var (details, _) = await _messageSerializer.UnpackSealedAsync<CredentialRequestDetails>(
-                credentialRequest.Content, wallet,
-                await Did.KeyForLocalDidAsync(wallet, connection.MyDid));
+                credentialRequest.Content, wallet, connection.MyVk);
 
             var request = JObject.Parse(details.OfferJson);
             var nonce = request["nonce"].ToObject<string>();

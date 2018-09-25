@@ -60,8 +60,7 @@ namespace Streetcred.Sdk.Runtime
 
             if (supportsRevocation)
             {
-                var storageId = Guid.NewGuid().ToString().ToLowerInvariant();
-                var tailsHandle = await _tailsService.CreateTailsAsync(storageId);
+                var tailsHandle = await _tailsService.CreateTailsAsync(credentialDefinition.CredDefId);
 
                 var revRegDefConfig =
                     new {issuance_type = "ISSUANCE_ON_DEMAND", max_cred_num = maxCredentialCount}.ToJson();
@@ -71,7 +70,7 @@ namespace Streetcred.Sdk.Runtime
                 // Update tails location URI
                 var revocationDefinition = JObject.Parse(revocationRegistry.RevRegDefJson);
                 revocationDefinition["value"]["tailsLocation"] =
-                    new Uri(tailsBaseUri, revocationRegistry.RevRegId.ToBase58()).ToString();
+                    new Uri(tailsBaseUri, credentialDefinition.CredDefId.ToBase58()).ToString();
 
                 await _ledgerService.RegisterRevocationRegistryDefinitionAsync(wallet, pool, issuerDid,
                     revocationDefinition.ToString());
