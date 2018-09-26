@@ -18,6 +18,8 @@ namespace Streetcred.Sdk.Extensions
         private string _agentOwnerName;
         private string _agentOwnerImageUrl;
 
+        internal string TailsBaseUri;
+
         private readonly IWalletService _walletService;
         private readonly IPoolService _poolService;
         private readonly IProvisioningService _provisioningService;
@@ -25,7 +27,8 @@ namespace Streetcred.Sdk.Extensions
         private readonly PoolOptions _poolOptions;
         private bool _createIssuer;
 
-        public AgentBuilder(IWalletService walletService,
+        public AgentBuilder(
+            IWalletService walletService,
             IPoolService poolService,
             IProvisioningService provisioningService,
             IOptions<WalletOptions> walletOptions,
@@ -71,6 +74,18 @@ namespace Streetcred.Sdk.Extensions
             return this;
         }
 
+        /// <summary>
+        /// Sets the base URI for the tails service
+        /// </summary>
+        /// <returns>The tails base URI.</returns>
+        /// <param name="tailsBaseUri">Tails base URI.</param>
+        public AgentBuilder SetTailsBaseUri(string tailsBaseUri)
+        {
+            TailsBaseUri = tailsBaseUri;
+
+            return this;
+        }
+
         internal async Task Build(Uri endpointUri)
         {
             try
@@ -85,7 +100,8 @@ namespace Streetcred.Sdk.Extensions
 
             try
             {
-                await _poolService.CreatePoolAsync(_poolOptions.PoolName, _poolOptions.GenesisFilename, _poolOptions.ProtocolVersion);
+                await _poolService.CreatePoolAsync(_poolOptions.PoolName, _poolOptions.GenesisFilename,
+                    _poolOptions.ProtocolVersion);
             }
             catch (PoolLedgerConfigExistsException)
             {
@@ -105,7 +121,8 @@ namespace Streetcred.Sdk.Extensions
                     CreateIssuer = _createIssuer,
                     IssuerSeed = _issuerSeed,
                     OwnerName = _agentOwnerName,
-                    OwnerImageUrl = _agentOwnerImageUrl
+                    OwnerImageUrl = _agentOwnerImageUrl,
+                    TailsBaseUri = TailsBaseUri
                 });
             }
             catch (WalletAlreadyProvisionedException)

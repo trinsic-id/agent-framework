@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Hyperledger.Indy.AnonCredsApi;
@@ -46,7 +47,7 @@ namespace Streetcred.Sdk.Tests
             Assert.Equal(key, parsedKey);
             Assert.Equal(parsedType, MessageTypes.ForwardToKey);
         }
-
+        
         public async Task InitializeAsync()
         {
             try

@@ -22,16 +22,18 @@ namespace Streetcred.Sdk.Model.Records
         public AgentEndpoint Endpoint { get; set; }
 
         public AgentOwner Owner { get; set; }
-        
+
         public string AgentSeed { get; set; }
 
         public string IssuerSeed { get; set; }
-        
+
         public string IssuerDid { get; set; }
 
         public string IssuerVerkey { get; set; }
 
         public string MasterSecretId { get; set; }
+
+        public string TailsBaseUri { get; set; }
 
         /// <summary>
         /// Determines whether this wallet is provisioned as issuer.

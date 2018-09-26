@@ -14,11 +14,9 @@
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="Stateless" Version="4.2.1" />
     <PackageReference Include="Hyperledger.Indy.Sdk" Version="1.6.4" />
+    <PackageReference Include="Multiformats.Base" Version="2.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Runtime\AgencyCredentialService.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Extensions\" />
+    <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
 </Project>

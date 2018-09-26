@@ -49,9 +49,8 @@ namespace Streetcred.Sdk.Tests
             var messageSerializer = new MessageSerializer();
             var recordService = new WalletRecordService();
             var ledgerService = new LedgerService();
-            var tailsService = new TailsService();
+
             _poolService = new PoolService();
-            _schemaService = new SchemaService(recordService, ledgerService, tailsService);
 
             var routingMock = new Mock<IRouterService>();
             routingMock.Setup(x => x.ForwardAsync(It.IsNotNull<IEnvelopeMessage>(), It.IsAny<AgentEndpoint>()))
@@ -62,9 +61,13 @@ namespace Streetcred.Sdk.Tests
             provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(Task.FromResult(new ProvisioningRecord
                 {
-                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri},
-                    MasterSecretId = MasterSecretId
+                    Endpoint = new AgentEndpoint { Uri = MockEndpointUri },
+                    MasterSecretId = MasterSecretId,
+                    TailsBaseUri = MockEndpointUri
                 }));
+
+            var tailsService = new TailsService(ledgerService, provisioningMock.Object);
+            _schemaService = new SchemaService(recordService, ledgerService, tailsService);
 
             _connectionService = new ConnectionService(
                 recordService,
@@ -126,14 +129,14 @@ namespace Streetcred.Sdk.Tests
 
             // Create an issuer DID/VK. Can also be created during provisioning
             var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
-                new {seed = "000000000000000000000000Steward1"}.ToJson());
+                new { seed = "000000000000000000000000Steward1" }.ToJson());
 
             // Creata a schema and credential definition for this issuer
             var schemaId = await _schemaService.CreateSchemaAsync(_pool, _issuerWallet, issuer.Did,
-                $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", new[] {"first_name", "last_name"});
+                $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", new[] { "first_name", "last_name" });
             var definitionId =
                 await _schemaService.CreateCredentialDefinitionAsync(_pool, _issuerWallet, schemaId, issuer.Did, true,
-                    100);
+                    100, new Uri(MockEndpointUri));
 
             // Send an offer to the holder using the established connection channel
             await _credentialService.SendOfferAsync(definitionId, issuerConnection.GetId(), _issuerWallet, issuer.Did);
@@ -187,7 +190,7 @@ namespace Streetcred.Sdk.Tests
             // Create invitation by the issuer
             var issuerConnectionId = Guid.NewGuid().ToString();
             var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new CreateInviteConfiguration() {ConnectionId = issuerConnectionId});
+                new CreateInviteConfiguration() { ConnectionId = issuerConnectionId });
             var connectionIssuer = await _connectionService.GetAsync(_issuerWallet, issuerConnectionId);
 
             // Holder accepts invitation and sends a message request
