@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
@@ -31,9 +32,12 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="supportsRevocation">if set to <c>true</c> [supports revocation].</param>
         /// <param name="maxCredentialCount">Maximum number of credentials supported by this definition.
         /// This parameter is only used if <paramref name="supportsRevocation"/> is <c>true</c>.</param>
+        /// <param name="tailsBaseUri">The public URI of the tails file for the revocation definition.
+        /// his parameter is only used if <paramref name="supportsRevocation"/> is <c>true</c>.
+        /// </param>
         /// <returns>The credential definition identifier of the stored definition record. This identifier can be used for ledger definition lookup.</returns>
         Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId, string issuerDid,
-            bool supportsRevocation, int maxCredentialCount);
+            bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri);
 
         /// <summary>
         /// Gets the schemas asynchronous.

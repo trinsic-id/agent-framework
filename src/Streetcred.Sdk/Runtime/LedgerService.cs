@@ -5,6 +5,7 @@ using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
@@ -13,15 +14,7 @@ namespace Streetcred.Sdk.Runtime
     /// </summary>
     public class LedgerService : ILedgerService
     {
-        /// <summary>
-        /// Lookups the definition async.
-        /// </summary>
-        /// <param name="pool">The pool.</param>
-        /// <param name="submitterDid">The submitter did.</param>
-        /// <param name="definitionId">Definition identifier.</param>
-        /// <returns>
-        /// The definition async.
-        /// </returns>
+        /// <inheritdoc />
         public async Task<ParseResponseResult> LookupDefinitionAsync(Pool pool, string submitterDid,
             string definitionId)
         {
@@ -41,15 +34,7 @@ namespace Streetcred.Sdk.Runtime
             return await Ledger.ParseGetRevocRegDefResponseAsync(res);
         }
 
-        /// <summary>
-        /// Lookups the schema async.
-        /// </summary>
-        /// <param name="pool">The pool.</param>
-        /// <param name="submitterDid">The submitter did.</param>
-        /// <param name="schemaId">Schema identifier.</param>
-        /// <returns>
-        /// The schema async.
-        /// </returns>
+        /// <inheritdoc />
         public async Task<ParseResponseResult> LookupSchemaAsync(Pool pool, string submitterDid, string schemaId)
         {
             var req = await Ledger.BuildGetSchemaRequestAsync(submitterDid, schemaId);
@@ -160,6 +145,27 @@ namespace Streetcred.Sdk.Runtime
             {
                 throw new Exception("Ledger operation rejected");
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<string> LookupAttributeAsync(Pool pool, string targetDid, string attributeName)
+        {
+            var req = await Ledger.BuildGetAttribRequestAsync(null, targetDid, attributeName, null, null);
+            var res = await Ledger.SubmitRequestAsync(pool, req);
+
+            return null;
+        }
+
+        /// <inheritdoc />
+        public async Task RegisterAttributeAsync(Pool pool, Wallet wallet, string submittedDid, string targetDid,
+            string attributeName, object value)
+        {
+            var data = $"{{\"{attributeName}\": {value.ToJson()}}}";
+
+            var req = await Ledger.BuildAttribRequestAsync(submittedDid, targetDid, null, data, null);
+            var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submittedDid, req);
+
+            EnsureSuccessResponse(res);
         }
     }
 }

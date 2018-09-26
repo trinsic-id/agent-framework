@@ -18,13 +18,15 @@
         public string DefinitionId { get; set; }
 
         /// <summary>
-        /// Gets or sets the definition json.
+        /// Gets or sets a value indicating whether this definition supports credential revocation.
         /// </summary>
-        /// <value>The definition json.</value>
-        public bool Revocable { get; set; }
+        /// <value>
+        ///   <c>true</c> if this definition supports credential revocation; otherwise, <c>false</c>.
+        /// </value>
+        public bool SupportsRevocation { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether [require approval].
+        /// Gets or sets a value indicating whether requests are automatically issued a credential.
         /// </summary>
         /// <value>
         ///   <c>true</c> if [require approval]; otherwise, <c>false</c>.
@@ -38,14 +40,6 @@
         /// The revocation registry identifier.
         /// </value>
         public string RevocationRegistryId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the tails storage identifier.
-        /// </summary>
-        /// <value>
-        /// The tails storage identifier.
-        /// </value>
-        public string TailsStorageId { get; set; }
 
         /// <summary>
         /// Gets the name of the type.

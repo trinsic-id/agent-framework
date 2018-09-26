@@ -53,5 +53,11 @@ namespace Streetcred.Sdk.Model.Wallets
         ///   <c>true</c> if [create issuer]; otherwise, <c>false</c>.
         /// </value>
         public bool CreateIssuer { get; set; }
+
+        /// <summary>
+        /// Gets or sets the tails service base URI.
+        /// </summary>
+        /// <value>The tails base URI.</value>
+        public string TailsBaseUri { get; set; }
     }
 }

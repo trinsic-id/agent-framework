@@ -11,6 +11,28 @@ namespace Streetcred.Sdk.Contracts
     public interface ILedgerService
     {
         /// <summary>
+        /// Looks up an attribute value on the ledger.
+        /// </summary>
+        /// <returns>The attribute value or <c>null</c> if none were found.</returns>
+        /// <param name="pool">Pool.</param>
+        /// <param name="targetDid">The target DID for the <paramref name="attributeName"/> lookup</param>
+        /// <param name="attributeName">Attribute name.</param>
+        Task<string> LookupAttributeAsync(Pool pool, string targetDid, string attributeName);
+
+        /// <summary>
+        /// Register an attribute for the specified <paramref name="targetDid"/> to the ledger.
+        /// </summary>
+        /// <returns>The attribute async.</returns>
+        /// <param name="pool">Pool.</param>
+        /// <param name="wallet">Wallet.</param>
+        /// <param name="submittedDid">Submitted did.</param>
+        /// <param name="targetDid">Target did.</param>
+        /// <param name="attributeName">Attribute name.</param>
+        /// <param name="value">The attribute value.</param>
+        Task RegisterAttributeAsync(Pool pool, Wallet wallet, string submittedDid, string targetDid,
+            string attributeName, object value);
+
+        /// <summary>
         /// Lookups the schema async.
         /// </summary>
         /// <param name="pool">The pool.</param>
@@ -39,7 +61,8 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="submitterDid">The submitter did.</param>
         /// <param name="registryId">The registry identifier.</param>
         /// <returns></returns>
-        Task<ParseResponseResult> LookupRevocationRegistryDefinitionAsync(Pool pool, string submitterDid, string registryId);
+        Task<ParseResponseResult> LookupRevocationRegistryDefinitionAsync(Pool pool, string submitterDid,
+            string registryId);
 
         /// <summary>
         /// Registers the trust anchor async.
@@ -52,7 +75,8 @@ namespace Streetcred.Sdk.Contracts
         /// <returns>
         /// The trust anchor async.
         /// </returns>
-        Task RegisterTrustAnchorAsync(Wallet wallet, Pool pool, string submitterDid, string theirDid, string theirVerkey);
+        Task RegisterTrustAnchorAsync(Wallet wallet, Pool pool, string submitterDid, string theirDid,
+            string theirVerkey);
 
         /// <summary>
         /// Registers the credential definition async.
@@ -86,7 +110,8 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="revocationDefinitionType">Type of the revocation definition.</param>
         /// <param name="value">The value.</param>
         /// <returns></returns>
-        Task SendRevocationRegistryEntryAsync(Wallet wallet, Pool pool, string issuerDid, string revocationRegistryDefinitionId, string revocationDefinitionType, string value);
+        Task SendRevocationRegistryEntryAsync(Wallet wallet, Pool pool, string issuerDid,
+            string revocationRegistryDefinitionId, string revocationDefinitionType, string value);
 
         /// <summary>
         /// Registers the schema asynchronous.

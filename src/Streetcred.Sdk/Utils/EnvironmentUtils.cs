@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Streetcred.Sdk.Utils
 {
-    internal static class EnvironmentUtils
+    public static class EnvironmentUtils
     {
         public static string GetUserPath()
         {
@@ -21,6 +21,16 @@ namespace Streetcred.Sdk.Utils
             var pathParts = new List<string>(paths);
             pathParts.Insert(0, GetIndyHomePath());
             return Path.Combine(pathParts.ToArray());
+        }
+
+        public static string GetTailsPath()
+        {
+            return Path.Combine(GetIndyHomePath(), "tails").Replace("\\", "/");
+        }
+
+        public static string GetTailsPath(string filename)
+        {
+            return Path.Combine(GetTailsPath(), filename);
         }
     }
 }

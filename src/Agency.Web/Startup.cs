@@ -23,9 +23,9 @@ namespace Agency.Web
         {
             services.AddMvc();
             services.AddLogging(builder => builder
-                                .SetMinimumLevel(LogLevel.Trace)
-                                .AddConsole()
-                                .AddDebug());
+                .SetMinimumLevel(LogLevel.Trace)
+                .AddConsole()
+                .AddDebug());
 
             services.AddAgent(config =>
             {
@@ -48,6 +48,7 @@ namespace Agency.Web
                 builder =>
                 {
                     builder.AddIssuer("000000000000000000000000Steward1");
+                    builder.SetTailsBaseUri("http://localhost:5000/tails");
                     builder.AddOwnershipInfo("StreetCred", "https://streetcred.id/images/streetcred_logo.png");
                 });
 

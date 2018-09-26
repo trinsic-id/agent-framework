@@ -126,8 +126,7 @@ namespace Streetcred.Sdk.Runtime
             };
 
             var request = await _messageSerializer.PackSealedAsync<ConnectionRequest>(connectionDetails, wallet,
-                my.VerKey,
-                invitation.ConnectionKey);
+                my.VerKey, invitation.ConnectionKey);
             request.Key = invitation.ConnectionKey;
             request.Type = MessageUtils.FormatKeyMessageType(invitation.ConnectionKey, MessageTypes.ConnectionRequest);
 
@@ -150,7 +149,7 @@ namespace Streetcred.Sdk.Runtime
             var (didOrKey, _) = MessageUtils.ParseMessageType(request.Type);
 
             var connectionSearch = await _recordService.SearchAsync<ConnectionRecord>(wallet,
-                new SearchRecordQuery { { "connectionKey", didOrKey } }, null, 1);
+                new SearchRecordQuery {{"connectionKey", didOrKey}}, null, 1);
 
             var connection = connectionSearch.Single();
 
@@ -163,7 +162,7 @@ namespace Streetcred.Sdk.Runtime
 
             var my = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
 
-            await Did.StoreTheirDidAsync(wallet, new { did = their.Did, verkey = their.Verkey }.ToJson());
+            await Did.StoreTheirDidAsync(wallet, new {did = their.Did, verkey = their.Verkey}.ToJson());
 
             connection.Endpoint = their.Endpoint;
             connection.TheirDid = their.Did;
@@ -202,7 +201,8 @@ namespace Streetcred.Sdk.Runtime
             var responseMessage =
                 await _messageSerializer.PackSealedAsync<ConnectionResponse>(response, wallet, connection.MyVk,
                     connection.TheirVk);
-            responseMessage.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.ConnectionResponse);
+            responseMessage.Type =
+                MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.ConnectionResponse);
             responseMessage.To = connection.TheirDid;
 
             var forwardMessage = new ForwardEnvelopeMessage
@@ -222,17 +222,16 @@ namespace Streetcred.Sdk.Runtime
             var (didOrKey, _) = MessageUtils.ParseMessageType(response.Type);
 
             var connectionSearch = await _recordService.SearchAsync<ConnectionRecord>(wallet,
-                new SearchRecordQuery { { "myDid", didOrKey } }, null, 1);
+                new SearchRecordQuery {{"myDid", didOrKey}}, null, 1);
 
             var connection = connectionSearch.Single();
             await connection.TriggerAsync(ConnectionTrigger.Response);
 
             var (connectionDetails, _) = await _messageSerializer.UnpackSealedAsync<ConnectionDetails>(response.Content,
-                wallet,
-                connection.MyVk);
+                wallet, connection.MyVk);
 
             await Did.StoreTheirDidAsync(wallet,
-                new { did = connectionDetails.Did, verkey = connectionDetails.Verkey }.ToJson());
+                new {did = connectionDetails.Did, verkey = connectionDetails.Verkey}.ToJson());
 
             await Pairwise.CreateAsync(wallet, connectionDetails.Did, connection.MyDid,
                 connectionDetails.Endpoint.ToJson());
