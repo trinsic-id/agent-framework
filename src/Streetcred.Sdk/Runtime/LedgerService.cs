@@ -133,7 +133,7 @@ namespace Streetcred.Sdk.Runtime
         public async Task RegisterTrustAnchorAsync(Wallet wallet, Pool pool, string submitterDid, string theirDid,
             string theirVerkey)
         {
-            if (theirVerkey.Length > 22)
+            if (DidUtils.IsFullVerkey(theirVerkey))
                 theirVerkey = await Did.AbbreviateVerkeyAsync(theirDid, theirVerkey);
 
             var req = await Ledger.BuildNymRequestAsync(submitterDid, theirDid, theirVerkey, null, "TRUST_ANCHOR");
