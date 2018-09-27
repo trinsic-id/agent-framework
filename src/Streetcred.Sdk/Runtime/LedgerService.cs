@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.LedgerApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
@@ -9,9 +10,7 @@ using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
-    /// <summary>
-    /// Ledger service.
-    /// </summary>
+    /// <inheritdoc />
     public class LedgerService : ILedgerService
     {
         /// <inheritdoc />
@@ -43,14 +42,7 @@ namespace Streetcred.Sdk.Runtime
             return await Ledger.ParseGetSchemaResponseAsync(res);
         }
 
-        /// <summary>
-        /// Registers the schema asynchronous.
-        /// </summary>
-        /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="issuerDid">The issuer did.</param>
-        /// <param name="schemaJson">The schema json.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task RegisterSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string schemaJson)
         {
             var req = await Ledger.BuildSchemaRequestAsync(issuerDid, schemaJson);
@@ -58,17 +50,7 @@ namespace Streetcred.Sdk.Runtime
 
             EnsureSuccessResponse(res);
         }
-
-        /// <summary>
-        /// Registers the credential definition async.
-        /// </summary>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="pool">The pool.</param>
-        /// <param name="submitterDid">The submitter did.</param>
-        /// <param name="data">Data.</param>
-        /// <returns>
-        /// The credential definition async.
-        /// </returns>
+        
         /// <inheritdoc />
         public async Task RegisterCredentialDefinitionAsync(Wallet wallet, Pool pool, string submitterDid, string data)
         {
@@ -77,15 +59,7 @@ namespace Streetcred.Sdk.Runtime
 
             EnsureSuccessResponse(res);
         }
-
-        /// <summary>
-        /// Registers the revocation registry definition asynchronous.
-        /// </summary>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="pool">The pool.</param>
-        /// <param name="submitterDid">The submitter did.</param>
-        /// <param name="data">The data.</param>
-        /// <returns></returns>
+        
         /// <inheritdoc />
         public async Task RegisterRevocationRegistryDefinitionAsync(Wallet wallet, Pool pool, string submitterDid,
             string data)
@@ -96,16 +70,6 @@ namespace Streetcred.Sdk.Runtime
             EnsureSuccessResponse(res);
         }
 
-        /// <summary>
-        /// Sends the revocation registry entry asynchronous.
-        /// </summary>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="pool">The pool.</param>
-        /// <param name="issuerDid"></param>
-        /// <param name="revocationRegistryDefinitionId">The revocation registry definition identifier.</param>
-        /// <param name="revocationDefinitionType">Type of the revocation definition.</param>
-        /// <param name="value">The value.</param>
-        /// <returns></returns>
         /// <inheritdoc />
         public async Task SendRevocationRegistryEntryAsync(Wallet wallet, Pool pool, string issuerDid,
             string revocationRegistryDefinitionId, string revocationDefinitionType, string value)
@@ -117,34 +81,17 @@ namespace Streetcred.Sdk.Runtime
             EnsureSuccessResponse(res);
         }
 
-
-        /// <summary>
-        /// Registers the trust anchor async.
-        /// </summary>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="pool">The pool.</param>
-        /// <param name="submitterDid">The submitter did.</param>
-        /// <param name="theirDid">Their did.</param>
-        /// <param name="theirVerkey">Their verkey.</param>
-        /// <returns>
-        /// The trust anchor async.
-        /// </returns>
+        /// <inheritdoc />
         public async Task RegisterTrustAnchorAsync(Wallet wallet, Pool pool, string submitterDid, string theirDid,
             string theirVerkey)
         {
+            if (DidUtils.IsFullVerkey(theirVerkey))
+                theirVerkey = await Did.AbbreviateVerkeyAsync(theirDid, theirVerkey);
+
             var req = await Ledger.BuildNymRequestAsync(submitterDid, theirDid, theirVerkey, null, "TRUST_ANCHOR");
             var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, req);
 
             EnsureSuccessResponse(res);
-        }
-
-        void EnsureSuccessResponse(string res)
-        {
-            var response = JObject.Parse(res);
-            if (!response["op"].ToObject<string>().Equals("reply", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new Exception("Ledger operation rejected");
-            }
         }
 
         /// <inheritdoc />
@@ -166,6 +113,14 @@ namespace Streetcred.Sdk.Runtime
             var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submittedDid, req);
 
             EnsureSuccessResponse(res);
+        }
+
+        void EnsureSuccessResponse(string res)
+        {
+            var response = JObject.Parse(res);
+
+            if (!response["op"].ToObject<string>().Equals("reply", StringComparison.OrdinalIgnoreCase))
+                throw new Exception("Ledger operation rejected");
         }
     }
 }
