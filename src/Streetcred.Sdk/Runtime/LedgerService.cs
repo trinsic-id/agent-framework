@@ -87,8 +87,6 @@ namespace Streetcred.Sdk.Runtime
         {
             if (DidUtils.IsFullVerkey(theirVerkey))
                 theirVerkey = await Did.AbbreviateVerkeyAsync(theirDid, theirVerkey);
-            else if (!DidUtils.IsVerkey(theirVerkey))
-                throw new ArgumentException("Parameter invalid", nameof(theirVerkey));
 
             var req = await Ledger.BuildNymRequestAsync(submitterDid, theirDid, theirVerkey, null, "TRUST_ANCHOR");
             var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, req);
