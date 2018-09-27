@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.LedgerApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
@@ -132,6 +133,9 @@ namespace Streetcred.Sdk.Runtime
         public async Task RegisterTrustAnchorAsync(Wallet wallet, Pool pool, string submitterDid, string theirDid,
             string theirVerkey)
         {
+            if (theirVerkey.Length > 22)
+                theirVerkey = await Did.AbbreviateVerkeyAsync(theirDid, theirVerkey);
+
             var req = await Ledger.BuildNymRequestAsync(submitterDid, theirDid, theirVerkey, null, "TRUST_ANCHOR");
             var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, req);
 
