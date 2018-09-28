@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Hyperledger.Indy.AnonCredsApi;
@@ -27,29 +28,27 @@ namespace Streetcred.Sdk.Runtime
         private readonly IMessageSerializer _messageSerializer;
         private readonly IWalletRecordService _recordService;
         private readonly IProvisioningService _provisioningService;
-        private readonly ISchemaService _schemaService;
         private readonly ILedgerService _ledgerService;
-        private readonly ICredentialService _credentialService;
         private readonly ILogger<ProofService> _logger;
+        private readonly ITailsService _tailsService;
 
-        public ProofService(IConnectionService connectionService,
+        public ProofService(
+            IConnectionService connectionService,
             IRouterService routerService,
             IMessageSerializer messageSerializer,
             IWalletRecordService recordService,
             IProvisioningService provisioningService,
-            ISchemaService schemaService,
             ILedgerService ledgerService,
-            ICredentialService credentialService,
+            ITailsService tailsService,
             ILogger<ProofService> logger)
         {
+            _tailsService = tailsService;
             _connectionService = connectionService;
             _routerService = routerService;
             _messageSerializer = messageSerializer;
             _recordService = recordService;
             _provisioningService = provisioningService;
-            _schemaService = schemaService;
             _ledgerService = ledgerService;
-            _credentialService = credentialService;
             _logger = logger;
         }
 
@@ -88,7 +87,7 @@ namespace Streetcred.Sdk.Runtime
             ProofRequestObject proofRequestObject)
         {
             if (string.IsNullOrWhiteSpace(proofRequestObject.Nonce))
-                throw new ArgumentNullException("Nonce must be set.");
+                throw new ArgumentNullException(nameof(proofRequestObject.Nonce), "Nonce must be set.");
             // For some reason, search API throws if nonce contians 'dash' symbol
 
             return await CreateProofRequestAsync(connectionId, wallet, proofRequestObject.ToJson());
@@ -135,8 +134,7 @@ namespace Streetcred.Sdk.Runtime
             var connection = connectionSearch.First();
 
             var (requestDetails, _) = await _messageSerializer.UnpackSealedAsync<ProofDetails>(
-                proof.Content,
-                wallet, await Did.KeyForLocalDidAsync(wallet, connection.MyDid));
+                proof.Content, wallet, connection.MyVk);
             var proofJson = requestDetails.ProofJson;
 
             var proofRecordSearch =
@@ -148,6 +146,7 @@ namespace Streetcred.Sdk.Runtime
 
             proofRecord.ProofJson = proofJson;
             await proofRecord.TriggerAsync(ProofTrigger.Accept);
+            await _recordService.UpdateAsync(wallet, proofRecord);
 
             return proofRecord.GetId();
         }
@@ -187,41 +186,13 @@ namespace Streetcred.Sdk.Runtime
             return proofRecord.GetId();
         }
 
-        private async Task<string> GetSchemasForProof(Pool pool, IEnumerable<string> schemaIds, string submitterDid)
-        {
-            var result = new Dictionary<string, JObject>();
-
-            foreach (var schemaId in schemaIds)
-            {
-                var ledgerSchema =
-                    await _ledgerService.LookupSchemaAsync(pool, submitterDid,
-                        schemaId); // TODO: null support need to be added in dotnet wrapper, its available in libindy
-                result.Add(schemaId, JObject.Parse(ledgerSchema.ObjectJson));
-            }
-
-            return result.ToJson();
-        }
-
-        private async Task<string> GetCredentialDefsForProof(Pool pool, IEnumerable<string> credentialDefIds, string submitterDid)
-        {
-            var result = new Dictionary<string, JObject>();
-
-            foreach (var schemaId in credentialDefIds)
-            {
-                var ledgerDefinition =
-                    await _ledgerService.LookupDefinitionAsync(pool, submitterDid,
-                        schemaId); // TODO: null support need to be added in dotnet wrapper, its available in libindy
-                result.Add(schemaId, JObject.Parse(ledgerDefinition.ObjectJson));
-            }
-
-            return result.ToJson();
-        }
-
+        /// <inheritdoc />
         public async Task<Proof> CreateProofAsync(Wallet wallet, Pool pool, string proofRequestId,
             RequestedCredentialsDto requestedCredentials)
         {
             var request = await _recordService.GetAsync<ProofRecord>(wallet, proofRequestId);
             var connection = await _connectionService.GetAsync(wallet, request.ConnectionId);
+            var requestObject = JsonConvert.DeserializeObject<ProofRequestObject>(request.RequestJson);
 
             var provisioningRecord = await _provisioningService.GetProvisioningAsync(wallet);
 
@@ -233,30 +204,48 @@ namespace Streetcred.Sdk.Runtime
                         await AnonCreds.ProverGetCredentialAsync(wallet, credId)));
             }
 
-            var schemas = await GetSchemasForProof(pool, credentialObjects.Select(x => x.SchemaId).Distinct(),
-                connection.MyDid);
-            var definitions = await GetCredentialDefsForProof(pool,
-                credentialObjects.Select(x => x.CredentialDefinitionId).Distinct(), connection.MyDid);
+            var schemas = await BuildSchemasAsync(pool,
+                credentialObjects
+                    .Select(x => x.SchemaId)
+                    .Distinct(), connection.MyDid);
 
-            var proofJson = await AnonCreds.ProverCreateProofAsync(wallet, request.RequestJson,
-                requestedCredentials.ToJson(),
-                provisioningRecord.MasterSecretId, schemas, definitions, "{}");
+            var definitions = await BuildCredentialDefinitionsAsync(pool,
+                credentialObjects
+                    .Select(x => x.CredentialDefinitionId)
+                    .Distinct(), connection.MyDid);
 
-            request.ProofJson = proofJson;
-            await _recordService.UpdateAsync(wallet, request);
+            var revocationStates = await BuildRevocationStatesAsync(pool,
+                credentialObjects
+                    .Where(x => x.RevocationRegistryId != null),
+                requestObject.NonRevoked?.From, requestObject.NonRevoked?.To);
 
-            var proof = await _messageSerializer.PackSealedAsync<Proof>(
-                new ProofDetails
-                {
-                    ProofJson = proofJson,
-                    RequestNonce = JsonConvert.DeserializeObject<ProofRequestObject>(request.RequestJson).Nonce
-                },
-                wallet,
-                connection.MyVk,
-                connection.TheirVk);
-            proof.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.DisclosedProof);
+            try
+            {
+                var proofJson = await AnonCreds.ProverCreateProofAsync(wallet, request.RequestJson,
+                    requestedCredentials.ToJson(), provisioningRecord.MasterSecretId, schemas, definitions,
+                    revocationStates);
 
-            return proof;
+                request.ProofJson = proofJson;
+                await _recordService.UpdateAsync(wallet, request);
+
+                var proof = await _messageSerializer.PackSealedAsync<Proof>(
+                    new ProofDetails
+                    {
+                        ProofJson = proofJson,
+                        RequestNonce = JsonConvert.DeserializeObject<ProofRequestObject>(request.RequestJson).Nonce
+                    },
+                    wallet,
+                    connection.MyVk,
+                    connection.TheirVk);
+                proof.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.DisclosedProof);
+
+                return proof;
+            }
+            catch(Exception e)
+            {
+                Debug.WriteLine(e);
+                throw;
+            }
         }
 
         public async Task AcceptProofRequestAsync(Wallet wallet, Pool pool, string proofRequestId,
@@ -284,9 +273,38 @@ namespace Streetcred.Sdk.Runtime
             throw new NotImplementedException();
         }
 
-        public Task<bool> VerifyProofAsync(Wallet wallet, Pool pool, string proofRecId)
+        /// <inheritdoc />
+        public async Task<bool> VerifyProofAsync(Wallet wallet, Pool pool, string proofRecId)
         {
-            throw new NotImplementedException();
+            var proofRecord = await GetProofAsync(wallet, proofRecId);
+            var proofObject = JsonConvert.DeserializeObject<ProofObject>(proofRecord.ProofJson);
+
+            var schemas = await BuildSchemasAsync(pool,
+                proofObject.Identifiers
+                    .Select(x => x.SchemaId)
+                    .Where(x => x != null)
+                    .Distinct(), null);
+
+            var definitions = await BuildCredentialDefinitionsAsync(pool,
+                proofObject.Identifiers
+                    .Select(x => x.CredentialDefintionId)
+                    .Where(x => x != null)
+                    .Distinct(), null);
+
+            var revocationDefinitions = await BuildRevocationRegistryDefintionsAsync(pool,
+                proofObject.Identifiers
+                    .Select(x => x.RevocationRegistryId)
+                    .Where(x => x != null)
+                    .Distinct());
+
+            var revocationRegistries = await BuildRevocationRegistryDeltasAsync(pool,
+                proofObject.Identifiers
+                    .Select(x => x.RevocationRegistryId)
+                    .Where(x => x != null)
+                    .Distinct());
+
+           return await AnonCreds.VerifierVerifyProofAsync(proofRecord.RequestJson, proofRecord.ProofJson, schemas,
+                definitions, revocationDefinitions, revocationRegistries);
         }
 
         public Task<IEnumerable<string>> GetProofs(Wallet wallet)
@@ -294,9 +312,10 @@ namespace Streetcred.Sdk.Runtime
             throw new NotImplementedException();
         }
 
-        public Task<string> GetProof(Wallet wallet, string proofRecId)
+        /// <inheritdoc />
+        public Task<ProofRecord> GetProofAsync(Wallet wallet, string proofRecId)
         {
-            throw new NotImplementedException();
+            return _recordService.GetAsync<ProofRecord>(wallet, proofRecId);
         }
 
         public async Task<List<CredentialInfo>> ListCredentialsForProofRequestAsync(Wallet wallet,
@@ -310,5 +329,118 @@ namespace Streetcred.Sdk.Runtime
             await AnonCreds.ProverCloseCredentialsSearchForProofRequestAsync(search);
             return JsonConvert.DeserializeObject<List<CredentialInfo>>(searchResult);
         }
+
+
+        #region Private Methods
+
+        private async Task<string> BuildSchemasAsync(Pool pool, IEnumerable<string> schemaIds,
+            string submitterDid)
+        {
+            var result = new Dictionary<string, JObject>();
+
+            foreach (var schemaId in schemaIds)
+            {
+                var ledgerSchema =
+                    await _ledgerService.LookupSchemaAsync(pool, submitterDid,
+                        schemaId); // TODO: null support need to be added in dotnet wrapper, its available in libindy
+                result.Add(schemaId, JObject.Parse(ledgerSchema.ObjectJson));
+            }
+
+            return result.ToJson();
+        }
+
+        private async Task<string> BuildCredentialDefinitionsAsync(Pool pool,
+            IEnumerable<string> credentialDefIds,
+            string submitterDid)
+        {
+            var result = new Dictionary<string, JObject>();
+
+            foreach (var schemaId in credentialDefIds)
+            {
+                var ledgerDefinition =
+                    await _ledgerService.LookupDefinitionAsync(pool, submitterDid,
+                        schemaId); // TODO: null support need to be added in dotnet wrapper, its available in libindy
+                result.Add(schemaId, JObject.Parse(ledgerDefinition.ObjectJson));
+            }
+
+            return result.ToJson();
+        }
+
+        private async Task<string> BuildRevocationStatesAsync(Pool pool,
+            IEnumerable<CredentialObject> credentialObjects, uint? from, uint? to)
+        {
+            var result = new Dictionary<string, Dictionary<string, JObject>>();
+            foreach (var credential in credentialObjects)
+            {
+                var registryDefinition =
+                    await _ledgerService.LookupRevocationRegistryDefinitionAsync(pool, null,
+                        credential.RevocationRegistryId);
+                var delta = await _ledgerService.LookupRevocationRegistryDeltaAsync(pool,
+                    credential.RevocationRegistryId,
+                    -1, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+
+                var jobj = JObject.Parse(registryDefinition.ObjectJson);
+                var tailsfile = new Uri(jobj["value"]["tailsLocation"].ToObject<string>()).Segments.Last();
+
+                // TODO: Ensure file exists, if not, pass URI to download or sync latest available version
+                //await _tailsService.EnsureTailsExistsAsync(pool, credential.RevocationRegistryId);
+
+                var tailsReader = await _tailsService.OpenTailsAsync(tailsfile);
+
+                var state = await AnonCreds.CreateRevocationStateAsync(tailsReader, registryDefinition.ObjectJson,
+                    delta.ObjectJson, (long) delta.Timestamp,
+                    credential.CredentialRevocationId);
+
+                result.Add(credential.RevocationRegistryId,
+                    new Dictionary<string, JObject>
+                    {
+                        {$"{delta.Timestamp}", JObject.Parse(state)}
+                    });
+
+                // TODO: Revocation state should provide the state between a certain period
+                // that can be requested in the proof request in the 'non_revocation' field.
+            }
+
+            return result.ToJson();
+        }
+
+        private async Task<string> BuildRevocationRegistryDeltasAsync(Pool pool,
+            IEnumerable<string> proofIdentifiers)
+        {
+            var result = new Dictionary<string, Dictionary<string, JObject>>();
+
+            foreach (var identifier in proofIdentifiers)
+            {
+                var delta = await _ledgerService.LookupRevocationRegistryDeltaAsync(pool,
+                    identifier, -1, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+
+                result.Add(identifier,
+                    new Dictionary<string, JObject>
+                    {
+                        {$"{delta.Timestamp}", JObject.Parse(delta.ObjectJson)}
+                    });
+            }
+
+            return result.ToJson();
+        }
+
+        private async Task<string> BuildRevocationRegistryDefintionsAsync(Pool pool,
+            IEnumerable<string> revocationRegistryIds)
+        {
+            var result = new Dictionary<string, JObject>();
+
+            foreach (var revocationRegistryId in revocationRegistryIds)
+            {
+                var ledgerSchema =
+                    await _ledgerService.LookupRevocationRegistryDefinitionAsync(pool, null,
+                        revocationRegistryId); // TODO: null support need to be added in dotnet wrapper, its available in libindy
+                result.Add(revocationRegistryId, JObject.Parse(ledgerSchema.ObjectJson));
+            }
+
+            return result.ToJson();
+        }
+
+        #endregion
+
     }
 }

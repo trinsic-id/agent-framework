@@ -98,7 +98,7 @@ namespace Streetcred.Sdk.Tests
             var dict = JsonConvert.DeserializeObject<Dictionary<AttributeFilter, string>>(json);
 
             Assert.True(dict.ContainsKey(AttributeFilter.SchemaIssuerDid));
-            Assert.Equal(dict[AttributeFilter.SchemaIssuerDid], "123");
+            Assert.Equal("123", dict[AttributeFilter.SchemaIssuerDid]);
         }
 
         public void Dispose()

@@ -37,10 +37,9 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<BlobStorageReader> OpenTailsAsync(string credentialDefinitionId, Pool pool = null)
+        public async Task<BlobStorageReader> OpenTailsAsync(string filename)
         {
             var baseDir = EnvironmentUtils.GetTailsPath();
-            var filename = credentialDefinitionId.ToBase58();
 
             var tailsWriterConfig = new
             {
@@ -49,50 +48,41 @@ namespace Streetcred.Sdk.Runtime
                 file = filename
             };
 
-            if (BlobReaders.TryGetValue(credentialDefinitionId, out var blobReader))
+            if (BlobReaders.TryGetValue(filename, out var blobReader))
             {
                 return blobReader;
             }
 
-            if (pool != null)
-            {
-                await DownloadTailsAsync(pool, credentialDefinitionId, Path.Combine(baseDir, filename));
-            }
-
             blobReader = await BlobStorage.OpenReaderAsync("default", tailsWriterConfig.ToJson());
-
-            BlobReaders.TryAdd(credentialDefinitionId, blobReader);
+            BlobReaders.TryAdd(filename, blobReader);
             return blobReader;
         }
 
-        //// <inheritdoc />
-        public async Task<BlobStorageWriter> CreateTailsAsync(string credentialDefinitionId)
+        /// <inheritdoc />
+        public async Task<BlobStorageWriter> CreateTailsAsync()
         {
             var tailsWriterConfig = new
             {
                 base_dir = EnvironmentUtils.GetTailsPath(),
-                uri_pattern = string.Empty,
-                file = credentialDefinitionId.ToBase58()
+                uri_pattern = string.Empty
             };
 
-            if (BlobWriters.TryGetValue(credentialDefinitionId, out var blobWriter))
-            {
-                return blobWriter;
-            }
-
-            blobWriter = await BlobStorage.OpenWriterAsync("default", tailsWriterConfig.ToJson());
-            BlobWriters.TryAdd(credentialDefinitionId, blobWriter);
-
+            var blobWriter = await BlobStorage.OpenWriterAsync("default", tailsWriterConfig.ToJson());
             return blobWriter;
         }
 
-        private async Task DownloadTailsAsync(Pool pool, string revocationRegistryId, string filename)
+        /// <inheritdoc />
+        public async Task EnsureTailsExistsAsync(Pool pool, string revocationRegistryId)
         {
             var revocationRegistry =
                 await _ledgerService.LookupRevocationRegistryDefinitionAsync(pool, null, revocationRegistryId);
             var tailsUri = JObject.Parse(revocationRegistry.ObjectJson)["value"]["tailsLocation"].ToObject<string>();
 
-            File.WriteAllBytes(path: filename,
+            var filename = new Uri(tailsUri).Segments.Last();
+
+
+            File.WriteAllBytes(
+                path: filename,
                 bytes: await _httpClient.GetByteArrayAsync(tailsUri));
         }
     }

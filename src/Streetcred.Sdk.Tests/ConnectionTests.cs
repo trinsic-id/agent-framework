@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
+using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -12,6 +13,9 @@ using Streetcred.Sdk.Model.Connections;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Runtime;
 using Xunit;
+using Streetcred.Sdk.Utils;
+using System.IO;
+using Hyperledger.Indy.AnonCredsApi;
 
 namespace Streetcred.Sdk.Tests
 {

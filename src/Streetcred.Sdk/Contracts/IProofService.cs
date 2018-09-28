@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Model.Proofs;
+using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Model.Wallets;
 
 namespace Streetcred.Sdk.Contracts
@@ -116,7 +117,7 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="proofRecId">Identifier of the proof record.</param>
         /// <returns>The proof.</returns>
-        Task<string> GetProof(Wallet wallet, string proofRecId);
+        Task<ProofRecord> GetProofAsync(Wallet wallet, string proofRecId);
 
         /// <summary>
         /// Lists the credentials available for the given proof request.

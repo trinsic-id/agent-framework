@@ -118,7 +118,7 @@ namespace Streetcred.Sdk.Tests
             var schemaId = await schemaService.CreateSchemaAsync(pool, issuerWallet, issuer.Did,
                 $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", new[] { "first_name", "last_name" });
             var definitionId =
-                await schemaService.CreateCredentialDefinitionAsync(pool, issuerWallet, schemaId, issuer.Did, revocable, 100);
+                await schemaService.CreateCredentialDefinitionAsync(pool, issuerWallet, schemaId, issuer.Did, revocable, 100, new Uri("http://mock/tails"));
 
             // Send an offer to the holder using the established connection channel
             await credentialService.SendOfferAsync(definitionId, issuerConnectionId, issuerWallet, issuer.Did);

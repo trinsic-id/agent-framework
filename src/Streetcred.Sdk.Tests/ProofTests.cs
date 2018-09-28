@@ -55,14 +55,13 @@ namespace Streetcred.Sdk.Tests
             var messageSerializer = new MessageSerializer();
             var recordService = new WalletRecordService();
             var ledgerService = new LedgerService();
-            var tailsService = new TailsService();
 
             _poolService = new PoolService();
-            _schemaService = new SchemaService(recordService, ledgerService, tailsService);
 
             var provisionMock = new Mock<IProvisioningService>();
             provisionMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
-                .Returns(Task.FromResult<ProvisioningRecord>(new ProvisioningRecord() { MasterSecretId = MasterSecretId }));
+                .Returns(
+                    Task.FromResult<ProvisioningRecord>(new ProvisioningRecord() {MasterSecretId = MasterSecretId}));
 
             var routingMock = new Mock<IRouterService>();
             routingMock.Setup(x => x.ForwardAsync(It.IsNotNull<IEnvelopeMessage>(), It.IsAny<AgentEndpoint>()))
@@ -73,9 +72,12 @@ namespace Streetcred.Sdk.Tests
             provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(Task.FromResult(new ProvisioningRecord
                 {
-                    Endpoint = new AgentEndpoint { Uri = MockEndpointUri },
+                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri},
                     MasterSecretId = MasterSecretId
                 }));
+
+            var tailsService = new TailsService(ledgerService, provisionMock.Object);
+            _schemaService = new SchemaService(recordService, ledgerService, tailsService);
 
             _connectionService = new ConnectionService(
                 recordService,
@@ -101,9 +103,8 @@ namespace Streetcred.Sdk.Tests
                 messageSerializer,
                 recordService,
                 provisionMock.Object,
-                _schemaService,
                 ledgerService,
-                _credentialService,
+                tailsService,
                 new Mock<ILogger<ProofService>>().Object);
         }
 
@@ -145,14 +146,14 @@ namespace Streetcred.Sdk.Tests
             var (issuerConnection, _) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _issuerWallet, _holderWallet);
 
-            var (_, _) = await Scenarios.IssueCredentialAsync(
+            await Scenarios.IssueCredentialAsync(
                 _schemaService, _credentialService, _messages, issuerConnection.GetId(),
                 _issuerWallet, _holderWallet, _pool, MasterSecretId, false);
 
             _messages.Clear();
 
             //Requestor initialize a connection with the holder
-            var (holderRequestorConnection, requestorConnection) = await Scenarios.EstablishConnectionAsync(
+            var (_, requestorConnection) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _holderWallet, _requestorWallet);
 
             var proofRequestObject = new ProofRequestObject
@@ -167,7 +168,8 @@ namespace Streetcred.Sdk.Tests
             };
 
             //Requestor sends a proof request
-            await _proofService.SendProofRequestAsync(requestorConnection.ConnectionId, _requestorWallet, proofRequestObject);
+            await _proofService.SendProofRequestAsync(requestorConnection.ConnectionId, _requestorWallet,
+                proofRequestObject);
 
             //Holder retrives proof request message from their cloud agent
             var proofRequest = FindContentMessage<ProofRequest>();
@@ -207,21 +209,21 @@ namespace Streetcred.Sdk.Tests
             }
 
             //Holder accepts the proof request and sends a proof
-            await _proofService.AcceptProofRequestAsync(_holderWallet, _pool, holderProofRequestId, requestedCredentials);
+            await _proofService.AcceptProofRequestAsync(_holderWallet, _pool, holderProofRequestId,
+                requestedCredentials);
 
             //Requestor retrives proof message from their cloud agent
             var proof = FindContentMessage<Proof>();
             Assert.NotNull(proof);
 
             //Requestor stores proof
-            var requestorProofId =
-                await _proofService.StoreProofAsync(_requestorWallet, proof);
+            var requestorProofId = await _proofService.StoreProofAsync(_requestorWallet, proof);
 
             //Requestor verifies proof
-            //var requestorVerifyResult = await _proofService.VerifyProofAsync(_requestorWallet, _pool, requestorProofId);
+            var requestorVerifyResult = await _proofService.VerifyProofAsync(_requestorWallet, _pool, requestorProofId);
 
             ////Verify the proof is valid
-            //Assert.True(requestorVerifyResult);
+            Assert.True(requestorVerifyResult);
 
             ////Get the proof from both parties wallets
             //var requestorProof = await _proofService.GetProof(_requestorWallet, requestorProofId);
