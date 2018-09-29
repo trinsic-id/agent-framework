@@ -97,6 +97,18 @@ namespace Streetcred.Sdk.Contracts
         Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId);
 
         /// <summary>
+        /// Creates and sends a credential with the given credential identifier. 
+        /// The credential is issued with the values provided.
+        /// </summary>
+        /// <returns>The credential async.</returns>
+        /// <param name="pool">Pool.</param>
+        /// <param name="wallet">Wallet.</param>
+        /// <param name="issuerDid">Issuer did.</param>
+        /// <param name="credentialId">Credential identifier.</param>
+        /// <param name="values">Values.</param>
+        Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId, Dictionary<string, string> values);
+
+        /// <summary>
         /// Revokes an issued credentials and writes the updated revocation state to the ledger
         /// </summary>
         /// <returns>The credential async.</returns>

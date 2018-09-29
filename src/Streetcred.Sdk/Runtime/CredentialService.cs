@@ -275,9 +275,22 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId)
+        public Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId)
+        {
+            return IssueCredentialAsync(pool, wallet, issuerDid, credentialId, null);
+        }
+
+        /// <inheritdoc />
+        public async Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId,
+           Dictionary<string, string> values)
         {
             var credentialRecord = await _recordService.GetAsync<CredentialRecord>(wallet, credentialId);
+
+            if (values != null)
+            {
+                credentialRecord.ValuesJson = CredentialUtils.FormatCredentialValues(values);
+            }
+
             var definitionRecord =
                 await _schemaService.GetCredentialDefinitionAsync(wallet, credentialRecord.CredentialDefinitionId);
 

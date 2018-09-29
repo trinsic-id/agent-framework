@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,25 +17,25 @@ namespace Streetcred.Sdk.Extensions
         /// <summary>
         /// Retrieves a list of proof request records. 
         /// </summary>
-        /// <param name="credentialService">The credential service.</param>
+        /// <param name="proofService">The proof service.</param>
         /// <param name="wallet">The wallet.</param>
         /// <param name="count">The count.</param>
         /// <returns></returns>
-        public static Task<List<ProofRecord>> ListRequestedAsync(this IProofService credentialService,
+        public static Task<List<ProofRecord>> ListRequestedAsync(this IProofService proofService,
             Wallet wallet, int count = 100)
-            => credentialService.ListAsync(wallet,
+            => proofService.ListAsync(wallet,
                 new SearchRecordQuery {{"State", ProofState.Requested.ToString("G")}}, count);
 
         /// <summary>
         /// Retrieves a list of accepted proof records.
         /// </summary>
-        /// <param name="credentialService">The credential service.</param>
+        /// <param name="proofService">The proof service.</param>
         /// <param name="wallet">The wallet.</param>
         /// <param name="count">The count.</param>
         /// <returns></returns>
-        public static Task<List<ProofRecord>> ListAcceptedAsync(this IProofService credentialService,
+        public static Task<List<ProofRecord>> ListAcceptedAsync(this IProofService proofService,
             Wallet wallet, int count = 100)
-            => credentialService.ListAsync(wallet,
+            => proofService.ListAsync(wallet,
                 new SearchRecordQuery {{"State", ProofState.Accepted.ToString("G")}}, count);
     }
 }
