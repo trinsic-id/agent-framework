@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Threading.Tasks;
-using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -13,9 +11,6 @@ using Streetcred.Sdk.Model.Connections;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Runtime;
 using Xunit;
-using Streetcred.Sdk.Utils;
-using System.IO;
-using Hyperledger.Indy.AnonCredsApi;
 
 namespace Streetcred.Sdk.Tests
 {
@@ -46,7 +41,7 @@ namespace Streetcred.Sdk.Tests
             provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(Task.FromResult(new ProvisioningRecord
                 {
-                    Endpoint = new AgentEndpoint { Uri = MockEndpointUri }
+                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri}
                 }));
 
             _connectionService = new ConnectionService(
@@ -66,12 +61,10 @@ namespace Streetcred.Sdk.Tests
             }
             catch (WalletExistsException)
             {
+                // OK
             }
-            finally
-            {
-                _issuerWallet = await Wallet.OpenWalletAsync(IssuerConfig, Credentials);
-                _holderWallet = await Wallet.OpenWalletAsync(HolderConfig, Credentials);
-            }
+            _issuerWallet = await Wallet.OpenWalletAsync(IssuerConfig, Credentials);
+            _holderWallet = await Wallet.OpenWalletAsync(HolderConfig, Credentials);
         }
 
         [Fact]
@@ -80,7 +73,7 @@ namespace Streetcred.Sdk.Tests
             var connectionId = Guid.NewGuid().ToString();
 
             var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new CreateInviteConfiguration() { ConnectionId = connectionId });
+                new CreateInviteConfiguration() {ConnectionId = connectionId});
 
             var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
 
@@ -109,8 +102,8 @@ namespace Streetcred.Sdk.Tests
 
         public async Task DisposeAsync()
         {
-            await _issuerWallet.CloseAsync();
-            await _holderWallet.CloseAsync();
+            if (_issuerWallet != null) await _issuerWallet.CloseAsync();
+            if (_holderWallet != null) await _holderWallet.CloseAsync();
 
             await Wallet.DeleteWalletAsync(IssuerConfig, Credentials);
             await Wallet.DeleteWalletAsync(HolderConfig, Credentials);

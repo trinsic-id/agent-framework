@@ -19,7 +19,6 @@ namespace Streetcred.Sdk.Contracts
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="provisioningConfiguration">The provisioning request.</param>
-        /// <param name="createIssuer">if set to <c>true</c> [create issuer].</param>
         /// <returns></returns>
         Task ProvisionAgentAsync(Wallet wallet, ProvisioningConfiguration provisioningConfiguration);
     }

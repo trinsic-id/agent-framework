@@ -3,25 +3,18 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Hyperledger.Indy.AnonCredsApi;
-using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Model;
-using Streetcred.Sdk.Model.Connections;
-using Streetcred.Sdk.Model.Credentials;
 using Streetcred.Sdk.Model.Proofs;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Model.Wallets;
 using Streetcred.Sdk.Runtime;
-using Streetcred.Sdk.Utils;
 using Xunit;
 
 namespace Streetcred.Sdk.Tests
@@ -61,7 +54,7 @@ namespace Streetcred.Sdk.Tests
             var provisionMock = new Mock<IProvisioningService>();
             provisionMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(
-                    Task.FromResult<ProvisioningRecord>(new ProvisioningRecord() { MasterSecretId = MasterSecretId }));
+                    Task.FromResult<ProvisioningRecord>(new ProvisioningRecord() {MasterSecretId = MasterSecretId}));
 
             var routingMock = new Mock<IRouterService>();
             routingMock.Setup(x => x.ForwardAsync(It.IsNotNull<IEnvelopeMessage>(), It.IsAny<AgentEndpoint>()))
@@ -72,11 +65,11 @@ namespace Streetcred.Sdk.Tests
             provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(Task.FromResult(new ProvisioningRecord
                 {
-                    Endpoint = new AgentEndpoint { Uri = MockEndpointUri },
+                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri},
                     MasterSecretId = MasterSecretId
                 }));
 
-            var tailsService = new TailsService(ledgerService, provisionMock.Object);
+            var tailsService = new TailsService(ledgerService);
             _schemaService = new SchemaService(recordService, ledgerService, tailsService);
 
             _connectionService = new ConnectionService(
@@ -118,13 +111,12 @@ namespace Streetcred.Sdk.Tests
             }
             catch (WalletExistsException)
             {
+                // OK
             }
-            finally
-            {
-                _issuerWallet = await Wallet.OpenWalletAsync(IssuerConfig, WalletCredentials);
-                _holderWallet = await Wallet.OpenWalletAsync(HolderConfig, WalletCredentials);
-                _requestorWallet = await Wallet.OpenWalletAsync(RequestorConfig, WalletCredentials);
-            }
+
+            _issuerWallet = await Wallet.OpenWalletAsync(IssuerConfig, WalletCredentials);
+            _holderWallet = await Wallet.OpenWalletAsync(HolderConfig, WalletCredentials);
+            _requestorWallet = await Wallet.OpenWalletAsync(RequestorConfig, WalletCredentials);
 
             try
             {
@@ -132,11 +124,10 @@ namespace Streetcred.Sdk.Tests
             }
             catch (PoolLedgerConfigExistsException)
             {
+                // OK
             }
-            finally
-            {
-                _pool = await _poolService.GetPoolAsync(PoolName, 2);
-            }
+
+            _pool = await _poolService.GetPoolAsync(PoolName, 2);
         }
 
         [Fact]
@@ -162,11 +153,11 @@ namespace Streetcred.Sdk.Tests
                 {
                     Name = "ProofReq",
                     Version = "1.0",
-                    Nonce = "123456",
+                    Nonce = Guid.NewGuid().ToString(),
                     RequestedAttributes = new Dictionary<string, ProofAttributeInfo>
-                {
-                    {"first-name-requirement", new ProofAttributeInfo {Name = "first_name"}}
-                }
+                    {
+                        {"first-name-requirement", new ProofAttributeInfo {Name = "first_name"}}
+                    }
                 };
 
                 //Requestor sends a proof request
@@ -183,7 +174,8 @@ namespace Streetcred.Sdk.Tests
                 //Holder stores the proof request
                 var holderProofRequestId = await _proofService.StoreProofRequestAsync(_holderWallet, proofRequest);
                 var holderProofRecord = await _proofService.GetAsync(_holderWallet, holderProofRequestId);
-                var holderProofObject = JsonConvert.DeserializeObject<ProofRequestObject>(holderProofRecord.RequestJson);
+                var holderProofObject =
+                    JsonConvert.DeserializeObject<ProofRequestObject>(holderProofRecord.RequestJson);
 
                 var requestedCredentials = new RequestedCredentialsDto();
                 foreach (var requestedAttribute in holderProofObject.RequestedAttributes)
@@ -250,23 +242,14 @@ namespace Streetcred.Sdk.Tests
 
         public async Task DisposeAsync()
         {
-            await _issuerWallet.CloseAsync();
-            await _holderWallet.CloseAsync();
-            await _requestorWallet.CloseAsync();
+            if (_issuerWallet != null) await _issuerWallet.CloseAsync();
+            if (_holderWallet != null) await _holderWallet.CloseAsync();
+            if (_requestorWallet != null) await _requestorWallet.CloseAsync();
+            if (_pool != null) await _pool.CloseAsync();
 
             await Wallet.DeleteWalletAsync(IssuerConfig, WalletCredentials);
             await Wallet.DeleteWalletAsync(HolderConfig, WalletCredentials);
             await Wallet.DeleteWalletAsync(RequestorConfig, WalletCredentials);
-
-            try
-            {
-                await _pool.CloseAsync();
-            }
-#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
-            catch (Exception)
-            {
-            }
-#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
             await Pool.DeletePoolLedgerConfigAsync(PoolName);
         }
     }

@@ -3,15 +3,11 @@ using System.Threading.Tasks;
 using Hyperledger.Indy.BlobStorageApi;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Utils;
-using Multiformats.Base;
 using Hyperledger.Indy.PoolApi;
 using System;
-using System.Text.RegularExpressions;
 using System.Linq;
-using System.Text;
 using System.Net.Http;
 using System.IO;
-using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json.Linq;
 
 namespace Streetcred.Sdk.Runtime
@@ -21,18 +17,12 @@ namespace Streetcred.Sdk.Runtime
         private static readonly ConcurrentDictionary<string, BlobStorageReader> BlobReaders =
             new ConcurrentDictionary<string, BlobStorageReader>();
 
-        private static readonly ConcurrentDictionary<string, BlobStorageWriter> BlobWriters =
-            new ConcurrentDictionary<string, BlobStorageWriter>();
-
         private readonly ILedgerService _ledgerService;
-        private readonly IProvisioningService _provisioningService;
         private readonly HttpClient _httpClient;
 
-        public TailsService(ILedgerService ledgerService,
-            IProvisioningService provisioningService)
+        public TailsService(ILedgerService ledgerService)
         {
             _ledgerService = ledgerService;
-            _provisioningService = provisioningService;
             _httpClient = new HttpClient();
         }
 
@@ -72,18 +62,22 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task EnsureTailsExistsAsync(Pool pool, string revocationRegistryId)
+        public async Task<string> EnsureTailsExistsAsync(Pool pool, string revocationRegistryId)
         {
             var revocationRegistry =
                 await _ledgerService.LookupRevocationRegistryDefinitionAsync(pool, null, revocationRegistryId);
             var tailsUri = JObject.Parse(revocationRegistry.ObjectJson)["value"]["tailsLocation"].ToObject<string>();
 
-            var filename = new Uri(tailsUri).Segments.Last();
+            var tailsfile = Path.Combine(EnvironmentUtils.GetTailsPath(), new Uri(tailsUri).Segments.Last());
 
+            if (!File.Exists(tailsfile))
+            {
+                File.WriteAllBytes(
+                    path: tailsfile,
+                    bytes: await _httpClient.GetByteArrayAsync(tailsUri));
+            }
 
-            File.WriteAllBytes(
-                path: filename,
-                bytes: await _httpClient.GetByteArrayAsync(tailsUri));
+            return Path.GetFileName(tailsfile);
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Hyperledger.Indy.BlobStorageApi;
 using Hyperledger.Indy.PoolApi;
-using Hyperledger.Indy.WalletApi;
 
 namespace Streetcred.Sdk.Contracts
 {
@@ -24,9 +23,11 @@ namespace Streetcred.Sdk.Contracts
         /// <summary>
         /// Check if the tails filename exists locally and download latest version if it doesn't.
         /// </summary>
-        /// <returns>The tails exists async.</returns>
         /// <param name="pool">Pool.</param>
         /// <param name="revocationRegistryId">Revocation registry identifier.</param>
-        Task EnsureTailsExistsAsync(Pool pool, string revocationRegistryId);
+        /// <returns>
+        /// The name of the tails file
+        /// </returns>
+        Task<string> EnsureTailsExistsAsync(Pool pool, string revocationRegistryId);
     }
 }

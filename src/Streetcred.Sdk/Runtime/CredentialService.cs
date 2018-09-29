@@ -4,8 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.BlobStorageApi;
-using Hyperledger.Indy.DidApi;
-using Hyperledger.Indy.LedgerApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;

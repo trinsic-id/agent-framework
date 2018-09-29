@@ -74,7 +74,8 @@ namespace Streetcred.Sdk.Contracts
         /// <returns>
         /// The proof.
         /// </returns>
-        Task<Proof> CreateProofAsync(Wallet wallet, Pool pool, string proofRequestId, RequestedCredentialsDto requestedCredentials);
+        Task<Proof> CreateProofAsync(Wallet wallet, Pool pool, string proofRequestId,
+            RequestedCredentialsDto requestedCredentials);
 
         /// <summary>
         /// Accepts a proof request by generating a proof and sending it to the requestor
@@ -86,7 +87,8 @@ namespace Streetcred.Sdk.Contracts
         /// <returns>
         /// The proof.
         /// </returns>
-        Task AcceptProofRequestAsync(Wallet wallet, Pool pool, string proofRequestId, RequestedCredentialsDto requestedCredentials);
+        Task AcceptProofRequestAsync(Wallet wallet, Pool pool, string proofRequestId,
+            RequestedCredentialsDto requestedCredentials);
 
         /// <summary>
         /// Rejects a proof request
@@ -109,7 +111,11 @@ namespace Streetcred.Sdk.Contracts
         /// Gets an enumeration of proofs stored in the wallet
         /// </summary>
         /// <param name="wallet">Wallet.</param>
-        /// <returns>A list of proofs.</returns>
+        /// <param name="query">The query.</param>
+        /// <param name="count">The count.</param>
+        /// <returns>
+        /// A list of proofs.
+        /// </returns>
         Task<List<ProofRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100);
 
         /// <summary>

@@ -1,5 +1,4 @@
-﻿using System;
-namespace Streetcred.Sdk.Model.Records
+﻿namespace Streetcred.Sdk.Model.Records
 {
     public class RevocationRegistryRecord : WalletRecord
     {
