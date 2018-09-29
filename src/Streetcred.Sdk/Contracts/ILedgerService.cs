@@ -76,6 +76,15 @@ namespace Streetcred.Sdk.Contracts
             long from, long to);
 
         /// <summary>
+        /// Lookup revocation registry for the given point in time.
+        /// </summary>
+        /// <returns>The revocation registry async.</returns>
+        /// <param name="pool">Pool.</param>
+        /// <param name="revocationRegistryId">Revocation registry identifier.</param>
+        /// <param name="timestamp">Timestamp.</param>
+        Task<ParseRegistryResponseResult> LookupRevocationRegistryAsync(Pool pool, string revocationRegistryId, long timestamp);
+
+        /// <summary>
         /// Registers the trust anchor async.
         /// </summary>
         /// <param name="wallet">The wallet.</param>

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.BlobStorageApi;
 using Hyperledger.Indy.DidApi;
+using Hyperledger.Indy.LedgerApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
@@ -297,7 +298,7 @@ namespace Streetcred.Sdk.Runtime
                 var revocationRecord = revocationRecordSearch.First();
 
                 revocationRegistryId = revocationRecord.RevocationRegistryId;
-                tailsReader = await _tailsService.OpenTailsAsync(revocationRegistryId);
+                tailsReader = await _tailsService.OpenTailsAsync(revocationRecord.TailsFile);
             }
 
             var issuedCredential = await AnonCreds.IssuerCreateCredentialAsync(wallet, credentialRecord.OfferJson,

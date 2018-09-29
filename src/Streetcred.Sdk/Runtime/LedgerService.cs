@@ -55,6 +55,19 @@ namespace Streetcred.Sdk.Runtime
             return await Ledger.ParseGetRevocRegDeltaResponseAsync(res);
         }
 
+        /// <inheritdoc />
+        public async Task<ParseRegistryResponseResult> LookupRevocationRegistryAsync(Pool pool, string revocationRegistryId,
+             long timestamp)
+        {
+            var req = await Ledger.BuildGetRevocRegRequestAsync(null, revocationRegistryId, timestamp);
+            var res = await Ledger.SubmitRequestAsync(pool, req);
+
+            EnsureSuccessResponse(res);
+
+            return await Ledger.ParseGetRevocRegResponseAsync(res);
+        }
+
+
         /// <summary>
         /// Registers the schema asynchronous.
         /// </summary>
