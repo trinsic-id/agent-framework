@@ -4,6 +4,7 @@ using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Model.Proofs;
 using Streetcred.Sdk.Model.Records;
+using Streetcred.Sdk.Model.Records.Search;
 using Streetcred.Sdk.Model.Wallets;
 
 namespace Streetcred.Sdk.Contracts
@@ -109,7 +110,7 @@ namespace Streetcred.Sdk.Contracts
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <returns>A list of proofs.</returns>
-        Task<IEnumerable<string>> GetProofs(Wallet wallet); //TODO this will have some search parameters
+        Task<List<ProofRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100);
 
         /// <summary>
         /// Gets a particular proof stored in the wallet
@@ -117,7 +118,7 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="proofRecId">Identifier of the proof record.</param>
         /// <returns>The proof.</returns>
-        Task<ProofRecord> GetProofAsync(Wallet wallet, string proofRecId);
+        Task<ProofRecord> GetAsync(Wallet wallet, string proofRecId);
 
         /// <summary>
         /// Lists the credentials available for the given proof request.

@@ -114,7 +114,7 @@ namespace Streetcred.Sdk.Runtime
             await _recordService.AddAsync(wallet, proofRecord);
 
             var proofRequest = await _messageSerializer.PackSealedAsync<ProofRequest>(
-                new ProofRequestDetails {ProofRequestJson = proofRequestJson},
+                new ProofRequestDetails { ProofRequestJson = proofRequestJson },
                 wallet,
                 connection.MyVk,
                 connection.TheirVk);
@@ -128,7 +128,7 @@ namespace Streetcred.Sdk.Runtime
             var (didOrKey, _) = MessageUtils.ParseMessageType(proof.Type);
 
             var connectionSearch =
-                await _connectionService.ListAsync(wallet, new SearchRecordQuery {{"myDid", didOrKey}});
+                await _connectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
             if (!connectionSearch.Any())
                 throw new Exception($"Can't find connection record for type {proof.Type}");
             var connection = connectionSearch.First();
@@ -139,7 +139,7 @@ namespace Streetcred.Sdk.Runtime
 
             var proofRecordSearch =
                 await _recordService.SearchAsync<ProofRecord>(wallet,
-                    new SearchRecordQuery {{"nonce", requestDetails.RequestNonce}}, null, 1);
+                    new SearchRecordQuery { { "nonce", requestDetails.RequestNonce } }, null, 1);
             if (!proofRecordSearch.Any())
                 throw new Exception($"Can't find proof record");
             var proofRecord = proofRecordSearch.Single();
@@ -157,7 +157,7 @@ namespace Streetcred.Sdk.Runtime
             var (didOrKey, _) = MessageUtils.ParseMessageType(proofRequest.Type);
 
             var connectionSearch =
-                await _connectionService.ListAsync(wallet, new SearchRecordQuery {{"myDid", didOrKey}});
+                await _connectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
             if (!connectionSearch.Any())
                 throw new Exception($"Can't find connection record for type {proofRequest.Type}");
             var connection = connectionSearch.First();
@@ -190,9 +190,9 @@ namespace Streetcred.Sdk.Runtime
         public async Task<Proof> CreateProofAsync(Wallet wallet, Pool pool, string proofRequestId,
             RequestedCredentialsDto requestedCredentials)
         {
-            var request = await _recordService.GetAsync<ProofRecord>(wallet, proofRequestId);
-            var connection = await _connectionService.GetAsync(wallet, request.ConnectionId);
-            var requestObject = JsonConvert.DeserializeObject<ProofRequestObject>(request.RequestJson);
+            var record = await _recordService.GetAsync<ProofRecord>(wallet, proofRequestId);
+            var connection = await _connectionService.GetAsync(wallet, record.ConnectionId);
+            var requestObject = JsonConvert.DeserializeObject<ProofRequestObject>(record.RequestJson);
 
             var provisioningRecord = await _provisioningService.GetProvisioningAsync(wallet);
 
@@ -217,35 +217,28 @@ namespace Streetcred.Sdk.Runtime
             var revocationStates = await BuildRevocationStatesAsync(pool,
                 credentialObjects
                     .Where(x => x.RevocationRegistryId != null),
-                requestObject.NonRevoked?.From, requestObject.NonRevoked?.To);
+                    requestedCredentials);
 
-            try
-            {
-                var proofJson = await AnonCreds.ProverCreateProofAsync(wallet, request.RequestJson,
-                    requestedCredentials.ToJson(), provisioningRecord.MasterSecretId, schemas, definitions,
-                    revocationStates);
+            var proofJson = await AnonCreds.ProverCreateProofAsync(wallet, record.RequestJson,
+                requestedCredentials.ToJson(), provisioningRecord.MasterSecretId, schemas, definitions,
+                revocationStates);
 
-                request.ProofJson = proofJson;
-                await _recordService.UpdateAsync(wallet, request);
+            record.ProofJson = proofJson;
+            await record.TriggerAsync(ProofTrigger.Accept);
+            await _recordService.UpdateAsync(wallet, record);
 
-                var proof = await _messageSerializer.PackSealedAsync<Proof>(
-                    new ProofDetails
-                    {
-                        ProofJson = proofJson,
-                        RequestNonce = JsonConvert.DeserializeObject<ProofRequestObject>(request.RequestJson).Nonce
-                    },
-                    wallet,
-                    connection.MyVk,
-                    connection.TheirVk);
-                proof.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.DisclosedProof);
+            var proof = await _messageSerializer.PackSealedAsync<Proof>(
+                new ProofDetails
+                {
+                    ProofJson = proofJson,
+                    RequestNonce = JsonConvert.DeserializeObject<ProofRequestObject>(record.RequestJson).Nonce
+                },
+                wallet,
+                connection.MyVk,
+                connection.TheirVk);
+            proof.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.DisclosedProof);
 
-                return proof;
-            }
-            catch(Exception e)
-            {
-                Debug.WriteLine(e);
-                throw;
-            }
+            return proof;
         }
 
         public async Task AcceptProofRequestAsync(Wallet wallet, Pool pool, string proofRequestId,
@@ -255,11 +248,6 @@ namespace Streetcred.Sdk.Runtime
             var connection = await _connectionService.GetAsync(wallet, request.ConnectionId);
 
             var proof = await CreateProofAsync(wallet, pool, proofRequestId, requestedCredentials);
-
-            var proofRecord = await _recordService.GetAsync<ProofRecord>(wallet, proofRequestId);
-
-            await proofRecord.TriggerAsync(ProofTrigger.Accept);
-            await _recordService.UpdateAsync(wallet, proofRecord);
 
             await _routerService.ForwardAsync(new ForwardEnvelopeMessage
             {
@@ -276,7 +264,7 @@ namespace Streetcred.Sdk.Runtime
         /// <inheritdoc />
         public async Task<bool> VerifyProofAsync(Wallet wallet, Pool pool, string proofRecId)
         {
-            var proofRecord = await GetProofAsync(wallet, proofRecId);
+            var proofRecord = await GetAsync(wallet, proofRecId);
             var proofObject = JsonConvert.DeserializeObject<ProofObject>(proofRecord.ProofJson);
 
             var schemas = await BuildSchemasAsync(pool,
@@ -297,23 +285,22 @@ namespace Streetcred.Sdk.Runtime
                     .Where(x => x != null)
                     .Distinct());
 
-            var revocationRegistries = await BuildRevocationRegistryDeltasAsync(pool,
+            var revocationRegistries = await BuildRevocationRegistryDetlasAsync(pool,
                 proofObject.Identifiers
-                    .Select(x => x.RevocationRegistryId)
-                    .Where(x => x != null)
-                    .Distinct());
+                    .Where(x => x.RevocationRegistryId != null));
 
-           return await AnonCreds.VerifierVerifyProofAsync(proofRecord.RequestJson, proofRecord.ProofJson, schemas,
-                definitions, revocationDefinitions, revocationRegistries);
-        }
-
-        public Task<IEnumerable<string>> GetProofs(Wallet wallet)
-        {
-            throw new NotImplementedException();
+            return await AnonCreds.VerifierVerifyProofAsync(proofRecord.RequestJson, proofRecord.ProofJson, schemas,
+                 definitions, revocationDefinitions, revocationRegistries);
         }
 
         /// <inheritdoc />
-        public Task<ProofRecord> GetProofAsync(Wallet wallet, string proofRecId)
+        public Task<List<ProofRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100)
+        {
+            return _recordService.SearchAsync<ProofRecord>(wallet, query, null, count);
+        }
+
+        /// <inheritdoc />
+        public Task<ProofRecord> GetAsync(Wallet wallet, string proofRecId)
         {
             return _recordService.GetAsync<ProofRecord>(wallet, proofRecId);
         }
@@ -367,17 +354,34 @@ namespace Streetcred.Sdk.Runtime
         }
 
         private async Task<string> BuildRevocationStatesAsync(Pool pool,
-            IEnumerable<CredentialObject> credentialObjects, uint? from, uint? to)
+                                                              IEnumerable<CredentialObject> credentialObjects,
+                                                              RequestedCredentialsDto requestedCredentials)
         {
+            var allCredentials = new List<RequestedAttributeDto>();
+            allCredentials.AddRange(requestedCredentials.RequestedAttributes.Values);
+            allCredentials.AddRange(requestedCredentials.RequestedPredicates.Values);
+
             var result = new Dictionary<string, Dictionary<string, JObject>>();
-            foreach (var credential in credentialObjects)
+            foreach (var requestedCredential in allCredentials)
             {
+                var credential = credentialObjects.First(x => x.Referent == requestedCredential.CredentialId);
+                if (credential.RevocationRegistryId == null)
+                    continue;
+
+                var timestamp = requestedCredential.Timestamp ?? throw new Exception("Timestamp must be provided for credential that supports revocation");
+
+                if (result.ContainsKey(credential.RevocationRegistryId)
+                    && result[credential.RevocationRegistryId].ContainsKey($"{timestamp}"))
+                {
+                    continue;
+                }
+
                 var registryDefinition =
                     await _ledgerService.LookupRevocationRegistryDefinitionAsync(pool, null,
                         credential.RevocationRegistryId);
                 var delta = await _ledgerService.LookupRevocationRegistryDeltaAsync(pool,
                     credential.RevocationRegistryId,
-                    -1, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+                                                                                    -1, timestamp);
 
                 var jobj = JObject.Parse(registryDefinition.ObjectJson);
                 var tailsfile = new Uri(jobj["value"]["tailsLocation"].ToObject<string>()).Segments.Last();
@@ -388,14 +392,13 @@ namespace Streetcred.Sdk.Runtime
                 var tailsReader = await _tailsService.OpenTailsAsync(tailsfile);
 
                 var state = await AnonCreds.CreateRevocationStateAsync(tailsReader, registryDefinition.ObjectJson,
-                    delta.ObjectJson, (long) delta.Timestamp,
+                    delta.ObjectJson, (long)delta.Timestamp,
                     credential.CredentialRevocationId);
 
-                result.Add(credential.RevocationRegistryId,
-                    new Dictionary<string, JObject>
-                    {
-                        {$"{delta.Timestamp}", JObject.Parse(state)}
-                    });
+                if (!result.ContainsKey(credential.RevocationRegistryId))
+                    result.Add(credential.RevocationRegistryId, new Dictionary<string, JObject>());
+
+                result[credential.RevocationRegistryId].Add($"{timestamp}", JObject.Parse(state));
 
                 // TODO: Revocation state should provide the state between a certain period
                 // that can be requested in the proof request in the 'non_revocation' field.
@@ -404,20 +407,22 @@ namespace Streetcred.Sdk.Runtime
             return result.ToJson();
         }
 
-        private async Task<string> BuildRevocationRegistryDeltasAsync(Pool pool,
-            IEnumerable<string> proofIdentifiers)
+        private async Task<string> BuildRevocationRegistryDetlasAsync(Pool pool,
+                                                                  IEnumerable<ProofIdentifier> proofIdentifiers)
         {
             var result = new Dictionary<string, Dictionary<string, JObject>>();
 
             foreach (var identifier in proofIdentifiers)
             {
                 var delta = await _ledgerService.LookupRevocationRegistryDeltaAsync(pool,
-                    identifier, -1, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+                                                                               identifier.RevocationRegistryId,
+                                                                               -1,
+                                                                               long.Parse(identifier.Timestamp));
 
-                result.Add(identifier,
+                result.Add(identifier.RevocationRegistryId,
                     new Dictionary<string, JObject>
                     {
-                        {$"{delta.Timestamp}", JObject.Parse(delta.ObjectJson)}
+                        {identifier.Timestamp, JObject.Parse(delta.ObjectJson)}
                     });
             }
 

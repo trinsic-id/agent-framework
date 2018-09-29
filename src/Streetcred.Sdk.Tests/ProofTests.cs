@@ -61,7 +61,7 @@ namespace Streetcred.Sdk.Tests
             var provisionMock = new Mock<IProvisioningService>();
             provisionMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(
-                    Task.FromResult<ProvisioningRecord>(new ProvisioningRecord() {MasterSecretId = MasterSecretId}));
+                    Task.FromResult<ProvisioningRecord>(new ProvisioningRecord() { MasterSecretId = MasterSecretId }));
 
             var routingMock = new Mock<IRouterService>();
             routingMock.Setup(x => x.ForwardAsync(It.IsNotNull<IEnvelopeMessage>(), It.IsAny<AgentEndpoint>()))
@@ -72,7 +72,7 @@ namespace Streetcred.Sdk.Tests
             provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(Task.FromResult(new ProvisioningRecord
                 {
-                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri},
+                    Endpoint = new AgentEndpoint { Uri = MockEndpointUri },
                     MasterSecretId = MasterSecretId
                 }));
 
@@ -148,7 +148,7 @@ namespace Streetcred.Sdk.Tests
 
             await Scenarios.IssueCredentialAsync(
                 _schemaService, _credentialService, _messages, issuerConnection.GetId(),
-                _issuerWallet, _holderWallet, _pool, MasterSecretId, false);
+                _issuerWallet, _holderWallet, _pool, MasterSecretId, true);
 
             _messages.Clear();
 
@@ -156,61 +156,69 @@ namespace Streetcred.Sdk.Tests
             var (_, requestorConnection) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _holderWallet, _requestorWallet);
 
-            var proofRequestObject = new ProofRequestObject
+            // Verifier sends a proof request to prover
             {
-                Name = "ProofReq",
-                Version = "1.0",
-                Nonce = "123456",
-                RequestedAttributes = new Dictionary<string, ProofAttributeInfo>
+                var proofRequestObject = new ProofRequestObject
+                {
+                    Name = "ProofReq",
+                    Version = "1.0",
+                    Nonce = "123456",
+                    RequestedAttributes = new Dictionary<string, ProofAttributeInfo>
                 {
                     {"first-name-requirement", new ProofAttributeInfo {Name = "first_name"}}
                 }
-            };
+                };
 
-            //Requestor sends a proof request
-            await _proofService.SendProofRequestAsync(requestorConnection.ConnectionId, _requestorWallet,
-                proofRequestObject);
-
-            //Holder retrives proof request message from their cloud agent
-            var proofRequest = FindContentMessage<ProofRequest>();
-            Assert.NotNull(proofRequest);
-
-            //Holder stores the proof request
-            var holderProofRequestId = await _proofService.StoreProofRequestAsync(_holderWallet, proofRequest);
-            // TODO: Retrieve proof request from record
-
-            var requestedCredentials = new RequestedCredentialsDto();
-            foreach (var requestedAttribute in proofRequestObject.RequestedAttributes)
-            {
-                var credentials =
-                    await _proofService.ListCredentialsForProofRequestAsync(_holderWallet, proofRequestObject,
-                        requestedAttribute.Key);
-
-                requestedCredentials.RequestedAttributes.Add(requestedAttribute.Key,
-                    new RequestedAttributeDto
-                    {
-                        CredentialId = credentials.First().CredentialObject.Referent,
-                        Revealed = true
-                    });
+                //Requestor sends a proof request
+                await _proofService.SendProofRequestAsync(requestorConnection.ConnectionId, _requestorWallet,
+                    proofRequestObject);
             }
 
-            foreach (var requestedAttribute in proofRequestObject.RequestedPredicates)
+            // Holder accepts the proof requests and builds a proof
             {
-                var credentials =
-                    await _proofService.ListCredentialsForProofRequestAsync(_holderWallet, proofRequestObject,
-                        requestedAttribute.Key);
+                //Holder retrives proof request message from their cloud agent
+                var proofRequest = FindContentMessage<ProofRequest>();
+                Assert.NotNull(proofRequest);
 
-                requestedCredentials.RequestedPredicates.Add(requestedAttribute.Key,
-                    new RequestedAttributeDto
-                    {
-                        CredentialId = credentials.First().CredentialObject.Referent,
-                        Revealed = true
-                    });
+                //Holder stores the proof request
+                var holderProofRequestId = await _proofService.StoreProofRequestAsync(_holderWallet, proofRequest);
+                var holderProofRecord = await _proofService.GetAsync(_holderWallet, holderProofRequestId);
+                var holderProofObject = JsonConvert.DeserializeObject<ProofRequestObject>(holderProofRecord.RequestJson);
+
+                var requestedCredentials = new RequestedCredentialsDto();
+                foreach (var requestedAttribute in holderProofObject.RequestedAttributes)
+                {
+                    var credentials =
+                        await _proofService.ListCredentialsForProofRequestAsync(_holderWallet, holderProofObject,
+                            requestedAttribute.Key);
+
+                    requestedCredentials.RequestedAttributes.Add(requestedAttribute.Key,
+                        new RequestedAttributeDto
+                        {
+                            CredentialId = credentials.First().CredentialObject.Referent,
+                            Revealed = true,
+                            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+                        });
+                }
+
+                foreach (var requestedAttribute in holderProofObject.RequestedPredicates)
+                {
+                    var credentials =
+                        await _proofService.ListCredentialsForProofRequestAsync(_holderWallet, holderProofObject,
+                            requestedAttribute.Key);
+
+                    requestedCredentials.RequestedPredicates.Add(requestedAttribute.Key,
+                        new RequestedAttributeDto
+                        {
+                            CredentialId = credentials.First().CredentialObject.Referent,
+                            Revealed = true
+                        });
+                }
+
+                //Holder accepts the proof request and sends a proof
+                await _proofService.AcceptProofRequestAsync(_holderWallet, _pool, holderProofRequestId,
+                    requestedCredentials);
             }
-
-            //Holder accepts the proof request and sends a proof
-            await _proofService.AcceptProofRequestAsync(_holderWallet, _pool, holderProofRequestId,
-                requestedCredentials);
 
             //Requestor retrives proof message from their cloud agent
             var proof = FindContentMessage<Proof>();
