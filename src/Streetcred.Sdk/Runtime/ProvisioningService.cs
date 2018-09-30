@@ -11,7 +11,7 @@ using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
-    /// <inheritdoc cref="IProvisioningService"/>
+    /// <inheritdoc />
     public class ProvisioningService : IProvisioningService
     {
         private readonly IWalletRecordService _recordService;
@@ -21,17 +21,11 @@ namespace Streetcred.Sdk.Runtime
             _recordService = walletRecord;
         }
 
-        /// <inheritdoc cref="IProvisioningService.GetProvisioningAsync"/>
+        /// <inheritdoc />
         public Task<ProvisioningRecord> GetProvisioningAsync(Wallet wallet) =>
             _recordService.GetAsync<ProvisioningRecord>(wallet, ProvisioningRecord.RecordId);
 
-        /// <inheritdoc cref="IProvisioningService.ProvisionAgentAsync"/>
-        /// <exception cref="System.ArgumentNullException">
-        /// provisioningConfiguration
-        /// or
-        /// EndpointUri
-        /// </exception>
-        /// <exception cref="WalletAlreadyProvisionedException">Wallet is already provisioned.</exception>
+        /// <inheritdoc />
         public async Task ProvisionAgentAsync(Wallet wallet, ProvisioningConfiguration provisioningConfiguration)
         {
             if (provisioningConfiguration == null) throw new ArgumentNullException(nameof(provisioningConfiguration));

@@ -10,16 +10,10 @@ using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
+    /// <inheritdoc />
     public class MessageSerializer : IMessageSerializer
     {
-        /// <summary>
-        /// Packs a content by auth crypting the content and returns a base64 string
-        /// </summary>
-        /// <param name="message">The content.</param>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="myKey">The myKey.</param>
-        /// <param name="theirKey">Their myKey.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<T> PackSealedAsync<T>(object message, Wallet wallet, string myKey, string theirKey)
             where T : IContentMessage, new()
         {
@@ -29,14 +23,7 @@ namespace Streetcred.Sdk.Runtime
             return new T {Content = Convert.ToBase64String(encrypted)};
         }
 
-        /// <summary>
-        /// Unpacks auth crypted content and returns the content of the message as JSON string and the myKey
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="content">The base64 encoded message content.</param>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="myKey">The myKey.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<(T Message, string TheirKey)> UnpackSealedAsync<T>(string content, Wallet wallet,
             string myKey)
         {
@@ -47,12 +34,7 @@ namespace Streetcred.Sdk.Runtime
             return (message, decrypted.TheirVk);
         }
 
-        /// <summary>
-        /// Wraps the asynchronous.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        /// <param name="key">The key.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<byte[]> PackAsync(object message, string key)
         {
             var messageData = Encoding.UTF8.GetBytes(message.ToJson());
@@ -61,14 +43,7 @@ namespace Streetcred.Sdk.Runtime
             return encrypted;
         }
 
-        /// <summary>
-        /// Unwraps the asynchronous.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="data">The data.</param>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="key">The key.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<T> UnpackAsync<T>(byte[] data, Wallet wallet, string key)
         {
             var decrypted = await Crypto.AnonDecryptAsync(wallet, key, data);

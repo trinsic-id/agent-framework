@@ -5,6 +5,9 @@ using Streetcred.Sdk.Model.Connections;
 
 namespace Streetcred.Sdk.Model.Converters
 {
+    /// <summary>
+    /// Message converter for serializing and deserializing unsecured messages to and from json to their respective object types
+    /// </summary>
     public class UnsecuredMessageConverter : JsonConverter
     {
         /// <inheritdoc />

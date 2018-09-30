@@ -3,44 +3,34 @@ using System.Threading.Tasks;
 using Hyperledger.Indy.BlobStorageApi;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Utils;
-using Multiformats.Base;
 using Hyperledger.Indy.PoolApi;
 using System;
-using System.Text.RegularExpressions;
 using System.Linq;
-using System.Text;
 using System.Net.Http;
 using System.IO;
-using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json.Linq;
 
 namespace Streetcred.Sdk.Runtime
 {
+    /// <inheritdoc />
     public class TailsService : ITailsService
     {
         private static readonly ConcurrentDictionary<string, BlobStorageReader> BlobReaders =
             new ConcurrentDictionary<string, BlobStorageReader>();
 
-        private static readonly ConcurrentDictionary<string, BlobStorageWriter> BlobWriters =
-            new ConcurrentDictionary<string, BlobStorageWriter>();
-
         private readonly ILedgerService _ledgerService;
-        private readonly IProvisioningService _provisioningService;
         private readonly HttpClient _httpClient;
 
-        public TailsService(ILedgerService ledgerService,
-            IProvisioningService provisioningService)
+        public TailsService(ILedgerService ledgerService)
         {
             _ledgerService = ledgerService;
-            _provisioningService = provisioningService;
             _httpClient = new HttpClient();
         }
 
         /// <inheritdoc />
-        public async Task<BlobStorageReader> OpenTailsAsync(string credentialDefinitionId, Pool pool = null)
+        public async Task<BlobStorageReader> OpenTailsAsync(string filename)
         {
             var baseDir = EnvironmentUtils.GetTailsPath();
-            var filename = credentialDefinitionId.ToBase58();
 
             var tailsWriterConfig = new
             {
@@ -49,51 +39,46 @@ namespace Streetcred.Sdk.Runtime
                 file = filename
             };
 
-            if (BlobReaders.TryGetValue(credentialDefinitionId, out var blobReader))
+            if (BlobReaders.TryGetValue(filename, out var blobReader))
             {
                 return blobReader;
             }
 
-            if (pool != null)
-            {
-                await DownloadTailsAsync(pool, credentialDefinitionId, Path.Combine(baseDir, filename));
-            }
-
             blobReader = await BlobStorage.OpenReaderAsync("default", tailsWriterConfig.ToJson());
-
-            BlobReaders.TryAdd(credentialDefinitionId, blobReader);
+            BlobReaders.TryAdd(filename, blobReader);
             return blobReader;
         }
 
-        //// <inheritdoc />
-        public async Task<BlobStorageWriter> CreateTailsAsync(string credentialDefinitionId)
+        /// <inheritdoc />
+        public async Task<BlobStorageWriter> CreateTailsAsync()
         {
             var tailsWriterConfig = new
             {
                 base_dir = EnvironmentUtils.GetTailsPath(),
-                uri_pattern = string.Empty,
-                file = credentialDefinitionId.ToBase58()
+                uri_pattern = string.Empty
             };
 
-            if (BlobWriters.TryGetValue(credentialDefinitionId, out var blobWriter))
-            {
-                return blobWriter;
-            }
-
-            blobWriter = await BlobStorage.OpenWriterAsync("default", tailsWriterConfig.ToJson());
-            BlobWriters.TryAdd(credentialDefinitionId, blobWriter);
-
+            var blobWriter = await BlobStorage.OpenWriterAsync("default", tailsWriterConfig.ToJson());
             return blobWriter;
         }
 
-        private async Task DownloadTailsAsync(Pool pool, string revocationRegistryId, string filename)
+        /// <inheritdoc />
+        public async Task<string> EnsureTailsExistsAsync(Pool pool, string revocationRegistryId)
         {
             var revocationRegistry =
                 await _ledgerService.LookupRevocationRegistryDefinitionAsync(pool, null, revocationRegistryId);
             var tailsUri = JObject.Parse(revocationRegistry.ObjectJson)["value"]["tailsLocation"].ToObject<string>();
 
-            File.WriteAllBytes(path: filename,
-                bytes: await _httpClient.GetByteArrayAsync(tailsUri));
+            var tailsfile = Path.Combine(EnvironmentUtils.GetTailsPath(), new Uri(tailsUri).Segments.Last());
+
+            if (!File.Exists(tailsfile))
+            {
+                File.WriteAllBytes(
+                    path: tailsfile,
+                    bytes: await _httpClient.GetByteArrayAsync(tailsUri));
+            }
+
+            return Path.GetFileName(tailsfile);
         }
     }
 }

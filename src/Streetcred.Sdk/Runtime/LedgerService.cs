@@ -1,4 +1,5 @@
-﻿using System;
+
+using System;
 using System.Threading.Tasks;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.LedgerApi;
@@ -42,6 +43,30 @@ namespace Streetcred.Sdk.Runtime
             return await Ledger.ParseGetSchemaResponseAsync(res);
         }
 
+        /// <inheritdoc />
+        public async Task<ParseRegistryResponseResult> LookupRevocationRegistryDeltaAsync(Pool pool, string revocationRegistryId,
+             long from, long to)
+        {
+            var req = await Ledger.BuildGetRevocRegDeltaRequestAsync(null, revocationRegistryId, from, to);
+            var res = await Ledger.SubmitRequestAsync(pool, req);
+
+            EnsureSuccessResponse(res);
+
+            return await Ledger.ParseGetRevocRegDeltaResponseAsync(res);
+        }
+
+        /// <inheritdoc />
+        public async Task<ParseRegistryResponseResult> LookupRevocationRegistryAsync(Pool pool, string revocationRegistryId,
+             long timestamp)
+        {
+            var req = await Ledger.BuildGetRevocRegRequestAsync(null, revocationRegistryId, timestamp);
+            var res = await Ledger.SubmitRequestAsync(pool, req);
+
+            EnsureSuccessResponse(res);
+
+            return await Ledger.ParseGetRevocRegResponseAsync(res);
+        }
+        
         /// <inheritdoc />
         public async Task RegisterSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string schemaJson)
         {

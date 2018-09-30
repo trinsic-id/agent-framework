@@ -22,5 +22,11 @@
         /// </summary>
         /// <value>The schema identifier.</value>
         public string SchemaId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the schema content as a json string.
+        /// </summary>
+        /// <value>The schema as a json string.</value>
+        public string SchemaJson { get; set; }
     }
 }

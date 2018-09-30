@@ -6,7 +6,7 @@ using Stateless;
 namespace Streetcred.Sdk.Model.Records
 {
     /// <summary>
-    /// Represents a credential record in the agency wallet
+    /// Represents a credential record in the agency wallet.
     /// </summary>
     /// <seealso cref="WalletRecord" />
     public class CredentialRecord : WalletRecord
@@ -35,23 +35,6 @@ namespace Streetcred.Sdk.Model.Records
         /// </summary>
         /// <value>The identifier.</value>
         public string Id { get; set; }
-
-        #region State Machine Implementation
-
-        /// <summary>
-        /// Gets or sets the state.
-        /// </summary>
-        /// <value>The state.</value>
-        [JsonConverter(typeof(StringEnumConverter))]
-        public CredentialState State
-        {
-            get => _state;
-            set
-            {
-                _state = value;
-                Tags["State"] = value.ToString("G");
-            }
-        }
 
         /// <summary>
         /// Gets or sets the definition identifier of this credential.
@@ -82,7 +65,7 @@ namespace Streetcred.Sdk.Model.Records
         /// Gets or sets the credential json.
         /// </summary>
         /// <value>The credential json.</value>
-        public string CredentialJson { get; set; } // TODO: Should this field be stored?
+        public string CredentialJson { get; set; }
 
         /// <summary>
         /// Gets or sets the credential revocation identifier.
@@ -111,6 +94,22 @@ namespace Streetcred.Sdk.Model.Records
         /// <value>The credential identifier.</value>
         public string CredentialId { get; set; }
 
+        #region State Machine Implementation
+        /// <summary>
+        /// Gets or sets the state.
+        /// </summary>
+        /// <value>The state.</value>
+        [JsonConverter(typeof(StringEnumConverter))]
+        public CredentialState State
+        {
+            get => _state;
+            set
+            {
+                _state = value;
+                Tags["State"] = value.ToString("G");
+            }
+        }
+
         /// <summary>
         /// Triggers the async.
         /// </summary>
@@ -133,7 +132,7 @@ namespace Streetcred.Sdk.Model.Records
     }
 
     /// <summary>
-    /// 
+    /// Enumeration of possible credential states
     /// </summary>
     public enum CredentialState
     {
@@ -144,6 +143,9 @@ namespace Streetcred.Sdk.Model.Records
         Revoked
     }
 
+    /// <summary>
+    /// Enumeration of possible triggers that change the credentials state
+    /// </summary>
     public enum CredentialTrigger
     {
         Request,

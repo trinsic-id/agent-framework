@@ -8,6 +8,9 @@ using Streetcred.Sdk.Model.Records.Search;
 
 namespace Streetcred.Sdk.Contracts
 {
+    /// <summary>
+    /// Credential Service
+    /// </summary>
     public interface ICredentialService
     {
         /// <summary>
@@ -45,7 +48,6 @@ namespace Streetcred.Sdk.Contracts
         /// <returns></returns>
         Task AcceptOfferAsync(Wallet wallet, Pool pool, string credentialId, Dictionary<string, string> values);
 
-
         /// <summary>
         /// Stores the issued credential in the designated wallet.
         /// </summary>
@@ -54,7 +56,6 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="credential">The credential.</param>
         /// <returns></returns>
         Task StoreCredentialAsync(Pool pool, Wallet wallet, Credential credential);
-
 
         /// <summary>
         /// Sends the offer.
@@ -95,6 +96,18 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="credentialId">The credential identifier.</param>
         /// <returns></returns>
         Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId);
+
+        /// <summary>
+        /// Creates and sends a credential with the given credential identifier. 
+        /// The credential is issued with the values provided.
+        /// </summary>
+        /// <returns>The credential async.</returns>
+        /// <param name="pool">Pool.</param>
+        /// <param name="wallet">Wallet.</param>
+        /// <param name="issuerDid">Issuer did.</param>
+        /// <param name="credentialId">Credential identifier.</param>
+        /// <param name="values">Values.</param>
+        Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId, Dictionary<string, string> values);
 
         /// <summary>
         /// Revokes an issued credentials and writes the updated revocation state to the ledger

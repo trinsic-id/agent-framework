@@ -3,7 +3,7 @@
 namespace Streetcred.Sdk.Model.Connections
 {
     /// <summary>
-    /// Represents an invitation message for establishing connection
+    /// Represents an invitation message for establishing connection.
     /// </summary>
     public class ConnectionInvitation : IUnsecuredMessage
     {

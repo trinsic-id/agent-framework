@@ -5,6 +5,9 @@ using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Model.Converters
 {
+    /// <summary>
+    /// Message converter for serializing and deserializing envelop messages to and from json to their respective object types
+    /// </summary>
     public class EnvelopeMessageConverter : JsonConverter
     {
         /// <inheritdoc />

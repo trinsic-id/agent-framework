@@ -2,9 +2,11 @@
 
 namespace Streetcred.Sdk.Model.Credentials
 {
+    /// <summary>
+    /// A credential request content message.
+    /// </summary>
     public class CredentialRequest : IContentMessage
     {
-
         /// <summary>
         /// Gets or sets the type.
         /// </summary>

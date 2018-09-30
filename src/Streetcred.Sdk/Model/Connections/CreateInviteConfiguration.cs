@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Streetcred.Sdk.Model.Connections
+﻿namespace Streetcred.Sdk.Model.Connections
 {
     /// <summary>
     /// Config for controlling invitation creation

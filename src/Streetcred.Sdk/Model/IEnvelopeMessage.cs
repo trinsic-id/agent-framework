@@ -3,6 +3,9 @@ using Streetcred.Sdk.Model.Converters;
 
 namespace Streetcred.Sdk.Model
 {
+    /// <summary>
+    /// Represents an envelop message
+    /// </summary>
     [JsonConverter(typeof(EnvelopeMessageConverter))]
     public interface IEnvelopeMessage
     {

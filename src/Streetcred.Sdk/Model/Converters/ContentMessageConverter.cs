@@ -8,6 +8,9 @@ using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Model.Converters
 {
+    /// <summary>
+    /// Message converter for serializing and deserializing content messages to and from json to their respective object types
+    /// </summary>
     public class ContentMessageConverter : JsonConverter
     {
         /// <inheritdoc />

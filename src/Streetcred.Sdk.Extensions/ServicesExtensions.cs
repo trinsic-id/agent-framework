@@ -1,7 +1,6 @@
 ﻿using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Extensions.Options;
 using Streetcred.Sdk.Runtime;

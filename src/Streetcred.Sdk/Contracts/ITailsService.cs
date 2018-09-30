@@ -1,28 +1,35 @@
 ﻿using System.Threading.Tasks;
 using Hyperledger.Indy.BlobStorageApi;
 using Hyperledger.Indy.PoolApi;
-using Hyperledger.Indy.WalletApi;
 
 namespace Streetcred.Sdk.Contracts
 {
+    /// <summary>
+    /// Tails Service.
+    /// </summary>
     public interface ITailsService
     {
-
         /// <summary>
         /// Opens an existing tails file and returns a handle.
-        /// If <paramref name="pool"/> is specified, retreives the latest public tails file
-        /// for the specified <paramref name="credentialDefinitionId"/> and stores it locally.
         /// </summary>
         /// <returns>The tails reader async.</returns>
-        /// <param name="credentialDefinitionId">Credential definition identifier.</param>
-        /// <param name="pool">Pool.</param>
-        Task<BlobStorageReader> OpenTailsAsync(string credentialDefinitionId, Pool pool = null);
+        /// <param name="filename">The tails filename.</param>
+        Task<BlobStorageReader> OpenTailsAsync(string filename);
 
         /// <summary>
         /// Gets the BLOB storage writer async.
         /// </summary>
         /// <returns>The BLOB storage writer async.</returns>
-        /// <param name="credentialDefinitionId">Credential definition identifier.</param>
-        Task<BlobStorageWriter> CreateTailsAsync(string credentialDefinitionId);
+        Task<BlobStorageWriter> CreateTailsAsync();
+
+        /// <summary>
+        /// Check if the tails filename exists locally and download latest version if it doesn't.
+        /// </summary>
+        /// <param name="pool">Pool.</param>
+        /// <param name="revocationRegistryId">Revocation registry identifier.</param>
+        /// <returns>
+        /// The name of the tails file
+        /// </returns>
+        Task<string> EnsureTailsExistsAsync(Pool pool, string revocationRegistryId);
     }
 }

@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Hyperledger.Indy.AnonCredsApi;
+﻿using System.Threading.Tasks;
 using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Model;
-using Streetcred.Sdk.Model.Connections;
 using Streetcred.Sdk.Utils;
 using Xunit;
 
