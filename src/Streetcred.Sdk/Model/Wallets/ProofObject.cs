@@ -3,17 +3,13 @@ using Newtonsoft.Json;
 
 namespace Streetcred.Sdk.Model.Wallets
 {
-    public class ProofObject
+    internal class ProofObject
     {
         [JsonProperty("identifiers")]
-        public List<ProofIdentifier> Identifiers
-        {
-            get;
-            set;
-        }
+        public List<ProofIdentifier> Identifiers { get; set; }
     }
 
-    public class ProofIdentifier
+    internal class ProofIdentifier
     {
         [JsonProperty("schema_id")]
         public string SchemaId { get; set; }
