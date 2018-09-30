@@ -9,9 +9,7 @@ using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
-    /// <summary>
-    /// Router service.
-    /// </summary>
+    /// <inheritdoc />
     public class RouterService : IRouterService
     {
         private readonly IMessageSerializer _messageSerializer;
@@ -28,12 +26,7 @@ namespace Streetcred.Sdk.Runtime
             _httpClient = new HttpClient();
         }
 
-        /// <summary>
-        /// Forwards the asynchronous.
-        /// </summary>
-        /// <param name="envelope">The envelope.</param>
-        /// <param name="endpoint">The endpoint.</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task ForwardAsync(IEnvelopeMessage envelope, AgentEndpoint endpoint)
         {
             _logger.LogInformation(LoggingEvents.Forward, "Envelope {0}, Endpoint {1}", envelope.Type, endpoint.Uri);

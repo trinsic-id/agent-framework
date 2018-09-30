@@ -1,5 +1,8 @@
 ﻿namespace Streetcred.Sdk.Model
 {
+    /// <summary>
+    /// Represents the supported message types
+    /// </summary>
     public class MessageTypes
     {
         // Custom message types

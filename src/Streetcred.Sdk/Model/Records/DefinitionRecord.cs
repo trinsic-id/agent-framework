@@ -1,7 +1,7 @@
 ﻿namespace Streetcred.Sdk.Model.Records
 {
     /// <summary>
-    /// Definition record.
+    /// Schema definition record.
     /// </summary>
     public class DefinitionRecord : WalletRecord
     {
@@ -32,14 +32,6 @@
         ///   <c>true</c> if [require approval]; otherwise, <c>false</c>.
         /// </value>
         public bool RequireApproval { get; set; }
-
-        /// <summary>
-        /// Gets or sets the revocation registry identifier.
-        /// </summary>
-        /// <value>
-        /// The revocation registry identifier.
-        /// </value>
-        public string RevocationRegistryId { get; set; }
 
         /// <summary>
         /// Gets the name of the type.

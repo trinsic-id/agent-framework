@@ -3,7 +3,7 @@
 namespace Streetcred.Sdk.Model.Connections
 {
     /// <summary>
-    /// Represents connection details
+    /// Represents connection details.
     /// </summary>
     public class ConnectionDetails
     {

@@ -7,6 +7,9 @@ using Streetcred.Sdk.Model.Records;
 
 namespace Streetcred.Sdk.Contracts
 {
+    /// <summary>
+    /// Schema Service.
+    /// </summary>
     public interface ISchemaService
     {
         /// <summary>
@@ -18,7 +21,8 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="name">The name.</param>
         /// <param name="version">The version.</param>
         /// <param name="attributeNames">The attribute names.</param>
-        /// <returns>The shema identifier of the stored schema object. This identifier can be used for ledger schema lookup.</returns>
+        /// <returns>The shema identifier of the stored schema object.
+        /// This identifier can be used for ledger schema lookup.</returns>
         Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string name, string version,
             string[] attributeNames);
 
@@ -35,7 +39,8 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="tailsBaseUri">The public URI of the tails file for the revocation definition.
         /// his parameter is only used if <paramref name="supportsRevocation"/> is <c>true</c>.
         /// </param>
-        /// <returns>The credential definition identifier of the stored definition record. This identifier can be used for ledger definition lookup.</returns>
+        /// <returns>The credential definition identifier of the stored definition record.
+        /// This identifier can be used for ledger definition lookup.</returns>
         Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId, string issuerDid,
             bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri);
 

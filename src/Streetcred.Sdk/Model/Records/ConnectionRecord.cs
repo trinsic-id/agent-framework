@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Stateless;
@@ -7,6 +6,10 @@ using Streetcred.Sdk.Model.Connections;
 
 namespace Streetcred.Sdk.Model.Records
 {
+    /// <summary>
+    /// Represents a connection record in the agency wallet.
+    /// </summary>
+    /// <seealso cref="WalletRecord" />
     public class ConnectionRecord : WalletRecord
     {
         private ConnectionState _state;
@@ -109,6 +112,9 @@ namespace Streetcred.Sdk.Model.Records
         #endregion
     }
 
+    /// <summary>
+    /// Enumeration of possible connection states
+    /// </summary>
     public enum ConnectionState
     {
         Invited = 0,
@@ -116,6 +122,9 @@ namespace Streetcred.Sdk.Model.Records
         Connected
     }
 
+    /// <summary>
+    /// Enumeration of possible triggers that change the connections state
+    /// </summary>
     public enum ConnectionTrigger
     {
         InvitationAccept,

@@ -2,6 +2,9 @@
 
 namespace Streetcred.Sdk.Model.Wallets
 {
+    /// <summary>
+    /// A configuration object for controlling the provisioning of a new agent.
+    /// </summary>
     public class ProvisioningConfiguration
     {
         /// <summary>

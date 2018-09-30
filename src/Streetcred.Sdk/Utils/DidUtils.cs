@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 namespace Streetcred.Sdk.Utils
 {
     /// <summary>
-    /// Did utilities class
+    /// Did utilities
     /// </summary>
     public static class DidUtils
     {

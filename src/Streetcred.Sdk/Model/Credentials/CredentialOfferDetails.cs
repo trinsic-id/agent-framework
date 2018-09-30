@@ -1,5 +1,8 @@
 ﻿namespace Streetcred.Sdk.Model.Credentials
 {
+    /// <summary>
+    /// Inner details object for a credential offer content message.
+    /// </summary>
     public class CredentialOfferDetails
     {
         /// <summary>

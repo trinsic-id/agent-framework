@@ -65,6 +65,26 @@ namespace Streetcred.Sdk.Contracts
             string registryId);
 
         /// <summary>
+        /// Lookup the revocation registry delta for the given registry in the range specified.
+        /// </summary>
+        /// <returns>The revocation registry dela async.</returns>
+        /// <param name="pool">Pool.</param>
+        /// <param name="revocationRegistryId">Revocation registry identifier.</param>
+        /// <param name="from">From.</param>
+        /// <param name="to">To.</param>
+        Task<ParseRegistryResponseResult> LookupRevocationRegistryDeltaAsync(Pool pool, string revocationRegistryId,
+            long from, long to);
+
+        /// <summary>
+        /// Lookup revocation registry for the given point in time.
+        /// </summary>
+        /// <returns>The revocation registry async.</returns>
+        /// <param name="pool">Pool.</param>
+        /// <param name="revocationRegistryId">Revocation registry identifier.</param>
+        /// <param name="timestamp">Timestamp.</param>
+        Task<ParseRegistryResponseResult> LookupRevocationRegistryAsync(Pool pool, string revocationRegistryId, long timestamp);
+
+        /// <summary>
         /// Registers the trust anchor async.
         /// </summary>
         /// <param name="wallet">The wallet.</param>

@@ -3,7 +3,7 @@
 namespace Streetcred.Sdk.Model.Connections
 {
     /// <summary>
-    /// Represents a connection request message
+    /// Represents a connection request message.
     /// </summary>
     public class ConnectionRequest : IContentMessage
     {

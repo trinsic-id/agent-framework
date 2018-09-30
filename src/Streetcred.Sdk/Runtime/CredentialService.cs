@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.BlobStorageApi;
-using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
@@ -18,6 +17,7 @@ using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
+    /// <inheritdoc />
     public class CredentialService : ICredentialService
     {
         private readonly IRouterService _routerService;
@@ -67,7 +67,7 @@ namespace Streetcred.Sdk.Runtime
             var (didOrKey, _) = MessageUtils.ParseMessageType(credentialOffer.Type);
 
             var connectionSearch =
-                await _connectionService.ListAsync(wallet, new SearchRecordQuery {{"myDid", didOrKey}});
+                await _connectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
             if (!connectionSearch.Any())
                 throw new Exception($"Can't find connection record for type {credentialOffer.Type}");
             var connection = connectionSearch.First();
@@ -144,7 +144,7 @@ namespace Streetcred.Sdk.Runtime
             var (didOrKey, _) = MessageUtils.ParseMessageType(credential.Type);
 
             var connectionSearch =
-                await _connectionService.ListAsync(wallet, new SearchRecordQuery {{"myDid", didOrKey}});
+                await _connectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
             if (!connectionSearch.Any())
                 throw new Exception($"Can't find connection record for type {credential.Type}");
             var connection = connectionSearch.First();
@@ -188,12 +188,11 @@ namespace Streetcred.Sdk.Runtime
             await _recordService.UpdateAsync(wallet, credentialRecord);
         }
 
-
         /// <inheritdoc />
         public async Task<CredentialOffer> CreateOfferAsync(string credentialDefinitionId, string connectionId,
             Wallet wallet, string issuerDid)
         {
-            _logger.LogInformation(LoggingEvents.CreateOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
+            _logger.LogInformation(LoggingEvents.CreateCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
                 credentialDefinitionId, connectionId, issuerDid);
 
             var connection = await _connectionService.GetAsync(wallet, connectionId);
@@ -215,7 +214,7 @@ namespace Streetcred.Sdk.Runtime
             await _recordService.AddAsync(wallet, credentialRecord);
 
             var credentialOffer = await _messageSerializer.PackSealedAsync<CredentialOffer>(
-                new CredentialOfferDetails {OfferJson = offerJson},
+                new CredentialOfferDetails { OfferJson = offerJson },
                 wallet,
                 connection.MyVk,
                 connection.TheirVk);
@@ -228,7 +227,7 @@ namespace Streetcred.Sdk.Runtime
         public async Task SendOfferAsync(string credentialDefinitionId, string connectionId, Wallet wallet,
             string issuerDid)
         {
-            _logger.LogInformation(LoggingEvents.SendOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
+            _logger.LogInformation(LoggingEvents.SendCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
                 credentialDefinitionId, connectionId, issuerDid);
 
             var connection = await _connectionService.GetAsync(wallet, connectionId);
@@ -249,7 +248,7 @@ namespace Streetcred.Sdk.Runtime
             var (didOrKey, _) = MessageUtils.ParseMessageType(credentialRequest.Type);
 
             var connectionSearch =
-                await _connectionService.ListAsync(wallet, new SearchRecordQuery {{"myDid", didOrKey}});
+                await _connectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
             if (!connectionSearch.Any())
                 throw new Exception($"Can't find connection record for type {credentialRequest.Type}");
             var connection = connectionSearch.First();
@@ -260,7 +259,7 @@ namespace Streetcred.Sdk.Runtime
             var request = JObject.Parse(details.OfferJson);
             var nonce = request["nonce"].ToObject<string>();
 
-            var query = new SearchRecordQuery {{"nonce", nonce}};
+            var query = new SearchRecordQuery { { "nonce", nonce } };
             var credentialSearch = await _recordService.SearchAsync<CredentialRecord>(wallet, query, null, 1);
 
             var credential = credentialSearch.Single();
@@ -276,9 +275,22 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId)
+        public Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId)
+        {
+            return IssueCredentialAsync(pool, wallet, issuerDid, credentialId, null);
+        }
+
+        /// <inheritdoc />
+        public async Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId,
+           Dictionary<string, string> values)
         {
             var credentialRecord = await _recordService.GetAsync<CredentialRecord>(wallet, credentialId);
+
+            if (values != null)
+            {
+                credentialRecord.ValuesJson = CredentialUtils.FormatCredentialValues(values);
+            }
+
             var definitionRecord =
                 await _schemaService.GetCredentialDefinitionAsync(wallet, credentialRecord.CredentialDefinitionId);
 
@@ -292,8 +304,12 @@ namespace Streetcred.Sdk.Runtime
             BlobStorageReader tailsReader = null;
             if (definitionRecord.SupportsRevocation)
             {
-                revocationRegistryId = definitionRecord.RevocationRegistryId;
-                tailsReader = await _tailsService.OpenTailsAsync(revocationRegistryId);
+                var revocationRecordSearch = await _recordService.SearchAsync<RevocationRegistryRecord>(
+                wallet, new SearchRecordQuery { { "credentialDefinitionId", definitionRecord.DefinitionId } }, null, 1);
+                var revocationRecord = revocationRecordSearch.First();
+
+                revocationRegistryId = revocationRecord.RevocationRegistryId;
+                tailsReader = await _tailsService.OpenTailsAsync(revocationRecord.TailsFile);
             }
 
             var issuedCredential = await AnonCreds.IssuerCreateCredentialAsync(wallet, credentialRecord.OfferJson,
@@ -302,7 +318,7 @@ namespace Streetcred.Sdk.Runtime
             if (definitionRecord.SupportsRevocation)
             {
                 await _ledgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid,
-                    definitionRecord.RevocationRegistryId,
+                    revocationRegistryId,
                     "CL_ACCUM", issuedCredential.RevocRegDeltaJson);
                 credentialRecord.CredentialRevocationId = issuedCredential.RevocId;
             }
@@ -338,14 +354,18 @@ namespace Streetcred.Sdk.Runtime
             // Check if the state machine is valid for revocation
             await credential.TriggerAsync(CredentialTrigger.Revoke);
 
+            var revocationRecordSearch = await _recordService.SearchAsync<RevocationRegistryRecord>(
+                wallet, new SearchRecordQuery { { "credentialDefinitionId", definition.DefinitionId } }, null, 1);
+            var revocationRecord = revocationRecordSearch.First();
+
             // Revoke the credential
-            var tailsReader = await _tailsService.OpenTailsAsync(definition.RevocationRegistryId);
+            var tailsReader = await _tailsService.OpenTailsAsync(revocationRecord.TailsFile);
             var revocRegistryDeltaJson = await AnonCreds.IssuerRevokeCredentialAsync(wallet, tailsReader,
-                definition.RevocationRegistryId, credential.CredentialRevocationId);
+                revocationRecord.RevocationRegistryId, credential.CredentialRevocationId);
 
             // Write the delta state on the ledger for the corresponding revocation registry
             await _ledgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid,
-                definition.RevocationRegistryId,
+                revocationRecord.RevocationRegistryId,
                 "CL_ACCUM", revocRegistryDeltaJson);
 
             // Update local credential record

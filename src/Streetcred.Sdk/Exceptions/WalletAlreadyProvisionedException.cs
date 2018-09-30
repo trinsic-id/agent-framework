@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace Streetcred.Sdk.Exceptions
 {
     /// <summary>
-    /// 
+    /// Wallet Already Provisioned Exception
     /// </summary>
     /// <seealso cref="System.Exception" />
     public class WalletAlreadyProvisionedException : Exception

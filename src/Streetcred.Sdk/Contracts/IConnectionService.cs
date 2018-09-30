@@ -7,6 +7,9 @@ using Streetcred.Sdk.Model.Records.Search;
 
 namespace Streetcred.Sdk.Contracts
 {
+    /// <summary>
+    /// Connection Service.
+    /// </summary>
     public interface IConnectionService
     {
         /// <summary>

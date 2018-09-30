@@ -5,9 +5,7 @@ using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
-    /// <summary>
-    /// Pool service.
-    /// </summary>
+    /// <inheritdoc />
     public class PoolService : IPoolService
     {
         private static Pool _pool;
