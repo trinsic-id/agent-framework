@@ -66,16 +66,8 @@ namespace Streetcred.Sdk.Runtime
 
             return await Ledger.ParseGetRevocRegResponseAsync(res);
         }
-
-
-        /// <summary>
-        /// Registers the schema asynchronous.
-        /// </summary>
-        /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="issuerDid">The issuer did.</param>
-        /// <param name="schemaJson">The schema json.</param>
-        /// <returns></returns>
+        
+        /// <inheritdoc />
         public async Task RegisterSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string schemaJson)
         {
             var req = await Ledger.BuildSchemaRequestAsync(issuerDid, schemaJson);

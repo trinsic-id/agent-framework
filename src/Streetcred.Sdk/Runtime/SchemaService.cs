@@ -12,6 +12,7 @@ using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
+    /// <inheritdoc />
     public class SchemaService : ISchemaService
     {
         private readonly IWalletRecordService _recordService;
@@ -93,7 +94,6 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        /// <exception cref="NotImplementedException"></exception>
         public Task<List<SchemaRecord>> ListSchemasAsync(Wallet wallet) =>
             _recordService.SearchAsync<SchemaRecord>(wallet, null, null, 100);
 

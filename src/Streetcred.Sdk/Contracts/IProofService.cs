@@ -9,6 +9,9 @@ using Streetcred.Sdk.Model.Wallets;
 
 namespace Streetcred.Sdk.Contracts
 {
+    /// <summary>
+    /// Proof Service.
+    /// </summary>
     public interface IProofService
     {
         /// <summary>

@@ -2,9 +2,11 @@
 
 namespace Streetcred.Sdk.Model.Proofs
 {
+    /// <summary>
+    /// A proof request content message.
+    /// </summary>
     public class ProofRequest : IContentMessage
     {
-
         /// <summary>
         /// Gets or sets the type.
         /// </summary>

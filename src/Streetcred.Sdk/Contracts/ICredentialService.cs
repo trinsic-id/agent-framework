@@ -8,6 +8,9 @@ using Streetcred.Sdk.Model.Records.Search;
 
 namespace Streetcred.Sdk.Contracts
 {
+    /// <summary>
+    /// Credential Service
+    /// </summary>
     public interface ICredentialService
     {
         /// <summary>
@@ -45,7 +48,6 @@ namespace Streetcred.Sdk.Contracts
         /// <returns></returns>
         Task AcceptOfferAsync(Wallet wallet, Pool pool, string credentialId, Dictionary<string, string> values);
 
-
         /// <summary>
         /// Stores the issued credential in the designated wallet.
         /// </summary>
@@ -54,7 +56,6 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="credential">The credential.</param>
         /// <returns></returns>
         Task StoreCredentialAsync(Pool pool, Wallet wallet, Credential credential);
-
 
         /// <summary>
         /// Sends the offer.

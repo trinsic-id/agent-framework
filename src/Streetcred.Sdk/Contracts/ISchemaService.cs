@@ -7,6 +7,9 @@ using Streetcred.Sdk.Model.Records;
 
 namespace Streetcred.Sdk.Contracts
 {
+    /// <summary>
+    /// Schema Service.
+    /// </summary>
     public interface ISchemaService
     {
         /// <summary>

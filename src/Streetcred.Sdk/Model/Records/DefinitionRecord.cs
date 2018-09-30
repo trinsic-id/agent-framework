@@ -1,7 +1,7 @@
 ﻿namespace Streetcred.Sdk.Model.Records
 {
     /// <summary>
-    /// Definition record.
+    /// Schema definition record.
     /// </summary>
     public class DefinitionRecord : WalletRecord
     {

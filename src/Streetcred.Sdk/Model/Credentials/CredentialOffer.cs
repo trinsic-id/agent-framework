@@ -2,9 +2,11 @@
 
 namespace Streetcred.Sdk.Model.Credentials
 {
+    /// <summary>
+    /// A credential offer content message.
+    /// </summary>
     public class CredentialOffer : IContentMessage
     {
-
         /// <summary>
         /// Gets or sets the type.
         /// </summary>

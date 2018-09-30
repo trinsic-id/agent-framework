@@ -10,7 +10,7 @@ using Streetcred.Sdk.Model.Records.Search;
 namespace Streetcred.Sdk.Extensions
 {
     /// <summary>
-    /// 
+    /// A collection of convenience methods for the <see cref="IProofService"/> class.
     /// </summary>
     public static class ProofServiceExtensions
     {

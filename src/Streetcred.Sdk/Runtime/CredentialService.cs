@@ -17,6 +17,7 @@ using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
+    /// <inheritdoc />
     public class CredentialService : ICredentialService
     {
         private readonly IRouterService _routerService;
@@ -186,7 +187,6 @@ namespace Streetcred.Sdk.Runtime
             await credentialRecord.TriggerAsync(CredentialTrigger.Issue);
             await _recordService.UpdateAsync(wallet, credentialRecord);
         }
-
 
         /// <inheritdoc />
         public async Task<CredentialOffer> CreateOfferAsync(string credentialDefinitionId, string connectionId,

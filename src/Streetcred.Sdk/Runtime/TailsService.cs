@@ -12,6 +12,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Streetcred.Sdk.Runtime
 {
+    /// <inheritdoc />
     public class TailsService : ITailsService
     {
         private static readonly ConcurrentDictionary<string, BlobStorageReader> BlobReaders =

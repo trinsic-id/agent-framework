@@ -1,5 +1,8 @@
 ﻿namespace Streetcred.Sdk.Model.Proofs
 {
+    /// <summary>
+    /// Inner details object for a proof request content message.
+    /// </summary>
     public class ProofRequestDetails
     {
         /// <summary>

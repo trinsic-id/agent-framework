@@ -89,7 +89,7 @@ namespace Streetcred.Sdk.Model.Records
     }
 
     /// <summary>
-    /// 
+    /// Enumeration of possible proof states
     /// </summary>
     public enum ProofState
     {
@@ -98,6 +98,9 @@ namespace Streetcred.Sdk.Model.Records
         Rejected = 2
     }
 
+    /// <summary>
+    /// Enumeration of possible triggers that change the proofs state
+    /// </summary>
     public enum ProofTrigger
     {
         Request,

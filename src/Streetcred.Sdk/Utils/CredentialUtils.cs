@@ -3,6 +3,9 @@ using Hyperledger.Indy.AnonCredsApi;
 
 namespace Streetcred.Sdk.Utils
 {
+    /// <summary>
+    /// Credential utilities
+    /// </summary>
     public class CredentialUtils
     {
         /// <summary>

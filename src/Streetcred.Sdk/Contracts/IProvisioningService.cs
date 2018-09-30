@@ -5,6 +5,9 @@ using Streetcred.Sdk.Model.Wallets;
 
 namespace Streetcred.Sdk.Contracts
 {
+    /// <summary>
+    /// Provisioning Service.
+    /// </summary>
     public interface IProvisioningService
     {
         /// <summary>
