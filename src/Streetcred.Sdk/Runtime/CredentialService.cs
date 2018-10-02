@@ -259,7 +259,7 @@ namespace Streetcred.Sdk.Runtime
             var request = JObject.Parse(details.OfferJson);
             var nonce = request["nonce"].ToObject<string>();
 
-            var query = new SearchRecordQuery { { "nonce", nonce } };
+            var query = new SearchRecordQuery { { "nonce", nonce }, { "connectionId", connection.GetId() } };
             var credentialSearch = await _recordService.SearchAsync<CredentialRecord>(wallet, query, null, 1);
 
             var credential = credentialSearch.Single();

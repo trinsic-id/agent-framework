@@ -82,6 +82,22 @@ namespace Streetcred.Sdk.Tests
         }
 
         [Fact]
+        public async Task CanEstablishAutomaticConnectionAsync()
+        {
+            var (connectionIssuer, connectionHolder) = await Scenarios.EstablishAutomaticConnectionAsync(
+                _connectionService, _messages, _issuerWallet, _holderWallet);
+
+            Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
+            Assert.Equal(ConnectionState.Connected, connectionHolder.State);
+
+            Assert.Equal(connectionIssuer.MyDid, connectionHolder.TheirDid);
+            Assert.Equal(connectionIssuer.TheirDid, connectionHolder.MyDid);
+
+            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
+            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
+        }
+
+        [Fact]
         public async Task CanEstablishConnectionAsync()
         {
             var (connectionIssuer, connectionHolder) = await Scenarios.EstablishConnectionAsync(
