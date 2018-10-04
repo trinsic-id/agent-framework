@@ -13,13 +13,13 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class ABaseSchemaService : ISchemaService
+    public class DefaultSchemaService : ISchemaService
     {
         protected readonly IWalletRecordService RecordService;
         protected readonly ILedgerService LedgerService;
         protected readonly ITailsService TailsService;
 
-        public ABaseSchemaService(
+        public DefaultSchemaService(
             IWalletRecordService recordService,
             ILedgerService ledgerService,
             ITailsService tailsService)

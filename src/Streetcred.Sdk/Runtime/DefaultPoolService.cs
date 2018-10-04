@@ -6,7 +6,7 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class ABasePoolService : IPoolService
+    public class DefaultPoolService : IPoolService
     {
         protected static Pool Pool;
 

@@ -19,7 +19,7 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class ABaseCredentialService : ICredentialService
+    public class DefaultCredentialService : ICredentialService
     {
         protected readonly IRouterService RouterService;
         protected readonly ILedgerService LedgerService;
@@ -29,9 +29,9 @@ namespace Streetcred.Sdk.Runtime
         protected readonly ISchemaService SchemaService;
         protected readonly ITailsService TailsService;
         protected readonly IProvisioningService ProvisioningService;
-        protected readonly ILogger<ABaseCredentialService> Logger;
+        protected readonly ILogger<DefaultCredentialService> Logger;
 
-        public ABaseCredentialService(
+        public DefaultCredentialService(
             IRouterService routerService,
             ILedgerService ledgerService,
             IConnectionService connectionService,
@@ -40,7 +40,7 @@ namespace Streetcred.Sdk.Runtime
             ISchemaService schemaService,
             ITailsService tailsService,
             IProvisioningService provisioningService,
-            ILogger<ABaseCredentialService> logger)
+            ILogger<DefaultCredentialService> logger)
         {
             RouterService = routerService;
             LedgerService = ledgerService;
@@ -189,7 +189,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<CredentialOffer> CreateOfferAsync(Wallet wallet, ABaseCreateOfferConfiguration config)
+        public virtual async Task<CredentialOffer> CreateOfferAsync(Wallet wallet, DefaultCreateOfferConfiguration config)
         {
             Logger.LogInformation(LoggingEvents.CreateCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
                 config.CredentialDefinitionId, config.ConnectionId, config.IssuerDid);
@@ -236,7 +236,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task SendOfferAsync(Wallet wallet, ABaseCreateOfferConfiguration config)
+        public virtual async Task SendOfferAsync(Wallet wallet, DefaultCreateOfferConfiguration config)
         {
             Logger.LogInformation(LoggingEvents.SendCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
                 config.CredentialDefinitionId, config.ConnectionId, config.IssuerDid);

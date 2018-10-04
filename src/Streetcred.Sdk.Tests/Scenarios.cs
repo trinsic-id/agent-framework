@@ -30,7 +30,7 @@ namespace Streetcred.Sdk.Tests
             // Create invitation by the issuer
             var issuerConnectionId = Guid.NewGuid().ToString();
 
-            var inviteConfig = new ABaseCreateInviteConfiguration()
+            var inviteConfig = new DefaultCreateInviteConfiguration()
             {
                 ConnectionId = issuerConnectionId,
                 AutoAcceptConnection = autoConnectionFlow,
@@ -121,7 +121,7 @@ namespace Streetcred.Sdk.Tests
             var definitionId =
                 await schemaService.CreateCredentialDefinitionAsync(pool, issuerWallet, schemaId, issuer.Did, revocable, 100, new Uri("http://mock/tails"));
 
-            var offerConfig = new ABaseCreateOfferConfiguration()
+            var offerConfig = new DefaultCreateOfferConfiguration()
             {
                 ConnectionId = issuerConnectionId,
                 IssuerDid = issuer.Did,

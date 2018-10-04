@@ -17,20 +17,20 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class ABaseConnectionService : IConnectionService
+    public class DefaultConnectionService : IConnectionService
     {
         protected readonly IWalletRecordService RecordService;
         protected readonly IRouterService RouterService;
         protected readonly IProvisioningService ProvisioningService;
         protected readonly IMessageSerializer MessageSerializer;
-        protected readonly ILogger<ABaseConnectionService> Logger;
+        protected readonly ILogger<DefaultConnectionService> Logger;
 
-        public ABaseConnectionService(
+        public DefaultConnectionService(
             IWalletRecordService recordService,
             IRouterService routerService,
             IProvisioningService provisioningService,
             IMessageSerializer messageSerializer,
-            ILogger<ABaseConnectionService> logger)
+            ILogger<DefaultConnectionService> logger)
         {
             RouterService = routerService;
             ProvisioningService = provisioningService;
@@ -41,7 +41,7 @@ namespace Streetcred.Sdk.Runtime
 
         /// <inheritdoc />
         public virtual async Task<ConnectionInvitation> CreateInvitationAsync(Wallet wallet,
-            ABaseCreateInviteConfiguration config = null)
+            DefaultCreateInviteConfiguration config = null)
         {
             var connectionId = !string.IsNullOrEmpty(config?.ConnectionId)
                 ? config.ConnectionId

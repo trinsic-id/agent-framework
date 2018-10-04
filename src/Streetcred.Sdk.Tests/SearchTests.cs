@@ -21,7 +21,7 @@ namespace Streetcred.Sdk.Tests
 
         public SearchTests()
         {
-            _recordService = new ABaseWalletRecordService();
+            _recordService = new DefaultWalletRecordService();
         }
 
         public async Task InitializeAsync()

@@ -65,7 +65,7 @@ namespace Streetcred.Sdk.Contracts
         /// <returns>
         /// The offer.
         /// </returns>
-        Task<CredentialOffer> CreateOfferAsync(Wallet wallet, ABaseCreateOfferConfiguration config);
+        Task<CredentialOffer> CreateOfferAsync(Wallet wallet, DefaultCreateOfferConfiguration config);
 
         /// <summary>
         /// Sends the offer asynchronous.
@@ -73,7 +73,7 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="config">A configuration object used to configure the resulting offers presentation</param>
         /// <returns></returns>
-        Task SendOfferAsync(Wallet wallet, ABaseCreateOfferConfiguration config);
+        Task SendOfferAsync(Wallet wallet, DefaultCreateOfferConfiguration config);
 
         /// <summary>
         /// Processes the credential request and stores in the designated wallet.

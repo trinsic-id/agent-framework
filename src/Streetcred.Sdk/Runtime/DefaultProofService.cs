@@ -18,7 +18,7 @@ using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
-    public class ABaseProofService : IProofService
+    public class DefaultProofService : IProofService
     {
         protected readonly IRouterService RouterService;
         protected readonly IConnectionService ConnectionService;
@@ -26,10 +26,10 @@ namespace Streetcred.Sdk.Runtime
         protected readonly IWalletRecordService RecordService;
         protected readonly IProvisioningService ProvisioningService;
         protected readonly ILedgerService LedgerService;
-        protected readonly ILogger<ABaseProofService> Logger;
+        protected readonly ILogger<DefaultProofService> Logger;
         protected readonly ITailsService TailsService;
 
-        public ABaseProofService(
+        public DefaultProofService(
             IConnectionService connectionService,
             IRouterService routerService,
             IMessageSerializer messageSerializer,
@@ -37,7 +37,7 @@ namespace Streetcred.Sdk.Runtime
             IProvisioningService provisioningService,
             ILedgerService ledgerService,
             ITailsService tailsService,
-            ILogger<ABaseProofService> logger)
+            ILogger<DefaultProofService> logger)
         {
             TailsService = tailsService;
             ConnectionService = connectionService;

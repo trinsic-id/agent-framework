@@ -12,11 +12,11 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class ABaseProvisioningService : IProvisioningService
+    public class DefaultProvisioningService : IProvisioningService
     {
         protected readonly IWalletRecordService RecordService;
 
-        public ABaseProvisioningService(IWalletRecordService walletRecord)
+        public DefaultProvisioningService(IWalletRecordService walletRecord)
         {
             RecordService = walletRecord;
         }
