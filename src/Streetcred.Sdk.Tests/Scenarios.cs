@@ -104,74 +104,7 @@ namespace Streetcred.Sdk.Tests
 
             return (connectionIssuer, connectionHolder);
         }
-
-        internal static async Task<(CredentialRecord issuerCredential, CredentialRecord holderCredential)>
-            AutoIssueCredentialsAsync(
-                ISchemaService schemaService, ICredentialService credentialService,
-                IProducerConsumerCollection<IEnvelopeMessage> messages,
-                string issuerConnectionId, Wallet issuerWallet, Wallet holderWallet,
-                Pool pool, string proverMasterSecretId, bool revocable)
-        {
-            // Create an issuer DID/VK. Can also be created during provisioning
-            var issuer = await Did.CreateAndStoreMyDidAsync(issuerWallet,
-                new { seed = "000000000000000000000000Steward1" }.ToJson());
-
-            // Creata a schema and credential definition for this issuer
-            var schemaId = await schemaService.CreateSchemaAsync(pool, issuerWallet, issuer.Did,
-                $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", new[] { "first_name", "last_name" });
-            var definitionId =
-                await schemaService.CreateCredentialDefinitionAsync(pool, issuerWallet, schemaId, issuer.Did, revocable, 100, new Uri("http://mock/tails"));
-
-            var offerConfig = new ABaseCreateOfferConfiguration()
-            {
-                ConnectionId = issuerConnectionId,
-                IssuerDid = issuer.Did,
-                CredentialDefinitionId = definitionId,
-                CredentialAttributeValues = new Dictionary<string, string>
-                {
-                    {"first_name", "Jane"},
-                    {"last_name", "Doe"}
-                }
-            };
-
-            // Send an offer to the holder using the established connection channel
-            await credentialService.SendOfferAsync(issuerWallet, offerConfig);
-
-            // Holder retrives message from their cloud agent
-            var credentialOffer = FindContentMessage<CredentialOffer>(messages);
-
-            // Holder processes the credential offer by storing it
-            var holderCredentialId =
-                await credentialService.ProcessOfferAsync(holderWallet, credentialOffer);
-
-            // Holder creates master secret. Will also be created during wallet agent provisioning
-            await AnonCreds.ProverCreateMasterSecretAsync(holderWallet, proverMasterSecretId);
-
-            // Holder accepts the credential offer and sends a credential request
-            await credentialService.AcceptOfferAsync(holderWallet, pool, holderCredentialId, null);
-
-            // Issuer retrieves credential request from cloud agent
-            var credentialRequest = FindContentMessage<CredentialRequest>(messages);
-            Assert.NotNull(credentialRequest);
-
-            // Issuer processes the credential request by storing it
-            var issuerCredentialId =
-                await credentialService.ProcessCredentialRequestAsync(issuerWallet, credentialRequest);
-
-            // Holder retrieves the credential from their cloud agent
-            var credential = FindContentMessage<Credential>(messages);
-            Assert.NotNull(credential);
-
-            // Holder processes the credential by storing it in their wallet
-            await credentialService.ProcessCredentialAsync(pool, holderWallet, credential);
-
-            // Verify states of both credential records are set to 'Issued'
-            var issuerCredential = await credentialService.GetAsync(issuerWallet, issuerCredentialId);
-            var holderCredential = await credentialService.GetAsync(holderWallet, holderCredentialId);
-
-            return (issuerCredential, holderCredential);
-        }
-
+        
         internal static async Task<(CredentialRecord issuerCredential, CredentialRecord holderCredential)> IssueCredentialAsync(
             ISchemaService schemaService, ICredentialService credentialService,
             IProducerConsumerCollection<IEnvelopeMessage> messages,
