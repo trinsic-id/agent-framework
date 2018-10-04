@@ -13,6 +13,12 @@
       <Variable name="RUST_LOG" value="trace" />
     </EnvironmentVariables>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="C:\libs\indy\pool_genesis.txn" Link="pool_genesis.txn">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
     <PackageReference Include="Moq" Version="4.9.0" />
@@ -25,11 +31,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Streetcred.Sdk\Streetcred.Sdk.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="pool_genesis.txn">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 </Project>

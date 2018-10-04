@@ -68,7 +68,7 @@ namespace Streetcred.Sdk.Tests
             var requestMessage = GetContentMessage(issuerMessage) as ConnectionRequest;
             Assert.NotNull(requestMessage);
 
-            // Issuer processes the connection request by storing and accepting it it
+            // Issuer processes the connection request by storing and accepting it
             await connectionService.ProcessRequestAsync(firstWallet, requestMessage);
 
             connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);

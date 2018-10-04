@@ -106,14 +106,30 @@ namespace Streetcred.Sdk.Tests
             try
             {
                 await Wallet.CreateWalletAsync(IssuerConfig, WalletCredentials);
-                await Wallet.CreateWalletAsync(HolderConfig, WalletCredentials);
-                await Wallet.CreateWalletAsync(RequestorConfig, WalletCredentials);
             }
             catch (WalletExistsException)
             {
                 // OK
             }
 
+            try
+            {
+                await Wallet.CreateWalletAsync(HolderConfig, WalletCredentials);
+            }
+            catch (WalletExistsException)
+            {
+                // OK
+            }
+
+            try
+            {
+                await Wallet.CreateWalletAsync(RequestorConfig, WalletCredentials);
+            }
+            catch (WalletExistsException)
+            {
+                // OK
+            }
+            
             _issuerWallet = await Wallet.OpenWalletAsync(IssuerConfig, WalletCredentials);
             _holderWallet = await Wallet.OpenWalletAsync(HolderConfig, WalletCredentials);
             _requestorWallet = await Wallet.OpenWalletAsync(RequestorConfig, WalletCredentials);

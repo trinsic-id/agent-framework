@@ -26,7 +26,6 @@
         /// <summary>
         /// For automatically accepting a
         /// connection request generated from this created invite
-        /// on the invite
         /// </summary>
         public bool AutoAcceptConnection { get; set; }
     }
