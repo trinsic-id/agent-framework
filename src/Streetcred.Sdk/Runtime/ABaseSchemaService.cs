@@ -13,47 +13,47 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class SchemaService : ISchemaService
+    public class ABaseSchemaService : ISchemaService
     {
-        private readonly IWalletRecordService _recordService;
-        private readonly ILedgerService _ledgerService;
-        private readonly ITailsService _tailsService;
+        protected readonly IWalletRecordService RecordService;
+        protected readonly ILedgerService LedgerService;
+        protected readonly ITailsService TailsService;
 
-        public SchemaService(
+        public ABaseSchemaService(
             IWalletRecordService recordService,
             ILedgerService ledgerService,
             ITailsService tailsService)
         {
-            _recordService = recordService;
-            _ledgerService = ledgerService;
-            _tailsService = tailsService;
+            RecordService = recordService;
+            LedgerService = ledgerService;
+            TailsService = tailsService;
         }
 
         /// <inheritdoc />
-        public async Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string name,
+        public virtual async Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string name,
             string version, string[] attributeNames)
         {
             var schema = await AnonCreds.IssuerCreateSchemaAsync(issuerDid, name, version, attributeNames.ToJson());
 
             var schemaRecord = new SchemaRecord { SchemaId = schema.SchemaId };
 
-            await _ledgerService.RegisterSchemaAsync(pool, wallet, issuerDid, schema.SchemaJson);
-            await _recordService.AddAsync(wallet, schemaRecord);
+            await LedgerService.RegisterSchemaAsync(pool, wallet, issuerDid, schema.SchemaJson);
+            await RecordService.AddAsync(wallet, schemaRecord);
 
             return schemaRecord.SchemaId;
         }
 
         /// <inheritdoc />
-        public async Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
+        public virtual async Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
             string issuerDid, bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri)
         {
             var definitionRecord = new DefinitionRecord();
-            var schema = await _ledgerService.LookupSchemaAsync(pool, issuerDid, schemaId);
+            var schema = await LedgerService.LookupSchemaAsync(pool, issuerDid, schemaId);
 
             var credentialDefinition = await AnonCreds.IssuerCreateAndStoreCredentialDefAsync(wallet, issuerDid,
                 schema.ObjectJson, "Tag", null, new { support_revocation = supportsRevocation }.ToJson());
 
-            await _ledgerService.RegisterCredentialDefinitionAsync(wallet, pool, issuerDid,
+            await LedgerService.RegisterCredentialDefinitionAsync(wallet, pool, issuerDid,
                 credentialDefinition.CredDefJson);
 
             definitionRecord.SupportsRevocation = supportsRevocation;
@@ -61,7 +61,7 @@ namespace Streetcred.Sdk.Runtime
 
             if (supportsRevocation)
             {
-                var tailsHandle = await _tailsService.CreateTailsAsync();
+                var tailsHandle = await TailsService.CreateTailsAsync();
 
                 var revRegDefConfig =
                     new { issuance_type = "ISSUANCE_ON_DEMAND", max_cred_num = maxCredentialCount }.ToJson();
@@ -73,10 +73,10 @@ namespace Streetcred.Sdk.Runtime
                 var tailsfile = Path.GetFileName(revocationDefinition["value"]["tailsLocation"].ToObject<string>());
                 revocationDefinition["value"]["tailsLocation"] = new Uri(tailsBaseUri, tailsfile).ToString();
 
-                await _ledgerService.RegisterRevocationRegistryDefinitionAsync(wallet, pool, issuerDid,
+                await LedgerService.RegisterRevocationRegistryDefinitionAsync(wallet, pool, issuerDid,
                     revocationDefinition.ToString());
 
-                await _ledgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid,
+                await LedgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid,
                     revocationRegistry.RevRegId, "CL_ACCUM", revocationRegistry.RevRegEntryJson);
 
                 var revocationRecord = new RevocationRegistryRecord
@@ -85,24 +85,24 @@ namespace Streetcred.Sdk.Runtime
                     TailsFile = tailsfile
                 };
                 revocationRecord.Tags["credentialDefinitionId"] = credentialDefinition.CredDefId;
-                await _recordService.AddAsync(wallet, revocationRecord);
+                await RecordService.AddAsync(wallet, revocationRecord);
             }
 
-            await _recordService.AddAsync(wallet, definitionRecord);
+            await RecordService.AddAsync(wallet, definitionRecord);
 
             return credentialDefinition.CredDefId;
         }
 
         /// <inheritdoc />
-        public Task<List<SchemaRecord>> ListSchemasAsync(Wallet wallet) =>
-            _recordService.SearchAsync<SchemaRecord>(wallet, null, null, 100);
+        public virtual Task<List<SchemaRecord>> ListSchemasAsync(Wallet wallet) =>
+            RecordService.SearchAsync<SchemaRecord>(wallet, null, null, 100);
 
         /// <inheritdoc />
-        public Task<List<DefinitionRecord>> ListCredentialDefinitionsAsync(Wallet wallet) =>
-            _recordService.SearchAsync<DefinitionRecord>(wallet, null, null, 100);
+        public virtual Task<List<DefinitionRecord>> ListCredentialDefinitionsAsync(Wallet wallet) =>
+            RecordService.SearchAsync<DefinitionRecord>(wallet, null, null, 100);
 
         /// <inheritdoc />
-        public Task<DefinitionRecord> GetCredentialDefinitionAsync(Wallet wallet, string credentialDefinitionId) =>
-            _recordService.GetAsync<DefinitionRecord>(wallet, credentialDefinitionId);
+        public virtual Task<DefinitionRecord> GetCredentialDefinitionAsync(Wallet wallet, string credentialDefinitionId) =>
+            RecordService.GetAsync<DefinitionRecord>(wallet, credentialDefinitionId);
     }
 }

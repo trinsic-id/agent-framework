@@ -37,11 +37,11 @@ namespace Streetcred.Sdk.Tests
 
         public CredentialTests()
         {
-            var messageSerializer = new MessageSerializer();
-            var recordService = new WalletRecordService();
-            var ledgerService = new LedgerService();
+            var messageSerializer = new ABaseMessageSerializer();
+            var recordService = new ABaseWalletRecordService();
+            var ledgerService = new ABaseLedgerService();
 
-            _poolService = new PoolService();
+            _poolService = new ABasePoolService();
 
             var routingMock = new Mock<IRouterService>();
             routingMock.Setup(x => x.ForwardAsync(It.IsNotNull<IEnvelopeMessage>(), It.IsAny<AgentEndpoint>()))
@@ -57,17 +57,17 @@ namespace Streetcred.Sdk.Tests
                     TailsBaseUri = MockEndpointUri
                 }));
 
-            var tailsService = new TailsService(ledgerService);
-            _schemaService = new SchemaService(recordService, ledgerService, tailsService);
+            var tailsService = new ABaseTailsService(ledgerService);
+            _schemaService = new ABaseSchemaService(recordService, ledgerService, tailsService);
 
-            _connectionService = new ConnectionService(
+            _connectionService = new ABaseConnectionService(
                 recordService,
                 routingMock.Object,
                 provisioningMock.Object,
                 messageSerializer,
-                new Mock<ILogger<ConnectionService>>().Object);
+                new Mock<ILogger<ABaseConnectionService>>().Object);
 
-            _credentialService = new CredentialService(
+            _credentialService = new ABaseCredentialService(
                 routingMock.Object,
                 ledgerService,
                 _connectionService,
@@ -76,7 +76,7 @@ namespace Streetcred.Sdk.Tests
                 _schemaService,
                 tailsService,
                 provisioningMock.Object,
-                new Mock<ILogger<CredentialService>>().Object);
+                new Mock<ILogger<ABaseCredentialService>>().Object);
         }
 
         public async Task InitializeAsync()

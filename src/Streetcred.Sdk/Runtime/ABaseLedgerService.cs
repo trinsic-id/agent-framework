@@ -12,10 +12,10 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class LedgerService : ILedgerService
+    public class ABaseLedgerService : ILedgerService
     {
         /// <inheritdoc />
-        public async Task<ParseResponseResult> LookupDefinitionAsync(Pool pool, string submitterDid,
+        public virtual async Task<ParseResponseResult> LookupDefinitionAsync(Pool pool, string submitterDid,
             string definitionId)
         {
             var req = await Ledger.BuildGetCredDefRequestAsync(submitterDid, definitionId);
@@ -25,7 +25,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<ParseResponseResult> LookupRevocationRegistryDefinitionAsync(Pool pool, string submitterDid,
+        public virtual async Task<ParseResponseResult> LookupRevocationRegistryDefinitionAsync(Pool pool, string submitterDid,
             string registryId)
         {
             var req = await Ledger.BuildGetRevocRegDefRequestAsync(submitterDid, registryId);
@@ -35,7 +35,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<ParseResponseResult> LookupSchemaAsync(Pool pool, string submitterDid, string schemaId)
+        public virtual async Task<ParseResponseResult> LookupSchemaAsync(Pool pool, string submitterDid, string schemaId)
         {
             var req = await Ledger.BuildGetSchemaRequestAsync(submitterDid, schemaId);
             var res = await Ledger.SubmitRequestAsync(pool, req);
@@ -44,7 +44,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<ParseRegistryResponseResult> LookupRevocationRegistryDeltaAsync(Pool pool, string revocationRegistryId,
+        public virtual async Task<ParseRegistryResponseResult> LookupRevocationRegistryDeltaAsync(Pool pool, string revocationRegistryId,
              long from, long to)
         {
             var req = await Ledger.BuildGetRevocRegDeltaRequestAsync(null, revocationRegistryId, from, to);
@@ -56,7 +56,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<ParseRegistryResponseResult> LookupRevocationRegistryAsync(Pool pool, string revocationRegistryId,
+        public virtual async Task<ParseRegistryResponseResult> LookupRevocationRegistryAsync(Pool pool, string revocationRegistryId,
              long timestamp)
         {
             var req = await Ledger.BuildGetRevocRegRequestAsync(null, revocationRegistryId, timestamp);
@@ -68,7 +68,7 @@ namespace Streetcred.Sdk.Runtime
         }
         
         /// <inheritdoc />
-        public async Task RegisterSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string schemaJson)
+        public virtual async Task RegisterSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string schemaJson)
         {
             var req = await Ledger.BuildSchemaRequestAsync(issuerDid, schemaJson);
             var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, issuerDid, req);
@@ -77,7 +77,7 @@ namespace Streetcred.Sdk.Runtime
         }
         
         /// <inheritdoc />
-        public async Task RegisterCredentialDefinitionAsync(Wallet wallet, Pool pool, string submitterDid, string data)
+        public virtual async Task RegisterCredentialDefinitionAsync(Wallet wallet, Pool pool, string submitterDid, string data)
         {
             var req = await Ledger.BuildCredDefRequestAsync(submitterDid, data);
             var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, req);
@@ -86,7 +86,7 @@ namespace Streetcred.Sdk.Runtime
         }
         
         /// <inheritdoc />
-        public async Task RegisterRevocationRegistryDefinitionAsync(Wallet wallet, Pool pool, string submitterDid,
+        public virtual async Task RegisterRevocationRegistryDefinitionAsync(Wallet wallet, Pool pool, string submitterDid,
             string data)
         {
             var req = await Ledger.BuildRevocRegDefRequestAsync(submitterDid, data);
@@ -96,7 +96,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task SendRevocationRegistryEntryAsync(Wallet wallet, Pool pool, string issuerDid,
+        public virtual async Task SendRevocationRegistryEntryAsync(Wallet wallet, Pool pool, string issuerDid,
             string revocationRegistryDefinitionId, string revocationDefinitionType, string value)
         {
             var req = await Ledger.BuildRevocRegEntryRequestAsync(issuerDid, revocationRegistryDefinitionId,
@@ -107,7 +107,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task RegisterTrustAnchorAsync(Wallet wallet, Pool pool, string submitterDid, string theirDid,
+        public virtual async Task RegisterTrustAnchorAsync(Wallet wallet, Pool pool, string submitterDid, string theirDid,
             string theirVerkey)
         {
             if (DidUtils.IsFullVerkey(theirVerkey))
@@ -120,7 +120,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<string> LookupAttributeAsync(Pool pool, string targetDid, string attributeName)
+        public virtual async Task<string> LookupAttributeAsync(Pool pool, string targetDid, string attributeName)
         {
             var req = await Ledger.BuildGetAttribRequestAsync(null, targetDid, attributeName, null, null);
             var res = await Ledger.SubmitRequestAsync(pool, req);
@@ -129,7 +129,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task RegisterAttributeAsync(Pool pool, Wallet wallet, string submittedDid, string targetDid,
+        public virtual async Task RegisterAttributeAsync(Pool pool, Wallet wallet, string submittedDid, string targetDid,
             string attributeName, object value)
         {
             var data = $"{{\"{attributeName}\": {value.ToJson()}}}";

@@ -6,21 +6,21 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class PoolService : IPoolService
+    public class ABasePoolService : IPoolService
     {
-        private static Pool _pool;
+        protected static Pool Pool;
 
         /// <inheritdoc />
-        public async Task<Pool> GetPoolAsync(string poolName, int protocolVersion)
+        public virtual async Task<Pool> GetPoolAsync(string poolName, int protocolVersion)
         {
-            if (_pool != null) return _pool;
+            if (Pool != null) return Pool;
 
             await Pool.SetProtocolVersionAsync(protocolVersion);
-            return _pool = await Pool.OpenPoolLedgerAsync(poolName, null);
+            return Pool = await Pool.OpenPoolLedgerAsync(poolName, null);
         }
 
         /// <inheritdoc />
-        public async Task CreatePoolAsync(string poolName, string genesisFile, int protocolVersion)
+        public virtual async Task CreatePoolAsync(string poolName, string genesisFile, int protocolVersion)
         {
             await Pool.SetProtocolVersionAsync(protocolVersion);
 
