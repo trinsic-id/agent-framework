@@ -20,87 +20,12 @@ namespace Streetcred.Sdk.Tests
 {
     internal static class Scenarios
     {
-
-        internal static async Task<(ConnectionRecord firstParty, ConnectionRecord secondParty)> EstablishAutomaticConnectionAsync(
-                IConnectionService connectionService,
-                IProducerConsumerCollection<IEnvelopeMessage> _messages,
-                Wallet firstWallet,
-                Wallet secondWallet)
-        {
-            // Create invitation by the issuer
-            var issuerConnectionId = Guid.NewGuid().ToString();
-
-            var inviteConfig = new CreateInviteConfiguration()
-            {
-                ConnectionId = issuerConnectionId,
-                AutoAcceptConnection = true,
-                MyAlias = new ConnectionAlias()
-                {
-                    Name = "Issuer",
-                    ImageUrl = "www.issuerdomain.com/profilephoto"
-                },
-                TheirAlias = new ConnectionAlias()
-                {
-                    Name = "Holder",
-                    ImageUrl = "www.holderdomain.com/profilephoto"
-                }
-            };
-
-            // Issuer creates an invitation
-            var invitation = await connectionService.CreateInvitationAsync(firstWallet, inviteConfig);
-
-            var connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
-
-            Assert.Equal(ConnectionState.Invited, connectionIssuer.State);
-            Assert.True(invitation.Name == inviteConfig.MyAlias.Name &&
-                        invitation.ImageUrl == inviteConfig.MyAlias.ImageUrl);
-
-            // Holder accepts invitation and sends a message request
-            var holderConnectionId = await connectionService.AcceptInvitationAsync(secondWallet, invitation);
-            var connectionHolder = await connectionService.GetAsync(secondWallet, holderConnectionId);
-
-            Assert.Equal(ConnectionState.Negotiating, connectionHolder.State);
-
-            // Issuer processes incoming message
-            var issuerMessage = _messages.OfType<ForwardToKeyEnvelopeMessage>()
-                .First(x => x.Type.Contains(connectionIssuer.Tags.Single(item => item.Key == "connectionKey").Value));
-
-            var requestMessage = GetContentMessage(issuerMessage) as ConnectionRequest;
-            Assert.NotNull(requestMessage);
-
-            // Issuer processes the connection request by storing and accepting it
-            await connectionService.ProcessRequestAsync(firstWallet, requestMessage);
-
-            connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
-            Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
-
-            // Holder processes incoming message
-            var holderMessage = _messages.OfType<ForwardEnvelopeMessage>()
-                .First(x => x.Type.Contains(connectionHolder.MyDid));
-
-            var responseMessage = GetContentMessage(holderMessage) as ConnectionResponse;
-            Assert.NotNull(responseMessage);
-
-            // Holder processes the response message by accepting it
-            await connectionService.ProcessResponseAsync(secondWallet, responseMessage);
-
-            // Retrieve updated connection state for both issuer and holder
-            connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
-            connectionHolder = await connectionService.GetAsync(secondWallet, holderConnectionId);
-
-            Assert.True(connectionIssuer.Alias.Name == inviteConfig.TheirAlias.Name &&
-                        connectionIssuer.Alias.ImageUrl == inviteConfig.TheirAlias.ImageUrl);
-            Assert.True(connectionHolder.Alias.Name == inviteConfig.MyAlias.Name &&
-                        connectionHolder.Alias.ImageUrl == inviteConfig.MyAlias.ImageUrl);
-
-            return (connectionIssuer, connectionHolder);
-        }
-
         internal static async Task<(ConnectionRecord firstParty, ConnectionRecord secondParty)> EstablishConnectionAsync(
             IConnectionService connectionService,
             IProducerConsumerCollection<IEnvelopeMessage> _messages,
             Wallet firstWallet,
-            Wallet secondWallet)
+            Wallet secondWallet,
+            bool autoConnectionFlow = false)
         {
             // Create invitation by the issuer
             var issuerConnectionId = Guid.NewGuid().ToString();
@@ -108,7 +33,7 @@ namespace Streetcred.Sdk.Tests
             var inviteConfig = new CreateInviteConfiguration()
             {
                 ConnectionId = issuerConnectionId,
-                AutoAcceptConnection = false,
+                AutoAcceptConnection = autoConnectionFlow,
                 MyAlias = new ConnectionAlias()
                 {
                     Name = "Issuer",
@@ -143,14 +68,17 @@ namespace Streetcred.Sdk.Tests
             var requestMessage = GetContentMessage(issuerMessage) as ConnectionRequest;
             Assert.NotNull(requestMessage);
 
-            // Issuer processes the connection request by storing it
+            // Issuer processes the connection request by storing it and accepting it if auto connection flow is enabled
             await connectionService.ProcessRequestAsync(firstWallet, requestMessage);
 
-            connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
-            Assert.Equal(ConnectionState.Negotiating, connectionIssuer.State);
+            if (!autoConnectionFlow)
+            {
+                connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
+                Assert.Equal(ConnectionState.Negotiating, connectionIssuer.State);
 
-            // Issuer accepts the connection request
-            await connectionService.AcceptRequestAsync(firstWallet, issuerConnectionId);
+                // Issuer accepts the connection request
+                await connectionService.AcceptRequestAsync(firstWallet, issuerConnectionId);
+            }
 
             connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
             Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
