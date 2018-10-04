@@ -156,7 +156,7 @@ namespace Streetcred.Sdk.Tests
 
             // Issuer processes the credential request by storing it
             var issuerCredentialId =
-                await credentialService.ProcessCredentialRequestAsync(pool, issuerWallet, credentialRequest);
+                await credentialService.ProcessCredentialRequestAsync(issuerWallet, credentialRequest);
 
             // Holder retrieves the credential from their cloud agent
             var credential = FindContentMessage<Credential>(messages);
@@ -222,7 +222,7 @@ namespace Streetcred.Sdk.Tests
 
             // Issuer processes the credential request by storing it
             var issuerCredentialId =
-                await credentialService.ProcessCredentialRequestAsync(pool, issuerWallet, credentialRequest);
+                await credentialService.ProcessCredentialRequestAsync(issuerWallet, credentialRequest);
 
             // Issuer accepts the credential requests and issues a credential
             await credentialService.IssueCredentialAsync(pool, issuerWallet, issuer.Did, issuerCredentialId);

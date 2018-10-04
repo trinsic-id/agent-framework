@@ -82,7 +82,7 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialRequest">The credential request.</param>
         /// <returns>The credential identifier of the stored credential record.</returns>
-        Task<string> ProcessCredentialRequestAsync(Pool pool, Wallet wallet, CredentialRequest credentialRequest);
+        Task<string> ProcessCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest);
 
         /// <summary>
         /// Creates and sends a credential with the given credential identifier

@@ -252,7 +252,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessCredentialRequestAsync(Pool pool, Wallet wallet, CredentialRequest credentialRequest)
+        public virtual async Task<string> ProcessCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest)
         {
             Logger.LogInformation(LoggingEvents.StoreCredentialRequest, "Type {0},", credentialRequest.Type);
 
