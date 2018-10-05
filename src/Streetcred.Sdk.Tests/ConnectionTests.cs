@@ -57,12 +57,21 @@ namespace Streetcred.Sdk.Tests
             try
             {
                 await Wallet.CreateWalletAsync(IssuerConfig, Credentials);
+            }
+            catch (WalletExistsException)
+            {
+                // OK
+            }
+
+            try
+            {
                 await Wallet.CreateWalletAsync(HolderConfig, Credentials);
             }
             catch (WalletExistsException)
             {
                 // OK
             }
+
             _issuerWallet = await Wallet.OpenWalletAsync(IssuerConfig, Credentials);
             _holderWallet = await Wallet.OpenWalletAsync(HolderConfig, Credentials);
         }
@@ -79,6 +88,22 @@ namespace Streetcred.Sdk.Tests
 
             Assert.Equal(ConnectionState.Invited, connection.State);
             Assert.Equal(connectionId, connection.GetId());
+        }
+
+        [Fact]
+        public async Task CanEstablishAutomaticConnectionAsync()
+        {
+            var (connectionIssuer, connectionHolder) = await Scenarios.EstablishConnectionAsync(
+                _connectionService, _messages, _issuerWallet, _holderWallet, true);
+
+            Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
+            Assert.Equal(ConnectionState.Connected, connectionHolder.State);
+
+            Assert.Equal(connectionIssuer.MyDid, connectionHolder.TheirDid);
+            Assert.Equal(connectionIssuer.TheirDid, connectionHolder.MyDid);
+
+            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
+            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
         }
 
         [Fact]

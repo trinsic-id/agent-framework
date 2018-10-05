@@ -55,6 +55,9 @@ namespace Streetcred.Sdk.Runtime
             connection.ConnectionId = connectionId;
             connection.Tags.Add("connectionKey", connectionKey);
 
+            if (config != null && config.AutoAcceptConnection)
+                connection.Tags.Add("autoConnect", "true");
+
             if (config?.TheirAlias != null)
             {
                 connection.Alias = config.TheirAlias;
@@ -142,7 +145,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<string> StoreRequestAsync(Wallet wallet, ConnectionRequest request)
+        public async Task<string> ProcessRequestAsync(Wallet wallet, ConnectionRequest request)
         {
             _logger.LogInformation(LoggingEvents.StoreConnectionRequest, "Key {0}", request.Key);
 
@@ -173,6 +176,9 @@ namespace Streetcred.Sdk.Runtime
             connection.Tags["theirDid"] = their.Did;
 
             await _recordService.UpdateAsync(wallet, connection);
+
+            if (connection.Tags.Any(_ => _.Key == "autoConnect" && _.Value == "true"))
+                await AcceptRequestAsync(wallet, connection.ConnectionId);
 
             return connection.GetId();
         }
@@ -215,7 +221,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task AcceptResponseAsync(Wallet wallet, ConnectionResponse response)
+        public async Task ProcessResponseAsync(Wallet wallet, ConnectionResponse response)
         {
             _logger.LogInformation(LoggingEvents.AcceptConnectionResponse, "To {0}", response.To);
 

@@ -20,12 +20,12 @@ namespace Streetcred.Sdk.Tests
 {
     internal static class Scenarios
     {
-
         internal static async Task<(ConnectionRecord firstParty, ConnectionRecord secondParty)> EstablishConnectionAsync(
             IConnectionService connectionService,
             IProducerConsumerCollection<IEnvelopeMessage> _messages,
             Wallet firstWallet,
-            Wallet secondWallet)
+            Wallet secondWallet,
+            bool autoConnectionFlow = false)
         {
             // Create invitation by the issuer
             var issuerConnectionId = Guid.NewGuid().ToString();
@@ -33,6 +33,7 @@ namespace Streetcred.Sdk.Tests
             var inviteConfig = new CreateInviteConfiguration()
             {
                 ConnectionId = issuerConnectionId,
+                AutoAcceptConnection = autoConnectionFlow,
                 MyAlias = new ConnectionAlias()
                 {
                     Name = "Issuer",
@@ -67,14 +68,17 @@ namespace Streetcred.Sdk.Tests
             var requestMessage = GetContentMessage(issuerMessage) as ConnectionRequest;
             Assert.NotNull(requestMessage);
 
-            // Issuer stores the connection request
-            await connectionService.StoreRequestAsync(firstWallet, requestMessage);
+            // Issuer processes the connection request by storing it and accepting it if auto connection flow is enabled
+            await connectionService.ProcessRequestAsync(firstWallet, requestMessage);
 
-            connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
-            Assert.Equal(ConnectionState.Negotiating, connectionIssuer.State);
+            if (!autoConnectionFlow)
+            {
+                connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
+                Assert.Equal(ConnectionState.Negotiating, connectionIssuer.State);
 
-            // Issuer accepts the connection request
-            await connectionService.AcceptRequestAsync(firstWallet, issuerConnectionId);
+                // Issuer accepts the connection request
+                await connectionService.AcceptRequestAsync(firstWallet, issuerConnectionId);
+            }
 
             connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
             Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
@@ -86,9 +90,8 @@ namespace Streetcred.Sdk.Tests
             var responseMessage = GetContentMessage(holderMessage) as ConnectionResponse;
             Assert.NotNull(responseMessage);
 
-            // Holder accepts response message
-            await connectionService.AcceptResponseAsync(secondWallet, responseMessage);
-
+            // Holder processes the response message by accepting it
+            await connectionService.ProcessResponseAsync(secondWallet, responseMessage);
 
             // Retrieve updated connection state for both issuer and holder
             connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);

@@ -71,11 +71,10 @@ namespace Streetcred.Sdk.Extensions
                 switch (decoded)
                 {
                     case ConnectionRequest request:
-                        var connectionId = await _connectionService.StoreRequestAsync(wallet, request);
-                        await _connectionService.AcceptRequestAsync(wallet, connectionId);
+                        await _connectionService.ProcessRequestAsync(wallet, request);
                         break;
                     case ConnectionResponse response:
-                        await _connectionService.AcceptResponseAsync(wallet, response);
+                        await _connectionService.ProcessResponseAsync(wallet, response);
                         break;
                     case CredentialOffer offer:
                         await _credentialService.StoreOfferAsync(wallet, offer);
