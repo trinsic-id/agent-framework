@@ -9,15 +9,15 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class WalletService : IWalletService
+    public class DefaultWalletService : IWalletService
     {
-        private static readonly ConcurrentDictionary<string, Wallet> Wallets =
+        protected static readonly ConcurrentDictionary<string, Wallet> Wallets =
             new ConcurrentDictionary<string, Wallet>();
 
         public const string MasterSecretName = "master_secret";
 
         /// <inheritdoc />
-        public async Task<Wallet> GetWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
+        public virtual async Task<Wallet> GetWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
         {
 
             if (Wallets.TryGetValue(configuration.Id, out var wallet))
@@ -33,7 +33,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task CreateWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
+        public virtual async Task CreateWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
         {
             await Wallet.CreateWalletAsync(configuration.ToJson(), credentials.ToJson());
 
@@ -43,7 +43,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task DeleteWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
+        public virtual async Task DeleteWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
         {
             await Wallet.DeleteWalletAsync(configuration.ToJson(), credentials.ToJson());
         }

@@ -12,21 +12,21 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class ProvisioningService : IProvisioningService
+    public class DefaultProvisioningService : IProvisioningService
     {
-        private readonly IWalletRecordService _recordService;
+        protected readonly IWalletRecordService RecordService;
 
-        public ProvisioningService(IWalletRecordService walletRecord)
+        public DefaultProvisioningService(IWalletRecordService walletRecord)
         {
-            _recordService = walletRecord;
+            RecordService = walletRecord;
         }
 
         /// <inheritdoc />
-        public Task<ProvisioningRecord> GetProvisioningAsync(Wallet wallet) =>
-            _recordService.GetAsync<ProvisioningRecord>(wallet, ProvisioningRecord.RecordId);
+        public virtual Task<ProvisioningRecord> GetProvisioningAsync(Wallet wallet) =>
+            RecordService.GetAsync<ProvisioningRecord>(wallet, ProvisioningRecord.RecordId);
 
         /// <inheritdoc />
-        public async Task ProvisionAgentAsync(Wallet wallet, ProvisioningConfiguration provisioningConfiguration)
+        public virtual async Task ProvisionAgentAsync(Wallet wallet, ProvisioningConfiguration provisioningConfiguration)
         {
             if (provisioningConfiguration == null) throw new ArgumentNullException(nameof(provisioningConfiguration));
             if (provisioningConfiguration.EndpointUri == null)
@@ -72,7 +72,7 @@ namespace Streetcred.Sdk.Runtime
                 record.IssuerVerkey = issuer.VerKey;
             }
 
-            await _recordService.AddAsync(wallet, record);
+            await RecordService.AddAsync(wallet, record);
         }
     }
 }

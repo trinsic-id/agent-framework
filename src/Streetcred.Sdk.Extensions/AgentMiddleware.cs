@@ -77,13 +77,13 @@ namespace Streetcred.Sdk.Extensions
                         await _connectionService.ProcessResponseAsync(wallet, response);
                         break;
                     case CredentialOffer offer:
-                        await _credentialService.StoreOfferAsync(wallet, offer);
+                        await _credentialService.ProcessOfferAsync(wallet, offer);
                         break;
                     case CredentialRequest request:
-                        await _credentialService.StoreCredentialRequestAsync(wallet, request);
+                        await _credentialService.ProcessCredentialRequestAsync(wallet, request);
                         break;
                     case Credential credential:
-                        await _credentialService.StoreCredentialAsync(pool, wallet, credential);
+                        await _credentialService.ProcessCredentialAsync(pool, wallet, credential);
                         break;
                     case Proof _:
                         break;

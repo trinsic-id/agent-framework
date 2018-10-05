@@ -30,7 +30,7 @@ namespace Streetcred.Sdk.Tests
 
         public ConnectionTests()
         {
-            var messageSerializer = new MessageSerializer();
+            var messageSerializer = new DefaultMessageSerializer();
 
             var routingMock = new Mock<IRouterService>();
             routingMock.Setup(x => x.ForwardAsync(It.IsNotNull<IEnvelopeMessage>(), It.IsAny<AgentEndpoint>()))
@@ -44,12 +44,12 @@ namespace Streetcred.Sdk.Tests
                     Endpoint = new AgentEndpoint {Uri = MockEndpointUri}
                 }));
 
-            _connectionService = new ConnectionService(
-                new WalletRecordService(),
+            _connectionService = new DefaultConnectionService(
+                new DefaultWalletRecordService(),
                 routingMock.Object,
                 provisioningMock.Object,
                 messageSerializer,
-                new Mock<ILogger<ConnectionService>>().Object);
+                new Mock<ILogger<DefaultConnectionService>>().Object);
         }
 
         public async Task InitializeAsync()
@@ -82,7 +82,7 @@ namespace Streetcred.Sdk.Tests
             var connectionId = Guid.NewGuid().ToString();
 
             var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new CreateInviteConfiguration() {ConnectionId = connectionId});
+                new DefaultCreateInviteConfiguration() {ConnectionId = connectionId});
 
             var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
 
