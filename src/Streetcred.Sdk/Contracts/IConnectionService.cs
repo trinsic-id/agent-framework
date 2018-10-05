@@ -38,7 +38,7 @@ namespace Streetcred.Sdk.Contracts
         Task<ConnectionInvitation> CreateInvitationAsync(Wallet wallet, CreateInviteConfiguration config = null);
 
         /// <summary>
-        /// Accepts the invitation async.
+        /// Accepts the connection invitation async.
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="offer">Offer.</param>
@@ -48,14 +48,14 @@ namespace Streetcred.Sdk.Contracts
         Task<string> AcceptInvitationAsync(Wallet wallet, ConnectionInvitation offer);
 
         /// <summary>
-        /// Accepts the request async.
+        /// Process the connection request async.
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="request">Request.</param>
         /// <returns>
         /// Connection identifier this requests is related to.
         /// </returns>
-        Task<string> StoreRequestAsync(Wallet wallet, ConnectionRequest request);
+        Task<string> ProcessRequestAsync(Wallet wallet, ConnectionRequest request);
 
         /// <summary>
         /// Accepts the connection request and sends a connection response
@@ -66,14 +66,14 @@ namespace Streetcred.Sdk.Contracts
         Task AcceptRequestAsync(Wallet wallet, string connectionId);
 
         /// <summary>
-        /// Accepts the response async.
+        /// Processes the connection response async.
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="response">Response.</param>
         /// <returns>
         /// The response async.
         /// </returns>
-        Task AcceptResponseAsync(Wallet wallet, ConnectionResponse response);
+        Task ProcessResponseAsync(Wallet wallet, ConnectionResponse response);
 
         /// <summary>
         /// Deletes a connection from the local store
