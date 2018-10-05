@@ -35,7 +35,7 @@ namespace Agency.Web.Controllers
         }
 
         [HttpPost("invite")]
-        public async Task<ConnectionInvitation> CreateInvitation([FromBody] CreateInviteConfiguration config = null)
+        public async Task<ConnectionInvitation> CreateInvitation([FromBody] DefaultCreateInviteConfiguration config = null)
         {
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
             return await _connectionService.CreateInvitationAsync(wallet, config);

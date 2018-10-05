@@ -13,18 +13,18 @@ using Newtonsoft.Json.Linq;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class TailsService : ITailsService
+    public class DefaultTailsService : ITailsService
     {
-        private static readonly ConcurrentDictionary<string, BlobStorageReader> BlobReaders =
+        protected static readonly ConcurrentDictionary<string, BlobStorageReader> BlobReaders =
             new ConcurrentDictionary<string, BlobStorageReader>();
 
-        private readonly ILedgerService _ledgerService;
-        private readonly HttpClient _httpClient;
+        protected readonly ILedgerService LedgerService;
+        protected readonly HttpClient HttpClient;
 
-        public TailsService(ILedgerService ledgerService)
+        public DefaultTailsService(ILedgerService ledgerService)
         {
-            _ledgerService = ledgerService;
-            _httpClient = new HttpClient();
+            LedgerService = ledgerService;
+            HttpClient = new HttpClient();
         }
 
         /// <inheritdoc />
@@ -66,7 +66,7 @@ namespace Streetcred.Sdk.Runtime
         public async Task<string> EnsureTailsExistsAsync(Pool pool, string revocationRegistryId)
         {
             var revocationRegistry =
-                await _ledgerService.LookupRevocationRegistryDefinitionAsync(pool, null, revocationRegistryId);
+                await LedgerService.LookupRevocationRegistryDefinitionAsync(pool, null, revocationRegistryId);
             var tailsUri = JObject.Parse(revocationRegistry.ObjectJson)["value"]["tailsLocation"].ToObject<string>();
 
             var tailsfile = Path.Combine(EnvironmentUtils.GetTailsPath(), new Uri(tailsUri).Segments.Last());
@@ -75,7 +75,7 @@ namespace Streetcred.Sdk.Runtime
             {
                 File.WriteAllBytes(
                     path: tailsfile,
-                    bytes: await _httpClient.GetByteArrayAsync(tailsUri));
+                    bytes: await HttpClient.GetByteArrayAsync(tailsUri));
             }
 
             return Path.GetFileName(tailsfile);

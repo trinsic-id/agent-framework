@@ -45,11 +45,11 @@ namespace Streetcred.Sdk.Tests
 
         public ProofTests()
         {
-            var messageSerializer = new MessageSerializer();
-            var recordService = new WalletRecordService();
-            var ledgerService = new LedgerService();
+            var messageSerializer = new DefaultMessageSerializer();
+            var recordService = new DefaultWalletRecordService();
+            var ledgerService = new DefaultLedgerService();
 
-            _poolService = new PoolService();
+            _poolService = new DefaultPoolService();
 
             var provisionMock = new Mock<IProvisioningService>();
             provisionMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
@@ -69,17 +69,17 @@ namespace Streetcred.Sdk.Tests
                     MasterSecretId = MasterSecretId
                 }));
 
-            var tailsService = new TailsService(ledgerService);
-            _schemaService = new SchemaService(recordService, ledgerService, tailsService);
+            var tailsService = new DefaultTailsService(ledgerService);
+            _schemaService = new DefaultSchemaService(recordService, ledgerService, tailsService);
 
-            _connectionService = new ConnectionService(
+            _connectionService = new DefaultConnectionService(
                 recordService,
                 routingMock.Object,
                 provisioningMock.Object,
                 messageSerializer,
-                new Mock<ILogger<ConnectionService>>().Object);
+                new Mock<ILogger<DefaultConnectionService>>().Object);
 
-            _credentialService = new CredentialService(
+            _credentialService = new DefaultCredentialService(
                 routingMock.Object,
                 ledgerService,
                 _connectionService,
@@ -88,9 +88,9 @@ namespace Streetcred.Sdk.Tests
                 _schemaService,
                 tailsService,
                 provisioningMock.Object,
-                new Mock<ILogger<CredentialService>>().Object);
+                new Mock<ILogger<DefaultCredentialService>>().Object);
 
-            _proofService = new ProofService(
+            _proofService = new DefaultProofService(
                 _connectionService,
                 routingMock.Object,
                 messageSerializer,
@@ -98,7 +98,7 @@ namespace Streetcred.Sdk.Tests
                 provisionMock.Object,
                 ledgerService,
                 tailsService,
-                new Mock<ILogger<ProofService>>().Object);
+                new Mock<ILogger<DefaultProofService>>().Object);
         }
 
         public async Task InitializeAsync()

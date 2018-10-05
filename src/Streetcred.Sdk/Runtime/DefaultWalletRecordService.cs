@@ -12,10 +12,10 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class WalletRecordService : IWalletRecordService
+    public class DefaultWalletRecordService : IWalletRecordService
     {
         /// <inheritdoc />
-        public Task AddAsync<T>(Wallet wallet, T record)
+        public virtual Task AddAsync<T>(Wallet wallet, T record)
             where T : WalletRecord, new()
         {
             return NonSecrets.AddRecordAsync(wallet,
@@ -26,7 +26,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<List<T>> SearchAsync<T>(Wallet wallet, SearchRecordQuery query, SearchRecordOptions options, int count)
+        public virtual async Task<List<T>> SearchAsync<T>(Wallet wallet, SearchRecordQuery query, SearchRecordOptions options, int count)
             where T : WalletRecord, new()
         {
             using (var search = await NonSecrets.OpenSearchAsync(wallet, new T().GetTypeName(),
@@ -51,7 +51,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task UpdateAsync<T>(Wallet wallet, T record) where T : WalletRecord, new()
+        public virtual async Task UpdateAsync<T>(Wallet wallet, T record) where T : WalletRecord, new()
         {
             await NonSecrets.UpdateRecordValueAsync(wallet,
                 record.GetTypeName(),
@@ -65,7 +65,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<T> GetAsync<T>(Wallet wallet, string id) where T : WalletRecord, new()
+        public virtual async Task<T> GetAsync<T>(Wallet wallet, string id) where T : WalletRecord, new()
         {
             try
             {
@@ -91,7 +91,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<bool> DeleteAsync<T>(Wallet wallet, string id) where T : WalletRecord, new()
+        public virtual async Task<bool> DeleteAsync<T>(Wallet wallet, string id) where T : WalletRecord, new()
         {
             try
             {

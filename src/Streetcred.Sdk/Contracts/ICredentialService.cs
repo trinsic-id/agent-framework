@@ -31,12 +31,12 @@ namespace Streetcred.Sdk.Contracts
         Task<List<CredentialRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100);
 
         /// <summary>
-        /// Stores the offer asynchronous.
+        /// Process the offer and stores in the desinated wallet asynchronous.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialOffer">The credential offer.</param>
         /// <returns>The credential identifier of the stored credential record</returns>
-        Task<string> StoreOfferAsync(Wallet wallet, CredentialOffer credentialOffer);
+        Task<string> ProcessOfferAsync(Wallet wallet, CredentialOffer credentialOffer);
 
         /// <summary>
         /// Accepts the offer asynchronous.
@@ -44,48 +44,45 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="pool">The pool.</param>
         /// <param name="credentialId">The credential identifier.</param>
-        /// <param name="values">The values.</param>
+        /// <param name="attributeValues">The attribute values.</param>
         /// <returns></returns>
-        Task AcceptOfferAsync(Wallet wallet, Pool pool, string credentialId, Dictionary<string, string> values);
+        Task AcceptOfferAsync(Wallet wallet, Pool pool, string credentialId, Dictionary<string, string> attributeValues);
 
         /// <summary>
-        /// Stores the issued credential in the designated wallet.
+        /// Processes the issued credential and stores in the designated wallet.
         /// </summary>
         /// <param name="pool">The pool.</param>
         /// <param name="wallet">The wallet.</param>
         /// <param name="credential">The credential.</param>
         /// <returns></returns>
-        Task StoreCredentialAsync(Pool pool, Wallet wallet, Credential credential);
+        Task ProcessCredentialAsync(Pool pool, Wallet wallet, Credential credential);
 
         /// <summary>
-        /// Sends the offer.
+        /// Create a new credential offer.
         /// </summary>
-        /// <param name="credentialDefinitionId">Cred def identifier.</param>
-        /// <param name="connectionId">The connection identifier.</param>
         /// <param name="wallet">The wallet.</param>
-        /// <param name="issuerDid">The issuer did.</param>
+        /// <param name="config">A configuration object used to configure the resulting offers presentation</param>
         /// <returns>
         /// The offer.
         /// </returns>
-        Task<CredentialOffer> CreateOfferAsync(string credentialDefinitionId, string connectionId, Wallet wallet, string issuerDid);
+        Task<CredentialOffer> CreateOfferAsync(Wallet wallet, DefaultCreateOfferConfiguration config);
 
         /// <summary>
         /// Sends the offer asynchronous.
         /// </summary>
-        /// <param name="credentialDefinitionId">The credential definition identifier.</param>
-        /// <param name="connectionId">The connection identifier.</param>
         /// <param name="wallet">The wallet.</param>
-        /// <param name="issuerDid">The issuer did.</param>
+        /// <param name="config">A configuration object used to configure the resulting offers presentation</param>
         /// <returns></returns>
-        Task SendOfferAsync(string credentialDefinitionId, string connectionId, Wallet wallet, string issuerDid);
+        Task SendOfferAsync(Wallet wallet, DefaultCreateOfferConfiguration config);
 
         /// <summary>
-        /// Stores the credential request.
+        /// Processes the credential request and stores in the designated wallet.
         /// </summary>
+        /// <param name="pool">The pool.</param>
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialRequest">The credential request.</param>
         /// <returns>The credential identifier of the stored credential record.</returns>
-        Task<string> StoreCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest);
+        Task<string> ProcessCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest);
 
         /// <summary>
         /// Creates and sends a credential with the given credential identifier
@@ -99,7 +96,7 @@ namespace Streetcred.Sdk.Contracts
 
         /// <summary>
         /// Creates and sends a credential with the given credential identifier. 
-        /// The credential is issued with the values provided.
+        /// The credential is issued with the attributeValues provided.
         /// </summary>
         /// <returns>The credential async.</returns>
         /// <param name="pool">Pool.</param>

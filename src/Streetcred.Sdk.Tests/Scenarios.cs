@@ -30,7 +30,7 @@ namespace Streetcred.Sdk.Tests
             // Create invitation by the issuer
             var issuerConnectionId = Guid.NewGuid().ToString();
 
-            var inviteConfig = new CreateInviteConfiguration()
+            var inviteConfig = new DefaultCreateInviteConfiguration()
             {
                 ConnectionId = issuerConnectionId,
                 AutoAcceptConnection = autoConnectionFlow,
@@ -104,15 +104,13 @@ namespace Streetcred.Sdk.Tests
 
             return (connectionIssuer, connectionHolder);
         }
-
-
+        
         internal static async Task<(CredentialRecord issuerCredential, CredentialRecord holderCredential)> IssueCredentialAsync(
             ISchemaService schemaService, ICredentialService credentialService,
             IProducerConsumerCollection<IEnvelopeMessage> messages,
             string issuerConnectionId, Wallet issuerWallet, Wallet holderWallet,
             Pool pool, string proverMasterSecretId, bool revocable)
         {
-
             // Create an issuer DID/VK. Can also be created during provisioning
             var issuer = await Did.CreateAndStoreMyDidAsync(issuerWallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
@@ -123,15 +121,22 @@ namespace Streetcred.Sdk.Tests
             var definitionId =
                 await schemaService.CreateCredentialDefinitionAsync(pool, issuerWallet, schemaId, issuer.Did, revocable, 100, new Uri("http://mock/tails"));
 
+            var offerConfig = new DefaultCreateOfferConfiguration()
+            {
+                ConnectionId = issuerConnectionId,
+                IssuerDid = issuer.Did,
+                CredentialDefinitionId = definitionId
+            };
+
             // Send an offer to the holder using the established connection channel
-            await credentialService.SendOfferAsync(definitionId, issuerConnectionId, issuerWallet, issuer.Did);
+            await credentialService.SendOfferAsync(issuerWallet, offerConfig);
 
             // Holder retrives message from their cloud agent
             var credentialOffer = FindContentMessage<CredentialOffer>(messages);
 
-            // Holder stores the credential offer
+            // Holder processes the credential offer by storing it
             var holderCredentialId =
-                await credentialService.StoreOfferAsync(holderWallet, credentialOffer);
+                await credentialService.ProcessOfferAsync(holderWallet, credentialOffer);
 
             // Holder creates master secret. Will also be created during wallet agent provisioning
             await AnonCreds.ProverCreateMasterSecretAsync(holderWallet, proverMasterSecretId);
@@ -148,9 +153,9 @@ namespace Streetcred.Sdk.Tests
             var credentialRequest = FindContentMessage<CredentialRequest>(messages);
             Assert.NotNull(credentialRequest);
 
-            // Issuer stores the credential request
+            // Issuer processes the credential request by storing it
             var issuerCredentialId =
-                await credentialService.StoreCredentialRequestAsync(issuerWallet, credentialRequest);
+                await credentialService.ProcessCredentialRequestAsync(issuerWallet, credentialRequest);
 
             // Issuer accepts the credential requests and issues a credential
             await credentialService.IssueCredentialAsync(pool, issuerWallet, issuer.Did, issuerCredentialId);
@@ -159,8 +164,8 @@ namespace Streetcred.Sdk.Tests
             var credential = FindContentMessage<Credential>(messages);
             Assert.NotNull(credential);
 
-            // Holder stores the credential in their wallet
-            await credentialService.StoreCredentialAsync(pool, holderWallet, credential);
+            // Holder processes the credential by storing it in their wallet
+            await credentialService.ProcessCredentialAsync(pool, holderWallet, credential);
 
             // Verify states of both credential records are set to 'Issued'
             var issuerCredential = await credentialService.GetAsync(issuerWallet, issuerCredentialId);

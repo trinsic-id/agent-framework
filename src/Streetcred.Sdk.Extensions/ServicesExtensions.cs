@@ -12,16 +12,16 @@ namespace Streetcred.Sdk.Extensions
         private static void RegisterServices(this IServiceCollection services)
         {
             services.AddSingleton<IRouterService, RouterService>();
-            services.AddSingleton<ITailsService, TailsService>();
-            services.AddSingleton<ISchemaService, SchemaService>();
-            services.AddSingleton<ILedgerService, LedgerService>();
-            services.AddSingleton<IWalletService, WalletService>();
-            services.AddSingleton<IPoolService, PoolService>();
-            services.AddSingleton<IWalletRecordService, WalletRecordService>();
-            services.AddSingleton<IConnectionService, ConnectionService>();
-            services.AddSingleton<IMessageSerializer, MessageSerializer>();
-            services.AddSingleton<ICredentialService, CredentialService>();
-            services.AddSingleton<IProvisioningService, ProvisioningService>();
+            services.AddSingleton<ITailsService, DefaultTailsService>();
+            services.AddSingleton<ISchemaService, DefaultSchemaService>();
+            services.AddSingleton<ILedgerService, DefaultLedgerService>();
+            services.AddSingleton<IWalletService, DefaultWalletService>();
+            services.AddSingleton<IPoolService, DefaultPoolService>();
+            services.AddSingleton<IWalletRecordService, DefaultWalletRecordService>();
+            services.AddSingleton<IConnectionService, DefaultConnectionService>();
+            services.AddSingleton<IMessageSerializer, DefaultMessageSerializer>();
+            services.AddSingleton<ICredentialService, DefaultCredentialService>();
+            services.AddSingleton<IProvisioningService, DefaultProvisioningService>();
             services.AddTransient<AgentBuilder>();
             services.AddOptions<WalletOptions>();
             services.AddOptions<PoolOptions>();
