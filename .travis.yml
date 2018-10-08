@@ -1,5 +1,6 @@
 language: csharp
 solution: src/Streetcred.Sdk.sln
-dotnet: 2.2.0-preview2
+dotnet: 2.1.5
 script:
  - dotnet restore src/Streetcred.Sdk.sln
+ - msbuild /p:Configuration=Release src/Streetcred.Sdk.sln
