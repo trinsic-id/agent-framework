@@ -35,7 +35,7 @@ namespace Streetcred.Sdk.Runtime
         {
             var schema = await AnonCreds.IssuerCreateSchemaAsync(issuerDid, name, version, attributeNames.ToJson());
 
-            var schemaRecord = new SchemaRecord { SchemaId = schema.SchemaId };
+            var schemaRecord = new SchemaRecord { SchemaId = schema.SchemaId, SchemaJson = schema.SchemaJson };
 
             await LedgerService.RegisterSchemaAsync(pool, wallet, issuerDid, schema.SchemaJson);
             await RecordService.AddAsync(wallet, schemaRecord);
