@@ -1,5 +1,5 @@
 language: csharp
 solution: src/Streetcred.Sdk.sln
-dotnet: 2.1.2
+dotnet: 2.2.0-preview2
 script:
  - dotnet restore src/Streetcred.Sdk.sln
