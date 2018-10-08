@@ -2,4 +2,4 @@ language: csharp
 solution: src/Streetcred.Sdk.sln
 dotnet: 2.1.2
 script:
- - dotnet restore
+ - dotnet restore src/Streetcred.Sdk.sln
