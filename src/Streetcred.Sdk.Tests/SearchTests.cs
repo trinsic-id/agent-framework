@@ -6,6 +6,7 @@ using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Model.Records.Search;
 using Streetcred.Sdk.Runtime;
+using Streetcred.Sdk.Utils;
 using Xunit;
 
 namespace Streetcred.Sdk.Tests
@@ -48,7 +49,7 @@ namespace Streetcred.Sdk.Tests
                 new ConnectionRecord {ConnectionId = "2", State = ConnectionState.Connected});
 
             var searchResult = await _recordService.SearchAsync<ConnectionRecord>(_wallet,
-                new SearchRecordQuery {{"State", ConnectionState.Invited.ToString("G")}}, null, 10);
+                new SearchRecordQuery {{ TagConstants.State, ConnectionState.Invited.ToString("G")}}, null, 10);
 
             Assert.Single(searchResult);
             Assert.Equal("1", searchResult.Single().ConnectionId);

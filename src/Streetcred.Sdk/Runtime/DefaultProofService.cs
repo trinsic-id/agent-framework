@@ -104,8 +104,8 @@ namespace Streetcred.Sdk.Runtime
                 ConnectionId = connection.ConnectionId,
                 RequestJson = proofRequestJson
             };
-            proofRecord.Tags["nonce"] = proofJobj["nonce"].ToObject<string>();
-            proofRecord.Tags["connectionId"] = connection.GetId();
+            proofRecord.Tags[TagConstants.Nonce] = proofJobj["nonce"].ToObject<string>();
+            proofRecord.Tags[TagConstants.ConnectionId] = connection.GetId();
 
             await RecordService.AddAsync(wallet, proofRecord);
 
@@ -125,7 +125,7 @@ namespace Streetcred.Sdk.Runtime
             var (didOrKey, _) = MessageUtils.ParseMessageType(proof.Type);
 
             var connectionSearch =
-                await ConnectionService.ListAsync(wallet, new SearchRecordQuery {{"myDid", didOrKey}});
+                await ConnectionService.ListAsync(wallet, new SearchRecordQuery {{TagConstants.MyDid, didOrKey}});
             if (!connectionSearch.Any())
                 throw new Exception($"Can't find connection record for type {proof.Type}");
             var connection = connectionSearch.First();
@@ -136,7 +136,7 @@ namespace Streetcred.Sdk.Runtime
 
             var proofRecordSearch =
                 await RecordService.SearchAsync<ProofRecord>(wallet,
-                    new SearchRecordQuery {{"nonce", requestDetails.RequestNonce}}, null, 1);
+                    new SearchRecordQuery {{ TagConstants.Nonce, requestDetails.RequestNonce}}, null, 1);
             if (!proofRecordSearch.Any())
                 throw new Exception($"Can't find proof record");
             var proofRecord = proofRecordSearch.Single();
@@ -154,7 +154,7 @@ namespace Streetcred.Sdk.Runtime
             var (didOrKey, _) = MessageUtils.ParseMessageType(proofRequest.Type);
 
             var connectionSearch =
-                await ConnectionService.ListAsync(wallet, new SearchRecordQuery {{"myDid", didOrKey}});
+                await ConnectionService.ListAsync(wallet, new SearchRecordQuery {{TagConstants.MyDid, didOrKey}});
             if (!connectionSearch.Any())
                 throw new Exception($"Can't find connection record for type {proofRequest.Type}");
             var connection = connectionSearch.First();
@@ -175,8 +175,8 @@ namespace Streetcred.Sdk.Runtime
                 ConnectionId = connection.GetId(),
                 State = ProofState.Requested
             };
-            proofRecord.Tags["connectionId"] = connection.GetId();
-            proofRecord.Tags["nonce"] = nonce;
+            proofRecord.Tags[TagConstants.ConnectionId] = connection.GetId();
+            proofRecord.Tags[TagConstants.Nonce] = nonce;
 
             await RecordService.AddAsync(wallet, proofRecord);
 

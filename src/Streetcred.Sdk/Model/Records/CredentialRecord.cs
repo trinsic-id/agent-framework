@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Stateless;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Model.Records
 {
@@ -106,7 +107,7 @@ namespace Streetcred.Sdk.Model.Records
             set
             {
                 _state = value;
-                Tags["State"] = value.ToString("G");
+                Tags[TagConstants.State] = value.ToString("G");
             }
         }
 

@@ -67,7 +67,7 @@ namespace Streetcred.Sdk.Runtime
             var (didOrKey, _) = MessageUtils.ParseMessageType(credentialOffer.Type);
 
             var connectionSearch =
-                await ConnectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
+                await ConnectionService.ListAsync(wallet, new SearchRecordQuery { { TagConstants.MyDid, didOrKey } });
             if (!connectionSearch.Any())
                 throw new Exception($"Can't find connection record for type {credentialOffer.Type}");
             var connection = connectionSearch.First();
@@ -90,10 +90,11 @@ namespace Streetcred.Sdk.Runtime
                 CredentialDefinitionId = definitionId,
                 State = CredentialState.Offered
             };
-            credentialRecord.Tags.Add("connectionId", connection.GetId());
-            credentialRecord.Tags.Add("nonce", nonce);
-            credentialRecord.Tags.Add("schemaId", schemaId);
-            credentialRecord.Tags.Add("definitionId", definitionId);
+            credentialRecord.Tags.Add(TagConstants.ConnectionId, connection.GetId());
+            credentialRecord.Tags.Add(TagConstants.Role, TagConstants.Holder);
+            credentialRecord.Tags.Add(TagConstants.Nonce, nonce);
+            credentialRecord.Tags.Add(TagConstants.SchemaId, schemaId);
+            credentialRecord.Tags.Add(TagConstants.DefinitionId, definitionId);
 
             await RecordService.AddAsync(wallet, credentialRecord);
 
@@ -102,7 +103,7 @@ namespace Streetcred.Sdk.Runtime
 
         /// <inheritdoc />
         public virtual async Task AcceptOfferAsync(Wallet wallet, Pool pool, string credentialId,
-            Dictionary<string, string> attributeValues)
+            Dictionary<string, string> attributeValues = null)
         {
             var credential = await RecordService.GetAsync<CredentialRecord>(wallet, credentialId);
             var connection = await ConnectionService.GetAsync(wallet, credential.ConnectionId);
@@ -113,10 +114,8 @@ namespace Streetcred.Sdk.Runtime
             var request = await AnonCreds.ProverCreateCredentialReqAsync(wallet, connection.MyDid, credential.OfferJson,
                 definition.ObjectJson, provisioning.MasterSecretId);
 
-            // Update local credential record with new info and advance the state
+            // Update local credential record with new info
             credential.CredentialRequestMetadataJson = request.CredentialRequestMetadataJson;
-            await credential.TriggerAsync(CredentialTrigger.Request);
-            await RecordService.UpdateAsync(wallet, credential);
 
             var details = new CredentialRequestDetails
             {
@@ -131,6 +130,11 @@ namespace Streetcred.Sdk.Runtime
             requestMessage.Type =
                 MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.CredentialRequest);
 
+            await credential.TriggerAsync(CredentialTrigger.Request);
+            await RecordService.UpdateAsync(wallet, credential);
+
+            //TODO we need roll back, i.e if we fail to send the A2A message the credential record should revert to Offer phase
+            //so the user can resend
             await RouterService.ForwardAsync(new ForwardEnvelopeMessage
             {
                 Content = requestMessage.ToJson(),
@@ -139,12 +143,21 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
+        public virtual async Task RejectOfferAsync(Wallet wallet, string credentialId)
+        {
+            var record = await RecordService.GetAsync<CredentialRecord>(wallet, credentialId);
+
+            await record.TriggerAsync(CredentialTrigger.Reject);
+            await RecordService.UpdateAsync(wallet, record);
+        }
+
+        /// <inheritdoc />
         public virtual async Task ProcessCredentialAsync(Pool pool, Wallet wallet, Credential credential)
         {
             var (didOrKey, _) = MessageUtils.ParseMessageType(credential.Type);
 
             var connectionSearch =
-                await ConnectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
+                await ConnectionService.ListAsync(wallet, new SearchRecordQuery { { TagConstants.MyDid, didOrKey } });
             if (!connectionSearch.Any())
                 throw new Exception($"Can't find connection record for type {credential.Type}");
             var connection = connectionSearch.First();
@@ -160,9 +173,9 @@ namespace Streetcred.Sdk.Runtime
             var credentialSearch =
                 await RecordService.SearchAsync<CredentialRecord>(wallet, new SearchRecordQuery
                 {
-                    {"schemaId", schemaId},
-                    {"definitionId", definitionId},
-                    {"connectionId", connection.GetId()}
+                    { TagConstants.SchemaId, schemaId},
+                    { TagConstants.DefinitionId, definitionId},
+                    { TagConstants.ConnectionId, connection.GetId()}
                 }, null, 1);
 
             var credentialRecord = credentialSearch.Single();
@@ -184,6 +197,7 @@ namespace Streetcred.Sdk.Runtime
                 details.CredentialJson, credentialDefinition.ObjectJson, revocationRegistryDefinitionJson);
 
             credentialRecord.CredentialId = credentialId;
+            credentialRecord.CredentialJson = details.CredentialJson;
             await credentialRecord.TriggerAsync(CredentialTrigger.Issue);
             await RecordService.UpdateAsync(wallet, credentialRecord);
         }
@@ -204,17 +218,16 @@ namespace Streetcred.Sdk.Runtime
                 Id = Guid.NewGuid().ToString(),
                 CredentialDefinitionId = config.CredentialDefinitionId,
                 OfferJson = offerJson,
-                ValuesJson = config.CredentialAttributeValues != null
-                    ? JsonConvert.SerializeObject(config.CredentialAttributeValues)
-                    : null,
+                ValuesJson = CredentialUtils.FormatCredentialValues(config.CredentialAttributeValues),
                 State = CredentialState.Offered,
                 ConnectionId = connection.GetId(),
             };
-            credentialRecord.Tags.Add("nonce", nonce);
-            credentialRecord.Tags.Add("connectionId", connection.GetId());
+            credentialRecord.Tags.Add(TagConstants.Nonce, nonce);
+            credentialRecord.Tags.Add(TagConstants.Role, TagConstants.Issuer);
+            credentialRecord.Tags.Add(TagConstants.ConnectionId, connection.GetId());
 
             if (!string.IsNullOrEmpty(config.IssuerDid))
-                credentialRecord.Tags.Add("issuerDid", config.IssuerDid);
+                credentialRecord.Tags.Add(TagConstants.IssuerDid, config.IssuerDid);
 
             if (config.Tags != null)
                 foreach (var tag in config.Tags)
@@ -259,7 +272,7 @@ namespace Streetcred.Sdk.Runtime
             var (didOrKey, _) = MessageUtils.ParseMessageType(credentialRequest.Type);
 
             var connectionSearch =
-                await ConnectionService.ListAsync(wallet, new SearchRecordQuery { { "myDid", didOrKey } });
+                await ConnectionService.ListAsync(wallet, new SearchRecordQuery { { TagConstants.MyDid, didOrKey } });
             if (!connectionSearch.Any())
                 throw new Exception($"Can't find connection record for type {credentialRequest.Type}");
             var connection = connectionSearch.First();
@@ -270,26 +283,33 @@ namespace Streetcred.Sdk.Runtime
             var request = JObject.Parse(details.OfferJson);
             var nonce = request["nonce"].ToObject<string>();
 
-            var query = new SearchRecordQuery { { "nonce", nonce } };
+            var query = new SearchRecordQuery { { TagConstants.Nonce , nonce } };
             var credentialSearch = await RecordService.SearchAsync<CredentialRecord>(wallet, query, null, 1);
 
             var credential = credentialSearch.Single();
-            
+
             // Offer should already be present
             // credential.OfferJson = details.OfferJson;
 
-            if (!string.IsNullOrEmpty(details.CredentialValuesJson))
-                credential.ValuesJson = details.CredentialValuesJson;
+            if (!string.IsNullOrEmpty(details.CredentialValuesJson) && JObject.Parse(details.CredentialValuesJson).Count != 0)
+                    credential.ValuesJson = details.CredentialValuesJson;
 
             credential.RequestJson = details.CredentialRequestJson;
 
             await credential.TriggerAsync(CredentialTrigger.Request);
 
             await RecordService.UpdateAsync(wallet, credential);
-
-            var issuerDid = credential.Tags.Single(_ => _.Key == "issuerDid").Value;
             
             return credential.GetId();
+        }
+
+        /// <inheritdoc />
+        public virtual async Task RejectCredentialRequestAsync(Wallet wallet, string credentialId)
+        {
+            var record = await RecordService.GetAsync<CredentialRecord>(wallet, credentialId);
+
+            await record.TriggerAsync(CredentialTrigger.Reject);
+            await RecordService.UpdateAsync(wallet, record);
         }
 
         /// <inheritdoc />
@@ -304,10 +324,8 @@ namespace Streetcred.Sdk.Runtime
         {
             var credentialRecord = await RecordService.GetAsync<CredentialRecord>(wallet, credentialId);
 
-            if (values != null)
-            {
+            if (values != null && values.Count > 0)
                 credentialRecord.ValuesJson = CredentialUtils.FormatCredentialValues(values);
-            }
 
             var definitionRecord =
                 await SchemaService.GetCredentialDefinitionAsync(wallet, credentialRecord.CredentialDefinitionId);
@@ -323,7 +341,7 @@ namespace Streetcred.Sdk.Runtime
             if (definitionRecord.SupportsRevocation)
             {
                 var revocationRecordSearch = await RecordService.SearchAsync<RevocationRegistryRecord>(
-                wallet, new SearchRecordQuery { { "credentialDefinitionId", definitionRecord.DefinitionId } }, null, 1);
+                wallet, new SearchRecordQuery { { TagConstants.CredentialDefinitionId , definitionRecord.DefinitionId } }, null, 1);
                 var revocationRecord = revocationRecordSearch.First();
 
                 revocationRegistryId = revocationRecord.RevocationRegistryId;
@@ -373,7 +391,7 @@ namespace Streetcred.Sdk.Runtime
             await credential.TriggerAsync(CredentialTrigger.Revoke);
 
             var revocationRecordSearch = await RecordService.SearchAsync<RevocationRegistryRecord>(
-                wallet, new SearchRecordQuery { { "credentialDefinitionId", definition.DefinitionId } }, null, 1);
+                wallet, new SearchRecordQuery { { TagConstants.CredentialDefinitionId , definition.DefinitionId } }, null, 1);
             var revocationRecord = revocationRecordSearch.First();
 
             // Revoke the credential

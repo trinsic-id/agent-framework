@@ -4,6 +4,7 @@ using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Model.Records.Search;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Extensions
 {
@@ -22,7 +23,7 @@ namespace Streetcred.Sdk.Extensions
         public static Task<List<CredentialRecord>> ListOffersAsync(this ICredentialService credentialService,
             Wallet wallet, int count = 100)
             => credentialService.ListAsync(wallet,
-                new SearchRecordQuery {{"State", CredentialState.Offered.ToString("G")}}, count);
+                new SearchRecordQuery {{ TagConstants.State, CredentialState.Offered.ToString("G")}}, count);
 
         /// <summary>
         /// Retrieves a list of credential requests
@@ -34,7 +35,7 @@ namespace Streetcred.Sdk.Extensions
         public static Task<List<CredentialRecord>> ListRequestsAsync(this ICredentialService credentialService,
             Wallet wallet, int count = 100)
             => credentialService.ListAsync(wallet,
-                new SearchRecordQuery {{"State", CredentialState.Requested.ToString("G")}}, count);
+                new SearchRecordQuery {{ TagConstants.State, CredentialState.Requested.ToString("G")}}, count);
 
         /// <summary>
         /// Retreives a list of issued credentials
@@ -46,7 +47,7 @@ namespace Streetcred.Sdk.Extensions
         public static Task<List<CredentialRecord>> ListIssuedCredentialsAsync(this ICredentialService credentialService,
             Wallet wallet, int count = 100)
             => credentialService.ListAsync(wallet,
-                new SearchRecordQuery {{"State", CredentialState.Issued.ToString("G")}}, count);
+                new SearchRecordQuery {{ TagConstants.State, CredentialState.Issued.ToString("G")}}, count);
 
         /// <summary>
         /// Retrieves a list of revoked credentials
@@ -58,7 +59,7 @@ namespace Streetcred.Sdk.Extensions
         public static Task<List<CredentialRecord>> ListRevokedCredentialsAsync(
             this ICredentialService credentialService, Wallet wallet, int count = 100)
             => credentialService.ListAsync(wallet,
-                new SearchRecordQuery {{"State", CredentialState.Revoked.ToString("G")}}, count);
+                new SearchRecordQuery {{ TagConstants.State, CredentialState.Revoked.ToString("G")}}, count);
 
         /// <summary>
         /// Retrieves a list of rejected/declined credentials.
@@ -71,6 +72,6 @@ namespace Streetcred.Sdk.Extensions
         public static Task<List<CredentialRecord>> ListRejectedCredentialsAsync(
             this ICredentialService credentialService, Wallet wallet, int count = 100)
             => credentialService.ListAsync(wallet,
-                new SearchRecordQuery {{"State", CredentialState.Rejected.ToString("G")}}, count);
+                new SearchRecordQuery {{ TagConstants.State, CredentialState.Rejected.ToString("G")}}, count);
     }
 }

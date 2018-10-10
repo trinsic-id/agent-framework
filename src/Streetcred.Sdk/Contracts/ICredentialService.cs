@@ -49,6 +49,14 @@ namespace Streetcred.Sdk.Contracts
         Task AcceptOfferAsync(Wallet wallet, Pool pool, string credentialId, Dictionary<string, string> attributeValues);
 
         /// <summary>
+        /// Rejects a credential offer asynchronous.
+        /// </summary>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="credentialId">The credential identifier.</param>
+        /// <returns></returns>
+        Task RejectOfferAsync(Wallet wallet, string credentialId);
+
+        /// <summary>
         /// Processes the issued credential and stores in the designated wallet.
         /// </summary>
         /// <param name="pool">The pool.</param>
@@ -105,6 +113,14 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="credentialId">Credential identifier.</param>
         /// <param name="values">Values.</param>
         Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId, Dictionary<string, string> values);
+
+        /// <summary>
+        /// Rejects a credential request asynchronous.
+        /// </summary>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="credentialId">The credential identifier.</param>
+        /// <returns></returns>
+        Task RejectCredentialRequestAsync(Wallet wallet, string credentialId);
 
         /// <summary>
         /// Revokes an issued credentials and writes the updated revocation state to the ledger

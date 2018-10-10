@@ -53,16 +53,16 @@ namespace Streetcred.Sdk.Runtime
 
             var connection = new ConnectionRecord();
             connection.ConnectionId = connectionId;
-            connection.Tags.Add("connectionKey", connectionKey);
+            connection.Tags.Add(TagConstants.ConnectionKey, connectionKey);
 
             if (config != null && config.AutoAcceptConnection)
-                connection.Tags.Add("autoConnect", "true");
+                connection.Tags.Add(TagConstants.AutoAcceptConnection, "true");
 
             if (config?.TheirAlias != null)
             {
                 connection.Alias = config.TheirAlias;
                 if (!string.IsNullOrEmpty(config.TheirAlias.Name))
-                    connection.Tags.Add("alias", config.TheirAlias.Name);
+                    connection.Tags.Add(TagConstants.Alias, config.TheirAlias.Name);
             }
 
             if (config?.Tags != null)
@@ -110,7 +110,7 @@ namespace Streetcred.Sdk.Runtime
                 MyVk = my.VerKey,
                 ConnectionId = Guid.NewGuid().ToString().ToLowerInvariant()
             };
-            connection.Tags.Add("myDid", my.Did);
+            connection.Tags.Add(TagConstants.MyDid, my.Did);
 
             if (!string.IsNullOrEmpty(invitation.Name) || !string.IsNullOrEmpty(invitation.ImageUrl))
             {
@@ -121,7 +121,7 @@ namespace Streetcred.Sdk.Runtime
                 };
 
                 if (string.IsNullOrEmpty(invitation.Name))
-                    connection.Tags.Add("aliasName", invitation.Name);
+                    connection.Tags.Add(TagConstants.Alias, invitation.Name);
             }
 
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
@@ -159,7 +159,7 @@ namespace Streetcred.Sdk.Runtime
             var (didOrKey, _) = MessageUtils.ParseMessageType(request.Type);
 
             var connectionSearch = await RecordService.SearchAsync<ConnectionRecord>(wallet,
-                new SearchRecordQuery {{"connectionKey", didOrKey}}, null, 1);
+                new SearchRecordQuery {{TagConstants.ConnectionKey, didOrKey}}, null, 1);
 
             var connection = connectionSearch.Single();
 
@@ -179,12 +179,12 @@ namespace Streetcred.Sdk.Runtime
             connection.TheirVk = their.Verkey;
             connection.MyDid = my.Did;
             connection.MyVk = my.VerKey;
-            connection.Tags["myDid"] = my.Did;
-            connection.Tags["theirDid"] = their.Did;
+            connection.Tags[TagConstants.MyDid] = my.Did;
+            connection.Tags[TagConstants.TheirDid] = their.Did;
 
             await RecordService.UpdateAsync(wallet, connection);
 
-            if (connection.Tags.Any(_ => _.Key == "autoConnect" && _.Value == "true"))
+            if (connection.Tags.Any(_ => _.Key == TagConstants.AutoAcceptConnection && _.Value == "true"))
                 await AcceptRequestAsync(wallet, connection.ConnectionId);
 
             return connection.GetId();
@@ -235,7 +235,7 @@ namespace Streetcred.Sdk.Runtime
             var (didOrKey, _) = MessageUtils.ParseMessageType(response.Type);
 
             var connectionSearch = await RecordService.SearchAsync<ConnectionRecord>(wallet,
-                new SearchRecordQuery {{"myDid", didOrKey}}, null, 1);
+                new SearchRecordQuery {{ TagConstants.MyDid, didOrKey}}, null, 1);
 
             var connection = connectionSearch.Single();
             await connection.TriggerAsync(ConnectionTrigger.Response);
@@ -255,7 +255,7 @@ namespace Streetcred.Sdk.Runtime
             if (connectionDetails.Endpoint != null)
                 connection.Endpoint = connectionDetails.Endpoint;
 
-            connection.Tags.Add("theirDid", connectionDetails.Did);
+            connection.Tags.Add(TagConstants.TheirDid, connectionDetails.Did);
             await RecordService.UpdateAsync(wallet, connection);
         }
 
