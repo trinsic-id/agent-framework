@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Hyperledger.Indy.AnonCredsApi;
+using Newtonsoft.Json.Linq;
 
 namespace Streetcred.Sdk.Utils
 {
@@ -13,8 +14,11 @@ namespace Streetcred.Sdk.Utils
         /// </summary>
         /// <returns>The credential values.</returns>
         /// <param name="values">Values.</param>
-        internal static string FormatCredentialValues(Dictionary<string, string> values)
+        public static string FormatCredentialValues(Dictionary<string, string> values)
         {
+            if (values == null)
+                return null;
+
             var result = new Dictionary<string, Dictionary<string, string>>();
             foreach (var item in values)
             {
@@ -25,6 +29,20 @@ namespace Streetcred.Sdk.Utils
                 });
             }
             return result.ToJson();
+        }
+
+        public static Dictionary<string, string> GetAttributes(string jsonAttributeValues)
+        {
+            if (string.IsNullOrEmpty(jsonAttributeValues))
+                return new Dictionary<string, string>();
+
+            var attributes = JObject.Parse(jsonAttributeValues);
+
+            var result = new Dictionary<string, string>();
+            foreach (var attribute in attributes)
+                result.Add(attribute.Key, attribute.Value["raw"].ToString());                
+
+            return result;
         }
     }
 }

@@ -4,6 +4,7 @@ using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Model.Records.Search;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Extensions
 {
@@ -22,7 +23,7 @@ namespace Streetcred.Sdk.Extensions
         public static Task<List<ConnectionRecord>> ListNegotiatingConnectionsAsync(
             this IConnectionService connectionService, Wallet wallet, int count = 100)
             => connectionService.ListAsync(wallet,
-                new SearchRecordQuery {{"State", ConnectionState.Negotiating.ToString("G")}}, count);
+                new SearchRecordQuery {{ TagConstants.State, ConnectionState.Negotiating.ToString("G")}}, count);
 
         /// <summary>
         /// Retrieves a list of <see cref="ConnectionRecord"/> that are in <see cref="ConnectionState.Connected"/> state.
@@ -34,7 +35,7 @@ namespace Streetcred.Sdk.Extensions
         public static Task<List<ConnectionRecord>> ListConnectedConnectionsAsync(
             this IConnectionService connectionService, Wallet wallet, int count = 100)
             => connectionService.ListAsync(wallet,
-                new SearchRecordQuery {{"State", ConnectionState.Connected.ToString("G")}}, count);
+                new SearchRecordQuery {{ TagConstants.State, ConnectionState.Connected.ToString("G")}}, count);
 
         /// <summary>
         /// Retrieves a list of <see cref="ConnectionRecord"/> that are in <see cref="ConnectionState.Invited"/> state.
@@ -46,6 +47,6 @@ namespace Streetcred.Sdk.Extensions
         public static Task<List<ConnectionRecord>> ListInvitedConnectionsAsync(
             this IConnectionService connectionService, Wallet wallet, int count = 100)
             => connectionService.ListAsync(wallet,
-                new SearchRecordQuery {{"State", ConnectionState.Invited.ToString("G")}}, count);
+                new SearchRecordQuery {{ TagConstants.State, ConnectionState.Invited.ToString("G")}}, count);
     }
 }

@@ -6,6 +6,7 @@ using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Model.Records.Search;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Extensions
 {
@@ -24,7 +25,7 @@ namespace Streetcred.Sdk.Extensions
         public static Task<List<ProofRecord>> ListRequestedAsync(this IProofService proofService,
             Wallet wallet, int count = 100)
             => proofService.ListAsync(wallet,
-                new SearchRecordQuery {{"State", ProofState.Requested.ToString("G")}}, count);
+                new SearchRecordQuery {{ TagConstants.State, ProofState.Requested.ToString("G")}}, count);
 
         /// <summary>
         /// Retrieves a list of accepted proof records.
@@ -36,6 +37,6 @@ namespace Streetcred.Sdk.Extensions
         public static Task<List<ProofRecord>> ListAcceptedAsync(this IProofService proofService,
             Wallet wallet, int count = 100)
             => proofService.ListAsync(wallet,
-                new SearchRecordQuery {{"State", ProofState.Accepted.ToString("G")}}, count);
+                new SearchRecordQuery {{ TagConstants.State, ProofState.Accepted.ToString("G")}}, count);
     }
 }
