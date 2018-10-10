@@ -197,7 +197,6 @@ namespace Streetcred.Sdk.Runtime
                 details.CredentialJson, credentialDefinition.ObjectJson, revocationRegistryDefinitionJson);
 
             credentialRecord.CredentialId = credentialId;
-            credentialRecord.CredentialJson = details.CredentialJson;
             await credentialRecord.TriggerAsync(CredentialTrigger.Issue);
             await RecordService.UpdateAsync(wallet, credentialRecord);
         }
