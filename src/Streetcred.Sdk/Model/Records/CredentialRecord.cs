@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Stateless;
+using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Model.Records
 {
@@ -60,13 +61,7 @@ namespace Streetcred.Sdk.Model.Records
         /// </summary>
         /// <value>The offer json.</value>
         public string OfferJson { get; set; }
-
-        /// <summary>
-        /// Gets or sets the credential json.
-        /// </summary>
-        /// <value>The credential json.</value>
-        public string CredentialJson { get; set; }
-
+        
         /// <summary>
         /// Gets or sets the credential revocation identifier.
         /// This field is only present in the issuer wallet.
@@ -106,7 +101,7 @@ namespace Streetcred.Sdk.Model.Records
             set
             {
                 _state = value;
-                Tags["State"] = value.ToString("G");
+                Tags[TagConstants.State] = value.ToString("G");
             }
         }
 

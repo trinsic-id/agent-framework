@@ -84,7 +84,7 @@ namespace Streetcred.Sdk.Runtime
                     RevocationRegistryId = revocationRegistry.RevRegId,
                     TailsFile = tailsfile
                 };
-                revocationRecord.Tags["credentialDefinitionId"] = credentialDefinition.CredDefId;
+                revocationRecord.Tags[TagConstants.CredentialDefinitionId] = credentialDefinition.CredDefId;
                 await RecordService.AddAsync(wallet, revocationRecord);
             }
 

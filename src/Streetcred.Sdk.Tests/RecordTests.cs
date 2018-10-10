@@ -6,6 +6,7 @@ using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Model.Records.Search;
 using Streetcred.Sdk.Runtime;
+using Streetcred.Sdk.Utils;
 using Xunit;
 
 namespace Streetcred.Sdk.Tests
@@ -129,7 +130,7 @@ namespace Streetcred.Sdk.Tests
             var record = new ConnectionRecord();
 
             Assert.True(record.State == ConnectionState.Invited);
-            Assert.True(record.Tags["State"] == ConnectionState.Invited.ToString("G"));
+            Assert.True(record.Tags[TagConstants.State] == ConnectionState.Invited.ToString("G"));
         }
 
         [Fact]
@@ -138,7 +139,7 @@ namespace Streetcred.Sdk.Tests
             var record = new CredentialRecord();
 
             Assert.True(record.State == CredentialState.Offered);
-            Assert.True(record.Tags["State"] == CredentialState.Offered.ToString("G"));
+            Assert.True(record.Tags[TagConstants.State] == CredentialState.Offered.ToString("G"));
         }
 
         public async Task DisposeAsync()
