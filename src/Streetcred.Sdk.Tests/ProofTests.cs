@@ -177,7 +177,7 @@ namespace Streetcred.Sdk.Tests
                 };
 
                 //Requestor sends a proof request
-                await _proofService.SendProofRequestAsync(requestorConnection.ConnectionId, _requestorWallet,
+                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.ConnectionId,
                     proofRequestObject);
             }
 

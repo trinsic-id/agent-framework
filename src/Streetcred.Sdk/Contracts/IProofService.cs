@@ -18,38 +18,38 @@ namespace Streetcred.Sdk.Contracts
         /// Sends a proof request
         /// </summary>
         /// <returns>The async.</returns>
-        /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="wallet">Wallet.</param>
+        /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="proofRequest">Proof request object describing the proof request.</param>
-        Task SendProofRequestAsync(string connectionId, Wallet wallet, ProofRequestObject proofRequest);
+        Task SendProofRequestAsync(Wallet wallet, string connectionId, ProofRequestObject proofRequest);
 
         /// <summary>
         /// Sends a proof request
         /// </summary>
-        /// <param name="connectionId">The connection identifier.</param>
         /// <param name="wallet">The wallet.</param>
+        /// <param name="connectionId">The connection identifier.</param>
         /// <param name="proofRequestJson">The proof request json.</param>
         /// <returns></returns>
-        Task SendProofRequestAsync(string connectionId, Wallet wallet, string proofRequestJson);
+        Task SendProofRequestAsync(Wallet wallet, string connectionId, string proofRequestJson);
 
         /// <summary>
         /// Creates a proof request
         /// </summary>
         /// <returns>The proof request.</returns>
-        /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="wallet">Wallet.</param>
+        /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="proofRequestObject">An enumeration of attribute we wish the prover to disclose.</param>
-        Task<ProofRequest> CreateProofRequestAsync(string connectionId, Wallet wallet,
+        Task<ProofRequest> CreateProofRequestAsync(Wallet wallet, string connectionId,
             ProofRequestObject proofRequestObject);
 
         /// <summary>
         /// Creates a proof request
         /// </summary>
         /// <returns>The proof request.</returns>
-        /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="wallet">Wallet.</param>
+        /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="proofRequestJson">A string representation of proof request json object</param>
-        Task<ProofRequest> CreateProofRequestAsync(string connectionId, Wallet wallet, string proofRequestJson);
+        Task<ProofRequest> CreateProofRequestAsync(Wallet wallet, string connectionId, string proofRequestJson);
 
         /// <summary>
         /// Stores a proof request
