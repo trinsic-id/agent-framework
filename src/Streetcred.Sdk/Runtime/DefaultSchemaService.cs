@@ -59,6 +59,8 @@ namespace Streetcred.Sdk.Runtime
             definitionRecord.SupportsRevocation = supportsRevocation;
             definitionRecord.DefinitionId = credentialDefinition.CredDefId;
 
+            definitionRecord.Tags.Add(TagConstants.SchemaId, schemaId);
+
             if (supportsRevocation)
             {
                 var tailsHandle = await TailsService.CreateTailsAsync();
