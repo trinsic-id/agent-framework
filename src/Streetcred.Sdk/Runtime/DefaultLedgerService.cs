@@ -107,13 +107,13 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task RegisterTrustAnchorAsync(Wallet wallet, Pool pool, string submitterDid, string theirDid,
-            string theirVerkey)
+        public virtual async Task RegisterNymAsync(Wallet wallet, Pool pool, string submitterDid, string theirDid,
+            string theirVerkey, string role)
         {
             if (DidUtils.IsFullVerkey(theirVerkey))
                 theirVerkey = await Did.AbbreviateVerkeyAsync(theirDid, theirVerkey);
 
-            var req = await Ledger.BuildNymRequestAsync(submitterDid, theirDid, theirVerkey, null, "TRUST_ANCHOR");
+            var req = await Ledger.BuildNymRequestAsync(submitterDid, theirDid, theirVerkey, null, role);
             var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, req);
 
             EnsureSuccessResponse(res);
@@ -124,8 +124,17 @@ namespace Streetcred.Sdk.Runtime
         {
             var req = await Ledger.BuildGetAttribRequestAsync(null, targetDid, attributeName, null, null);
             var res = await Ledger.SubmitRequestAsync(pool, req);
-
+            
             return null;
+        }
+
+        /// <inheritdoc />
+        public virtual async Task<string> LookupTransactionAsync(Pool pool, string submitterDid, int sequenceId)
+        {
+            var req = await Ledger.BuildGetTxnRequestAsync(submitterDid, sequenceId);
+            var res = await Ledger.SubmitRequestAsync(pool, req);
+
+            return res;
         }
 
         /// <inheritdoc />

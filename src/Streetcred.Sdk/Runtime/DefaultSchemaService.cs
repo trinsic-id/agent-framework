@@ -43,6 +43,38 @@ namespace Streetcred.Sdk.Runtime
             return schemaRecord.SchemaId;
         }
 
+        /// TODO this should return a definition object
+        /// <inheritdoc />
+        public virtual async Task<string> LookupDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, int sequenceId)
+        {
+            var result = await LedgerService.LookupTransactionAsync(pool, submitterDid, sequenceId);
+            return result;
+        }
+
+        /// TODO this should return a definition object
+        /// <inheritdoc />
+        public virtual async Task<string> LookupDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, string definitionId)
+        {
+            var result = await LedgerService.LookupDefinitionAsync(pool, submitterDid, definitionId);
+            return result?.ObjectJson;
+        }
+
+        /// TODO this should return a schema object
+        /// <inheritdoc />
+        public virtual async Task<string> LookupSchemaAsync(Pool pool, Wallet wallet, string submitterDid, int sequenceId)
+        {
+            var result = await LedgerService.LookupTransactionAsync(pool, submitterDid, sequenceId);
+            return result;
+        }
+
+        /// TODO this should return a schema object
+        /// <inheritdoc />
+        public virtual async Task<string> LookupSchemaAsync(Pool pool, Wallet wallet, string submitterDid, string schemaId)
+        {
+            var result = await LedgerService.LookupSchemaAsync(pool, submitterDid, schemaId);
+            return result?.ObjectJson;
+        }
+
         /// <inheritdoc />
         public virtual async Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
             string issuerDid, bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri)

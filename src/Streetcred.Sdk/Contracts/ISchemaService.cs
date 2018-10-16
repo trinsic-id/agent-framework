@@ -65,5 +65,45 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="credentialDefinitionId">The credential definition identifier.</param>
         /// <returns>The credential definition record.</returns>
         Task<DefinitionRecord> GetCredentialDefinitionAsync(Wallet wallet, string credentialDefinitionId);
+
+        /// <summary>
+        /// Looks up the credential definition on the ledger.
+        /// </summary>
+        /// <param name="pool">The pool.</param>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="submitterDid">The submitter did.</param>
+        /// <param name="sequenceId">The sequence identifier of the definition to resolve.</param>
+        /// <returns></returns>
+        Task<string> LookupDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, int sequenceId);
+
+        /// <summary>
+        /// Looks up the credential definition on the ledger.
+        /// </summary>
+        /// <param name="pool">The pool.</param>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="submitterDid">The submitter did.</param>
+        /// <param name="definitionId">The identifier of the definition to resolve.</param>
+        /// <returns></returns>
+        Task<string> LookupDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, string definitionId);
+
+        /// <summary>
+        /// Looks up the schema definition on the ledger.
+        /// </summary>
+        /// <param name="pool">The pool.</param>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="submitterDid">The submitter did.</param>
+        /// <param name="sequenceId">The sequence identifier of the schema to resolve.</param>
+        /// <returns></returns>
+        Task<string> LookupSchemaAsync(Pool pool, Wallet wallet, string submitterDid, int sequenceId);
+
+        /// <summary>
+        /// Looks up the schema definition on the ledger.
+        /// </summary>
+        /// <param name="pool">The pool.</param>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="submitterDid">The submitter did.</param>
+        /// <param name="schemaId">The identifier of the schema definition to resolve.</param>
+        /// <returns></returns>
+        Task<string> LookupSchemaAsync(Pool pool, Wallet wallet, string submitterDid, string schemaId);
     }
 }

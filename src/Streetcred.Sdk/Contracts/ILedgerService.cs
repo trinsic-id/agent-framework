@@ -33,7 +33,7 @@ namespace Streetcred.Sdk.Contracts
             string attributeName, object value);
 
         /// <summary>
-        /// Lookups the schema async.
+        /// Lookup the schema async.
         /// </summary>
         /// <param name="pool">The pool.</param>
         /// <param name="submitterDid">The submitter did.</param>
@@ -42,6 +42,17 @@ namespace Streetcred.Sdk.Contracts
         /// The schema async.
         /// </returns>
         Task<ParseResponseResult> LookupSchemaAsync(Pool pool, string submitterDid, string schemaId);
+
+        /// <summary>
+        /// Lookup the ledger transaction async.
+        /// </summary>
+        /// <param name="pool">The pool.</param>
+        /// <param name="submitterDid">The submitter did.</param>
+        /// <param name="sequenceId">The sequence identifier.</param>
+        /// <returns>
+        /// The transaction async.
+        /// </returns>
+        Task<string> LookupTransactionAsync(Pool pool, string submitterDid, int sequenceId);
 
         /// <summary>
         /// Lookups the definition async.
@@ -85,18 +96,19 @@ namespace Streetcred.Sdk.Contracts
         Task<ParseRegistryResponseResult> LookupRevocationRegistryAsync(Pool pool, string revocationRegistryId, long timestamp);
 
         /// <summary>
-        /// Registers the trust anchor async.
+        /// Registers the nym async.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="pool">The pool.</param>
         /// <param name="submitterDid">The submitter did.</param>
         /// <param name="theirDid">Their did.</param>
         /// <param name="theirVerkey">Their verkey.</param>
+        /// <param name="role">Role the new nym will assume.</param>
         /// <returns>
-        /// The trust anchor async.
+        /// Registration async.
         /// </returns>
-        Task RegisterTrustAnchorAsync(Wallet wallet, Pool pool, string submitterDid, string theirDid,
-            string theirVerkey);
+        Task RegisterNymAsync(Wallet wallet, Pool pool, string submitterDid, string theirDid,
+            string theirVerkey, string role);
 
         /// <summary>
         /// Registers the credential definition async.
