@@ -37,7 +37,11 @@ namespace Streetcred.Sdk.Utils
         public const string AutoAcceptConnection = "autoAcceptConnection";
 
         public const string Role = "role";
+
         public const string Issuer = "issuer";
+
         public const string Holder = "holder";
+
+        public const string Requestor = "requestor";
     }
 }

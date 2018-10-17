@@ -50,12 +50,12 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task SendProofRequestAsync(string connectionId, Wallet wallet, ProofRequestObject proofRequest)
+        public virtual async Task SendProofRequestAsync(Wallet wallet, string connectionId, ProofRequestObject proofRequest)
         {
             Logger.LogInformation(LoggingEvents.SendProofRequest, "ConnectionId {0}", connectionId);
 
             var connection = await ConnectionService.GetAsync(wallet, connectionId);
-            var request = await CreateProofRequestAsync(connectionId, wallet, proofRequest);
+            var request = await CreateProofRequestAsync(wallet, connectionId, proofRequest);
 
             await RouterService.ForwardAsync(new ForwardEnvelopeMessage
             {
@@ -65,12 +65,12 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task SendProofRequestAsync(string connectionId, Wallet wallet, string proofRequestJson)
+        public virtual async Task SendProofRequestAsync(Wallet wallet, string connectionId, string proofRequestJson)
         {
             Logger.LogInformation(LoggingEvents.SendProofRequest, "ConnectionId {0}", connectionId);
 
             var connection = await ConnectionService.GetAsync(wallet, connectionId);
-            var request = await CreateProofRequestAsync(connectionId, wallet, proofRequestJson);
+            var request = await CreateProofRequestAsync(wallet, connectionId, proofRequestJson);
 
             await RouterService.ForwardAsync(new ForwardEnvelopeMessage
             {
@@ -80,17 +80,17 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<ProofRequest> CreateProofRequestAsync(string connectionId, Wallet wallet,
+        public virtual async Task<ProofRequest> CreateProofRequestAsync(Wallet wallet, string connectionId,
             ProofRequestObject proofRequestObject)
         {
             if (string.IsNullOrWhiteSpace(proofRequestObject.Nonce))
                 throw new ArgumentNullException(nameof(proofRequestObject.Nonce), "Nonce must be set.");
 
-            return await CreateProofRequestAsync(connectionId, wallet, proofRequestObject.ToJson());
+            return await CreateProofRequestAsync(wallet, connectionId, proofRequestObject.ToJson());
         }
 
         /// <inheritdoc />
-        public virtual async Task<ProofRequest> CreateProofRequestAsync(string connectionId, Wallet wallet,
+        public virtual async Task<ProofRequest> CreateProofRequestAsync(Wallet wallet, string connectionId,
             string proofRequestJson)
         {
             Logger.LogInformation(LoggingEvents.CreateProofRequest, "ConnectionId {0}", connectionId);
@@ -106,6 +106,7 @@ namespace Streetcred.Sdk.Runtime
             };
             proofRecord.Tags[TagConstants.Nonce] = proofJobj["nonce"].ToObject<string>();
             proofRecord.Tags[TagConstants.ConnectionId] = connection.GetId();
+            proofRecord.Tags[TagConstants.Role] = TagConstants.Requestor;
 
             await RecordService.AddAsync(wallet, proofRecord);
 
@@ -177,6 +178,7 @@ namespace Streetcred.Sdk.Runtime
             };
             proofRecord.Tags[TagConstants.ConnectionId] = connection.GetId();
             proofRecord.Tags[TagConstants.Nonce] = nonce;
+            proofRecord.Tags[TagConstants.Role] = TagConstants.Holder;
 
             await RecordService.AddAsync(wallet, proofRecord);
 
@@ -233,6 +235,7 @@ namespace Streetcred.Sdk.Runtime
             return proof;
         }
 
+        /// <inheritdoc />
         public virtual async Task AcceptProofRequestAsync(Wallet wallet, Pool pool, string proofRequestId,
             RequestedCredentialsDto requestedCredentials)
         {
@@ -248,9 +251,12 @@ namespace Streetcred.Sdk.Runtime
             }, connection.Endpoint);
         }
 
-        public virtual Task RejectProofRequestAsync(Wallet wallet, string proofRequestId)
+        /// <inheritdoc />
+        public virtual async Task RejectProofRequestAsync(Wallet wallet, string proofRequestId)
         {
-            throw new NotImplementedException();
+            var request = await RecordService.GetAsync<ProofRecord>(wallet, proofRequestId);
+            await request.TriggerAsync(ProofTrigger.Reject);
+            await RecordService.UpdateAsync(wallet, request);
         }
 
         /// <inheritdoc />
@@ -306,7 +312,6 @@ namespace Streetcred.Sdk.Runtime
         }
 
         #region Private Methods
-
         private async Task<string> BuildSchemasAsync(Pool pool, IEnumerable<string> schemaIds)
         {
             var result = new Dictionary<string, JObject>();
@@ -420,8 +425,6 @@ namespace Streetcred.Sdk.Runtime
 
             return result.ToJson();
         }
-
         #endregion
-
     }
 }
