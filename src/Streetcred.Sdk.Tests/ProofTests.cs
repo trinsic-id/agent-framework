@@ -188,7 +188,7 @@ namespace Streetcred.Sdk.Tests
                 Assert.NotNull(proofRequest);
 
                 //Holder stores the proof request
-                var holderProofRequestId = await _proofService.StoreProofRequestAsync(_holderWallet, proofRequest);
+                var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest);
                 var holderProofRecord = await _proofService.GetAsync(_holderWallet, holderProofRequestId);
                 var holderProofObject =
                     JsonConvert.DeserializeObject<ProofRequestObject>(holderProofRecord.RequestJson);
@@ -233,7 +233,7 @@ namespace Streetcred.Sdk.Tests
             Assert.NotNull(proof);
 
             //Requestor stores proof
-            var requestorProofId = await _proofService.StoreProofAsync(_requestorWallet, proof);
+            var requestorProofId = await _proofService.ProcessProofAsync(_requestorWallet, proof);
 
             //Requestor verifies proof
             var requestorVerifyResult = await _proofService.VerifyProofAsync(_requestorWallet, _pool, requestorProofId);
@@ -248,7 +248,6 @@ namespace Streetcred.Sdk.Tests
             ////Verify that both parties have a copy of the proof
             //Assert.Equal(requestorProof, holderProof);
         }
-
 
         private IContentMessage GetContentMessage(IEnvelopeMessage message)
             => JsonConvert.DeserializeObject<IContentMessage>(message.Content);
