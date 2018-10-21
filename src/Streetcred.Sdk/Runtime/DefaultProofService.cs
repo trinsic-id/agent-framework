@@ -121,7 +121,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> StoreProofAsync(Wallet wallet, Proof proof)
+        public virtual async Task<string> ProcessProofAsync(Wallet wallet, Proof proof)
         {
             var (didOrKey, _) = MessageUtils.ParseMessageType(proof.Type);
 
@@ -150,7 +150,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> StoreProofRequestAsync(Wallet wallet, ProofRequest proofRequest)
+        public virtual async Task<string> ProcessProofRequestAsync(Wallet wallet, ProofRequest proofRequest)
         {
             var (didOrKey, _) = MessageUtils.ParseMessageType(proofRequest.Type);
 
