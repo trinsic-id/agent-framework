@@ -3,19 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2003
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Streetcred.Sdk", "Streetcred.Sdk\Streetcred.Sdk.csproj", "{77223B87-C4DB-4771-BAA5-57257E182B2E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Streetcred.Sdk", "Streetcred.Sdk\Streetcred.Sdk.csproj", "{77223B87-C4DB-4771-BAA5-57257E182B2E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02ADBA96-A50C-44F0-A9D9-FA0629AA2DF4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sdk", "Sdk", "{73FF6DBD-5847-4F2D-94BE-196AE9A80228}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Streetcred.Sdk.Tests", "Streetcred.Sdk.Tests\Streetcred.Sdk.Tests.csproj", "{0334EA27-52D1-434B-90F5-F108F7630409}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Streetcred.Sdk.Tests", "Streetcred.Sdk.Tests\Streetcred.Sdk.Tests.csproj", "{0334EA27-52D1-434B-90F5-F108F7630409}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Streetcred.Sdk.Extensions", "Streetcred.Sdk.Extensions\Streetcred.Sdk.Extensions.csproj", "{2C868A14-7883-4BF5-9C6E-F37263ED7C4C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Streetcred.Sdk.Extensions", "Streetcred.Sdk.Extensions\Streetcred.Sdk.Extensions.csproj", "{2C868A14-7883-4BF5-9C6E-F37263ED7C4C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Example", "Example", "{6B9559FC-FA58-4B46-97C3-2B5A6ED29688}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agency.Web", "Agency.Web\Agency.Web.csproj", "{FE6D18D9-5601-4566-8CD7-FD45D199DE99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Agency.Web", "Agency.Web\Agency.Web.csproj", "{FE6D18D9-5601-4566-8CD7-FD45D199DE99}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAgent", "WebAgent\WebAgent.csproj", "{7EFF6DA2-8234-4C5B-8D80-627AF88AF672}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{FE6D18D9-5601-4566-8CD7-FD45D199DE99}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE6D18D9-5601-4566-8CD7-FD45D199DE99}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE6D18D9-5601-4566-8CD7-FD45D199DE99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EFF6DA2-8234-4C5B-8D80-627AF88AF672}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EFF6DA2-8234-4C5B-8D80-627AF88AF672}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EFF6DA2-8234-4C5B-8D80-627AF88AF672}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EFF6DA2-8234-4C5B-8D80-627AF88AF672}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -48,6 +54,7 @@ Global
 		{0334EA27-52D1-434B-90F5-F108F7630409} = {02ADBA96-A50C-44F0-A9D9-FA0629AA2DF4}
 		{2C868A14-7883-4BF5-9C6E-F37263ED7C4C} = {73FF6DBD-5847-4F2D-94BE-196AE9A80228}
 		{FE6D18D9-5601-4566-8CD7-FD45D199DE99} = {6B9559FC-FA58-4B46-97C3-2B5A6ED29688}
+		{7EFF6DA2-8234-4C5B-8D80-627AF88AF672} = {6B9559FC-FA58-4B46-97C3-2B5A6ED29688}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4FFA80F9-ADC6-40DB-BBD1-A522B8A68560}
