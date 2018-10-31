@@ -12,7 +12,7 @@
       <Variable name="ASPNETCORE_ENVIRONMENT" value="Development" />
       <Variable name="STREETCRED_OWNER_NAME" value="Alice" />
     </EnvironmentVariables>
-    <ApplicationURL>http://localhost:56965/</ApplicationURL>
+    <ApplicationURL>http://localhost:7001/</ApplicationURL>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.9" />
@@ -29,10 +29,5 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Views\Connections\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Views\Connections\CreateInvitation.cshtml.cs" />
-  </ItemGroup>
+
 </Project>

@@ -1,0 +1,77 @@
+version: '3'
+services:
+  indy-pool:
+    build:
+      context: .
+      dockerfile: docker/indy-pool.dockerfile
+      args:
+        pool_ip: 10.0.0.10
+    ports:
+      - "9701-9709:9701-9709"
+    networks:
+      agent_net:
+        ipv4_address: 10.0.0.10
+
+  alice-agent:
+    build:
+      context: .
+      dockerfile: docker/web-agent.dockerfile
+      args:
+        AGENT_IP: 10.0.0.11
+        AGENT_PORT: 7001
+    environment:
+      - STREETCRED_OWNER_NAME=Alice
+    ports:
+      - "7001:7001"
+    depends_on:
+      - "indy-pool"
+    links:
+      - "indy-pool"
+    networks:
+      agent_net:
+        ipv4_address: 10.0.0.11
+
+  bob-agent:
+    build:
+      context: .
+      dockerfile: docker/web-agent.dockerfile
+      args:
+        AGENT_IP: 10.0.0.12
+        AGENT_PORT: 7002
+    environment:
+      - STREETCRED_OWNER_NAME=Bob
+    ports:
+      - "7002:7002"
+    depends_on:
+      - "indy-pool"
+    links:
+      - "indy-pool"
+    networks:
+      agent_net:
+        ipv4_address: 10.0.0.12
+
+  faber-college-agent:
+    build:
+      context: .
+      dockerfile: docker/web-agent.dockerfile
+      args:
+        AGENT_IP: 10.0.0.13
+        AGENT_PORT: 7003
+    environment:
+      - STREETCRED_OWNER_NAME=Faber College
+    ports:
+      - "7003:7003"
+    depends_on:
+      - "indy-pool"
+    links:
+      - "indy-pool"
+    networks:
+      agent_net:
+        ipv4_address: 10.0.0.13
+
+networks:
+  agent_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.0.0.0/16
