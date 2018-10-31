@@ -21,4 +21,9 @@
     <ProjectReference Include="..\Streetcred.Sdk\Streetcred.Sdk.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="pool_genesis.txn">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

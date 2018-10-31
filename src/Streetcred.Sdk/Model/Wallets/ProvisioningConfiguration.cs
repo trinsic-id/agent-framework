@@ -61,6 +61,6 @@ namespace Streetcred.Sdk.Model.Wallets
         /// Gets or sets the tails service base URI.
         /// </summary>
         /// <value>The tails base URI.</value>
-        public string TailsBaseUri { get; set; }
+        public Uri TailsBaseUri { get; set; }
     }
 }

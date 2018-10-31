@@ -58,7 +58,7 @@ namespace Streetcred.Sdk.Runtime
                     Name = provisioningConfiguration.OwnerName,
                     ImageUrl = provisioningConfiguration.OwnerImageUrl
                 },
-                TailsBaseUri = provisioningConfiguration.TailsBaseUri
+                TailsBaseUri = provisioningConfiguration.TailsBaseUri.ToString()
             };
 
             if (provisioningConfiguration.CreateIssuer)

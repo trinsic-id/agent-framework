@@ -1,0 +1,13 @@
+﻿@model ConnectionsViewModel
+@{
+}
+<div class="btn-group">
+    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Invitations <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+        <li><a asp-area="" asp-controller="Connections" asp-action="CreateInvitation">Create new invitation</a></li>
+        <li role="separator" class="divider"></li>
+        <li><a asp-area="" asp-controller="Connections" asp-action="AcceptInvitation">Accept invitation</a></li>
+    </ul>
+</div>

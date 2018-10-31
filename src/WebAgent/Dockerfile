@@ -1,6 +1,5 @@
 FROM streetcred/dotnet-indy:latest AS base
 WORKDIR /app
-EXPOSE 80
 
 FROM streetcred/dotnet-indy:latest AS build
 WORKDIR /src
@@ -18,4 +17,7 @@ RUN dotnet publish "WebAgent.csproj" -c Release -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
+ARG PORT
+EXPOSE ${PORT}
+ENV ASPNETCORE_URLS "http://127.0.0.1:${PORT}"
 ENTRYPOINT ["dotnet", "WebAgent.dll"]
