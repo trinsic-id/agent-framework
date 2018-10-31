@@ -8,7 +8,7 @@ namespace Streetcred.Sdk.Contracts
     /// <summary>
     /// Ledger service.
     /// </summary>
-    public interface ILedgerService
+    public interface IDefaultLedgerService
     {
         /// <summary>
         /// Looks up an attribute value on the ledger.

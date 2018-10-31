@@ -12,7 +12,7 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class DefaultLedgerService : ILedgerService
+    public class DefaultLedgerService : IDefaultLedgerService
     {
         /// <inheritdoc />
         public virtual async Task<ParseResponseResult> LookupDefinitionAsync(Pool pool, string submitterDid,

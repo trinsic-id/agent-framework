@@ -9,19 +9,8 @@ namespace Streetcred.Sdk.Extensions
 {
     public static class ServicesExtensions
     {
-        private static void RegisterServices(this IServiceCollection services)
+        private static void RegisterCoreServices(this IServiceCollection services)
         {
-            services.AddSingleton<IRouterService, RouterService>();
-            services.AddSingleton<ITailsService, DefaultTailsService>();
-            services.AddSingleton<ISchemaService, DefaultSchemaService>();
-            services.AddSingleton<ILedgerService, DefaultLedgerService>();
-            services.AddSingleton<IWalletService, DefaultWalletService>();
-            services.AddSingleton<IPoolService, DefaultPoolService>();
-            services.AddSingleton<IWalletRecordService, DefaultWalletRecordService>();
-            services.AddSingleton<IConnectionService, DefaultConnectionService>();
-            services.AddSingleton<IMessageSerializer, DefaultMessageSerializer>();
-            services.AddSingleton<ICredentialService, DefaultCredentialService>();
-            services.AddSingleton<IProvisioningService, DefaultProvisioningService>();
             services.AddTransient<AgentBuilder>();
             services.AddOptions<WalletOptions>();
             services.AddOptions<PoolOptions>();
@@ -32,10 +21,15 @@ namespace Streetcred.Sdk.Extensions
         /// </summary>
         /// <param name="services">The services.</param>
         /// <param name="agentConfiguration">The agent configuration.</param>
+        /// <param name="serviceConfiguration">The service resolution configuration</param>
         public static void AddAgent(this IServiceCollection services,
-            Action<AgentConfiguration> agentConfiguration = null)
+            Action<AgentConfiguration> agentConfiguration = null, Action<ServicesBuilder> serviceConfiguration = null)
         {
-            RegisterServices(services);
+            RegisterCoreServices(services);
+
+            var serviceBuilder = new ServicesBuilder();
+            serviceConfiguration?.Invoke(serviceBuilder);
+            serviceBuilder.RegisterServices(ref services);
 
             var defaultConfiguration = new AgentConfiguration();
             agentConfiguration?.Invoke(defaultConfiguration);
@@ -58,36 +52,36 @@ namespace Streetcred.Sdk.Extensions
         /// </summary>
         /// <param name="app">App.</param>
         /// <param name="endpointUri">The endpointUri.</param>
-        /// <param name="options">Options.</param>
+        /// <param name="agentOptions">Options.</param>
         public static void UseAgent(this IApplicationBuilder app, string endpointUri,
-            Action<AgentBuilder> options = null) => UseAgent<AgentMiddleware>(app, endpointUri, options);
+            Action<AgentBuilder> agentOptions = null) => UseAgent<AgentMiddleware>(app, endpointUri, agentOptions);
 
         /// <summary>
         /// Allows agent configuration by specifyig a custom middleware
         /// </summary>
         /// <param name="app">App.</param>
         /// <param name="endpointUri">The endpointUri.</param>
-        /// <param name="options">Options.</param>
+        /// <param name="agentOptions">Options.</param>
         public static void UseAgent<T>(this IApplicationBuilder app, string endpointUri,
-            Action<AgentBuilder> options = null)
+            Action<AgentBuilder> agentOptions = null)
         {
             if (string.IsNullOrWhiteSpace(endpointUri)) throw new ArgumentNullException(nameof(endpointUri));
 
-            var builder = app.ApplicationServices.GetService<AgentBuilder>();
+            var agentBuilder = app.ApplicationServices.GetService<AgentBuilder>();
 
-            options?.Invoke(builder);
+            agentOptions?.Invoke(agentBuilder);
 
             var endpoint = new Uri(endpointUri);
 
-            builder.Build(endpoint).GetAwaiter().GetResult();
+            agentBuilder.Build(endpoint).GetAwaiter().GetResult();
 
             app.MapWhen(
                 context => context.Request.Path.StartsWithSegments(endpoint.AbsolutePath),
                 appBuilder => { appBuilder.UseMiddleware<T>(); });
 
-            if (builder.TailsBaseUri != null)
+            if (agentBuilder.TailsBaseUri != null)
             {
-                var tailsEndpoint = new Uri(builder.TailsBaseUri);
+                var tailsEndpoint = new Uri(agentBuilder.TailsBaseUri);
 
                 app.MapWhen(
                     context => context.Request.Path.StartsWithSegments(tailsEndpoint.AbsolutePath),

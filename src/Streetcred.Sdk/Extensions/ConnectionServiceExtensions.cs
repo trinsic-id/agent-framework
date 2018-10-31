@@ -9,7 +9,7 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Extensions
 {
     /// <summary>
-    /// A collection of convenience methods for the <see cref="ICredentialService"/> class.
+    /// A collection of convenience methods for the <see cref="IDefaultCredentialService"/> class.
     /// </summary>
     public static class ConnectionServiceExtensions
     {
@@ -21,7 +21,7 @@ namespace Streetcred.Sdk.Extensions
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
         public static Task<List<ConnectionRecord>> ListNegotiatingConnectionsAsync(
-            this IConnectionService connectionService, Wallet wallet, int count = 100)
+            this IDefaultConnectionService connectionService, Wallet wallet, int count = 100)
             => connectionService.ListAsync(wallet,
                 new SearchRecordQuery {{ TagConstants.State, ConnectionState.Negotiating.ToString("G")}}, count);
 
@@ -33,7 +33,7 @@ namespace Streetcred.Sdk.Extensions
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
         public static Task<List<ConnectionRecord>> ListConnectedConnectionsAsync(
-            this IConnectionService connectionService, Wallet wallet, int count = 100)
+            this IDefaultConnectionService connectionService, Wallet wallet, int count = 100)
             => connectionService.ListAsync(wallet,
                 new SearchRecordQuery {{ TagConstants.State, ConnectionState.Connected.ToString("G")}}, count);
 
@@ -45,7 +45,7 @@ namespace Streetcred.Sdk.Extensions
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
         public static Task<List<ConnectionRecord>> ListInvitedConnectionsAsync(
-            this IConnectionService connectionService, Wallet wallet, int count = 100)
+            this IDefaultConnectionService connectionService, Wallet wallet, int count = 100)
             => connectionService.ListAsync(wallet,
                 new SearchRecordQuery {{ TagConstants.State, ConnectionState.Invited.ToString("G")}}, count);
     }

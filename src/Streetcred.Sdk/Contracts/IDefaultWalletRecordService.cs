@@ -9,7 +9,7 @@ namespace Streetcred.Sdk.Contracts
     /// <summary>
     /// Wallet record service.
     /// </summary>
-    public interface IWalletRecordService
+    public interface IDefaultWalletRecordService
     {
         /// <summary>
         /// Adds the record async.

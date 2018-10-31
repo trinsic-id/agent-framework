@@ -27,11 +27,18 @@ namespace Agency.Web
                 .AddConsole()
                 .AddDebug());
 
+            //TODO this should be abstracted into the extension pack
+            services.AddMemoryCache();
+
             services.AddAgent(config =>
             {
                 config
                     .SetWalletOptions(Configuration.GetSection("WalletOptions").Get<WalletOptions>())
                     .SetPoolOptions(new PoolOptions {GenesisFilename = Path.GetFullPath("pool_genesis.txn")});
+            },
+            config =>
+            {
+                config.AddMemoryCacheLedgerService();
             });
         }
 

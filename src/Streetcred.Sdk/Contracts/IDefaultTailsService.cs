@@ -7,7 +7,7 @@ namespace Streetcred.Sdk.Contracts
     /// <summary>
     /// Tails Service.
     /// </summary>
-    public interface ITailsService
+    public interface IDefaultTailsService
     {
         /// <summary>
         /// Opens an existing tails file and returns a handle.

@@ -12,7 +12,7 @@ namespace Streetcred.Sdk.Contracts
     /// <summary>
     /// Proof Service.
     /// </summary>
-    public interface IProofService
+    public interface IDefaultProofService
     {
         /// <summary>
         /// Sends a proof request

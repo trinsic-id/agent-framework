@@ -7,7 +7,7 @@ namespace Streetcred.Sdk.Contracts
     /// <summary>
     /// Represents a content serializer
     /// </summary>
-    public interface IMessageSerializer
+    public interface IDefaultMessageSerializer
     {
         /// <summary>
         /// Packs a content by auth crypting the content and returns a base64 string

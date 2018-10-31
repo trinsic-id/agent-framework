@@ -13,15 +13,15 @@ using Newtonsoft.Json.Linq;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class DefaultTailsService : ITailsService
+    public class DefaultTailsService : IDefaultTailsService
     {
         protected static readonly ConcurrentDictionary<string, BlobStorageReader> BlobReaders =
             new ConcurrentDictionary<string, BlobStorageReader>();
 
-        protected readonly ILedgerService LedgerService;
+        protected readonly IDefaultLedgerService LedgerService;
         protected readonly HttpClient HttpClient;
 
-        public DefaultTailsService(ILedgerService ledgerService)
+        public DefaultTailsService(IDefaultLedgerService ledgerService)
         {
             LedgerService = ledgerService;
             HttpClient = new HttpClient();

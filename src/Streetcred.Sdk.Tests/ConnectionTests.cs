@@ -24,7 +24,7 @@ namespace Streetcred.Sdk.Tests
         private Wallet _issuerWallet;
         private Wallet _holderWallet;
 
-        private readonly IConnectionService _connectionService;
+        private readonly IDefaultConnectionService _connectionService;
 
         private readonly ConcurrentBag<IEnvelopeMessage> _messages = new ConcurrentBag<IEnvelopeMessage>();
 
@@ -32,12 +32,12 @@ namespace Streetcred.Sdk.Tests
         {
             var messageSerializer = new DefaultMessageSerializer();
 
-            var routingMock = new Mock<IRouterService>();
+            var routingMock = new Mock<IDefaultRouterService>();
             routingMock.Setup(x => x.ForwardAsync(It.IsNotNull<IEnvelopeMessage>(), It.IsAny<AgentEndpoint>()))
                 .Callback((IEnvelopeMessage content, AgentEndpoint endpoint) => { _messages.Add(content); })
                 .Returns(Task.CompletedTask);
 
-            var provisioningMock = new Mock<IProvisioningService>();
+            var provisioningMock = new Mock<IDefaultProvisioningService>();
             provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(Task.FromResult(new ProvisioningRecord
                 {

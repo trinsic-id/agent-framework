@@ -19,27 +19,27 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class DefaultCredentialService : ICredentialService
+    public class DefaultCredentialService : IDefaultCredentialService
     {
-        protected readonly IRouterService RouterService;
-        protected readonly ILedgerService LedgerService;
-        protected readonly IConnectionService ConnectionService;
-        protected readonly IWalletRecordService RecordService;
-        protected readonly IMessageSerializer MessageSerializer;
-        protected readonly ISchemaService SchemaService;
-        protected readonly ITailsService TailsService;
-        protected readonly IProvisioningService ProvisioningService;
+        protected readonly IDefaultRouterService RouterService;
+        protected readonly IDefaultLedgerService LedgerService;
+        protected readonly IDefaultConnectionService ConnectionService;
+        protected readonly IDefaultWalletRecordService RecordService;
+        protected readonly IDefaultMessageSerializer MessageSerializer;
+        protected readonly IDefaultSchemaService SchemaService;
+        protected readonly IDefaultTailsService TailsService;
+        protected readonly IDefaultProvisioningService ProvisioningService;
         protected readonly ILogger<DefaultCredentialService> Logger;
 
         public DefaultCredentialService(
-            IRouterService routerService,
-            ILedgerService ledgerService,
-            IConnectionService connectionService,
-            IWalletRecordService recordService,
-            IMessageSerializer messageSerializer,
-            ISchemaService schemaService,
-            ITailsService tailsService,
-            IProvisioningService provisioningService,
+            IDefaultRouterService routerService,
+            IDefaultLedgerService ledgerService,
+            IDefaultConnectionService connectionService,
+            IDefaultWalletRecordService recordService,
+            IDefaultMessageSerializer messageSerializer,
+            IDefaultSchemaService schemaService,
+            IDefaultTailsService tailsService,
+            IDefaultProvisioningService provisioningService,
             ILogger<DefaultCredentialService> logger)
         {
             RouterService = routerService;

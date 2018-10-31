@@ -8,7 +8,7 @@ namespace Streetcred.Sdk.Contracts
     /// <summary>
     /// Provisioning Service.
     /// </summary>
-    public interface IProvisioningService
+    public interface IDefaultProvisioningService
     {
         /// <summary>
         /// Gets my endpoint asynchronous.
