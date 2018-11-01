@@ -11,7 +11,7 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class DefaultMessageSerializer : IDefaultMessageSerializer
+    public class DefaultMessageSerializer : IMessageSerializer
     {
         /// <inheritdoc />
         public virtual async Task<T> PackSealedAsync<T>(object message, Wallet wallet, string myKey, string theirKey)

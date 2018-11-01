@@ -11,7 +11,7 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Extensions
 {
     /// <summary>
-    /// A collection of convenience methods for the <see cref="IDefaultProofService"/> class.
+    /// A collection of convenience methods for the <see cref="IProofService"/> class.
     /// </summary>
     public static class ProofServiceExtensions
     {
@@ -22,7 +22,7 @@ namespace Streetcred.Sdk.Extensions
         /// <param name="wallet">The wallet.</param>
         /// <param name="count">The count.</param>
         /// <returns></returns>
-        public static Task<List<ProofRecord>> ListRequestedAsync(this IDefaultProofService proofService,
+        public static Task<List<ProofRecord>> ListRequestedAsync(this IProofService proofService,
             Wallet wallet, int count = 100)
             => proofService.ListAsync(wallet,
                 new SearchRecordQuery {{ TagConstants.State, ProofState.Requested.ToString("G")}}, count);
@@ -34,7 +34,7 @@ namespace Streetcred.Sdk.Extensions
         /// <param name="wallet">The wallet.</param>
         /// <param name="count">The count.</param>
         /// <returns></returns>
-        public static Task<List<ProofRecord>> ListAcceptedAsync(this IDefaultProofService proofService,
+        public static Task<List<ProofRecord>> ListAcceptedAsync(this IProofService proofService,
             Wallet wallet, int count = 100)
             => proofService.ListAsync(wallet,
                 new SearchRecordQuery {{ TagConstants.State, ProofState.Accepted.ToString("G")}}, count);

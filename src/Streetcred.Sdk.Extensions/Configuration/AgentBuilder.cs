@@ -8,7 +8,7 @@ using Streetcred.Sdk.Exceptions;
 using Streetcred.Sdk.Extensions.Options;
 using Streetcred.Sdk.Model.Wallets;
 
-namespace Streetcred.Sdk.Extensions
+namespace Streetcred.Sdk.Extensions.Configuration
 {
     public class AgentBuilder
     {
@@ -20,17 +20,17 @@ namespace Streetcred.Sdk.Extensions
 
         internal string TailsBaseUri;
 
-        private readonly IDefaultWalletService _walletService;
-        private readonly IDefaultPoolService _poolService;
-        private readonly IDefaultProvisioningService _provisioningService;
+        private readonly IWalletService _walletService;
+        private readonly IPoolService _poolService;
+        private readonly IProvisioningService _provisioningService;
         private readonly WalletOptions _walletOptions;
         private readonly PoolOptions _poolOptions;
         private bool _createIssuer;
 
         public AgentBuilder(
-            IDefaultWalletService walletService,
-            IDefaultPoolService poolService,
-            IDefaultProvisioningService provisioningService,
+            IWalletService walletService,
+            IPoolService poolService,
+            IProvisioningService provisioningService,
             IOptions<WalletOptions> walletOptions,
             IOptions<PoolOptions> poolOptions)
         {

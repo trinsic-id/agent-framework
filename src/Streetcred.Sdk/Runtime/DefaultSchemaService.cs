@@ -13,16 +13,16 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class DefaultSchemaService : IDefaultSchemaService
+    public class DefaultSchemaService : ISchemaService
     {
-        protected readonly IDefaultWalletRecordService RecordService;
-        protected readonly IDefaultLedgerService LedgerService;
-        protected readonly IDefaultTailsService TailsService;
+        protected readonly IWalletRecordService RecordService;
+        protected readonly ILedgerService LedgerService;
+        protected readonly ITailsService TailsService;
 
         public DefaultSchemaService(
-            IDefaultWalletRecordService recordService,
-            IDefaultLedgerService ledgerService,
-            IDefaultTailsService tailsService)
+            IWalletRecordService recordService,
+            ILedgerService ledgerService,
+            ITailsService tailsService)
         {
             RecordService = recordService;
             LedgerService = ledgerService;

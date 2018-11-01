@@ -9,7 +9,7 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class DefaultWalletService : IDefaultWalletService
+    public class DefaultWalletService : IWalletService
     {
         protected static readonly ConcurrentDictionary<string, Wallet> Wallets =
             new ConcurrentDictionary<string, Wallet>();

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Streetcred.Sdk.Extensions;
+using Streetcred.Sdk.Extensions.Configuration.Service;
 using Streetcred.Sdk.Extensions.Options;
 
 namespace Agency.Web
@@ -26,19 +26,12 @@ namespace Agency.Web
                 .SetMinimumLevel(LogLevel.Trace)
                 .AddConsole()
                 .AddDebug());
-
-            //TODO this should be abstracted into the extension pack
-            services.AddMemoryCache();
-
+            
             services.AddAgent(config =>
             {
                 config
                     .SetWalletOptions(Configuration.GetSection("WalletOptions").Get<WalletOptions>())
                     .SetPoolOptions(new PoolOptions {GenesisFilename = Path.GetFullPath("pool_genesis.txn")});
-            },
-            config =>
-            {
-                config.AddMemoryCacheLedgerService();
             });
         }
 

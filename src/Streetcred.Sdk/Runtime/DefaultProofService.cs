@@ -18,25 +18,25 @@ using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
 {
-    public class DefaultProofService : IDefaultProofService
+    public class DefaultProofService : IProofService
     {
-        protected readonly IDefaultRouterService RouterService;
-        protected readonly IDefaultConnectionService ConnectionService;
-        protected readonly IDefaultMessageSerializer MessageSerializer;
-        protected readonly IDefaultWalletRecordService RecordService;
-        protected readonly IDefaultProvisioningService ProvisioningService;
-        protected readonly IDefaultLedgerService LedgerService;
+        protected readonly IRouterService RouterService;
+        protected readonly IConnectionService ConnectionService;
+        protected readonly IMessageSerializer MessageSerializer;
+        protected readonly IWalletRecordService RecordService;
+        protected readonly IProvisioningService ProvisioningService;
+        protected readonly ILedgerService LedgerService;
         protected readonly ILogger<DefaultProofService> Logger;
-        protected readonly IDefaultTailsService TailsService;
+        protected readonly ITailsService TailsService;
 
         public DefaultProofService(
-            IDefaultConnectionService connectionService,
-            IDefaultRouterService routerService,
-            IDefaultMessageSerializer messageSerializer,
-            IDefaultWalletRecordService recordService,
-            IDefaultProvisioningService provisioningService,
-            IDefaultLedgerService ledgerService,
-            IDefaultTailsService tailsService,
+            IConnectionService connectionService,
+            IRouterService routerService,
+            IMessageSerializer messageSerializer,
+            IWalletRecordService recordService,
+            IProvisioningService provisioningService,
+            ILedgerService ledgerService,
+            ITailsService tailsService,
             ILogger<DefaultProofService> logger)
         {
             TailsService = tailsService;

@@ -7,7 +7,7 @@ namespace Streetcred.Sdk.Contracts
     /// <summary>
     /// Wallet service.
     /// </summary>
-    public interface IDefaultWalletService
+    public interface IWalletService
     {
         /// <summary>
         /// Gets the wallet async.

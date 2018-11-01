@@ -6,7 +6,7 @@ namespace Streetcred.Sdk.Contracts
     /// <summary>
     /// Pool service.
     /// </summary>
-    public interface IDefaultPoolService
+    public interface IPoolService
     {
         /// <summary>
         /// Opens the pool configuration with the specified name.

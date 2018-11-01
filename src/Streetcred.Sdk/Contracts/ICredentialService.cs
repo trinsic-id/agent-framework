@@ -11,7 +11,7 @@ namespace Streetcred.Sdk.Contracts
     /// <summary>
     /// Credential Service
     /// </summary>
-    public interface IDefaultCredentialService
+    public interface ICredentialService
     {
         /// <summary>
         /// Gets credential record for the given identifier

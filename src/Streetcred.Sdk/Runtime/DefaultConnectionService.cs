@@ -17,19 +17,19 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class DefaultConnectionService : IDefaultConnectionService
+    public class DefaultConnectionService : IConnectionService
     {
-        protected readonly IDefaultWalletRecordService RecordService;
-        protected readonly IDefaultRouterService RouterService;
-        protected readonly IDefaultProvisioningService ProvisioningService;
-        protected readonly IDefaultMessageSerializer MessageSerializer;
+        protected readonly IWalletRecordService RecordService;
+        protected readonly IRouterService RouterService;
+        protected readonly IProvisioningService ProvisioningService;
+        protected readonly IMessageSerializer MessageSerializer;
         protected readonly ILogger<DefaultConnectionService> Logger;
 
         public DefaultConnectionService(
-            IDefaultWalletRecordService recordService,
-            IDefaultRouterService routerService,
-            IDefaultProvisioningService provisioningService,
-            IDefaultMessageSerializer messageSerializer,
+            IWalletRecordService recordService,
+            IRouterService routerService,
+            IProvisioningService provisioningService,
+            IMessageSerializer messageSerializer,
             ILogger<DefaultConnectionService> logger)
         {
             RouterService = routerService;

@@ -12,7 +12,7 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class DefaultWalletRecordService : IDefaultWalletRecordService
+    public class DefaultWalletRecordService : IWalletRecordService
     {
         /// <inheritdoc />
         public virtual Task AddAsync<T>(Wallet wallet, T record)

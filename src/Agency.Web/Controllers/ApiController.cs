@@ -12,13 +12,13 @@ namespace Agency.Web.Controllers
     [Route("api")]
     public class ApiController : Controller
     {
-        private readonly IDefaultConnectionService _connectionService;
-        private readonly IDefaultProvisioningService _provisioningService;
-        private readonly IDefaultWalletService _walletService;
+        private readonly IConnectionService _connectionService;
+        private readonly IProvisioningService _provisioningService;
+        private readonly IWalletService _walletService;
         private readonly WalletOptions _walletOptions;
 
-        public ApiController(IDefaultConnectionService connectionService, IDefaultProvisioningService provisioningService,
-            IDefaultWalletService walletService, IDefaultMessageSerializer messageSerializer, IDefaultCredentialService credentialService,
+        public ApiController(IConnectionService connectionService, IProvisioningService provisioningService,
+            IWalletService walletService, IMessageSerializer messageSerializer, ICredentialService credentialService,
             IOptions<WalletOptions> walletOptions)
         {
             _connectionService = connectionService;

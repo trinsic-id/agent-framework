@@ -1,11 +1,9 @@
 ﻿using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Extensions.Options;
-using Streetcred.Sdk.Runtime;
 
-namespace Streetcred.Sdk.Extensions
+namespace Streetcred.Sdk.Extensions.Configuration.Service
 {
     public static class ServicesExtensions
     {
@@ -23,13 +21,15 @@ namespace Streetcred.Sdk.Extensions
         /// <param name="agentConfiguration">The agent configuration.</param>
         /// <param name="serviceConfiguration">The service resolution configuration</param>
         public static void AddAgent(this IServiceCollection services,
-            Action<AgentConfiguration> agentConfiguration = null, Action<ServicesBuilder> serviceConfiguration = null)
+            Action<AgentConfiguration> agentConfiguration = null, Action<AgentServicesBuilder> serviceConfiguration = null)
         {
             RegisterCoreServices(services);
 
-            var serviceBuilder = new ServicesBuilder();
+            var serviceBuilder = new AgentServicesBuilder(services);
             serviceConfiguration?.Invoke(serviceBuilder);
-            serviceBuilder.RegisterServices(ref services);
+            serviceBuilder.AddCoreServices();
+
+            services = serviceBuilder.Services;
 
             var defaultConfiguration = new AgentConfiguration();
             agentConfiguration?.Invoke(defaultConfiguration);

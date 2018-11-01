@@ -9,7 +9,7 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Extensions
 {
     /// <summary>
-    /// A collection of convenience methods for the <see cref="IDefaultCredentialService"/> class.
+    /// A collection of convenience methods for the <see cref="ICredentialService"/> class.
     /// </summary>
     public static class CredentialServiceExtensions
     {
@@ -20,7 +20,7 @@ namespace Streetcred.Sdk.Extensions
         /// <param name="credentialService">Credential service.</param>
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
-        public static Task<List<CredentialRecord>> ListOffersAsync(this IDefaultCredentialService credentialService,
+        public static Task<List<CredentialRecord>> ListOffersAsync(this ICredentialService credentialService,
             Wallet wallet, int count = 100)
             => credentialService.ListAsync(wallet,
                 new SearchRecordQuery {{ TagConstants.State, CredentialState.Offered.ToString("G")}}, count);
@@ -32,7 +32,7 @@ namespace Streetcred.Sdk.Extensions
         /// <param name="credentialService">Credential service.</param>
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
-        public static Task<List<CredentialRecord>> ListRequestsAsync(this IDefaultCredentialService credentialService,
+        public static Task<List<CredentialRecord>> ListRequestsAsync(this ICredentialService credentialService,
             Wallet wallet, int count = 100)
             => credentialService.ListAsync(wallet,
                 new SearchRecordQuery {{ TagConstants.State, CredentialState.Requested.ToString("G")}}, count);
@@ -44,7 +44,7 @@ namespace Streetcred.Sdk.Extensions
         /// <param name="credentialService">Credential service.</param>
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
-        public static Task<List<CredentialRecord>> ListIssuedCredentialsAsync(this IDefaultCredentialService credentialService,
+        public static Task<List<CredentialRecord>> ListIssuedCredentialsAsync(this ICredentialService credentialService,
             Wallet wallet, int count = 100)
             => credentialService.ListAsync(wallet,
                 new SearchRecordQuery {{ TagConstants.State, CredentialState.Issued.ToString("G")}}, count);
@@ -57,7 +57,7 @@ namespace Streetcred.Sdk.Extensions
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
         public static Task<List<CredentialRecord>> ListRevokedCredentialsAsync(
-            this IDefaultCredentialService credentialService, Wallet wallet, int count = 100)
+            this ICredentialService credentialService, Wallet wallet, int count = 100)
             => credentialService.ListAsync(wallet,
                 new SearchRecordQuery {{ TagConstants.State, CredentialState.Revoked.ToString("G")}}, count);
 
@@ -70,7 +70,7 @@ namespace Streetcred.Sdk.Extensions
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
         public static Task<List<CredentialRecord>> ListRejectedCredentialsAsync(
-            this IDefaultCredentialService credentialService, Wallet wallet, int count = 100)
+            this ICredentialService credentialService, Wallet wallet, int count = 100)
             => credentialService.ListAsync(wallet,
                 new SearchRecordQuery {{ TagConstants.State, CredentialState.Rejected.ToString("G")}}, count);
     }

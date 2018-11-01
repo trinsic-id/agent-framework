@@ -10,7 +10,7 @@ namespace Streetcred.Sdk.Contracts
     /// <summary>
     /// Connection Service.
     /// </summary>
-    public interface IDefaultConnectionService
+    public interface IConnectionService
     {
         /// <summary>
         /// Gets the async.

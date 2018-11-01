@@ -15,22 +15,22 @@ namespace Streetcred.Sdk.Extensions
     public class AgentMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IDefaultWalletService _walletService;
-        private readonly IDefaultPoolService _poolService;
-        private readonly IDefaultMessageSerializer _messageSerializer;
-        private readonly IDefaultConnectionService _connectionService;
-        private readonly IDefaultCredentialService _credentialService;
-        private readonly IDefaultProvisioningService _provisioningService;
+        private readonly IWalletService _walletService;
+        private readonly IPoolService _poolService;
+        private readonly IMessageSerializer _messageSerializer;
+        private readonly IConnectionService _connectionService;
+        private readonly ICredentialService _credentialService;
+        private readonly IProvisioningService _provisioningService;
         private readonly PoolOptions _poolOptions;
         private readonly WalletOptions _walletOptions;
 
         public AgentMiddleware(RequestDelegate next,
-            IDefaultWalletService walletService,
-            IDefaultPoolService poolService,
-            IDefaultMessageSerializer messageSerializer,
-            IDefaultConnectionService connectionService,
-            IDefaultCredentialService credentialService,
-            IDefaultProvisioningService provisioningService,
+            IWalletService walletService,
+            IPoolService poolService,
+            IMessageSerializer messageSerializer,
+            IConnectionService connectionService,
+            ICredentialService credentialService,
+            IProvisioningService provisioningService,
             IOptions<WalletOptions> walletOptions,
             IOptions<PoolOptions> poolOptions)
         {

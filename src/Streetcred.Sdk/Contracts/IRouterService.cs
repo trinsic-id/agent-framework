@@ -6,7 +6,7 @@ namespace Streetcred.Sdk.Contracts
     /// <summary>
     /// Router service.
     /// </summary>
-    public interface IDefaultRouterService
+    public interface IRouterService
     {
         /// <summary>
         /// Forwards the asynchronous.

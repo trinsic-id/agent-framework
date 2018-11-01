@@ -10,7 +10,7 @@ namespace Streetcred.Sdk.Contracts
     /// <summary>
     /// Schema Service.
     /// </summary>
-    public interface IDefaultSchemaService
+    public interface ISchemaService
     {
         /// <summary>
         /// Creates the schema asynchronous.

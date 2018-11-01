@@ -34,12 +34,12 @@ namespace Streetcred.Sdk.Tests
         private Wallet _holderWallet;
         private Wallet _requestorWallet;
 
-        private readonly IDefaultConnectionService _connectionService;
-        private readonly IDefaultCredentialService _credentialService;
-        private readonly IDefaultProofService _proofService;
+        private readonly IConnectionService _connectionService;
+        private readonly ICredentialService _credentialService;
+        private readonly IProofService _proofService;
 
-        private readonly IDefaultSchemaService _schemaService;
-        private readonly IDefaultPoolService _poolService;
+        private readonly ISchemaService _schemaService;
+        private readonly IPoolService _poolService;
 
         private readonly ConcurrentBag<IEnvelopeMessage> _messages = new ConcurrentBag<IEnvelopeMessage>();
 
@@ -51,17 +51,17 @@ namespace Streetcred.Sdk.Tests
 
             _poolService = new DefaultPoolService();
 
-            var provisionMock = new Mock<IDefaultProvisioningService>();
+            var provisionMock = new Mock<IProvisioningService>();
             provisionMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(
                     Task.FromResult<ProvisioningRecord>(new ProvisioningRecord() {MasterSecretId = MasterSecretId}));
 
-            var routingMock = new Mock<IDefaultRouterService>();
+            var routingMock = new Mock<IRouterService>();
             routingMock.Setup(x => x.ForwardAsync(It.IsNotNull<IEnvelopeMessage>(), It.IsAny<AgentEndpoint>()))
                 .Callback((IEnvelopeMessage content, AgentEndpoint endpoint) => { _messages.Add(content); })
                 .Returns(Task.CompletedTask);
 
-            var provisioningMock = new Mock<IDefaultProvisioningService>();
+            var provisioningMock = new Mock<IProvisioningService>();
             provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(Task.FromResult(new ProvisioningRecord
                 {

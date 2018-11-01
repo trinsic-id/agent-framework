@@ -21,7 +21,7 @@ namespace Streetcred.Sdk.Tests
     internal static class Scenarios
     {
         internal static async Task<(ConnectionRecord firstParty, ConnectionRecord secondParty)> EstablishConnectionAsync(
-            IDefaultConnectionService connectionService,
+            IConnectionService connectionService,
             IProducerConsumerCollection<IEnvelopeMessage> _messages,
             Wallet firstWallet,
             Wallet secondWallet,
@@ -106,7 +106,7 @@ namespace Streetcred.Sdk.Tests
         }
         
         internal static async Task<(CredentialRecord issuerCredential, CredentialRecord holderCredential)> IssueCredentialAsync(
-            IDefaultSchemaService schemaService, IDefaultCredentialService credentialService,
+            ISchemaService schemaService, ICredentialService credentialService,
             IProducerConsumerCollection<IEnvelopeMessage> messages,
             string issuerConnectionId, Wallet issuerWallet, Wallet holderWallet,
             Pool pool, string proverMasterSecretId, bool revocable)

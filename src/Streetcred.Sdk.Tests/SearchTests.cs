@@ -18,7 +18,7 @@ namespace Streetcred.Sdk.Tests
 
         private Wallet _wallet;
 
-        private readonly IDefaultWalletRecordService _recordService;
+        private readonly IWalletRecordService _recordService;
 
         public SearchTests()
         {
