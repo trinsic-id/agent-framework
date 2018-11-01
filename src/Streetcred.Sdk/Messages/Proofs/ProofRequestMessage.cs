@@ -1,20 +1,13 @@
 ﻿using Newtonsoft.Json;
+using Streetcred.Sdk.Model;
 
-namespace Streetcred.Sdk.Model.Connections
+namespace Streetcred.Sdk.Messages.Proofs
 {
     /// <summary>
-    /// Represents a connection response message
+    /// A proof request content message.
     /// </summary>
-    public class ConnectionResponse : IContentMessage
+    public class ProofRequestMessage : IContentMessage
     {
-        /// <summary>
-        /// Gets or sets to.
-        /// </summary>
-        /// <value>
-        /// To.
-        /// </value>
-        public string To { get; set; }
-        
         /// <summary>
         /// Gets or sets the type.
         /// </summary>
@@ -25,7 +18,7 @@ namespace Streetcred.Sdk.Model.Connections
         public string Type { get; set; }
 
         /// <summary>
-        /// Gets or sets the content.
+        /// Gets or sets the content of the message.
         /// </summary>
         /// <value>
         /// The content.

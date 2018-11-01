@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Streetcred.Sdk.Messages.Connection;
 using Streetcred.Sdk.Model;
 using Streetcred.Sdk.Model.Connections;
 using Streetcred.Sdk.Model.Wallets;

@@ -1,11 +1,12 @@
 ﻿using Newtonsoft.Json;
+using Streetcred.Sdk.Model;
 
-namespace Streetcred.Sdk.Model.Connections
+namespace Streetcred.Sdk.Messages.Connections
 {
     /// <summary>
     /// Represents an invitation message for establishing connection.
     /// </summary>
-    public class ConnectionInvitation : IUnsecuredMessage
+    public class ConnectionInvitationMessage : IUnsecuredMessage
     {
         /// <summary>
         /// Gets or sets the endpoint.

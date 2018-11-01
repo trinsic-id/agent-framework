@@ -1,11 +1,13 @@
 ﻿using Newtonsoft.Json;
+using Streetcred.Sdk.Model;
 
-namespace Streetcred.Sdk.Model.Credentials
+namespace Streetcred.Sdk.Messages
 {
     /// <summary>
-    /// A credential offer content message.
+    /// Represents a forward to key message envelope
     /// </summary>
-    public class CredentialOffer : IContentMessage
+    /// <seealso cref="IEnvelopeMessage" />
+    public class ForwardToKeyEnvelopeMessage : IEnvelopeMessage
     {
         /// <summary>
         /// Gets or sets the type.
@@ -17,11 +19,12 @@ namespace Streetcred.Sdk.Model.Credentials
         public string Type { get; set; }
 
         /// <summary>
-        /// Gets or sets the content of the message.
+        /// Gets or sets the content.
         /// </summary>
         /// <value>
         /// The content.
         /// </value>
+        [JsonProperty("content")]
         public string Content { get; set; }
     }
 }

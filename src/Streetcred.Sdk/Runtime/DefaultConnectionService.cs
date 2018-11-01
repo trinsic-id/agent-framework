@@ -8,6 +8,8 @@ using Hyperledger.Indy.PairwiseApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Messages;
+using Streetcred.Sdk.Messages.Connection;
 using Streetcred.Sdk.Model;
 using Streetcred.Sdk.Model.Connections;
 using Streetcred.Sdk.Model.Records;

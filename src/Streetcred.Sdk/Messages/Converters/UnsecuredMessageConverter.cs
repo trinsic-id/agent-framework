@@ -1,14 +1,14 @@
 ﻿using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Streetcred.Sdk.Utils;
+using Streetcred.Sdk.Model;
 
-namespace Streetcred.Sdk.Model.Converters
+namespace Streetcred.Sdk.Messages.Converters
 {
     /// <summary>
-    /// Message converter for serializing and deserializing envelop messages to and from json to their respective object types
+    /// Message converter for serializing and deserializing unsecured messages to and from json to their respective object types
     /// </summary>
-    public class EnvelopeMessageConverter : JsonConverter
+    public class UnsecuredMessageConverter : JsonConverter
     {
         /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) =>
@@ -21,17 +21,13 @@ namespace Streetcred.Sdk.Model.Converters
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue,
             JsonSerializer serializer)
         {
-            var item = JObject.Load(reader);
-            var (_, messageType) = MessageUtils.ParseMessageType(item["@type"].ToObject<string>());
+            IUnsecuredMessage message;
 
-            IEnvelopeMessage message;
-            switch (messageType)
+            var item = JObject.Load(reader);
+            switch (item["@type"].ToObject<string>())
             {
-                case MessageTypes.Forward:
-                    message = new ForwardEnvelopeMessage();
-                    break;
-                case MessageTypes.ForwardToKey:
-                    message = new ForwardToKeyEnvelopeMessage();
+                case MessageTypes.ConnectionInvitation:
+                    message = new ConnectionInvitation();
                     break;
                 default: throw new TypeLoadException("Unsupported serialization type.");
             }
@@ -40,7 +36,6 @@ namespace Streetcred.Sdk.Model.Converters
             return message;
         }
 
-        /// <inheritdoc />
         public override bool CanConvert(Type objectType) => true;
     }
 }

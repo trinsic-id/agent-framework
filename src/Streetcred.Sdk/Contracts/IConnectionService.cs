@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Hyperledger.Indy.WalletApi;
+using Streetcred.Sdk.Messages.Connection;
 using Streetcred.Sdk.Model.Connections;
 using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Model.Records.Search;

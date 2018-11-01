@@ -1,11 +1,12 @@
 ﻿using Newtonsoft.Json;
+using Streetcred.Sdk.Model;
 
-namespace Streetcred.Sdk.Model.Connections
+namespace Streetcred.Sdk.Messages.Connections
 {
     /// <summary>
     /// Represents a connection request message.
     /// </summary>
-    public class ConnectionRequest : IContentMessage
+    public class ConnectionRequestMessage : IContentMessage
     {
         /// <summary>
         /// Gets or sets the connection key.

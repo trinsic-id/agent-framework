@@ -1,12 +1,11 @@
 ﻿using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Streetcred.Sdk.Model.Connections;
-using Streetcred.Sdk.Model.Credentials;
-using Streetcred.Sdk.Model.Proofs;
+using Streetcred.Sdk.Messages.Credentials;
+using Streetcred.Sdk.Messages.Proofs;
 using Streetcred.Sdk.Utils;
 
-namespace Streetcred.Sdk.Model.Converters
+namespace Streetcred.Sdk.Messages.Converters
 {
     /// <summary>
     /// Message converter for serializing and deserializing content messages to and from json to their respective object types
@@ -37,19 +36,19 @@ namespace Streetcred.Sdk.Model.Converters
                     message = new ConnectionResponse();
                     break;
                 case MessageTypes.CredentialOffer:
-                    message = new CredentialOffer();
+                    CredentialOfferMessagesageCredentialOfferMessagealOffer();
                     break;
                 case MessageTypes.CredentialRequest:
-                    message = new CredentialRequest();
+                    CredentialRequestMessage  CredentialRequestMessagedentialRequest();
                     break;
                 case MessageTypes.Credential:
-                    message = new Credential();
+                    CredentialMessage  messageCredentialMessagedential();
                     break;
                 case MessageTypes.ProofRequest:
-                    message = new ProofRequest();
+                    message = new ProofRequestMessage();
                     break;
                 case MessageTypes.DisclosedProof:
-                    message = new Proof();
+                    message = new ProofMessage();
                     break;
                 default: throw new TypeLoadException("Unsupported serialization type.");
             }

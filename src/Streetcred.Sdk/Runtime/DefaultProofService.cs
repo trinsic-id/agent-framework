@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Messages.Proofs;
 using Streetcred.Sdk.Model;
 using Streetcred.Sdk.Model.Proofs;
 using Streetcred.Sdk.Model.Records;
@@ -80,7 +81,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<ProofRequest> CreateProofRequestAsync(Wallet wallet, string connectionId,
+        public virtual async Task<ProofRequestMessage> CreateProofRequestAsync(Wallet wallet, string connectionId,
             ProofRequestObject proofRequestObject)
         {
             if (string.IsNullOrWhiteSpace(proofRequestObject.Nonce))
@@ -90,7 +91,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<ProofRequest> CreateProofRequestAsync(Wallet wallet, string connectionId,
+        public virtual async Task<ProofRequestMessage> CreateProofRequestAsync(Wallet wallet, string connectionId,
             string proofRequestJson)
         {
             Logger.LogInformation(LoggingEvents.CreateProofRequest, "ConnectionId {0}", connectionId);
@@ -110,7 +111,7 @@ namespace Streetcred.Sdk.Runtime
 
             await RecordService.AddAsync(wallet, proofRecord);
 
-            var proofRequest = await MessageSerializer.PackSealedAsync<ProofRequest>(
+            var proofRequest = await MessageSerializer.PackSealedAsync<ProofRequestMessage>(
                 new ProofRequestDetails {ProofRequestJson = proofRequestJson},
                 wallet,
                 connection.MyVk,
@@ -121,7 +122,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessProofAsync(Wallet wallet, Proof proof)
+        public virtual async Task<string> ProcessProofAsync(Wallet wallet, ProofMessage proof)
         {
             var (didOrKey, _) = MessageUtils.ParseMessageType(proof.Type);
 
@@ -150,7 +151,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessProofRequestAsync(Wallet wallet, ProofRequest proofRequest)
+        public virtual async Task<string> ProcessProofRequestAsync(Wallet wallet, ProofRequestMessage proofRequest)
         {
             var (didOrKey, _) = MessageUtils.ParseMessageType(proofRequest.Type);
 
@@ -186,7 +187,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<Proof> CreateProofAsync(Wallet wallet, Pool pool, string proofRequestId,
+        public virtual async Task<ProofMessage> CreateProofAsync(Wallet wallet, Pool pool, string proofRequestId,
             RequestedCredentialsDto requestedCredentials)
         {
             var record = await RecordService.GetAsync<ProofRecord>(wallet, proofRequestId);
@@ -224,7 +225,7 @@ namespace Streetcred.Sdk.Runtime
             await record.TriggerAsync(ProofTrigger.Accept);
             await RecordService.UpdateAsync(wallet, record);
 
-            var proof = await MessageSerializer.PackSealedAsync<Proof>(
+            var proof = await MessageSerializer.PackSealedAsync<ProofMessage>(
                 new ProofDetails
                 {
                     ProofJson = proofJson,

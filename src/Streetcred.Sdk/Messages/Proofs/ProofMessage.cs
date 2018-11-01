@@ -1,11 +1,12 @@
 ﻿using Newtonsoft.Json;
+using Streetcred.Sdk.Model;
 
-namespace Streetcred.Sdk.Model.Proofs
+namespace Streetcred.Sdk.Messages.Proofs
 {
     /// <summary>
     /// A proof content message.
     /// </summary>
-    public class Proof : IContentMessage
+    public class ProofMessage : IContentMessage
     {
         /// <summary>
         /// Gets or sets the type.

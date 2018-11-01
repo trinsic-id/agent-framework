@@ -1,13 +1,13 @@
 ﻿using Newtonsoft.Json;
+using Streetcred.Sdk.Model;
 
-namespace Streetcred.Sdk.Model.Credentials
+namespace Streetcred.Sdk.Messages.Credentials
 {
     /// <summary>
-    /// A credential content message.
+    /// A credential request content message.
     /// </summary>
-    public class Credential : IContentMessage
+    public class CredentialRequestMessage : IContentMessage
     {
-
         /// <summary>
         /// Gets or sets the type.
         /// </summary>
@@ -15,7 +15,7 @@ namespace Streetcred.Sdk.Model.Credentials
         /// The type.
         /// </value>
         [JsonProperty("@type")]
-        public string Type { get; set; } = MessageTypes.Credential;
+        public string Type { get; set; } = MessageTypes.CredentialRequest;
 
         public string Content { get; set; }
     }

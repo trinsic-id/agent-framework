@@ -1,12 +1,12 @@
 ﻿using Newtonsoft.Json;
 
-namespace Streetcred.Sdk.Model
+namespace Streetcred.Sdk.Messages
 {
     /// <summary>
-    /// Represents a forward to key message envelope
+    /// Represents a forwarding message envelope
     /// </summary>
     /// <seealso cref="IEnvelopeMessage" />
-    public class ForwardToKeyEnvelopeMessage : IEnvelopeMessage
+    public class ForwardEnvelopeMessage : IEnvelopeMessage
     {
         /// <summary>
         /// Gets or sets the type.

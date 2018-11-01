@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
-using Streetcred.Sdk.Model.Converters;
+using Streetcred.Sdk.Messages.Converters;
 
-namespace Streetcred.Sdk.Model
+namespace Streetcred.Sdk.Messages
 {
     /// <summary>
     /// Represents an unsecured message

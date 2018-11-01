@@ -6,6 +6,8 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Extensions.Options;
+using Streetcred.Sdk.Messages;
+using Streetcred.Sdk.Messages.Proofs;
 using Streetcred.Sdk.Model;
 using Streetcred.Sdk.Model.Connections;
 using Streetcred.Sdk.Model.Credentials;
@@ -86,7 +88,7 @@ namespace Streetcred.Sdk.Extensions
                         var pool = await _poolService.GetPoolAsync(_poolOptions.PoolName, _poolOptions.ProtocolVersion);
                         await _credentialService.ProcessCredentialAsync(pool, wallet, credential);
                         break;
-                    case Proof _:
+                    case ProofMessage _:
                         break;
                 }
 

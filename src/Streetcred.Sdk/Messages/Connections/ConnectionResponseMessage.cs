@@ -1,13 +1,21 @@
 ﻿using Newtonsoft.Json;
+using Streetcred.Sdk.Model;
 
-namespace Streetcred.Sdk.Model
+namespace Streetcred.Sdk.Messages.Connections
 {
     /// <summary>
-    /// Represents a forwarding message envelope
+    /// Represents a connection response message
     /// </summary>
-    /// <seealso cref="IEnvelopeMessage" />
-    public class ForwardEnvelopeMessage : IEnvelopeMessage
+    public class ConnectionResponseMessage : IContentMessage
     {
+        /// <summary>
+        /// Gets or sets to.
+        /// </summary>
+        /// <value>
+        /// To.
+        /// </value>
+        public string To { get; set; }
+        
         /// <summary>
         /// Gets or sets the type.
         /// </summary>
@@ -23,7 +31,6 @@ namespace Streetcred.Sdk.Model
         /// <value>
         /// The content.
         /// </value>
-        [JsonProperty("content")]
         public string Content { get; set; }
     }
 }

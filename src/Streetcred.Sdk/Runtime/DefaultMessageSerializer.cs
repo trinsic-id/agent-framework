@@ -5,6 +5,7 @@ using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Messages;
 using Streetcred.Sdk.Model;
 using Streetcred.Sdk.Utils;
 
