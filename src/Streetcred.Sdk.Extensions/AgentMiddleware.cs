@@ -53,7 +53,6 @@ namespace Streetcred.Sdk.Extensions
                 return;
             }
 
-            var pool = await _poolService.GetPoolAsync(_poolOptions.PoolName, _poolOptions.ProtocolVersion);
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
                 _walletOptions.WalletCredentials);
             var endpoint = await _provisioningService.GetProvisioningAsync(wallet);
@@ -83,6 +82,7 @@ namespace Streetcred.Sdk.Extensions
                         await _credentialService.ProcessCredentialRequestAsync(wallet, request);
                         break;
                     case Credential credential:
+                        var pool = await _poolService.GetPoolAsync(_poolOptions.PoolName, _poolOptions.ProtocolVersion);
                         await _credentialService.ProcessCredentialAsync(pool, wallet, credential);
                         break;
                     case Proof _:
