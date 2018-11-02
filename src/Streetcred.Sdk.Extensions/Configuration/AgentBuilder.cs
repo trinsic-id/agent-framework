@@ -18,7 +18,7 @@ namespace Streetcred.Sdk.Extensions.Configuration
         private string _agentOwnerName;
         private string _agentOwnerImageUrl;
 
-        internal string TailsBaseUri;
+        internal Uri TailsBaseUri;
 
         private readonly IWalletService _walletService;
         private readonly IPoolService _poolService;
@@ -81,7 +81,7 @@ namespace Streetcred.Sdk.Extensions.Configuration
         /// <param name="tailsBaseUri">Tails base URI.</param>
         public AgentBuilder SetTailsBaseUri(string tailsBaseUri)
         {
-            TailsBaseUri = tailsBaseUri;
+            TailsBaseUri = new Uri(tailsBaseUri);
 
             return this;
         }
@@ -122,7 +122,7 @@ namespace Streetcred.Sdk.Extensions.Configuration
                     IssuerSeed = _issuerSeed,
                     OwnerName = _agentOwnerName,
                     OwnerImageUrl = _agentOwnerImageUrl,
-                    TailsBaseUri = TailsBaseUri
+                    TailsBaseUri = TailsBaseUri ?? new Uri(endpointUri, "tails")
                 });
             }
             catch (WalletAlreadyProvisionedException)

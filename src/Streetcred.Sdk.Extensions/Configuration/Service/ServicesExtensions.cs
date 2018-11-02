@@ -81,10 +81,8 @@ namespace Streetcred.Sdk.Extensions.Configuration.Service
 
             if (agentBuilder.TailsBaseUri != null)
             {
-                var tailsEndpoint = new Uri(agentBuilder.TailsBaseUri);
-
                 app.MapWhen(
-                    context => context.Request.Path.StartsWithSegments(tailsEndpoint.AbsolutePath),
+                    context => context.Request.Path.StartsWithSegments(agentBuilder.TailsBaseUri.AbsolutePath),
                     appBuilder => { appBuilder.UseMiddleware<TailsMiddleware>(); });
             }
         }
