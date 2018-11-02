@@ -10,16 +10,16 @@ using Streetcred.Sdk.Utils;
 namespace Streetcred.Sdk.Runtime
 {
     /// <inheritdoc />
-    public class RouterService : IRouterService
+    public class DefaultRouterService : IRouterService
     {
         private readonly IMessageSerializer _messageSerializer;
-        private readonly ILogger<RouterService> _logger;
+        private readonly ILogger<DefaultRouterService> _logger;
         private readonly HttpClient _httpClient;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:Streetcred.Sdk.Runtime.RouterService"/> class.
+        /// Initializes a new instance of the <see cref="T:Streetcred.Sdk.Runtime.DefaultRouterService"/> class.
         /// </summary>
-        public RouterService(IMessageSerializer messageSerializer, ILogger<RouterService> logger)
+        public DefaultRouterService(IMessageSerializer messageSerializer, ILogger<DefaultRouterService> logger)
         {
             _messageSerializer = messageSerializer;
             _logger = logger;
