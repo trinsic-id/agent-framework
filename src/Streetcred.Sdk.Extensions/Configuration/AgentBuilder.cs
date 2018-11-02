@@ -8,7 +8,7 @@ using Streetcred.Sdk.Exceptions;
 using Streetcred.Sdk.Extensions.Options;
 using Streetcred.Sdk.Model.Wallets;
 
-namespace Streetcred.Sdk.Extensions
+namespace Streetcred.Sdk.Extensions.Configuration
 {
     public class AgentBuilder
     {

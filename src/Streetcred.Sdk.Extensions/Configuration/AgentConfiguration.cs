@@ -1,6 +1,6 @@
 ﻿using Streetcred.Sdk.Extensions.Options;
 
-namespace Streetcred.Sdk.Extensions
+namespace Streetcred.Sdk.Extensions.Configuration
 {
     public class AgentConfiguration
     {

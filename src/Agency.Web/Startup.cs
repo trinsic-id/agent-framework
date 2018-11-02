@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Streetcred.Sdk.Extensions;
+using Streetcred.Sdk.Extensions.Configuration.Service;
 using Streetcred.Sdk.Extensions.Options;
 
 namespace Agency.Web
@@ -26,7 +26,7 @@ namespace Agency.Web
                 .SetMinimumLevel(LogLevel.Trace)
                 .AddConsole()
                 .AddDebug());
-
+            
             services.AddAgent(config =>
             {
                 config
