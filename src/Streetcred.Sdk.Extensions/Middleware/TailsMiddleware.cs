@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Streetcred.Sdk.Utils;
 
-namespace Streetcred.Sdk.Extensions
+namespace Streetcred.Sdk.Extensions.Middleware
 {
     /// <summary>
     /// A middleware that serves tails data for revocation registries

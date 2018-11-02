@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Contracts;
@@ -8,7 +6,7 @@ using Streetcred.Sdk.Models.Records;
 using Streetcred.Sdk.Models.Records.Search;
 using Streetcred.Sdk.Utils;
 
-namespace Streetcred.Sdk.Extensions
+namespace Streetcred.Sdk.Extensions.Query
 {
     /// <summary>
     /// A collection of convenience methods for the <see cref="IProofService"/> class.

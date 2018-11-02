@@ -6,7 +6,7 @@ using Streetcred.Sdk.Models.Records;
 using Streetcred.Sdk.Models.Records.Search;
 using Streetcred.Sdk.Utils;
 
-namespace Streetcred.Sdk.Extensions
+namespace Streetcred.Sdk.Extensions.Query
 {
     /// <summary>
     /// A collection of convenience methods for the <see cref="ICredentialService"/> class.

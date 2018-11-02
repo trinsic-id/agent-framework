@@ -10,7 +10,7 @@ using Streetcred.Sdk.Messages.Connections;
 using Streetcred.Sdk.Messages.Credentials;
 using Streetcred.Sdk.Messages.Proofs;
 
-namespace Streetcred.Sdk.Extensions
+namespace Streetcred.Sdk.Extensions.Middleware
 {
     public class AgentMiddleware
     {
