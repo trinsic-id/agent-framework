@@ -1,27 +1,13 @@
 {
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:7001/",
-      "sslPort": 0
-    }
-  },
   "profiles": {
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
     "WebAgent": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
+        "STREETCRED_OWNER_NAME": "Local Joe",
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:7001/"
+      "applicationUrl": "http://localhost:5000/"
     },
     "Docker": {
       "commandName": "Docker",

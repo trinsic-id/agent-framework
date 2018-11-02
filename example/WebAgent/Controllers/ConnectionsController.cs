@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Extensions;
 using Streetcred.Sdk.Extensions.Options;
+using Streetcred.Sdk.Model.Connections;
 using Streetcred.Sdk.Model.Records;
 using WebAgent.Models;
 
@@ -15,36 +16,74 @@ namespace WebAgent.Controllers
 {
     public class ConnectionsController : Controller
     {
-        private readonly IConnectionService connectionService;
-        private readonly IWalletService walletService;
-        private readonly WalletOptions walletOptions;
+        private readonly IConnectionService _connectionService;
+        private readonly IWalletService _walletService;
+        private readonly IProvisioningService _provisioningService;
+        private readonly WalletOptions _walletOptions;
 
-        public ConnectionsController(IConnectionService connectionService, IWalletService walletService, IOptions<WalletOptions> walletOptions)
+        public ConnectionsController(
+            IConnectionService connectionService, 
+            IWalletService walletService, 
+            IProvisioningService provisioningService, 
+            IOptions<WalletOptions> walletOptions)
         {
-            this.connectionService = connectionService;
-            this.walletService = walletService;
-            this.walletOptions = walletOptions.Value;
+            this._connectionService = connectionService;
+            this._walletService = walletService;
+            _provisioningService = provisioningService;
+            this._walletOptions = walletOptions.Value;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var wallet = await walletService.GetWalletAsync(walletOptions.WalletConfiguration, walletOptions.WalletCredentials);
+            var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
             return View(new ConnectionsViewModel
             {
-                Connections = await connectionService.ListConnectedConnectionsAsync(wallet),
-                Invitations = await connectionService.ListNegotiatingConnectionsAsync(wallet)
+                Connections = await _connectionService.ListAsync(wallet),
+                Invitations = await _connectionService.ListNegotiatingConnectionsAsync(wallet)
             });
         }
 
         [HttpGet]
         public async Task<IActionResult> CreateInvitation()
         {
-            var wallet = await walletService.GetWalletAsync(walletOptions.WalletConfiguration, walletOptions.WalletCredentials);
+            var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
+            var provisioning = await _provisioningService.GetProvisioningAsync(wallet);
 
-            var invitation = await connectionService.CreateInvitationAsync(wallet);
+            var invitation = await _connectionService.CreateInvitationAsync(wallet,
+                new DefaultCreateInviteConfiguration
+                {
+                    AutoAcceptConnection = true,
+                    MyAlias = new ConnectionAlias {Name = provisioning.Owner.Name}
+                });
             ViewData["Invitation"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(invitation)));
             return View();
+        }
+
+        [HttpGet]
+        public IActionResult AcceptInvitation()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AcceptInvitation(AcceptConnectionViewModel model)
+        {
+            var invitationJson = Encoding.UTF8.GetString(Convert.FromBase64String(model.InvitationDetails));
+            var invitation = JsonConvert.DeserializeObject<ConnectionInvitation>(invitationJson);
+
+            var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
+            var connectionId = await _connectionService.AcceptInvitationAsync(wallet, invitation);
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(string id)
+        {
+            var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
+
+            return View(await _connectionService.GetAsync(wallet, id));
         }
     }
 }

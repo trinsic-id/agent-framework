@@ -12,7 +12,7 @@ services:
       agent_net:
         ipv4_address: 10.0.0.10
 
-  alice-agent:
+  harmione-agent:
     build:
       context: .
       dockerfile: docker/web-agent.dockerfile
@@ -20,7 +20,7 @@ services:
         AGENT_IP: 10.0.0.11
         AGENT_PORT: 7001
     environment:
-      - STREETCRED_OWNER_NAME=Alice
+      - STREETCRED_OWNER_NAME=Hermione Granger
     ports:
       - "7001:7001"
     depends_on:
@@ -31,7 +31,7 @@ services:
       agent_net:
         ipv4_address: 10.0.0.11
 
-  bob-agent:
+  harry-agent:
     build:
       context: .
       dockerfile: docker/web-agent.dockerfile
@@ -39,7 +39,7 @@ services:
         AGENT_IP: 10.0.0.12
         AGENT_PORT: 7002
     environment:
-      - STREETCRED_OWNER_NAME=Bob
+      - STREETCRED_OWNER_NAME=Harry Potter
     ports:
       - "7002:7002"
     depends_on:
@@ -50,7 +50,7 @@ services:
       agent_net:
         ipv4_address: 10.0.0.12
 
-  faber-college-agent:
+  hogwarts-agent:
     build:
       context: .
       dockerfile: docker/web-agent.dockerfile
@@ -58,7 +58,7 @@ services:
         AGENT_IP: 10.0.0.13
         AGENT_PORT: 7003
     environment:
-      - STREETCRED_OWNER_NAME=Faber College
+      - STREETCRED_OWNER_NAME=Hogwarts School of Magic
     ports:
       - "7003:7003"
     depends_on:
