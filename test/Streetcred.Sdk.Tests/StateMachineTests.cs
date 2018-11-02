@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Streetcred.Sdk.Model.Records;
+using Streetcred.Sdk.Models.Records;
 using Xunit;
 
 namespace Streetcred.Sdk.Tests

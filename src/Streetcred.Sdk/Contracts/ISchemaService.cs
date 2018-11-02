@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
-using Streetcred.Sdk.Model.Records;
+using Streetcred.Sdk.Models.Records;
 
 namespace Streetcred.Sdk.Contracts
 {

@@ -9,11 +9,12 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Contracts;
-using Streetcred.Sdk.Model;
-using Streetcred.Sdk.Model.Proofs;
-using Streetcred.Sdk.Model.Records;
-using Streetcred.Sdk.Model.Records.Search;
-using Streetcred.Sdk.Model.Wallets;
+using Streetcred.Sdk.Messages;
+using Streetcred.Sdk.Messages.Proofs;
+using Streetcred.Sdk.Models.Credentials;
+using Streetcred.Sdk.Models.Proofs;
+using Streetcred.Sdk.Models.Records;
+using Streetcred.Sdk.Models.Records.Search;
 using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
@@ -50,7 +51,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task SendProofRequestAsync(Wallet wallet, string connectionId, ProofRequestObject proofRequest)
+        public virtual async Task SendProofRequestAsync(Wallet wallet, string connectionId, ProofRequest proofRequest)
         {
             Logger.LogInformation(LoggingEvents.SendProofRequest, "ConnectionId {0}", connectionId);
 
@@ -80,17 +81,17 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<ProofRequest> CreateProofRequestAsync(Wallet wallet, string connectionId,
-            ProofRequestObject proofRequestObject)
+        public virtual async Task<ProofRequestMessage> CreateProofRequestAsync(Wallet wallet, string connectionId,
+            ProofRequest proofRequest)
         {
-            if (string.IsNullOrWhiteSpace(proofRequestObject.Nonce))
-                throw new ArgumentNullException(nameof(proofRequestObject.Nonce), "Nonce must be set.");
+            if (string.IsNullOrWhiteSpace(proofRequest.Nonce))
+                throw new ArgumentNullException(nameof(proofRequest.Nonce), "Nonce must be set.");
 
-            return await CreateProofRequestAsync(wallet, connectionId, proofRequestObject.ToJson());
+            return await CreateProofRequestAsync(wallet, connectionId, proofRequest.ToJson());
         }
 
         /// <inheritdoc />
-        public virtual async Task<ProofRequest> CreateProofRequestAsync(Wallet wallet, string connectionId,
+        public virtual async Task<ProofRequestMessage> CreateProofRequestAsync(Wallet wallet, string connectionId,
             string proofRequestJson)
         {
             Logger.LogInformation(LoggingEvents.CreateProofRequest, "ConnectionId {0}", connectionId);
@@ -110,7 +111,7 @@ namespace Streetcred.Sdk.Runtime
 
             await RecordService.AddAsync(wallet, proofRecord);
 
-            var proofRequest = await MessageSerializer.PackSealedAsync<ProofRequest>(
+            var proofRequest = await MessageSerializer.PackSealedAsync<ProofRequestMessage>(
                 new ProofRequestDetails {ProofRequestJson = proofRequestJson},
                 wallet,
                 connection.MyVk,
@@ -121,7 +122,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessProofAsync(Wallet wallet, Proof proof)
+        public virtual async Task<string> ProcessProofAsync(Wallet wallet, ProofMessage proof)
         {
             var (didOrKey, _) = MessageUtils.ParseMessageType(proof.Type);
 
@@ -150,7 +151,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessProofRequestAsync(Wallet wallet, ProofRequest proofRequest)
+        public virtual async Task<string> ProcessProofRequestAsync(Wallet wallet, ProofRequestMessage proofRequest)
         {
             var (didOrKey, _) = MessageUtils.ParseMessageType(proofRequest.Type);
 
@@ -186,19 +187,19 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<Proof> CreateProofAsync(Wallet wallet, Pool pool, string proofRequestId,
-            RequestedCredentialsDto requestedCredentials)
+        public virtual async Task<ProofMessage> CreateProofAsync(Wallet wallet, Pool pool, string proofRequestId,
+            RequestedCredentials requestedCredentials)
         {
             var record = await RecordService.GetAsync<ProofRecord>(wallet, proofRequestId);
             var connection = await ConnectionService.GetAsync(wallet, record.ConnectionId);
 
             var provisioningRecord = await ProvisioningService.GetProvisioningAsync(wallet);
 
-            var credentialObjects = new List<CredentialObject>();
+            var credentialObjects = new List<CredentialInfo>();
             foreach (var credId in requestedCredentials.GetCredentialIdentifiers())
             {
                 credentialObjects.Add(
-                    JsonConvert.DeserializeObject<CredentialObject>(
+                    JsonConvert.DeserializeObject<CredentialInfo>(
                         await AnonCreds.ProverGetCredentialAsync(wallet, credId)));
             }
 
@@ -224,11 +225,11 @@ namespace Streetcred.Sdk.Runtime
             await record.TriggerAsync(ProofTrigger.Accept);
             await RecordService.UpdateAsync(wallet, record);
 
-            var proof = await MessageSerializer.PackSealedAsync<Proof>(
+            var proof = await MessageSerializer.PackSealedAsync<ProofMessage>(
                 new ProofDetails
                 {
                     ProofJson = proofJson,
-                    RequestNonce = JsonConvert.DeserializeObject<ProofRequestObject>(record.RequestJson).Nonce
+                    RequestNonce = JsonConvert.DeserializeObject<ProofRequest>(record.RequestJson).Nonce
                 }, wallet, connection.MyVk, connection.TheirVk);
             proof.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.DisclosedProof);
 
@@ -237,7 +238,7 @@ namespace Streetcred.Sdk.Runtime
 
         /// <inheritdoc />
         public virtual async Task AcceptProofRequestAsync(Wallet wallet, Pool pool, string proofRequestId,
-            RequestedCredentialsDto requestedCredentials)
+            RequestedCredentials requestedCredentials)
         {
             var request = await RecordService.GetAsync<ProofRecord>(wallet, proofRequestId);
             var connection = await ConnectionService.GetAsync(wallet, request.ConnectionId);
@@ -263,7 +264,7 @@ namespace Streetcred.Sdk.Runtime
         public virtual async Task<bool> VerifyProofAsync(Wallet wallet, Pool pool, string proofRecId)
         {
             var proofRecord = await GetAsync(wallet, proofRecId);
-            var proofObject = JsonConvert.DeserializeObject<ProofObject>(proofRecord.ProofJson);
+            var proofObject = JsonConvert.DeserializeObject<Proof>(proofRecord.ProofJson);
 
             var schemas = await BuildSchemasAsync(pool,
                 proofObject.Identifiers
@@ -299,16 +300,16 @@ namespace Streetcred.Sdk.Runtime
         public virtual Task<ProofRecord> GetAsync(Wallet wallet, string proofRecId) =>
             RecordService.GetAsync<ProofRecord>(wallet, proofRecId);
 
-        public virtual async Task<List<CredentialInfo>> ListCredentialsForProofRequestAsync(Wallet wallet,
-            ProofRequestObject proofRequestObject, string attributeReferent)
+        public virtual async Task<List<Credential>> ListCredentialsForProofRequestAsync(Wallet wallet,
+            ProofRequest proofRequest, string attributeReferent)
         {
             var search =
-                await AnonCreds.ProverSearchCredentialsForProofRequestAsync(wallet, proofRequestObject.ToJson());
+                await AnonCreds.ProverSearchCredentialsForProofRequestAsync(wallet, proofRequest.ToJson());
             var searchResult =
                 await AnonCreds.ProverFetchCredentialsForProofRequestAsync(search, attributeReferent, 100);
 
             await AnonCreds.ProverCloseCredentialsSearchForProofRequestAsync(search);
-            return JsonConvert.DeserializeObject<List<CredentialInfo>>(searchResult);
+            return JsonConvert.DeserializeObject<List<Credential>>(searchResult);
         }
 
         #region Private Methods
@@ -339,10 +340,10 @@ namespace Streetcred.Sdk.Runtime
         }
 
         private async Task<string> BuildRevocationStatesAsync(Pool pool,
-            IEnumerable<CredentialObject> credentialObjects,
-            RequestedCredentialsDto requestedCredentials)
+            IEnumerable<CredentialInfo> credentialObjects,
+            RequestedCredentials requestedCredentials)
         {
-            var allCredentials = new List<RequestedAttributeDto>();
+            var allCredentials = new List<RequestedAttribute>();
             allCredentials.AddRange(requestedCredentials.RequestedAttributes.Values);
             allCredentials.AddRange(requestedCredentials.RequestedPredicates.Values);
 

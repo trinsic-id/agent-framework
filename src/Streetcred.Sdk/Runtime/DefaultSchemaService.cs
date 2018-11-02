@@ -7,7 +7,7 @@ using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Contracts;
-using Streetcred.Sdk.Model.Records;
+using Streetcred.Sdk.Models.Records;
 using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime

@@ -10,10 +10,11 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Contracts;
-using Streetcred.Sdk.Model;
-using Streetcred.Sdk.Model.Credentials;
-using Streetcred.Sdk.Model.Records;
-using Streetcred.Sdk.Model.Records.Search;
+using Streetcred.Sdk.Messages;
+using Streetcred.Sdk.Messages.Credentials;
+using Streetcred.Sdk.Models.Credentials;
+using Streetcred.Sdk.Models.Records;
+using Streetcred.Sdk.Models.Records.Search;
 using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
@@ -62,7 +63,7 @@ namespace Streetcred.Sdk.Runtime
             RecordService.SearchAsync<CredentialRecord>(wallet, query, null, count);
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessOfferAsync(Wallet wallet, CredentialOffer credentialOffer)
+        public virtual async Task<string> ProcessOfferAsync(Wallet wallet, CredentialOfferMessage credentialOffer)
         {
             var (didOrKey, _) = MessageUtils.ParseMessageType(credentialOffer.Type);
 
@@ -125,7 +126,7 @@ namespace Streetcred.Sdk.Runtime
             };
 
             var requestMessage =
-                await MessageSerializer.PackSealedAsync<CredentialRequest>(details, wallet, connection.MyVk,
+                await MessageSerializer.PackSealedAsync<CredentialRequestMessage>(details, wallet, connection.MyVk,
                     connection.TheirVk);
             requestMessage.Type =
                 MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.CredentialRequest);
@@ -152,7 +153,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task ProcessCredentialAsync(Pool pool, Wallet wallet, Credential credential)
+        public virtual async Task ProcessCredentialAsync(Pool pool, Wallet wallet, CredentialMessage credential)
         {
             var (didOrKey, _) = MessageUtils.ParseMessageType(credential.Type);
 
@@ -202,7 +203,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<CredentialOffer> CreateOfferAsync(Wallet wallet, DefaultCreateOfferConfiguration config)
+        public virtual async Task<CredentialOfferMessage> CreateOfferAsync(Wallet wallet, DefaultCreateOfferConfiguration config)
         {
             Logger.LogInformation(LoggingEvents.CreateCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
                 config.CredentialDefinitionId, config.ConnectionId, config.IssuerDid);
@@ -237,7 +238,7 @@ namespace Streetcred.Sdk.Runtime
 
             await RecordService.AddAsync(wallet, credentialRecord);
 
-            var credentialOffer = await MessageSerializer.PackSealedAsync<CredentialOffer>(
+            var credentialOffer = await MessageSerializer.PackSealedAsync<CredentialOfferMessage>(
                 new CredentialOfferDetails { OfferJson = offerJson },
                 wallet,
                 connection.MyVk,
@@ -264,7 +265,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest)
+        public virtual async Task<string> ProcessCredentialRequestAsync(Wallet wallet, CredentialRequestMessage credentialRequest)
         {
             Logger.LogInformation(LoggingEvents.StoreCredentialRequest, "Type {0},", credentialRequest.Type);
 
@@ -367,7 +368,7 @@ namespace Streetcred.Sdk.Runtime
             await credentialRecord.TriggerAsync(CredentialTrigger.Issue);
             await RecordService.UpdateAsync(wallet, credentialRecord);
 
-            var credential = await MessageSerializer.PackSealedAsync<Credential>(credentialDetails, wallet,
+            var credential = await MessageSerializer.PackSealedAsync<CredentialMessage>(credentialDetails, wallet,
                 connection.MyVk,
                 connection.TheirVk);
             credential.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.Credential);

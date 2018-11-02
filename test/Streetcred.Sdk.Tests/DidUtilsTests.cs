@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Streetcred.Sdk.Model.Records;
 using Streetcred.Sdk.Utils;
 using Xunit;
 

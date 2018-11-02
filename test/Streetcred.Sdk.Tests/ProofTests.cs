@@ -10,10 +10,11 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
-using Streetcred.Sdk.Model;
-using Streetcred.Sdk.Model.Proofs;
-using Streetcred.Sdk.Model.Records;
-using Streetcred.Sdk.Model.Wallets;
+using Streetcred.Sdk.Messages;
+using Streetcred.Sdk.Messages.Proofs;
+using Streetcred.Sdk.Models;
+using Streetcred.Sdk.Models.Proofs;
+using Streetcred.Sdk.Models.Records;
 using Streetcred.Sdk.Runtime;
 using Xunit;
 
@@ -165,7 +166,7 @@ namespace Streetcred.Sdk.Tests
 
             // Verifier sends a proof request to prover
             {
-                var proofRequestObject = new ProofRequestObject
+                var proofRequestObject = new ProofRequest
                 {
                     Name = "ProofReq",
                     Version = "1.0",
@@ -184,16 +185,16 @@ namespace Streetcred.Sdk.Tests
             // Holder accepts the proof requests and builds a proof
             {
                 //Holder retrives proof request message from their cloud agent
-                var proofRequest = FindContentMessage<ProofRequest>();
+                var proofRequest = FindContentMessage<ProofRequestMessage>();
                 Assert.NotNull(proofRequest);
 
                 //Holder stores the proof request
                 var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest);
                 var holderProofRecord = await _proofService.GetAsync(_holderWallet, holderProofRequestId);
                 var holderProofObject =
-                    JsonConvert.DeserializeObject<ProofRequestObject>(holderProofRecord.RequestJson);
+                    JsonConvert.DeserializeObject<ProofRequest>(holderProofRecord.RequestJson);
 
-                var requestedCredentials = new RequestedCredentialsDto();
+                var requestedCredentials = new RequestedCredentials();
                 foreach (var requestedAttribute in holderProofObject.RequestedAttributes)
                 {
                     var credentials =
@@ -201,9 +202,9 @@ namespace Streetcred.Sdk.Tests
                             requestedAttribute.Key);
 
                     requestedCredentials.RequestedAttributes.Add(requestedAttribute.Key,
-                        new RequestedAttributeDto
+                        new RequestedAttribute
                         {
-                            CredentialId = credentials.First().CredentialObject.Referent,
+                            CredentialId = credentials.First().CredentialInfo.Referent,
                             Revealed = true,
                             Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
                         });
@@ -216,9 +217,9 @@ namespace Streetcred.Sdk.Tests
                             requestedAttribute.Key);
 
                     requestedCredentials.RequestedPredicates.Add(requestedAttribute.Key,
-                        new RequestedAttributeDto
+                        new RequestedAttribute
                         {
-                            CredentialId = credentials.First().CredentialObject.Referent,
+                            CredentialId = credentials.First().CredentialInfo.Referent,
                             Revealed = true
                         });
                 }
@@ -229,7 +230,7 @@ namespace Streetcred.Sdk.Tests
             }
 
             //Requestor retrives proof message from their cloud agent
-            var proof = FindContentMessage<Proof>();
+            var proof = FindContentMessage<ProofMessage>();
             Assert.NotNull(proof);
 
             //Requestor stores proof
