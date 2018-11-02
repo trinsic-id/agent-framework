@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Messages;
 using Streetcred.Sdk.Messages.Connections;
-using Streetcred.Sdk.Models.Wallets;
+using Streetcred.Sdk.Models.Proofs;
 using Streetcred.Sdk.Utils;
 using Xunit;
 

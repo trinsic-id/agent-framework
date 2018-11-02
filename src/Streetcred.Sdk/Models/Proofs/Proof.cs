@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Streetcred.Sdk.Models.Wallets
+namespace Streetcred.Sdk.Models.Proofs
 {
     /// <summary>
     /// Represents a proof stored in the wallet.
     /// </summary>
-    public class ProofObject
+    public class Proof
     {
         /// <summary>
         /// Gets or sets the proof identifiers.

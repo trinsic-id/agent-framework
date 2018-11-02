@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Streetcred.Sdk.Models.Wallets
+namespace Streetcred.Sdk.Models.Credentials
 {
     /// <summary>
     /// Represents a credential stored in the wallet.
     /// </summary>
-    public struct CredentialObject
+    public struct CredentialInfo
     {
         /// <summary>
         /// Gets or sets the referent (the credential id in the wallet).
@@ -61,25 +61,5 @@ namespace Streetcred.Sdk.Models.Wallets
         /// </value>
         [JsonProperty("cred_rev_id")]
         public string CredentialRevocationId { get; set; }
-    }
-
-    /// <summary>
-    /// Represents a credential object as stored in the wallet.
-    /// </summary>
-    public class CredentialInfo
-    {
-        /// <summary>
-        /// Gets or sets the credential object info.
-        /// </summary>
-        /// <value>The credential object.</value>
-        [JsonProperty("cred_info")]
-        public CredentialObject CredentialObject { get; set; }
-
-        /// <summary>
-        /// Gets or sets the non revocation interval for this credential.
-        /// </summary>
-        /// <value>The non revocation interval.</value>
-        [JsonProperty("interval")]
-        public RevocationInterval NonRevocationInterval { get; set; }
     }
 }
