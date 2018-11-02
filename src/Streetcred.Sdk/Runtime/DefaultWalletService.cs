@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Contracts;
-using Streetcred.Sdk.Model.Wallets;
+using Streetcred.Sdk.Models.Wallets;
 using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime

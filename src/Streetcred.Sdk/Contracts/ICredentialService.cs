@@ -2,9 +2,10 @@
 using System.Threading.Tasks;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
-using Streetcred.Sdk.Model.Credentials;
-using Streetcred.Sdk.Model.Records;
-using Streetcred.Sdk.Model.Records.Search;
+using Streetcred.Sdk.Messages.Credentials;
+using Streetcred.Sdk.Models.Credentials;
+using Streetcred.Sdk.Models.Records;
+using Streetcred.Sdk.Models.Records.Search;
 
 namespace Streetcred.Sdk.Contracts
 {
@@ -36,7 +37,7 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialOffer">The credential offer.</param>
         /// <returns>The credential identifier of the stored credential record</returns>
-        Task<string> ProcessOfferAsync(Wallet wallet, CredentialOffer credentialOffer);
+        Task<string> ProcessOfferAsync(Wallet wallet, CredentialOfferMessage credentialOffer);
 
         /// <summary>
         /// Accepts the offer asynchronous.
@@ -63,7 +64,7 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="credential">The credential.</param>
         /// <returns></returns>
-        Task ProcessCredentialAsync(Pool pool, Wallet wallet, Credential credential);
+        Task ProcessCredentialAsync(Pool pool, Wallet wallet, CredentialMessage credential);
 
         /// <summary>
         /// Create a new credential offer.
@@ -73,7 +74,7 @@ namespace Streetcred.Sdk.Contracts
         /// <returns>
         /// The offer.
         /// </returns>
-        Task<CredentialOffer> CreateOfferAsync(Wallet wallet, DefaultCreateOfferConfiguration config);
+        Task<CredentialOfferMessage> CreateOfferAsync(Wallet wallet, DefaultCreateOfferConfiguration config);
 
         /// <summary>
         /// Sends the offer asynchronous.
@@ -90,7 +91,7 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialRequest">The credential request.</param>
         /// <returns>The credential identifier of the stored credential record.</returns>
-        Task<string> ProcessCredentialRequestAsync(Wallet wallet, CredentialRequest credentialRequest);
+        Task<string> ProcessCredentialRequestAsync(Wallet wallet, CredentialRequestMessage credentialRequest);
 
         /// <summary>
         /// Creates and sends a credential with the given credential identifier

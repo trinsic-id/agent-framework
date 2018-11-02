@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Hyperledger.Indy.WalletApi;
-using Streetcred.Sdk.Model;
+using Streetcred.Sdk.Messages;
 
 namespace Streetcred.Sdk.Contracts
 {

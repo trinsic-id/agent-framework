@@ -2,7 +2,7 @@
 using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.WalletApi;
-using Streetcred.Sdk.Model;
+using Streetcred.Sdk.Messages;
 using Streetcred.Sdk.Utils;
 using Xunit;
 

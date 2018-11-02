@@ -9,10 +9,12 @@ using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
-using Streetcred.Sdk.Model;
-using Streetcred.Sdk.Model.Connections;
-using Streetcred.Sdk.Model.Credentials;
-using Streetcred.Sdk.Model.Records;
+using Streetcred.Sdk.Messages;
+using Streetcred.Sdk.Messages.Connections;
+using Streetcred.Sdk.Messages.Credentials;
+using Streetcred.Sdk.Models.Connections;
+using Streetcred.Sdk.Models.Credentials;
+using Streetcred.Sdk.Models.Records;
 using Xunit;
 using Streetcred.Sdk.Utils;
 
@@ -65,7 +67,7 @@ namespace Streetcred.Sdk.Tests
             var issuerMessage = _messages.OfType<ForwardToKeyEnvelopeMessage>()
                 .First(x => x.Type.Contains(connectionIssuer.Tags.Single(item => item.Key == "connectionKey").Value));
 
-            var requestMessage = GetContentMessage(issuerMessage) as ConnectionRequest;
+            var requestMessage = GetContentMessage(issuerMessage) as ConnectionRequestMessage;
             Assert.NotNull(requestMessage);
 
             // Issuer processes the connection request by storing it and accepting it if auto connection flow is enabled
@@ -87,7 +89,7 @@ namespace Streetcred.Sdk.Tests
             var holderMessage = _messages.OfType<ForwardEnvelopeMessage>()
                 .First(x => x.Type.Contains(connectionHolder.MyDid));
 
-            var responseMessage = GetContentMessage(holderMessage) as ConnectionResponse;
+            var responseMessage = GetContentMessage(holderMessage) as ConnectionResponseMessage;
             Assert.NotNull(responseMessage);
 
             // Holder processes the response message by accepting it
@@ -132,7 +134,7 @@ namespace Streetcred.Sdk.Tests
             await credentialService.SendOfferAsync(issuerWallet, offerConfig);
 
             // Holder retrives message from their cloud agent
-            var credentialOffer = FindContentMessage<CredentialOffer>(messages);
+            var credentialOffer = FindContentMessage<CredentialOfferMessage>(messages);
 
             // Holder processes the credential offer by storing it
             var holderCredentialId =
@@ -150,7 +152,7 @@ namespace Streetcred.Sdk.Tests
                 });
 
             // Issuer retrieves credential request from cloud agent
-            var credentialRequest = FindContentMessage<CredentialRequest>(messages);
+            var credentialRequest = FindContentMessage<CredentialRequestMessage>(messages);
             Assert.NotNull(credentialRequest);
 
             // Issuer processes the credential request by storing it
@@ -161,7 +163,7 @@ namespace Streetcred.Sdk.Tests
             await credentialService.IssueCredentialAsync(pool, issuerWallet, issuer.Did, issuerCredentialId);
 
             // Holder retrieves the credential from their cloud agent
-            var credential = FindContentMessage<Credential>(messages);
+            var credential = FindContentMessage<CredentialMessage>(messages);
             Assert.NotNull(credential);
 
             // Holder processes the credential by storing it in their wallet

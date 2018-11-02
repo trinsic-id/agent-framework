@@ -1,4 +1,4 @@
-﻿using Streetcred.Sdk.Model.Wallets;
+﻿using Streetcred.Sdk.Models.Wallets;
 
 namespace Streetcred.Sdk.Extensions.Options
 {

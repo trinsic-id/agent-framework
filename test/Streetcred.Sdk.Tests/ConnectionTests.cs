@@ -6,9 +6,10 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
-using Streetcred.Sdk.Model;
-using Streetcred.Sdk.Model.Connections;
-using Streetcred.Sdk.Model.Records;
+using Streetcred.Sdk.Messages;
+using Streetcred.Sdk.Models;
+using Streetcred.Sdk.Models.Connections;
+using Streetcred.Sdk.Models.Records;
 using Streetcred.Sdk.Runtime;
 using Xunit;
 

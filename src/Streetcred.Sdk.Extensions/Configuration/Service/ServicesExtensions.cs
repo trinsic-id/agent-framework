@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Streetcred.Sdk.Extensions.Middleware;
 using Streetcred.Sdk.Extensions.Options;
 
 namespace Streetcred.Sdk.Extensions.Configuration.Service

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Exceptions;
 using Streetcred.Sdk.Extensions.Options;
-using Streetcred.Sdk.Model.Wallets;
+using Streetcred.Sdk.Models.Wallets;
 
 namespace Streetcred.Sdk.Extensions.Configuration
 {
