@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Hyperledger.Indy.PoolApi;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -66,7 +67,7 @@ namespace Streetcred.Sdk.Extensions
                 var decrypted =
                     await _messageSerializer.UnpackAsync<IEnvelopeMessage>(body, wallet, endpoint.Endpoint.Verkey);
                 var decoded = JsonConvert.DeserializeObject<IContentMessage>(decrypted.Content);
-
+                
                 switch (decoded)
                 {
                     case ConnectionRequest request:

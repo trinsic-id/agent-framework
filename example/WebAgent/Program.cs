@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
-namespace Agency.Web
+namespace WebAgent
 {
     public class Program
     {
@@ -11,9 +11,9 @@ namespace Agency.Web
         }
 
         public static IWebHost BuildWebHost(string[] args) =>
-        WebHost.CreateDefaultBuilder(args)
-               .UseKestrel()
-               .UseStartup<Startup>()
-               .Build();
+            WebHost.CreateDefaultBuilder(args)
+                .UseKestrel()
+                .UseStartup<Startup>()
+                .Build();
     }
 }

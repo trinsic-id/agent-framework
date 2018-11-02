@@ -1,13 +1,13 @@
-﻿using System.IO;
+using System;
+using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Streetcred.Sdk.Extensions.Configuration.Service;
 using Streetcred.Sdk.Extensions.Options;
 
-namespace Agency.Web
+namespace WebAgent
 {
     public class Startup
     {
@@ -22,16 +22,9 @@ namespace Agency.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-            services.AddLogging(builder => builder
-                .SetMinimumLevel(LogLevel.Trace)
-                .AddConsole()
-                .AddDebug());
-            
             services.AddAgent(config =>
             {
-                config
-                    .SetWalletOptions(Configuration.GetSection("WalletOptions").Get<WalletOptions>())
-                    .SetPoolOptions(new PoolOptions {GenesisFilename = Path.GetFullPath("pool_genesis.txn")});
+                config.SetPoolOptions(new PoolOptions { GenesisFilename = Path.GetFullPath("pool_genesis.txn") });
             });
         }
 
@@ -40,19 +33,29 @@ namespace Agency.Web
         {
             if (env.IsDevelopment())
             {
+                app.UseBrowserLink();
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
+            }
 
-            // Add before MVC middleware
-            app.UseAgent("http://localhost:5000/agent",
-                builder =>
-                {
-                    builder.AddIssuer("000000000000000000000000Steward1");
-                    builder.SetTailsBaseUri("http://localhost:5000/tails");
-                    builder.AddOwnershipInfo("StreetCred", "https://streetcred.id/images/streetcred_logo.png");
-                });
+            app.UseStaticFiles();
 
-            app.UseMvc();
+            app.UseAgent(
+                $"{Environment.GetEnvironmentVariable("ASPNETCORE_URLS")}/agent",
+                (obj) =>
+            {
+                obj.AddOwnershipInfo(Environment.GetEnvironmentVariable("STREETCRED_OWNER_NAME"), null);
+            });
+
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller=Home}/{action=Index}/{id?}");
+            });
         }
     }
 }
