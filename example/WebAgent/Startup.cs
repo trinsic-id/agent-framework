@@ -1,14 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Hyperledger.Indy.AnonCredsApi;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Streetcred.Sdk.Extensions;
+using Streetcred.Sdk.Extensions.Configuration.Service;
 using Streetcred.Sdk.Extensions.Options;
 
 namespace WebAgent

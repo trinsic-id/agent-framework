@@ -1,5 +1,3 @@
-using System;
-
 namespace WebAgent.Models
 {
     public class ErrorViewModel

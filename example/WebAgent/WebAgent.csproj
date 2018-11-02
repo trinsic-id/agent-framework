@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.9" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.0.1916590" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.4" />
-    <PackageReference Include="Streetcred.Sdk.Extensions" Version="1.1.0-ci-20181101.1" />
+    <PackageReference Include="Streetcred.Sdk.Extensions" Version="1.1.0-ci-20181102.1" />
   </ItemGroup>
 
   <ItemGroup>

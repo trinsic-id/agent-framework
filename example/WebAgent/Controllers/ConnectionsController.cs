@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +8,6 @@ using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Extensions;
 using Streetcred.Sdk.Extensions.Options;
 using Streetcred.Sdk.Model.Connections;
-using Streetcred.Sdk.Model.Records;
 using WebAgent.Models;
 
 namespace WebAgent.Controllers
@@ -27,10 +25,10 @@ namespace WebAgent.Controllers
             IProvisioningService provisioningService, 
             IOptions<WalletOptions> walletOptions)
         {
-            this._connectionService = connectionService;
-            this._walletService = walletService;
+            _connectionService = connectionService;
+            _walletService = walletService;
             _provisioningService = provisioningService;
-            this._walletOptions = walletOptions.Value;
+            _walletOptions = walletOptions.Value;
         }
 
         [HttpGet]
@@ -73,7 +71,7 @@ namespace WebAgent.Controllers
             var invitation = JsonConvert.DeserializeObject<ConnectionInvitation>(invitationJson);
 
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
-            var connectionId = await _connectionService.AcceptInvitationAsync(wallet, invitation);
+            var _ = await _connectionService.AcceptInvitationAsync(wallet, invitation);
 
             return RedirectToAction("Index");
         }
