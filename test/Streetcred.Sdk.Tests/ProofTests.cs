@@ -10,10 +10,11 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
-using Streetcred.Sdk.Model;
-using Streetcred.Sdk.Model.Proofs;
-using Streetcred.Sdk.Model.Records;
-using Streetcred.Sdk.Model.Wallets;
+using Streetcred.Sdk.Messages;
+using Streetcred.Sdk.Messages.Proofs;
+using Streetcred.Sdk.Models;
+using Streetcred.Sdk.Models.Records;
+using Streetcred.Sdk.Models.Wallets;
 using Streetcred.Sdk.Runtime;
 using Xunit;
 
@@ -184,7 +185,7 @@ namespace Streetcred.Sdk.Tests
             // Holder accepts the proof requests and builds a proof
             {
                 //Holder retrives proof request message from their cloud agent
-                var proofRequest = FindContentMessage<ProofRequest>();
+                var proofRequest = FindContentMessage<ProofRequestMessage>();
                 Assert.NotNull(proofRequest);
 
                 //Holder stores the proof request
@@ -229,7 +230,7 @@ namespace Streetcred.Sdk.Tests
             }
 
             //Requestor retrives proof message from their cloud agent
-            var proof = FindContentMessage<Proof>();
+            var proof = FindContentMessage<ProofMessage>();
             Assert.NotNull(proof);
 
             //Requestor stores proof

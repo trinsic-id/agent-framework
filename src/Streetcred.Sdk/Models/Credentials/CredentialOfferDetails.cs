@@ -1,4 +1,4 @@
-﻿namespace Streetcred.Sdk.Model.Credentials
+﻿namespace Streetcred.Sdk.Models.Credentials
 {
     /// <summary>
     /// Inner details object for a credential offer content message.

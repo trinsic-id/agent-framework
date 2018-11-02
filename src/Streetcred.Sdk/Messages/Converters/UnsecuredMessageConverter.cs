@@ -1,7 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Streetcred.Sdk.Model;
+using Streetcred.Sdk.Messages.Connections;
 
 namespace Streetcred.Sdk.Messages.Converters
 {
@@ -27,7 +27,7 @@ namespace Streetcred.Sdk.Messages.Converters
             switch (item["@type"].ToObject<string>())
             {
                 case MessageTypes.ConnectionInvitation:
-                    message = new ConnectionInvitation();
+                    message = new ConnectionInvitationMessage();
                     break;
                 default: throw new TypeLoadException("Unsupported serialization type.");
             }

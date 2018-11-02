@@ -1,4 +1,4 @@
-﻿namespace Streetcred.Sdk.Model.Connections
+﻿namespace Streetcred.Sdk.Models.Connections
 {
     /// <summary>
     /// Connection alias object for tagging 

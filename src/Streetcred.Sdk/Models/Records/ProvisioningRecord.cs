@@ -1,6 +1,6 @@
-﻿using Streetcred.Sdk.Model.Connections;
+﻿using Streetcred.Sdk.Models.Connections;
 
-namespace Streetcred.Sdk.Model.Records
+namespace Streetcred.Sdk.Models.Records
 {
     /// <summary>
     /// Represents a provisioning record in the agency wallet

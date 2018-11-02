@@ -4,7 +4,8 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Streetcred.Sdk.Contracts;
-using Streetcred.Sdk.Model;
+using Streetcred.Sdk.Messages;
+using Streetcred.Sdk.Models;
 using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime

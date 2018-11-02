@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Streetcred.Sdk.Model.Records.Search
+namespace Streetcred.Sdk.Models.Records.Search
 {
     /// <summary>
     /// Search record options.
@@ -8,7 +8,7 @@ namespace Streetcred.Sdk.Model.Records.Search
     public class SearchRecordOptions
     {
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="T:Streetcred.Sdk.Model.Records.Search.SearchRecordOptions"/>
+        /// Gets or sets a value indicating whether this <see cref="T:Streetcred.Sdk.Models.Records.Search.SearchRecordOptions"/>
         /// retrieve records.
         /// </summary>
         /// <value><c>true</c> if retrieve records; otherwise, <c>false</c>.</value>
@@ -16,7 +16,7 @@ namespace Streetcred.Sdk.Model.Records.Search
         public bool RetrieveRecords { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="T:Streetcred.Sdk.Model.Records.Search.SearchRecordOptions"/>
+        /// Gets or sets a value indicating whether this <see cref="T:Streetcred.Sdk.Models.Records.Search.SearchRecordOptions"/>
         /// retrieve total count.
         /// </summary>
         /// <value><c>true</c> if retrieve total count; otherwise, <c>false</c>.</value>
@@ -24,7 +24,7 @@ namespace Streetcred.Sdk.Model.Records.Search
         public bool RetrieveTotalCount { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="T:Streetcred.Sdk.Model.Records.Search.SearchRecordOptions"/>
+        /// Gets or sets a value indicating whether this <see cref="T:Streetcred.Sdk.Models.Records.Search.SearchRecordOptions"/>
         /// retrieve type.
         /// </summary>
         /// <value><c>true</c> if retrieve type; otherwise, <c>false</c>.</value>
@@ -32,7 +32,7 @@ namespace Streetcred.Sdk.Model.Records.Search
         public bool RetrieveType { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="T:Streetcred.Sdk.Model.Records.Search.SearchRecordOptions"/>
+        /// Gets or sets a value indicating whether this <see cref="T:Streetcred.Sdk.Models.Records.Search.SearchRecordOptions"/>
         /// retrieve value.
         /// </summary>
         /// <value><c>true</c> if retrieve value; otherwise, <c>false</c>.</value>
@@ -40,7 +40,7 @@ namespace Streetcred.Sdk.Model.Records.Search
         public bool RetrieveValue { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="T:Streetcred.Sdk.Model.Records.Search.SearchRecordOptions"/>
+        /// Gets or sets a value indicating whether this <see cref="T:Streetcred.Sdk.Models.Records.Search.SearchRecordOptions"/>
         /// retrieve tags.
         /// </summary>
         /// <value><c>true</c> if retrieve tags; otherwise, <c>false</c>.</value>

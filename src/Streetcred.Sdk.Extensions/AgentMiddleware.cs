@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Hyperledger.Indy.PoolApi;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Extensions.Options;
 using Streetcred.Sdk.Messages;
+using Streetcred.Sdk.Messages.Connections;
+using Streetcred.Sdk.Messages.Credentials;
 using Streetcred.Sdk.Messages.Proofs;
-using Streetcred.Sdk.Model;
-using Streetcred.Sdk.Model.Connections;
-using Streetcred.Sdk.Model.Credentials;
-using Streetcred.Sdk.Model.Proofs;
 
 namespace Streetcred.Sdk.Extensions
 {
@@ -72,19 +69,19 @@ namespace Streetcred.Sdk.Extensions
                 
                 switch (decoded)
                 {
-                    case ConnectionRequest request:
+                    case ConnectionRequestMessage request:
                         await _connectionService.ProcessRequestAsync(wallet, request);
                         break;
-                    case ConnectionResponse response:
+                    case ConnectionResponseMessage response:
                         await _connectionService.ProcessResponseAsync(wallet, response);
                         break;
-                    case CredentialOffer offer:
+                    case CredentialOfferMessage offer:
                         await _credentialService.ProcessOfferAsync(wallet, offer);
                         break;
-                    case CredentialRequest request:
+                    case CredentialRequestMessage request:
                         await _credentialService.ProcessCredentialRequestAsync(wallet, request);
                         break;
-                    case Credential credential:
+                    case CredentialMessage credential:
                         var pool = await _poolService.GetPoolAsync(_poolOptions.PoolName, _poolOptions.ProtocolVersion);
                         await _credentialService.ProcessCredentialAsync(pool, wallet, credential);
                         break;

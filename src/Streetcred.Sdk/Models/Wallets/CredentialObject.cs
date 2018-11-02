@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Streetcred.Sdk.Model.Wallets
+namespace Streetcred.Sdk.Models.Wallets
 {
     /// <summary>
     /// Represents a credential stored in the wallet.

@@ -10,11 +10,11 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Messages;
 using Streetcred.Sdk.Messages.Credentials;
-using Streetcred.Sdk.Model;
-using Streetcred.Sdk.Model.Credentials;
-using Streetcred.Sdk.Model.Records;
-using Streetcred.Sdk.Model.Records.Search;
+using Streetcred.Sdk.Models.Credentials;
+using Streetcred.Sdk.Models.Records;
+using Streetcred.Sdk.Models.Records.Search;
 using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime

@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Streetcred.Sdk.Model.Wallets
+namespace Streetcred.Sdk.Models.Wallets
 {
     /// <summary>
     /// Proof request.

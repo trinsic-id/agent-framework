@@ -5,8 +5,8 @@ using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Exceptions;
-using Streetcred.Sdk.Model.Records;
-using Streetcred.Sdk.Model.Wallets;
+using Streetcred.Sdk.Models.Records;
+using Streetcred.Sdk.Models.Wallets;
 using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime

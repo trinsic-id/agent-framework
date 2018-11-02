@@ -1,6 +1,7 @@
 ﻿using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Streetcred.Sdk.Messages.Connections;
 using Streetcred.Sdk.Messages.Credentials;
 using Streetcred.Sdk.Messages.Proofs;
 using Streetcred.Sdk.Utils;
@@ -30,19 +31,19 @@ namespace Streetcred.Sdk.Messages.Converters
             switch (messageType)
             {
                 case MessageTypes.ConnectionRequest:
-                    message = new ConnectionRequest();
+                    message = new ConnectionRequestMessage();
                     break;
                 case MessageTypes.ConnectionResponse:
-                    message = new ConnectionResponse();
+                    message = new ConnectionResponseMessage();
                     break;
                 case MessageTypes.CredentialOffer:
-                    CredentialOfferMessagesageCredentialOfferMessagealOffer();
+                    message = new CredentialOfferMessage();
                     break;
                 case MessageTypes.CredentialRequest:
-                    CredentialRequestMessage  CredentialRequestMessagedentialRequest();
+                    message = new CredentialRequestMessage();
                     break;
                 case MessageTypes.Credential:
-                    CredentialMessage  messageCredentialMessagedential();
+                    message = new CredentialMessage();
                     break;
                 case MessageTypes.ProofRequest:
                     message = new ProofRequestMessage();

@@ -1,7 +1,6 @@
 ﻿using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Streetcred.Sdk.Model;
 using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Messages.Converters

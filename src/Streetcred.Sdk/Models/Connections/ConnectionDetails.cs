@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Streetcred.Sdk.Model.Connections
+namespace Streetcred.Sdk.Models.Connections
 {
     /// <summary>
     /// Represents connection details.

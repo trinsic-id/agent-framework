@@ -9,12 +9,12 @@ using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
-using Streetcred.Sdk.Messages.Connection;
+using Streetcred.Sdk.Messages;
+using Streetcred.Sdk.Messages.Connections;
 using Streetcred.Sdk.Messages.Credentials;
-using Streetcred.Sdk.Model;
-using Streetcred.Sdk.Model.Connections;
-using Streetcred.Sdk.Model.Credentials;
-using Streetcred.Sdk.Model.Records;
+using Streetcred.Sdk.Models.Connections;
+using Streetcred.Sdk.Models.Credentials;
+using Streetcred.Sdk.Models.Records;
 using Xunit;
 using Streetcred.Sdk.Utils;
 
@@ -67,7 +67,7 @@ namespace Streetcred.Sdk.Tests
             var issuerMessage = _messages.OfType<ForwardToKeyEnvelopeMessage>()
                 .First(x => x.Type.Contains(connectionIssuer.Tags.Single(item => item.Key == "connectionKey").Value));
 
-            var requestMessage = GetContentMessage(issuerMessage) as ConnectionRequest;
+            var requestMessage = GetContentMessage(issuerMessage) as ConnectionRequestMessage;
             Assert.NotNull(requestMessage);
 
             // Issuer processes the connection request by storing it and accepting it if auto connection flow is enabled
@@ -89,7 +89,7 @@ namespace Streetcred.Sdk.Tests
             var holderMessage = _messages.OfType<ForwardEnvelopeMessage>()
                 .First(x => x.Type.Contains(connectionHolder.MyDid));
 
-            var responseMessage = GetContentMessage(holderMessage) as ConnectionResponse;
+            var responseMessage = GetContentMessage(holderMessage) as ConnectionResponseMessage;
             Assert.NotNull(responseMessage);
 
             // Holder processes the response message by accepting it

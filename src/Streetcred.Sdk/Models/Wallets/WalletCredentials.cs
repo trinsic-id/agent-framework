@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Streetcred.Sdk.Model.Wallets
+namespace Streetcred.Sdk.Models.Wallets
 {
     /// <summary>
     /// Wallet credentials.

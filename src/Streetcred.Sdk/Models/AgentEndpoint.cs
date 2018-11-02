@@ -1,4 +1,4 @@
-﻿namespace Streetcred.Sdk.Model
+﻿namespace Streetcred.Sdk.Models
 {
     /// <summary>
     /// An object for containing agent endpoint information.

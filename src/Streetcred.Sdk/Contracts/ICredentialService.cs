@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Messages.Credentials;
-using Streetcred.Sdk.Model.Credentials;
-using Streetcred.Sdk.Model.Records;
-using Streetcred.Sdk.Model.Records.Search;
+using Streetcred.Sdk.Models.Credentials;
+using Streetcred.Sdk.Models.Records;
+using Streetcred.Sdk.Models.Records.Search;
 
 namespace Streetcred.Sdk.Contracts
 {

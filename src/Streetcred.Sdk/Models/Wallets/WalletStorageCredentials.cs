@@ -1,4 +1,4 @@
-﻿namespace Streetcred.Sdk.Model.Wallets
+﻿namespace Streetcred.Sdk.Models.Wallets
 {
     public partial class WalletCredentials
     {

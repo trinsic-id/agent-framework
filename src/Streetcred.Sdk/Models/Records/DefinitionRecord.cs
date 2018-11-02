@@ -1,4 +1,4 @@
-﻿namespace Streetcred.Sdk.Model.Records
+﻿namespace Streetcred.Sdk.Models.Records
 {
     /// <summary>
     /// Schema definition record.

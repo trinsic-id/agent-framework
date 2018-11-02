@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Streetcred.Sdk.Messages.Connection;
-using Streetcred.Sdk.Model;
-using Streetcred.Sdk.Model.Connections;
-using Streetcred.Sdk.Model.Wallets;
+using Streetcred.Sdk.Messages;
+using Streetcred.Sdk.Messages.Connections;
+using Streetcred.Sdk.Models.Wallets;
 using Streetcred.Sdk.Utils;
 using Xunit;
 
@@ -16,25 +15,25 @@ namespace Streetcred.Sdk.Tests
         [Fact]
         public void CanConvertToInvitation()
         {
-            var expected = new ConnectionInvitation {ConnectionKey = "123"};
+            var expected = new ConnectionInvitationMessage {ConnectionKey = "123"};
             var json = JsonConvert.SerializeObject(expected);
 
             var actual = JsonConvert.DeserializeObject<IUnsecuredMessage>(json);
 
-            Assert.IsType<ConnectionInvitation>(actual);
-            Assert.Equal("123", ((ConnectionInvitation) actual).ConnectionKey);
+            Assert.IsType<ConnectionInvitationMessage>(actual);
+            Assert.Equal("123", ((ConnectionInvitationMessage) actual).ConnectionKey);
         }
 
         [Fact]
         public void CanConvertUnsecuredMessage()
         {
-            var expected = new ConnectionInvitation {ConnectionKey = "123"};
+            var expected = new ConnectionInvitationMessage { ConnectionKey = "123"};
             var json = JsonConvert.SerializeObject(expected);
 
             var actual = JsonConvert.DeserializeObject<IUnsecuredMessage>(json);
 
-            Assert.IsType<ConnectionInvitation>(actual);
-            Assert.Equal("123", ((ConnectionInvitation) actual).ConnectionKey);
+            Assert.IsType<ConnectionInvitationMessage>(actual);
+            Assert.Equal("123", ((ConnectionInvitationMessage) actual).ConnectionKey);
         }
 
         [Fact]
@@ -57,7 +56,7 @@ namespace Streetcred.Sdk.Tests
             var type = MessageUtils.FormatKeyMessageType("2J6h65V5CjvWceHDMq7htRkG6EdCE2SiDEtCRyfngwfw",
                 MessageTypes.ConnectionRequest);
 
-            var expected = new ConnectionRequest
+            var expected = new ConnectionRequestMessage
             {
                 Key = "2J6h65V5CjvWceHDMq7htRkG6EdCE2SiDEtCRyfngwfw",
                 Type = type
@@ -66,8 +65,8 @@ namespace Streetcred.Sdk.Tests
 
             var actual = JsonConvert.DeserializeObject<IContentMessage>(json);
 
-            Assert.IsType<ConnectionRequest>(actual);
-            Assert.Equal(type, ((ConnectionRequest) actual).Type);
+            Assert.IsType<ConnectionRequestMessage>(actual);
+            Assert.Equal(type, ((ConnectionRequestMessage) actual).Type);
         }
 
         [Fact]

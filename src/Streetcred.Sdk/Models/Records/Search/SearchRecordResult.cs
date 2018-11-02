@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Streetcred.Sdk.Model.Records.Search
+namespace Streetcred.Sdk.Models.Records.Search
 {
     /// <summary>
     /// Search record result.

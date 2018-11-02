@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Streetcred.Sdk.Model.Wallets
+namespace Streetcred.Sdk.Models.Wallets
 {
     /// <summary>
     /// A configuration object for controlling the provisioning of a new agent.

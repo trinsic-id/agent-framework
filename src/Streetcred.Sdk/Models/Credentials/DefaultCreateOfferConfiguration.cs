@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace Streetcred.Sdk.Model.Credentials
+namespace Streetcred.Sdk.Models.Credentials
 {
     /// <summary>
     /// Config for controlling credential offer creation.

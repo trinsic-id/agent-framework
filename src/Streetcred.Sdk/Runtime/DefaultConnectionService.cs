@@ -9,11 +9,10 @@ using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Messages;
-using Streetcred.Sdk.Messages.Connection;
-using Streetcred.Sdk.Model;
-using Streetcred.Sdk.Model.Connections;
-using Streetcred.Sdk.Model.Records;
-using Streetcred.Sdk.Model.Records.Search;
+using Streetcred.Sdk.Messages.Connections;
+using Streetcred.Sdk.Models.Connections;
+using Streetcred.Sdk.Models.Records;
+using Streetcred.Sdk.Models.Records.Search;
 using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
@@ -42,7 +41,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<ConnectionInvitation> CreateInvitationAsync(Wallet wallet,
+        public virtual async Task<ConnectionInvitationMessage> CreateInvitationAsync(Wallet wallet,
             DefaultCreateInviteConfiguration config = null)
         {
             var connectionId = !string.IsNullOrEmpty(config?.ConnectionId)
@@ -78,7 +77,7 @@ namespace Streetcred.Sdk.Runtime
 
             var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
 
-            var invite = new ConnectionInvitation
+            var invite = new ConnectionInvitationMessage
             {
                 Endpoint = provisioning.Endpoint,
                 ConnectionKey = connectionKey
@@ -98,7 +97,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> AcceptInvitationAsync(Wallet wallet, ConnectionInvitation invitation)
+        public virtual async Task<string> AcceptInvitationAsync(Wallet wallet, ConnectionInvitationMessage invitation)
         {
             Logger.LogInformation(LoggingEvents.AcceptInvitation, "Key {0}, Endpoint {1}",
                 invitation.ConnectionKey, invitation.Endpoint.Uri);
@@ -137,7 +136,7 @@ namespace Streetcred.Sdk.Runtime
                 Endpoint = provisioning.Endpoint
             };
 
-            var request = await MessageSerializer.PackSealedAsync<ConnectionRequest>(connectionDetails, wallet,
+            var request = await MessageSerializer.PackSealedAsync<ConnectionRequestMessage>(connectionDetails, wallet,
                 my.VerKey, invitation.ConnectionKey);
             request.Key = invitation.ConnectionKey;
             request.Type = MessageUtils.FormatKeyMessageType(invitation.ConnectionKey, MessageTypes.ConnectionRequest);
@@ -154,7 +153,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<string> ProcessRequestAsync(Wallet wallet, ConnectionRequest request)
+        public async Task<string> ProcessRequestAsync(Wallet wallet, ConnectionRequestMessage request)
         {
             Logger.LogInformation(LoggingEvents.StoreConnectionRequest, "Key {0}", request.Key);
 
@@ -214,7 +213,7 @@ namespace Streetcred.Sdk.Runtime
             };
 
             var responseMessage =
-                await MessageSerializer.PackSealedAsync<ConnectionResponse>(response, wallet, connection.MyVk,
+                await MessageSerializer.PackSealedAsync<ConnectionResponseMessage>(response, wallet, connection.MyVk,
                     connection.TheirVk);
             responseMessage.Type =
                 MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.ConnectionResponse);
@@ -230,7 +229,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public async Task ProcessResponseAsync(Wallet wallet, ConnectionResponse response)
+        public async Task ProcessResponseAsync(Wallet wallet, ConnectionResponseMessage response)
         {
             Logger.LogInformation(LoggingEvents.AcceptConnectionResponse, "To {0}", response.To);
 

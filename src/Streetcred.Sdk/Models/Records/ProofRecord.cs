@@ -4,7 +4,7 @@ using Newtonsoft.Json.Converters;
 using Stateless;
 using Streetcred.Sdk.Utils;
 
-namespace Streetcred.Sdk.Model.Records
+namespace Streetcred.Sdk.Models.Records
 {
     /// <summary>
     /// Represents a proof record in the agency wallet

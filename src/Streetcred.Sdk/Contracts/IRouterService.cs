@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
-using Streetcred.Sdk.Model;
+using Streetcred.Sdk.Messages;
+using Streetcred.Sdk.Models;
 
 namespace Streetcred.Sdk.Contracts
 {

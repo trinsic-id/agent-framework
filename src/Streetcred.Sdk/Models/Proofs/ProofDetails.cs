@@ -1,4 +1,4 @@
-﻿namespace Streetcred.Sdk.Model.Proofs
+﻿namespace Streetcred.Sdk.Models.Proofs
 {
     /// <summary>
     /// Inner details object for a proof content message.

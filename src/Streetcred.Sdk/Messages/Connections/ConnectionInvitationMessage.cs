@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using Streetcred.Sdk.Model;
+using Streetcred.Sdk.Models;
 
 namespace Streetcred.Sdk.Messages.Connections
 {

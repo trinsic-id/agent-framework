@@ -1,4 +1,4 @@
-﻿namespace Streetcred.Sdk.Model
+﻿namespace Streetcred.Sdk.Messages
 {
     /// <summary>
     /// Represents the supported message types

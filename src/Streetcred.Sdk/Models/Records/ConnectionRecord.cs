@@ -2,10 +2,10 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Stateless;
-using Streetcred.Sdk.Model.Connections;
+using Streetcred.Sdk.Models.Connections;
 using Streetcred.Sdk.Utils;
 
-namespace Streetcred.Sdk.Model.Records
+namespace Streetcred.Sdk.Models.Records
 {
     /// <summary>
     /// Represents a connection record in the agency wallet.

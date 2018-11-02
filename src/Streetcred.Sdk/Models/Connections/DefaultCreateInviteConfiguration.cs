@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Streetcred.Sdk.Model.Connections
+namespace Streetcred.Sdk.Models.Connections
 {
     /// <summary>
     /// Config for controlling invitation creation.
