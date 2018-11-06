@@ -170,7 +170,7 @@ namespace Streetcred.Sdk.Tests
                 {
                     Name = "ProofReq",
                     Version = "1.0",
-                    Nonce = "123",
+                    Nonce = Guid.NewGuid().ToString(),
                     RequestedAttributes = new Dictionary<string, ProofAttributeInfo>
                     {
                         {"first-name-requirement", new ProofAttributeInfo {Name = "first_name"}}
