@@ -300,16 +300,16 @@ namespace Streetcred.Sdk.Runtime
         public virtual Task<ProofRecord> GetAsync(Wallet wallet, string proofRecId) =>
             RecordService.GetAsync<ProofRecord>(wallet, proofRecId);
 
+        /// <inheritdoc />
         public virtual async Task<List<Credential>> ListCredentialsForProofRequestAsync(Wallet wallet,
             ProofRequest proofRequest, string attributeReferent)
         {
-            var search =
-                await AnonCreds.ProverSearchCredentialsForProofRequestAsync(wallet, proofRequest.ToJson());
-            var searchResult =
-                await AnonCreds.ProverFetchCredentialsForProofRequestAsync(search, attributeReferent, 100);
-
-            await AnonCreds.ProverCloseCredentialsSearchForProofRequestAsync(search);
-            return JsonConvert.DeserializeObject<List<Credential>>(searchResult);
+            using (var search =
+                await AnonCreds.ProverSearchCredentialsForProofRequestAsync(wallet, proofRequest.ToJson()))
+            {
+                var searchResult = await search.NextAsync(attributeReferent, 100);
+                return JsonConvert.DeserializeObject<List<Credential>>(searchResult);
+            }
         }
 
         #region Private Methods
