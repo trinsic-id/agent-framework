@@ -8,21 +8,34 @@ using Streetcred.Sdk.Runtime;
 
 namespace Streetcred.Sdk.Extensions.Runtime
 {
+    /// <inheritdoc />
     /// <summary>
-    /// An immplementation of <see cref="DefaultLedgerService"/> that uses <see cref="IMemoryCache"/>
+    /// An implementation of <see cref="T:Streetcred.Sdk.Runtime.DefaultLedgerService" /> that uses <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache" />
     /// to store cached objects
     /// </summary>
     public class MemoryCacheLedgerService : DefaultLedgerService
     {
         private readonly IMemoryCache _memoryCache;
+        private readonly MemoryCacheEntryOptions _options;
 
-        public MemoryCacheLedgerService(IMemoryCache memoryCache)
+        public MemoryCacheLedgerService(IMemoryCache memoryCache, MemoryCacheEntryOptions options = null)
         {
             _memoryCache = memoryCache;
+
+            if (options == null)
+            {
+                // Set default cache options.
+                _options = new MemoryCacheEntryOptions()
+                    // Keep in cache for this time, reset time if accessed.
+                    .SetSlidingExpiration(TimeSpan.FromMinutes(1));
+            }
+            else
+                _options = options;
         }
 
+        /// <inheritdoc />
         /// <summary>
-        /// Looks up the schema details for the given <paramref name="schemaId"/> in the cache.
+        /// Looks up the schema details for the given <paramref name="schemaId" /> in the cache.
         /// If found, returns the cached value, otherwise performs a ledger lookup and caches the result.
         /// </summary>
         /// <returns>The schema async.</returns>
@@ -34,21 +47,16 @@ namespace Streetcred.Sdk.Extensions.Runtime
             if (!_memoryCache.TryGetValue<ParseResponseResult>(schemaId, out var result))
             {
                 result = await base.LookupSchemaAsync(pool, submitterDid, schemaId);
-
-                // Set cache options.
-                var cacheEntryOptions = new MemoryCacheEntryOptions()
-                    // Keep in cache for this time, reset time if accessed.
-                    .SetSlidingExpiration(TimeSpan.FromMinutes(1));
-
                 // Save data in cache.
-                _memoryCache.Set(schemaId, result, cacheEntryOptions);
+                _memoryCache.Set(schemaId, result, _options);
             }
 
             return result;
         }
 
+        /// <inheritdoc />
         /// <summary>
-        /// Looks up the credential definition for the given <paramref name="definitionId"/> in the cache.
+        /// Looks up the credential definition for the given <paramref name="definitionId" /> in the cache.
         /// If found, returns the cached value, otherwise performs a ledger lookup and caches the result.
         /// </summary>
         /// <returns>The definition async.</returns>
@@ -60,14 +68,9 @@ namespace Streetcred.Sdk.Extensions.Runtime
             if (!_memoryCache.TryGetValue<ParseResponseResult>(definitionId, out var result))
             {
                 result = await base.LookupSchemaAsync(pool, submitterDid, definitionId);
-
-                // Set cache options.
-                var cacheEntryOptions = new MemoryCacheEntryOptions()
-                    // Keep in cache for this time, reset time if accessed.
-                    .SetSlidingExpiration(TimeSpan.FromMinutes(1));
-
+                
                 // Save data in cache.
-                _memoryCache.Set(definitionId, result, cacheEntryOptions);
+                _memoryCache.Set(definitionId, result, _options);
             }
 
             return result;
