@@ -65,17 +65,7 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="credentialDefinitionId">The credential definition identifier.</param>
         /// <returns>The credential definition record.</returns>
         Task<DefinitionRecord> GetCredentialDefinitionAsync(Wallet wallet, string credentialDefinitionId);
-
-        /// <summary>
-        /// Looks up the credential definition on the ledger.
-        /// </summary>
-        /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="submitterDid">The submitter did.</param>
-        /// <param name="sequenceId">The sequence identifier of the definition to resolve.</param>
-        /// <returns>A json string of the credential definition</returns>
-        Task<string> LookupCredentialDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, int sequenceId);
-
+        
         /// <summary>
         /// Looks up the credential definition on the ledger.
         /// </summary>

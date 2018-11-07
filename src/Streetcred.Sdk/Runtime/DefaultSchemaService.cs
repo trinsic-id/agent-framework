@@ -154,15 +154,7 @@ namespace Streetcred.Sdk.Runtime
 
             return credentialDefinition.CredDefId;
         }
-
-        /// TODO this should return a definition object
-        /// <inheritdoc />
-        public virtual async Task<string> LookupCredentialDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, int sequenceId)
-        {
-            var result = await LedgerService.LookupTransactionAsync(pool, submitterDid, null, sequenceId);
-            return result;
-        }
-
+        
         /// TODO this should return a definition object
         /// <inheritdoc />
         public virtual async Task<string> LookupCredentialDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, string definitionId)
