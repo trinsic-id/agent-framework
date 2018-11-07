@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Extensions.Runtime;
 using Streetcred.Sdk.Runtime;
 
 namespace Streetcred.Sdk.Extensions.Configuration.Service
@@ -21,6 +23,15 @@ namespace Streetcred.Sdk.Extensions.Configuration.Service
             builder.Services.TryAddSingleton<ITailsService, DefaultTailsService>();
             builder.Services.TryAddSingleton<IWalletRecordService, DefaultWalletRecordService>();
             builder.Services.TryAddSingleton<IWalletService, DefaultWalletService>();
+            return builder;
+        }
+
+        public static AgentServicesBuilder AddMemoryCacheLedgerService(this AgentServicesBuilder builder, MemoryCacheEntryOptions options = null)
+        {
+            builder.AddExtendedLedgerService<MemoryCacheLedgerService>()
+                   .Services.AddMemoryCache()
+                            .AddSingleton(_ => options);
+
             return builder;
         }
 
