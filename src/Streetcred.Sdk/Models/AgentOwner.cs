@@ -1,4 +1,4 @@
-﻿namespace Streetcred.Sdk.Models.Connections
+﻿namespace Streetcred.Sdk.Models
 {
     /// <summary>
     /// An object for containing agent ownership information.
