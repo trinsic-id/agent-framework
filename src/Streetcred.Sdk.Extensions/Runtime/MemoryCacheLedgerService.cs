@@ -21,16 +21,7 @@ namespace Streetcred.Sdk.Extensions.Runtime
         public MemoryCacheLedgerService(IMemoryCache memoryCache, MemoryCacheEntryOptions options = null)
         {
             _memoryCache = memoryCache;
-
-            if (options == null)
-            {
-                // Set default cache options.
-                _options = new MemoryCacheEntryOptions()
-                    // Keep in cache for this time, reset time if accessed.
-                    .SetSlidingExpiration(TimeSpan.FromMinutes(1));
-            }
-            else
-                _options = options;
+            _options = options ?? new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(1));
         }
 
         /// <inheritdoc />
