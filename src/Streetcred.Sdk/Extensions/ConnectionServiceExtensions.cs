@@ -5,8 +5,9 @@ using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Models.Records;
 using Streetcred.Sdk.Models.Records.Search;
 using Streetcred.Sdk.Utils;
+// ReSharper disable CheckNamespace
 
-namespace Streetcred.Sdk.Extensions.Query
+namespace Streetcred.Sdk.Contracts
 {
     /// <summary>
     /// A collection of convenience methods for the <see cref="ICredentialService"/> class.
