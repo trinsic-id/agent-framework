@@ -129,9 +129,9 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> LookupTransactionAsync(Pool pool, string submitterDid, int sequenceId)
+        public virtual async Task<string> LookupTransactionAsync(Pool pool, string submitterDid, string ledgerType, int sequenceId)
         {
-            var req = await Ledger.BuildGetTxnRequestAsync(submitterDid, sequenceId);
+            var req = await Ledger.BuildGetTxnRequestAsync(submitterDid, ledgerType, sequenceId);
             var res = await Ledger.SubmitRequestAsync(pool, req);
 
             return res;

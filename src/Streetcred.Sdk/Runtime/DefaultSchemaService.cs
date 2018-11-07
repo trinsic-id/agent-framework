@@ -28,7 +28,7 @@ namespace Streetcred.Sdk.Runtime
             LedgerService = ledgerService;
             TailsService = tailsService;
         }
-
+        
         /// <inheritdoc />
         public virtual async Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string name,
             string version, string[] attributeNames)
@@ -43,28 +43,52 @@ namespace Streetcred.Sdk.Runtime
             return schemaRecord.SchemaId;
         }
 
-        /// TODO this should return a definition object
         /// <inheritdoc />
-        public virtual async Task<string> LookupDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, int sequenceId)
+        public async Task<string> LookupSchemaFromCredentialDefinitionAsync(Pool pool, Wallet wallet, string submitterDid,
+            string credentialDefinitionId)
         {
-            var result = await LedgerService.LookupTransactionAsync(pool, submitterDid, sequenceId);
-            return result;
-        }
+            var credDef = await LookupCredentialDefinitionAsync(pool, wallet, submitterDid, credentialDefinitionId);
 
-        /// TODO this should return a definition object
-        /// <inheritdoc />
-        public virtual async Task<string> LookupDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, string definitionId)
-        {
-            var result = await LedgerService.LookupDefinitionAsync(pool, submitterDid, definitionId);
-            return result?.ObjectJson;
+            if (string.IsNullOrEmpty(credDef))
+                return null;
+
+            try
+            {
+                var schemaSequenceId = Convert.ToInt32(JObject.Parse(credDef)["schemaId"].ToString());
+                return await LookupSchemaAsync(pool, wallet, submitterDid, schemaSequenceId);
+            }
+            catch (Exception) { }
+
+            return null;
         }
 
         /// TODO this should return a schema object
         /// <inheritdoc />
         public virtual async Task<string> LookupSchemaAsync(Pool pool, Wallet wallet, string submitterDid, int sequenceId)
         {
-            var result = await LedgerService.LookupTransactionAsync(pool, submitterDid, sequenceId);
-            return result;
+            var result = await LedgerService.LookupTransactionAsync(pool, submitterDid, null, sequenceId);
+
+            if (!string.IsNullOrEmpty(result))
+            {
+                try
+                {
+                    var txnData = JObject.Parse(result)["result"]["data"]["txn"]["data"]["data"] as JObject;
+                    var txnId = JObject.Parse(result)["result"]["data"]["txnMetadata"]["txnId"].ToString();
+
+                    int seperator = txnId.LastIndexOf(':');
+
+                    string ver = txnId.Substring(seperator + 1, txnId.Length - seperator - 1);
+
+                    txnData.Add("id", txnId);
+                    txnData.Add("ver", ver);
+                    txnData.Add("seqNo", sequenceId);
+
+                    return txnData.ToString();
+                }
+                catch (Exception) { }
+            }
+
+            return "";
         }
 
         /// TODO this should return a schema object
@@ -74,6 +98,10 @@ namespace Streetcred.Sdk.Runtime
             var result = await LedgerService.LookupSchemaAsync(pool, submitterDid, schemaId);
             return result?.ObjectJson;
         }
+
+        /// <inheritdoc />
+        public virtual Task<List<SchemaRecord>> ListSchemasAsync(Wallet wallet) =>
+            RecordService.SearchAsync<SchemaRecord>(wallet, null, null, 100);
 
         /// <inheritdoc />
         public virtual async Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
@@ -127,9 +155,21 @@ namespace Streetcred.Sdk.Runtime
             return credentialDefinition.CredDefId;
         }
 
+        /// TODO this should return a definition object
         /// <inheritdoc />
-        public virtual Task<List<SchemaRecord>> ListSchemasAsync(Wallet wallet) =>
-            RecordService.SearchAsync<SchemaRecord>(wallet, null, null, 100);
+        public virtual async Task<string> LookupCredentialDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, int sequenceId)
+        {
+            var result = await LedgerService.LookupTransactionAsync(pool, submitterDid, null, sequenceId);
+            return result;
+        }
+
+        /// TODO this should return a definition object
+        /// <inheritdoc />
+        public virtual async Task<string> LookupCredentialDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, string definitionId)
+        {
+            var result = await LedgerService.LookupDefinitionAsync(pool, submitterDid, definitionId);
+            return result?.ObjectJson;
+        }
 
         /// <inheritdoc />
         public virtual Task<List<DefinitionRecord>> ListCredentialDefinitionsAsync(Wallet wallet) =>

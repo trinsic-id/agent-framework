@@ -48,11 +48,12 @@ namespace Streetcred.Sdk.Contracts
         /// </summary>
         /// <param name="pool">The pool.</param>
         /// <param name="submitterDid">The submitter did.</param>
+        /// <param name="ledgerType">The ledger type.</param>
         /// <param name="sequenceId">The sequence identifier.</param>
         /// <returns>
         /// The transaction async.
         /// </returns>
-        Task<string> LookupTransactionAsync(Pool pool, string submitterDid, int sequenceId);
+        Task<string> LookupTransactionAsync(Pool pool, string submitterDid, string ledgerType, int sequenceId);
 
         /// <summary>
         /// Lookups the definition async.

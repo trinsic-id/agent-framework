@@ -21,7 +21,7 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="name">The name.</param>
         /// <param name="version">The version.</param>
         /// <param name="attributeNames">The attribute names.</param>
-        /// <returns>The shema identifier of the stored schema object.
+        /// <returns>The schema identifier of the stored schema object.
         /// This identifier can be used for ledger schema lookup.</returns>
         Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string name, string version,
             string[] attributeNames);
@@ -73,8 +73,8 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="submitterDid">The submitter did.</param>
         /// <param name="sequenceId">The sequence identifier of the definition to resolve.</param>
-        /// <returns></returns>
-        Task<string> LookupDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, int sequenceId);
+        /// <returns>A json string of the credential definition</returns>
+        Task<string> LookupCredentialDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, int sequenceId);
 
         /// <summary>
         /// Looks up the credential definition on the ledger.
@@ -83,8 +83,18 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="submitterDid">The submitter did.</param>
         /// <param name="definitionId">The identifier of the definition to resolve.</param>
-        /// <returns></returns>
-        Task<string> LookupDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, string definitionId);
+        /// <returns>A json string of the credential definition</returns>
+        Task<string> LookupCredentialDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, string definitionId);
+
+        /// <summary>
+        /// Looks up the schema definition on the ledger given a credential definition identifier.
+        /// </summary>
+        /// <param name="pool">The pool.</param>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="submitterDid">The submitter did.</param>
+        /// <param name="credentialDefinitionId">The credential definition id.</param>
+        /// <returns>A json string of the schema</returns>
+        Task<string> LookupSchemaFromCredentialDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, string credentialDefinitionId);
 
         /// <summary>
         /// Looks up the schema definition on the ledger.
@@ -93,7 +103,7 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="submitterDid">The submitter did.</param>
         /// <param name="sequenceId">The sequence identifier of the schema to resolve.</param>
-        /// <returns></returns>
+        /// <returns>A json string of the schema</returns>
         Task<string> LookupSchemaAsync(Pool pool, Wallet wallet, string submitterDid, int sequenceId);
 
         /// <summary>
@@ -103,7 +113,7 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="submitterDid">The submitter did.</param>
         /// <param name="schemaId">The identifier of the schema definition to resolve.</param>
-        /// <returns></returns>
+        /// <returns>A json string of the schema</returns>
         Task<string> LookupSchemaAsync(Pool pool, Wallet wallet, string submitterDid, string schemaId);
     }
 }

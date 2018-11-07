@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
-using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
@@ -56,22 +53,56 @@ namespace Streetcred.Sdk.Tests
 
             var resultSchemaName = JObject.Parse(resultSchema)["name"].ToString();
             var resultSchemaVersion = JObject.Parse(resultSchema)["version"].ToString();
-            var resultSchemaAttrNames = JObject.Parse(resultSchema)["attrNames"];
             var sequenceId = Convert.ToInt32(JObject.Parse(resultSchema)["seqNo"].ToString());
 
             Assert.Equal(schemaName, resultSchemaName);
             Assert.Equal(schemaVersion, resultSchemaVersion);
-            //Assert.Equal(schemaAttrNames, resultSchemaAttrNames);
 
             //Resolve it from the ledger with its sequence Id
             var secondResultSchema = await _schemaService.LookupSchemaAsync(_pool, _issuerWallet, issuer.Did, sequenceId);
 
-            Assert.Equal(resultSchema,secondResultSchema);
+            var secondResultSchemaName = JObject.Parse(secondResultSchema)["name"].ToString();
+            var secondResultSchemaVersion = JObject.Parse(secondResultSchema)["version"].ToString();
+
+            Assert.Equal(schemaName, secondResultSchemaName);
+            Assert.Equal(schemaVersion, secondResultSchemaVersion);
+        }
+
+        [Fact]
+        public async Task CanCreateAndResolveCredentialDefinitionAndSchema()
+        {
+            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
+                new { seed = "000000000000000000000000Steward1" }.ToJson());
+
+            var schemaName = $"Test-Schema-{Guid.NewGuid().ToString()}";
+            var schemaVersion = "1.0";
+            var schemaAttrNames = new[] { "test_attr_1", "test_attr_2" };
+
+            //Create a dummy schema
+            var schemaId = await _schemaService.CreateSchemaAsync(_pool, _issuerWallet, issuer.Did, schemaName, schemaVersion,
+                schemaAttrNames);
+
+            var credId = await _schemaService.CreateCredentialDefinitionAsync(_pool, _issuerWallet, schemaId, issuer.Did, false, 100, new Uri("http://mock/tails"));
+
+            var credDef =
+                await _schemaService.LookupCredentialDefinitionAsync(_pool, _issuerWallet, issuer.Did, credId);
+
+            var resultCredId = JObject.Parse(credDef)["id"].ToString();
+            var schemaSequenceNo = JObject.Parse(credDef)["schemaId"];
+
+            Assert.Equal(credId, resultCredId);
+
+            var result = await _schemaService.LookupSchemaFromCredentialDefinitionAsync(_pool, _issuerWallet, issuer.Did, credId);
+
+            var resultSchemaName = JObject.Parse(result)["name"].ToString();
+            var resultSchemaVersion = JObject.Parse(result)["version"].ToString();
+
+            Assert.Equal(schemaName, resultSchemaName);
+            Assert.Equal(schemaVersion, resultSchemaVersion);
         }
 
         public async Task InitializeAsync()
         {
-            await Wallet.DeleteWalletAsync(IssuerConfig, Credentials);
             try
             {
                 await Wallet.CreateWalletAsync(IssuerConfig, Credentials);
