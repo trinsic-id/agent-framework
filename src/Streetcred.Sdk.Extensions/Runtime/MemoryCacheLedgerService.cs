@@ -58,7 +58,7 @@ namespace Streetcred.Sdk.Extensions.Runtime
         {
             if (!_memoryCache.TryGetValue<ParseResponseResult>(definitionId, out var result))
             {
-                result = await base.LookupSchemaAsync(pool, submitterDid, definitionId);
+                result = await base.LookupDefinitionAsync(pool, submitterDid, definitionId);
                 
                 // Save data in cache.
                 _memoryCache.Set(definitionId, result, _options);
