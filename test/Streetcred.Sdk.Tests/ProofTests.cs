@@ -149,7 +149,7 @@ namespace Streetcred.Sdk.Tests
 
         [Fact]
         public async Task CredentialProofDemo()
-        {
+        { 
             //Setup a connection and issue the credentials to the holder
             var (issuerConnection, _) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _issuerWallet, _holderWallet);

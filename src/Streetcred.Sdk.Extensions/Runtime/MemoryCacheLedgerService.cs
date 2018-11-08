@@ -58,10 +58,36 @@ namespace Streetcred.Sdk.Extensions.Runtime
         {
             if (!_memoryCache.TryGetValue<ParseResponseResult>(definitionId, out var result))
             {
-                result = await base.LookupSchemaAsync(pool, submitterDid, definitionId);
+                result = await base.LookupDefinitionAsync(pool, submitterDid, definitionId);
                 
                 // Save data in cache.
                 _memoryCache.Set(definitionId, result, _options);
+            }
+
+            return result;
+        }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// Looks up the transaction for the given <paramref name="sequenceId" /> and <paramref name="ledgerType" /> combination in the cache.
+        /// If found, returns the cached value, otherwise performs a ledger lookup and caches the result.
+        /// </summary>
+        /// <returns>The definition async.</returns>
+        /// <param name="pool">Pool.</param>
+        /// <param name="submitterDid">Submitter did.</param>
+        /// <param name="ledgerType">Ledger Type.</param>
+        /// <param name="sequenceId">Sequence identifier.</param>
+        public override async Task<string> LookupTransactionAsync(Pool pool, string submitterDid, string ledgerType, int sequenceId)
+        {
+            if (string.IsNullOrEmpty(ledgerType))
+                ledgerType = "DOMAIN";
+
+            if (!_memoryCache.TryGetValue<string>($"{ledgerType}-{sequenceId}", out var result))
+            {
+                result = await base.LookupTransactionAsync(pool, submitterDid, ledgerType, sequenceId);
+
+                // Save data in cache.
+                _memoryCache.Set($"{ledgerType}-{sequenceId}", result, _options);
             }
 
             return result;
