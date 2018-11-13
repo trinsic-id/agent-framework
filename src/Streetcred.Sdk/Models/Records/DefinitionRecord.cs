@@ -18,6 +18,12 @@
         public string DefinitionId { get; set; }
 
         /// <summary>
+        /// Gets or sets the identifier of the schema the definition is derived from.
+        /// </summary>
+        /// <value>The schema identifier.</value>
+        public string SchemaId { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether this definition supports credential revocation.
         /// </summary>
         /// <value>
