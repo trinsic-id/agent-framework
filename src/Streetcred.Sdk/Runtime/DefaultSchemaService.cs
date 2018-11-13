@@ -118,6 +118,7 @@ namespace Streetcred.Sdk.Runtime
 
             definitionRecord.SupportsRevocation = supportsRevocation;
             definitionRecord.DefinitionId = credentialDefinition.CredDefId;
+            definitionRecord.SchemaId = schemaId;
 
             definitionRecord.Tags.Add(TagConstants.SchemaId, schemaId);
 

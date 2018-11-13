@@ -99,6 +99,10 @@ namespace Streetcred.Sdk.Tests
 
             Assert.Equal(schemaName, resultSchemaName);
             Assert.Equal(schemaVersion, resultSchemaVersion);
+
+            var recordResult = await _schemaService.GetCredentialDefinitionAsync(_issuerWallet, credId);
+
+            Assert.Equal(schemaId, recordResult.SchemaId);
         }
 
         public async Task InitializeAsync()
