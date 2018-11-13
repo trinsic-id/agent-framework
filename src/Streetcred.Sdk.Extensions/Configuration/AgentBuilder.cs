@@ -125,7 +125,7 @@ namespace Streetcred.Sdk.Extensions.Configuration
                     TailsBaseUri = TailsBaseUri ?? new Uri(endpointUri, "tails")
                 });
             }
-            catch (WalletAlreadyProvisionedException)
+            catch (StreetcredSdkException ex) when (ex.ErrorCode == ErrorCode.WalletAlreadyProvisioned)
             {
                 // Wallet already provisioned
             }

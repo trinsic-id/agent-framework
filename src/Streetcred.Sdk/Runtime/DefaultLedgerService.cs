@@ -7,6 +7,7 @@ using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Exceptions;
 using Streetcred.Sdk.Utils;
 
 namespace Streetcred.Sdk.Runtime
@@ -154,7 +155,7 @@ namespace Streetcred.Sdk.Runtime
             var response = JObject.Parse(res);
 
             if (!response["op"].ToObject<string>().Equals("reply", StringComparison.OrdinalIgnoreCase))
-                throw new Exception("Ledger operation rejected");
+                throw new StreetcredSdkException(ErrorCode.LedgerOperationRejected, "Ledger operation rejected");
         }
     }
 }

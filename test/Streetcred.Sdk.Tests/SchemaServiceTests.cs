@@ -17,8 +17,8 @@ namespace Streetcred.Sdk.Tests
         private readonly IPoolService _poolService;
         private readonly ISchemaService _schemaService;
 
-        private const string PoolName = "LedgerTestPool";
-        private const string IssuerConfig = "{\"id\":\"issuer_credential_test_wallet\"}";
+        private readonly string _poolName = $"Pool{Guid.NewGuid()}";
+        private readonly string _issuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
 
         private Pool _pool;
@@ -109,24 +109,24 @@ namespace Streetcred.Sdk.Tests
         {
             try
             {
-                await Wallet.CreateWalletAsync(IssuerConfig, Credentials);
+                await Wallet.CreateWalletAsync(_issuerConfig, Credentials);
             }
             catch (WalletExistsException)
             {
                 // OK
             }
 
-            _issuerWallet = await Wallet.OpenWalletAsync(IssuerConfig, Credentials);
+            _issuerWallet = await Wallet.OpenWalletAsync(_issuerConfig, Credentials);
 
             try
             {
-                await _poolService.CreatePoolAsync(PoolName, Path.GetFullPath("pool_genesis.txn"), 2);
+                await _poolService.CreatePoolAsync(_poolName, Path.GetFullPath("pool_genesis.txn"), 2);
             }
             catch (PoolLedgerConfigExistsException)
             {
                 // OK
             }
-            _pool = await _poolService.GetPoolAsync(PoolName, 2);
+            _pool = await _poolService.GetPoolAsync(_poolName, 2);
         }
 
         public async Task DisposeAsync()
@@ -134,8 +134,8 @@ namespace Streetcred.Sdk.Tests
             if (_issuerWallet != null) await _issuerWallet.CloseAsync();
             if (_pool != null) await _pool.CloseAsync();
 
-            await Wallet.DeleteWalletAsync(IssuerConfig, Credentials);
-            await Pool.DeletePoolLedgerConfigAsync(PoolName);
+            await Wallet.DeleteWalletAsync(_issuerConfig, Credentials);
+            await Pool.DeletePoolLedgerConfigAsync(_poolName);
         }
     }
 }

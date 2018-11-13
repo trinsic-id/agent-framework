@@ -22,7 +22,7 @@ namespace Streetcred.Sdk.Tests
 {
     public class ProofTests : IAsyncLifetime
     {
-        private const string PoolName = "ProofTestPool";
+        private readonly string _poolName = $"Pool{Guid.NewGuid()}";
         private const string IssuerConfig = "{\"id\":\"issuer_proof_test_wallet\"}";
         private const string HolderConfig = "{\"id\":\"holder_proof_test_wallet\"}";
         private const string RequestorConfig = "{\"id\":\"requestor_proof_test_wallet\"}";
@@ -137,14 +137,14 @@ namespace Streetcred.Sdk.Tests
 
             try
             {
-                await _poolService.CreatePoolAsync(PoolName, Path.GetFullPath("pool_genesis.txn"), 2);
+                await _poolService.CreatePoolAsync(_poolName, Path.GetFullPath("pool_genesis.txn"), 2);
             }
             catch (PoolLedgerConfigExistsException)
             {
                 // OK
             }
 
-            _pool = await _poolService.GetPoolAsync(PoolName, 2);
+            _pool = await _poolService.GetPoolAsync(_poolName, 2);
         }
 
         [Fact]
@@ -170,7 +170,7 @@ namespace Streetcred.Sdk.Tests
                 {
                     Name = "ProofReq",
                     Version = "1.0",
-                    Nonce = Guid.NewGuid().ToString(),
+                    Nonce = "123",
                     RequestedAttributes = new Dictionary<string, ProofAttributeInfo>
                     {
                         {"first-name-requirement", new ProofAttributeInfo {Name = "first_name"}}
@@ -266,7 +266,7 @@ namespace Streetcred.Sdk.Tests
             await Wallet.DeleteWalletAsync(IssuerConfig, WalletCredentials);
             await Wallet.DeleteWalletAsync(HolderConfig, WalletCredentials);
             await Wallet.DeleteWalletAsync(RequestorConfig, WalletCredentials);
-            await Pool.DeletePoolLedgerConfigAsync(PoolName);
+            await Pool.DeletePoolLedgerConfigAsync(_poolName);
         }
     }
 }

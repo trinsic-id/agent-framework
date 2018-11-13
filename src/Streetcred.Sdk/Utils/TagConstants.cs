@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Streetcred.Sdk.Utils
+﻿namespace Streetcred.Sdk.Utils
 {
     /// <summary>
     /// A collection of tag constants used within the sdk

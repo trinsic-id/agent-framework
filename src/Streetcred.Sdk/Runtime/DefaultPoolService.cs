@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Hyperledger.Indy.PoolApi;
+using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Utils;
 
@@ -8,15 +10,23 @@ namespace Streetcred.Sdk.Runtime
     /// <inheritdoc />
     public class DefaultPoolService : IPoolService
     {
-        protected static Pool Pool;
+        protected static readonly ConcurrentDictionary<string, Pool> Pools =
+            new ConcurrentDictionary<string, Pool>();
 
         /// <inheritdoc />
         public virtual async Task<Pool> GetPoolAsync(string poolName, int protocolVersion)
         {
-            if (Pool != null) return Pool;
+            if (Pools.TryGetValue(poolName, out var pool))
+            {
+                await Pool.SetProtocolVersionAsync(protocolVersion);
+                return pool;
+            }
 
             await Pool.SetProtocolVersionAsync(protocolVersion);
-            return Pool = await Pool.OpenPoolLedgerAsync(poolName, null);
+            pool = await Pool.OpenPoolLedgerAsync(poolName, null);
+
+            Pools.TryAdd(poolName, pool);
+            return pool;
         }
 
         /// <inheritdoc />
