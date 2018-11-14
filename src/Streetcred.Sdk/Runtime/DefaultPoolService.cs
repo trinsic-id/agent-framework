@@ -16,24 +16,27 @@ namespace Streetcred.Sdk.Runtime
         /// <inheritdoc />
         public virtual async Task<Pool> GetPoolAsync(string poolName, int protocolVersion)
         {
+            await Pool.SetProtocolVersionAsync(protocolVersion);
+
+            return await GetPoolAsync(poolName);
+        }
+
+        /// <inheritdoc />
+        public async Task<Pool> GetPoolAsync(string poolName)
+        {
             if (Pools.TryGetValue(poolName, out var pool))
             {
-                await Pool.SetProtocolVersionAsync(protocolVersion);
                 return pool;
             }
 
-            await Pool.SetProtocolVersionAsync(protocolVersion);
             pool = await Pool.OpenPoolLedgerAsync(poolName, null);
-
             Pools.TryAdd(poolName, pool);
             return pool;
         }
 
         /// <inheritdoc />
-        public virtual async Task CreatePoolAsync(string poolName, string genesisFile, int protocolVersion)
+        public virtual async Task CreatePoolAsync(string poolName, string genesisFile)
         {
-            await Pool.SetProtocolVersionAsync(protocolVersion);
-
             var poolConfig = new {genesis_txn = genesisFile}.ToJson();
 
             await Pool.CreatePoolLedgerConfigAsync(poolName, poolConfig);

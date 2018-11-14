@@ -100,8 +100,7 @@ namespace Streetcred.Sdk.Extensions.Configuration
 
             try
             {
-                await _poolService.CreatePoolAsync(_poolOptions.PoolName, _poolOptions.GenesisFilename,
-                    _poolOptions.ProtocolVersion);
+                await _poolService.CreatePoolAsync(_poolOptions.PoolName, _poolOptions.GenesisFilename);
             }
             catch (PoolLedgerConfigExistsException)
             {

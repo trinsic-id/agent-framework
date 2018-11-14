@@ -120,7 +120,7 @@ namespace Streetcred.Sdk.Tests
 
             try
             {
-                await _poolService.CreatePoolAsync(_poolName, Path.GetFullPath("pool_genesis.txn"), 2);
+                await _poolService.CreatePoolAsync(_poolName, Path.GetFullPath("pool_genesis.txn"));
             }
             catch (PoolLedgerConfigExistsException)
             {
