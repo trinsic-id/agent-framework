@@ -7,7 +7,7 @@ namespace Streetcred.Sdk.Exceptions
         public ErrorCode ErrorCode { get; }
 
         public StreetcredSdkException(ErrorCode errorCode) : this(errorCode,
-            $"An SDK errror occured. Code: {errorCode}")
+            $"An SDK error occured. Code: {errorCode}")
         {
         }
 
