@@ -88,7 +88,7 @@ namespace Streetcred.Sdk.Runtime
                 catch (Exception) { }
             }
 
-            return "";
+            return null;
         }
 
         /// TODO this should return a schema object

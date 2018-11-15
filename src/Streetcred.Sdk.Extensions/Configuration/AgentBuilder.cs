@@ -100,8 +100,7 @@ namespace Streetcred.Sdk.Extensions.Configuration
 
             try
             {
-                await _poolService.CreatePoolAsync(_poolOptions.PoolName, _poolOptions.GenesisFilename,
-                    _poolOptions.ProtocolVersion);
+                await _poolService.CreatePoolAsync(_poolOptions.PoolName, _poolOptions.GenesisFilename);
             }
             catch (PoolLedgerConfigExistsException)
             {
@@ -125,7 +124,7 @@ namespace Streetcred.Sdk.Extensions.Configuration
                     TailsBaseUri = TailsBaseUri ?? new Uri(endpointUri, "tails")
                 });
             }
-            catch (WalletAlreadyProvisionedException)
+            catch (StreetcredSdkException ex) when (ex.ErrorCode == ErrorCode.WalletAlreadyProvisioned)
             {
                 // Wallet already provisioned
             }

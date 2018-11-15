@@ -17,8 +17,8 @@ namespace Streetcred.Sdk.Tests
 {
     public class ConnectionTests : IAsyncLifetime
     {
-        private const string IssuerConfig = "{\"id\":\"issuer_test_wallet\"}";
-        private const string HolderConfig = "{\"id\":\"holder_test_wallet\"}";
+        private readonly string _issuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}"; 
+        private readonly string _holderConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
         private const string MockEndpointUri = "http://mock";
 
@@ -57,7 +57,7 @@ namespace Streetcred.Sdk.Tests
         {
             try
             {
-                await Wallet.CreateWalletAsync(IssuerConfig, Credentials);
+                await Wallet.CreateWalletAsync(_issuerConfig, Credentials);
             }
             catch (WalletExistsException)
             {
@@ -66,15 +66,15 @@ namespace Streetcred.Sdk.Tests
 
             try
             {
-                await Wallet.CreateWalletAsync(HolderConfig, Credentials);
+                await Wallet.CreateWalletAsync(_holderConfig, Credentials);
             }
             catch (WalletExistsException)
             {
                 // OK
             }
 
-            _issuerWallet = await Wallet.OpenWalletAsync(IssuerConfig, Credentials);
-            _holderWallet = await Wallet.OpenWalletAsync(HolderConfig, Credentials);
+            _issuerWallet = await Wallet.OpenWalletAsync(_issuerConfig, Credentials);
+            _holderWallet = await Wallet.OpenWalletAsync(_holderConfig, Credentials);
         }
 
         [Fact]
@@ -131,8 +131,8 @@ namespace Streetcred.Sdk.Tests
             if (_issuerWallet != null) await _issuerWallet.CloseAsync();
             if (_holderWallet != null) await _holderWallet.CloseAsync();
 
-            await Wallet.DeleteWalletAsync(IssuerConfig, Credentials);
-            await Wallet.DeleteWalletAsync(HolderConfig, Credentials);
+            await Wallet.DeleteWalletAsync(_issuerConfig, Credentials);
+            await Wallet.DeleteWalletAsync(_holderConfig, Credentials);
         }
     }
 }
