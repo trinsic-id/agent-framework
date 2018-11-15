@@ -33,7 +33,7 @@ namespace Streetcred.Sdk.Runtime
                 throw new ArgumentNullException(nameof(provisioningConfiguration.EndpointUri));
 
             var record = await GetProvisioningAsync(wallet);
-            if (record != null) throw new WalletAlreadyProvisionedException();
+            if (record != null) throw new StreetcredSdkException(ErrorCode.WalletAlreadyProvisioned);
 
             var agent = await Did.CreateAndStoreMyDidAsync(wallet,
                 provisioningConfiguration.AgentSeed != null

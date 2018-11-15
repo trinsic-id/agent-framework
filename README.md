@@ -1,6 +1,10 @@
 Streetcred SDK
 
-[![Build status](https://streetcred.visualstudio.com/Streetcred/_apis/build/status/Streetcred-SDK-CI)](https://streetcred.visualstudio.com/Streetcred/_build/latest?definitionId=2)
+| Stage | Status |
+| --- | --- |
+| Build | [![Build status](https://streetcred.visualstudio.com/Streetcred/_apis/build/status/SDK/SDK%20(Compile%20Only))](https://streetcred.visualstudio.com/Streetcred/_build/latest?definitionId=7) |
+| Package | [![Build status](https://streetcred.visualstudio.com/Streetcred/_apis/build/status/SDK/SDK%20(Build%20Package%20&%20Publish))](https://streetcred.visualstudio.com/Streetcred/_build/latest?definitionId=2) |
+| Unit Tests | [![Build Status](https://travis-ci.com/streetcred-id/streetcred-sdk.svg?branch=master)](https://travis-ci.com/streetcred-id/streetcred-sdk) |
 
 # Streetcred SDK
 ## Agent Framework for building Sovrin agent services w/ .NET Core
@@ -20,7 +24,7 @@ Navigate to [http://localhost:7001](), [http://localhost:7002]() and [http://loc
 ### Running the unit tests
 
 ```lang=bash
-docker-compose -f docker-compose.test.yaml up --abort-on-container-exit --exit-code-from test-agent
+docker-compose -f docker-compose.test.yaml up --build --abort-on-container-exit --exit-code-from test-agent
 ```
 
 Note: You may need to cleanup previous docker network created using `docker network prune`

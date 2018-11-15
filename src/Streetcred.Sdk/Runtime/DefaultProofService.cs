@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Exceptions;
 using Streetcred.Sdk.Messages;
 using Streetcred.Sdk.Messages.Proofs;
 using Streetcred.Sdk.Models.Credentials;
@@ -55,7 +56,9 @@ namespace Streetcred.Sdk.Runtime
         {
             Logger.LogInformation(LoggingEvents.SendProofRequest, "ConnectionId {0}", connectionId);
 
-            var connection = await ConnectionService.GetAsync(wallet, connectionId);
+            var connection = await ConnectionService.GetAsync(wallet, connectionId) ??
+                             throw new StreetcredSdkException(ErrorCode.RecordNotFound,
+                                 "Connection record not found");
             var request = await CreateProofRequestAsync(wallet, connectionId, proofRequest);
 
             await RouterService.ForwardAsync(new ForwardEnvelopeMessage
@@ -70,7 +73,9 @@ namespace Streetcred.Sdk.Runtime
         {
             Logger.LogInformation(LoggingEvents.SendProofRequest, "ConnectionId {0}", connectionId);
 
-            var connection = await ConnectionService.GetAsync(wallet, connectionId);
+            var connection = await ConnectionService.GetAsync(wallet, connectionId) ??
+                             throw new StreetcredSdkException(ErrorCode.RecordNotFound,
+                                 "Connection record not found");
             var request = await CreateProofRequestAsync(wallet, connectionId, proofRequestJson);
 
             await RouterService.ForwardAsync(new ForwardEnvelopeMessage
@@ -96,7 +101,9 @@ namespace Streetcred.Sdk.Runtime
         {
             Logger.LogInformation(LoggingEvents.CreateProofRequest, "ConnectionId {0}", connectionId);
 
-            var connection = await ConnectionService.GetAsync(wallet, connectionId);
+            var connection = await ConnectionService.GetAsync(wallet, connectionId) ??
+                             throw new StreetcredSdkException(ErrorCode.RecordNotFound,
+                                 "Connection record not found");
             var proofJobj = JObject.Parse(proofRequestJson);
 
             var proofRecord = new ProofRecord
@@ -141,7 +148,9 @@ namespace Streetcred.Sdk.Runtime
                     new SearchRecordQuery {{ TagConstants.Nonce, requestDetails.RequestNonce}}, null, 1);
             if (!proofRecordSearch.Any())
                 throw new Exception($"Can't find proof record");
-            var proofRecord = proofRecordSearch.Single();
+            var proofRecord = proofRecordSearch.SingleOrDefault() ??
+                              throw new StreetcredSdkException(ErrorCode.RecordNotFound,
+                                  "Proof record not found");
 
             proofRecord.ProofJson = proofJson;
             await proofRecord.TriggerAsync(ProofTrigger.Accept);

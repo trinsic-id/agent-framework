@@ -8,6 +8,7 @@ using Hyperledger.Indy.PairwiseApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Streetcred.Sdk.Contracts;
+using Streetcred.Sdk.Exceptions;
 using Streetcred.Sdk.Messages;
 using Streetcred.Sdk.Messages.Connections;
 using Streetcred.Sdk.Models.Connections;
@@ -48,6 +49,8 @@ namespace Streetcred.Sdk.Runtime
                 ? config.ConnectionId
                 : Guid.NewGuid().ToString();
 
+            config = config ?? new DefaultCreateInviteConfiguration();
+
             Logger.LogInformation(LoggingEvents.CreateInvitation, "ConnectionId {0}", connectionId);
 
             var connectionKey = await Crypto.CreateKeyAsync(wallet, "{}");
@@ -56,44 +59,29 @@ namespace Streetcred.Sdk.Runtime
             connection.ConnectionId = connectionId;
             connection.Tags.Add(TagConstants.ConnectionKey, connectionKey);
 
-            if (config != null && config.AutoAcceptConnection)
+            if (config.AutoAcceptConnection)
                 connection.Tags.Add(TagConstants.AutoAcceptConnection, "true");
 
-            if (config?.TheirAlias != null)
-            {
-                connection.Alias = config.TheirAlias;
-                if (!string.IsNullOrEmpty(config.TheirAlias.Name))
-                    connection.Tags.Add(TagConstants.Alias, config.TheirAlias.Name);
-            }
+            connection.Alias = config.TheirAlias;
+            if (!string.IsNullOrEmpty(config.TheirAlias.Name))
+                connection.Tags.Add(TagConstants.Alias, config.TheirAlias.Name);
 
-            if (config?.Tags != null)
-                foreach (var tag in config.Tags)
-                {
-                    if (!connection.Tags.Keys.Contains(tag.Key))
-                        connection.Tags.Add(tag.Key, tag.Value);
-                }
+            foreach (var tag in config.Tags)
+                connection.Tags[tag.Key] = tag.Value;
 
             await RecordService.AddAsync(wallet, connection);
 
-            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet) ??
+                               throw new StreetcredSdkException(ErrorCode.RecordNotFound,
+                                   "Provisioning record not found");
 
-            var invite = new ConnectionInvitationMessage
+            return new ConnectionInvitationMessage
             {
                 Endpoint = provisioning.Endpoint,
-                ConnectionKey = connectionKey
+                ConnectionKey = connectionKey,
+                Name = config.MyAlias.Name ?? provisioning.Owner.Name,
+                ImageUrl = config.MyAlias.ImageUrl ?? provisioning.Owner.ImageUrl
             };
-
-            if (!string.IsNullOrEmpty(provisioning.Owner?.Name))
-                invite.Name = provisioning.Owner.Name;
-            if (!string.IsNullOrEmpty(provisioning.Owner?.ImageUrl))
-                invite.ImageUrl = provisioning.Owner.ImageUrl;
-
-            if (!string.IsNullOrEmpty(config?.MyAlias?.Name))
-                invite.Name = config.MyAlias.Name;
-            if (!string.IsNullOrEmpty(config?.MyAlias?.ImageUrl))
-                invite.ImageUrl = config.MyAlias.ImageUrl;
-
-            return invite;
         }
 
         /// <inheritdoc />
@@ -128,7 +116,9 @@ namespace Streetcred.Sdk.Runtime
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await RecordService.AddAsync(wallet, connection);
 
-            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet) ??
+                               throw new StreetcredSdkException(ErrorCode.RecordNotFound,
+                                   "Provisioning record not found");
             var connectionDetails = new ConnectionDetails
             {
                 Did = my.Did,
@@ -162,7 +152,9 @@ namespace Streetcred.Sdk.Runtime
             var connectionSearch = await RecordService.SearchAsync<ConnectionRecord>(wallet,
                 new SearchRecordQuery {{TagConstants.ConnectionKey, didOrKey}}, null, 1);
 
-            var connection = connectionSearch.Single();
+            var connection = connectionSearch.SingleOrDefault() ??
+                             throw new StreetcredSdkException(ErrorCode.RecordNotFound,
+                                 "Connection record not found");
 
             var (their, theirKey) =
                 await MessageSerializer.UnpackSealedAsync<ConnectionDetails>(request.Content, wallet, request.Key);
@@ -196,7 +188,9 @@ namespace Streetcred.Sdk.Runtime
         {
             Logger.LogInformation(LoggingEvents.AcceptConnectionRequest, "ConnectionId {0}", connectionId);
 
-            var connection = await GetAsync(wallet, connectionId);
+            var connection = await GetAsync(wallet, connectionId) ??
+                             throw new StreetcredSdkException(ErrorCode.RecordNotFound,
+                                 "Connection record not found");
 
             await connection.TriggerAsync(ConnectionTrigger.Request);
 
@@ -204,7 +198,10 @@ namespace Streetcred.Sdk.Runtime
             await RecordService.UpdateAsync(wallet, connection);
 
             // Send back response message
-            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet) ??
+                               throw new StreetcredSdkException(ErrorCode.RecordNotFound,
+                                   "Provisioning record not found");
+
             var response = new ConnectionDetails
             {
                 Did = connection.MyDid,
@@ -236,9 +233,12 @@ namespace Streetcred.Sdk.Runtime
             var (didOrKey, _) = MessageUtils.ParseMessageType(response.Type);
 
             var connectionSearch = await RecordService.SearchAsync<ConnectionRecord>(wallet,
-                new SearchRecordQuery {{ TagConstants.MyDid, didOrKey}}, null, 1);
+                new SearchRecordQuery {{TagConstants.MyDid, didOrKey}}, null, 1);
 
-            var connection = connectionSearch.Single();
+            var connection = connectionSearch.SingleOrDefault() ??
+                             throw new StreetcredSdkException(ErrorCode.RecordNotFound,
+                                 "Connection record not found");
+
             await connection.TriggerAsync(ConnectionTrigger.Response);
 
             var (connectionDetails, _) = await MessageSerializer.UnpackSealedAsync<ConnectionDetails>(response.Content,
@@ -252,11 +252,9 @@ namespace Streetcred.Sdk.Runtime
 
             connection.TheirDid = connectionDetails.Did;
             connection.TheirVk = connectionDetails.Verkey;
+            connection.Endpoint = connectionDetails.Endpoint;
 
-            if (connectionDetails.Endpoint != null)
-                connection.Endpoint = connectionDetails.Endpoint;
-
-            connection.Tags.Add(TagConstants.TheirDid, connectionDetails.Did);
+            connection.Tags[TagConstants.TheirDid] = connectionDetails.Did;
             await RecordService.UpdateAsync(wallet, connection);
         }
 
@@ -269,7 +267,8 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual Task<List<ConnectionRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100)
+        public virtual Task<List<ConnectionRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null,
+            int count = 100)
         {
             Logger.LogInformation(LoggingEvents.ListConnections, "List Connections");
 

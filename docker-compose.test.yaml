@@ -6,8 +6,6 @@ services:
       dockerfile: docker/indy-pool.dockerfile
       args:
         pool_ip: 10.0.0.10
-    ports:
-      - "9701-9709:9701-9709"
     networks:
       agent_net:
         ipv4_address: 10.0.0.10

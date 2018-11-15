@@ -17,9 +17,9 @@ namespace Streetcred.Sdk.Tests
 {
     public class CredentialTests : IAsyncLifetime
     {
-        private const string PoolName = "CredentialTestPool";
-        private const string IssuerConfig = "{\"id\":\"issuer_credential_test_wallet\"}";
-        private const string HolderConfig = "{\"id\":\"holder_credential_test_wallet\"}";
+        private readonly string _poolName = $"Pool{Guid.NewGuid()}";
+        private readonly string _issuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
+        private readonly string _holderConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
         private const string MockEndpointUri = "http://mock";
         private const string MasterSecretId = "DefaultMasterSecret";
@@ -84,7 +84,7 @@ namespace Streetcred.Sdk.Tests
         {
             try
             {
-                await Wallet.CreateWalletAsync(IssuerConfig, Credentials);
+                await Wallet.CreateWalletAsync(_issuerConfig, Credentials);
             }
             catch (WalletExistsException)
             {
@@ -93,25 +93,25 @@ namespace Streetcred.Sdk.Tests
 
             try
             {
-                await Wallet.CreateWalletAsync(HolderConfig, Credentials);
+                await Wallet.CreateWalletAsync(_holderConfig, Credentials);
             }
             catch (WalletExistsException)
             {
                 // OK
             }
 
-            _issuerWallet = await Wallet.OpenWalletAsync(IssuerConfig, Credentials);
-            _holderWallet = await Wallet.OpenWalletAsync(HolderConfig, Credentials);
+            _issuerWallet = await Wallet.OpenWalletAsync(_issuerConfig, Credentials);
+            _holderWallet = await Wallet.OpenWalletAsync(_holderConfig, Credentials);
 
             try
             {
-                await _poolService.CreatePoolAsync(PoolName, Path.GetFullPath("pool_genesis.txn"), 2);
+                await _poolService.CreatePoolAsync(_poolName, Path.GetFullPath("pool_genesis.txn"));
             }
             catch (PoolLedgerConfigExistsException)
             {
                 // OK
             }
-            _pool = await _poolService.GetPoolAsync(PoolName, 2);
+            _pool = await _poolService.GetPoolAsync(_poolName, 2);
         }
 
         /// <summary>
@@ -139,9 +139,9 @@ namespace Streetcred.Sdk.Tests
             if (_holderWallet != null) await _holderWallet.CloseAsync();
             if (_pool != null) await _pool.CloseAsync();
 
-            await Wallet.DeleteWalletAsync(IssuerConfig, Credentials);
-            await Wallet.DeleteWalletAsync(HolderConfig, Credentials);
-            await Pool.DeletePoolLedgerConfigAsync(PoolName);
+            await Wallet.DeleteWalletAsync(_issuerConfig, Credentials);
+            await Wallet.DeleteWalletAsync(_holderConfig, Credentials);
+            await Pool.DeletePoolLedgerConfigAsync(_poolName);
         }
     }
 }

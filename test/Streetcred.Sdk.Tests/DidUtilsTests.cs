@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Streetcred.Sdk.Utils;
 using Xunit;
 
