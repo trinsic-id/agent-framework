@@ -5,7 +5,7 @@ namespace Streetcred.Sdk.Models.Connections
     /// <summary>
     /// Config for controlling invitation creation.
     /// </summary>
-    public class DefaultCreateInviteConfiguration
+    public class InviteConfiguration
     {
         /// <summary>
         /// Id of the resulting connection record created

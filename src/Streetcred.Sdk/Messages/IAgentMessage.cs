@@ -1,13 +1,12 @@
 ﻿using Newtonsoft.Json;
-using Streetcred.Sdk.Messages.Converters;
 
 namespace Streetcred.Sdk.Messages
 {
     /// <summary>
-    /// Represents an unsecured message
+    /// Represents a content message
     /// </summary>
-    [JsonConverter(typeof(UnsecuredMessageConverter))]
-    public interface IUnsecuredMessage
+    [JsonConverter(typeof(AgentMessageConverter))]
+    public interface IAgentMessage
     {
         /// <summary>
         /// Gets or sets the type.
@@ -15,6 +14,7 @@ namespace Streetcred.Sdk.Messages
         /// <value>
         /// The type.
         /// </value>
+        [JsonProperty("@type")]
         string Type { get; set; }
     }
 }

@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Messages;
 using Streetcred.Sdk.Messages.Proofs;
+using Streetcred.Sdk.Messages.Routing;
 using Streetcred.Sdk.Models.Credentials;
 using Streetcred.Sdk.Models.Proofs;
 using Streetcred.Sdk.Models.Records;
@@ -58,11 +59,7 @@ namespace Streetcred.Sdk.Runtime
             var connection = await ConnectionService.GetAsync(wallet, connectionId);
             var request = await CreateProofRequestAsync(wallet, connectionId, proofRequest);
 
-            await RouterService.ForwardAsync(new ForwardEnvelopeMessage
-            {
-                Content = request.ToJson(),
-                Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.Forward)
-            }, connection.Endpoint);
+            await RouterService.SendAsync(wallet, request, connection.TheirVk, connection.MyVk, connection.Endpoint);
         }
 
         /// <inheritdoc />
@@ -73,11 +70,7 @@ namespace Streetcred.Sdk.Runtime
             var connection = await ConnectionService.GetAsync(wallet, connectionId);
             var request = await CreateProofRequestAsync(wallet, connectionId, proofRequestJson);
 
-            await RouterService.ForwardAsync(new ForwardEnvelopeMessage
-            {
-                Content = request.ToJson(),
-                Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.Forward)
-            }, connection.Endpoint);
+            await RouterService.SendAsync(wallet, request, connection.TheirVk, connection.MyVk, connection.Endpoint);
         }
 
         /// <inheritdoc />
@@ -111,34 +104,17 @@ namespace Streetcred.Sdk.Runtime
 
             await RecordService.AddAsync(wallet, proofRecord);
 
-            var proofRequest = await MessageSerializer.PackSealedAsync<ProofRequestMessage>(
-                new ProofRequestDetails {ProofRequestJson = proofRequestJson},
-                wallet,
-                connection.MyVk,
-                connection.TheirVk);
-            proofRequest.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.ProofRequest);
-
-            return proofRequest;
+            return new ProofRequestMessage { ProofRequestJson = proofRequestJson };
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessProofAsync(Wallet wallet, ProofMessage proof)
+        public virtual async Task<string> ProcessProofAsync(Wallet wallet, ProofMessage proof, ConnectionRecord connection)
         {
-            var (didOrKey, _) = MessageUtils.ParseMessageType(proof.Type);
-
-            var connectionSearch =
-                await ConnectionService.ListAsync(wallet, new SearchRecordQuery {{TagConstants.MyDid, didOrKey}});
-            if (!connectionSearch.Any())
-                throw new Exception($"Can't find connection record for type {proof.Type}");
-            var connection = connectionSearch.First();
-
-            var (requestDetails, _) = await MessageSerializer.UnpackSealedAsync<ProofDetails>(
-                proof.Content, wallet, connection.MyVk);
-            var proofJson = requestDetails.ProofJson;
+            var proofJson = proof.ProofJson;
 
             var proofRecordSearch =
                 await RecordService.SearchAsync<ProofRecord>(wallet,
-                    new SearchRecordQuery {{ TagConstants.Nonce, requestDetails.RequestNonce}}, null, 1);
+                    new SearchRecordQuery {{ TagConstants.Nonce, proof.RequestNonce}}, null, 1);
             if (!proofRecordSearch.Any())
                 throw new Exception($"Can't find proof record");
             var proofRecord = proofRecordSearch.Single();
@@ -151,20 +127,9 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessProofRequestAsync(Wallet wallet, ProofRequestMessage proofRequest)
+        public virtual async Task<string> ProcessProofRequestAsync(Wallet wallet, ProofRequestMessage proofRequest, ConnectionRecord connection)
         {
-            var (didOrKey, _) = MessageUtils.ParseMessageType(proofRequest.Type);
-
-            var connectionSearch =
-                await ConnectionService.ListAsync(wallet, new SearchRecordQuery {{TagConstants.MyDid, didOrKey}});
-            if (!connectionSearch.Any())
-                throw new Exception($"Can't find connection record for type {proofRequest.Type}");
-            var connection = connectionSearch.First();
-
-            var (requestDetails, _) =
-                await MessageSerializer.UnpackSealedAsync<ProofRequestDetails>(proofRequest.Content, wallet,
-                    connection.MyVk);
-            var requestJson = requestDetails.ProofRequestJson;
+            var requestJson = proofRequest.ProofRequestJson;
 
             var offer = JObject.Parse(requestJson);
             var nonce = offer["nonce"].ToObject<string>();
@@ -225,15 +190,11 @@ namespace Streetcred.Sdk.Runtime
             await record.TriggerAsync(ProofTrigger.Accept);
             await RecordService.UpdateAsync(wallet, record);
 
-            var proof = await MessageSerializer.PackSealedAsync<ProofMessage>(
-                new ProofDetails
-                {
-                    ProofJson = proofJson,
-                    RequestNonce = JsonConvert.DeserializeObject<ProofRequest>(record.RequestJson).Nonce
-                }, wallet, connection.MyVk, connection.TheirVk);
-            proof.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.DisclosedProof);
-
-            return proof;
+            return new ProofMessage
+            {
+                ProofJson = proofJson,
+                RequestNonce = JsonConvert.DeserializeObject<ProofRequest>(record.RequestJson).Nonce
+            };
         }
 
         /// <inheritdoc />
@@ -245,11 +206,7 @@ namespace Streetcred.Sdk.Runtime
 
             var proof = await CreateProofAsync(wallet, pool, proofRequestId, requestedCredentials);
 
-            await RouterService.ForwardAsync(new ForwardEnvelopeMessage
-            {
-                Content = proof.ToJson(),
-                Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.Forward)
-            }, connection.Endpoint);
+            await RouterService.SendAsync(wallet, proof, connection.TheirVk, connection.MyVk, connection.Endpoint);
         }
 
         /// <inheritdoc />

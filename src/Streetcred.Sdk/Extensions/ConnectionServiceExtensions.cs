@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Contracts;
@@ -49,5 +50,17 @@ namespace Streetcred.Sdk.Contracts
             this IConnectionService connectionService, Wallet wallet, int count = 100)
             => connectionService.ListAsync(wallet,
                 new SearchRecordQuery {{ TagConstants.State, ConnectionState.Invited.ToString("G")}}, count);
+
+        /// <summary>
+        /// Retrieves a <see cref="ConnectionRecord"/> by key.
+        /// </summary>
+        /// <returns>The connection record.</returns>
+        /// <param name="connectionService">Connection service.</param>
+        /// <param name="wallet">Wallet.</param>
+        /// <param name="myKey">My key.</param>
+        public static async Task<ConnectionRecord> GetByMyKey(
+            this IConnectionService connectionService, Wallet wallet, string myKey)
+            => (await connectionService.ListAsync(wallet,
+                new SearchRecordQuery { { TagConstants.MyKey, myKey } }, 1)).FirstOrDefault();
     }
 }

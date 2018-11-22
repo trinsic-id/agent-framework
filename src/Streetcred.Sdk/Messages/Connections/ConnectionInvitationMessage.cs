@@ -6,7 +6,7 @@ namespace Streetcred.Sdk.Messages.Connections
     /// <summary>
     /// Represents an invitation message for establishing connection.
     /// </summary>
-    public class ConnectionInvitationMessage : IUnsecuredMessage
+    public class ConnectionInvitationMessage : IAgentMessage
     {
         /// <summary>
         /// Gets or sets the endpoint.

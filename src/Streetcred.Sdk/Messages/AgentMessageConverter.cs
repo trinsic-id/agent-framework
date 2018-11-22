@@ -6,12 +6,12 @@ using Streetcred.Sdk.Messages.Credentials;
 using Streetcred.Sdk.Messages.Proofs;
 using Streetcred.Sdk.Utils;
 
-namespace Streetcred.Sdk.Messages.Converters
+namespace Streetcred.Sdk.Messages
 {
     /// <summary>
     /// Message converter for serializing and deserializing content messages to and from json to their respective object types
     /// </summary>
-    public class ContentMessageConverter : JsonConverter
+    public class AgentMessageConverter : JsonConverter
     {
         /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) =>
@@ -25,11 +25,13 @@ namespace Streetcred.Sdk.Messages.Converters
             JsonSerializer serializer)
         {
             var item = JObject.Load(reader);
-            var (_, messageType) = MessageUtils.ParseMessageType(item["@type"].ToObject<string>());
-
-            IContentMessage message;
-            switch (messageType)
+            
+            IAgentMessage message;
+            switch (item["@type"].ToString())
             {
+                case MessageTypes.ConnectionInvitation:
+                    message = new ConnectionInvitationMessage();
+                    break;
                 case MessageTypes.ConnectionRequest:
                     message = new ConnectionRequestMessage();
                     break;
@@ -51,7 +53,8 @@ namespace Streetcred.Sdk.Messages.Converters
                 case MessageTypes.DisclosedProof:
                     message = new ProofMessage();
                     break;
-                default: throw new TypeLoadException("Unsupported serialization type.");
+                default:
+                    throw new TypeLoadException("Unsupported serialization type.");
             }
 
             serializer.Populate(item.CreateReader(), message);

@@ -12,6 +12,7 @@ using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Messages;
 using Streetcred.Sdk.Messages.Credentials;
+using Streetcred.Sdk.Messages.Routing;
 using Streetcred.Sdk.Models.Credentials;
 using Streetcred.Sdk.Models.Records;
 using Streetcred.Sdk.Models.Records.Search;
@@ -63,20 +64,9 @@ namespace Streetcred.Sdk.Runtime
             RecordService.SearchAsync<CredentialRecord>(wallet, query, null, count);
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessOfferAsync(Wallet wallet, CredentialOfferMessage credentialOffer)
+        public virtual async Task<string> ProcessOfferAsync(Wallet wallet, CredentialOfferMessage credentialOffer, ConnectionRecord connection)
         {
-            var (didOrKey, _) = MessageUtils.ParseMessageType(credentialOffer.Type);
-
-            var connectionSearch =
-                await ConnectionService.ListAsync(wallet, new SearchRecordQuery { { TagConstants.MyDid, didOrKey } });
-            if (!connectionSearch.Any())
-                throw new Exception($"Can't find connection record for type {credentialOffer.Type}");
-            var connection = connectionSearch.First();
-
-            var (offerDetails, _) = await MessageSerializer.UnpackSealedAsync<CredentialOfferDetails>(
-                credentialOffer.Content, wallet, connection.MyVk);
-            var offerJson = offerDetails.OfferJson;
-
+            var offerJson = credentialOffer.OfferJson;
             var offer = JObject.Parse(offerJson);
             var definitionId = offer["cred_def_id"].ToObject<string>();
             var schemaId = offer["schema_id"].ToObject<string>();
@@ -117,30 +107,19 @@ namespace Streetcred.Sdk.Runtime
 
             // Update local credential record with new info
             credential.CredentialRequestMetadataJson = request.CredentialRequestMetadataJson;
+            
+            await credential.TriggerAsync(CredentialTrigger.Request);
+            await RecordService.UpdateAsync(wallet, credential);
 
-            var details = new CredentialRequestDetails
+            var msg = new CredentialRequestMessage
             {
                 OfferJson = credential.OfferJson,
                 CredentialRequestJson = request.CredentialRequestJson,
                 CredentialValuesJson = CredentialUtils.FormatCredentialValues(attributeValues)
             };
 
-            var requestMessage =
-                await MessageSerializer.PackSealedAsync<CredentialRequestMessage>(details, wallet, connection.MyVk,
-                    connection.TheirVk);
-            requestMessage.Type =
-                MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.CredentialRequest);
-
-            await credential.TriggerAsync(CredentialTrigger.Request);
-            await RecordService.UpdateAsync(wallet, credential);
-
             //TODO we need roll back, i.e if we fail to send the A2A message the credential record should revert to Offer phase
-            //so the user can resend
-            await RouterService.ForwardAsync(new ForwardEnvelopeMessage
-            {
-                Content = requestMessage.ToJson(),
-                Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.Forward)
-            }, connection.Endpoint);
+            await RouterService.SendAsync(wallet, msg, connection.TheirVk, connection.MyVk, connection.Endpoint); 
         }
 
         /// <inheritdoc />
@@ -153,20 +132,9 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task ProcessCredentialAsync(Pool pool, Wallet wallet, CredentialMessage credential)
+        public virtual async Task ProcessCredentialAsync(Pool pool, Wallet wallet, CredentialMessage credential, ConnectionRecord connection)
         {
-            var (didOrKey, _) = MessageUtils.ParseMessageType(credential.Type);
-
-            var connectionSearch =
-                await ConnectionService.ListAsync(wallet, new SearchRecordQuery { { TagConstants.MyDid, didOrKey } });
-            if (!connectionSearch.Any())
-                throw new Exception($"Can't find connection record for type {credential.Type}");
-            var connection = connectionSearch.First();
-
-            var (details, _) = await MessageSerializer.UnpackSealedAsync<CredentialDetails>(credential.Content,
-                wallet, connection.MyVk);
-
-            var offer = JObject.Parse(details.CredentialJson);
+            var offer = JObject.Parse(credential.CredentialJson);
             var definitionId = offer["cred_def_id"].ToObject<string>();
             var schemaId = offer["schema_id"].ToObject<string>();
             var revRegId = offer["rev_reg_id"]?.ToObject<string>();
@@ -195,7 +163,7 @@ namespace Streetcred.Sdk.Runtime
 
             var credentialId = await AnonCreds.ProverStoreCredentialAsync(wallet, null,
                 credentialRecord.CredentialRequestMetadataJson,
-                details.CredentialJson, credentialDefinition.ObjectJson, revocationRegistryDefinitionJson);
+                credential.CredentialJson, credentialDefinition.ObjectJson, revocationRegistryDefinitionJson);
 
             credentialRecord.CredentialId = credentialId;
             await credentialRecord.TriggerAsync(CredentialTrigger.Issue);
@@ -203,7 +171,7 @@ namespace Streetcred.Sdk.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<CredentialOfferMessage> CreateOfferAsync(Wallet wallet, DefaultCreateOfferConfiguration config)
+        public virtual async Task<CredentialOfferMessage> CreateOfferAsync(Wallet wallet, OfferConfiguration config)
         {
             Logger.LogInformation(LoggingEvents.CreateCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
                 config.CredentialDefinitionId, config.ConnectionId, config.IssuerDid);
@@ -238,18 +206,11 @@ namespace Streetcred.Sdk.Runtime
 
             await RecordService.AddAsync(wallet, credentialRecord);
 
-            var credentialOffer = await MessageSerializer.PackSealedAsync<CredentialOfferMessage>(
-                new CredentialOfferDetails { OfferJson = offerJson },
-                wallet,
-                connection.MyVk,
-                connection.TheirVk);
-            credentialOffer.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.CredentialOffer);
-
-            return credentialOffer;
+            return new CredentialOfferMessage { OfferJson = offerJson };
         }
 
         /// <inheritdoc />
-        public virtual async Task SendOfferAsync(Wallet wallet, DefaultCreateOfferConfiguration config)
+        public virtual async Task SendOfferAsync(Wallet wallet, OfferConfiguration config)
         {
             Logger.LogInformation(LoggingEvents.SendCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
                 config.CredentialDefinitionId, config.ConnectionId, config.IssuerDid);
@@ -257,30 +218,15 @@ namespace Streetcred.Sdk.Runtime
             var connection = await ConnectionService.GetAsync(wallet, config.ConnectionId);
             var offer = await CreateOfferAsync(wallet, config);
 
-            await RouterService.ForwardAsync(new ForwardEnvelopeMessage
-            {
-                Content = offer.ToJson(),
-                Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.Forward)
-            }, connection.Endpoint);
+            await RouterService.SendAsync(wallet, offer, connection.TheirVk, connection.MyVk, connection.Endpoint);
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessCredentialRequestAsync(Wallet wallet, CredentialRequestMessage credentialRequest)
+        public virtual async Task<string> ProcessCredentialRequestAsync(Wallet wallet, CredentialRequestMessage credentialRequest, ConnectionRecord connection)
         {
             Logger.LogInformation(LoggingEvents.StoreCredentialRequest, "Type {0},", credentialRequest.Type);
-
-            var (didOrKey, _) = MessageUtils.ParseMessageType(credentialRequest.Type);
-
-            var connectionSearch =
-                await ConnectionService.ListAsync(wallet, new SearchRecordQuery { { TagConstants.MyDid, didOrKey } });
-            if (!connectionSearch.Any())
-                throw new Exception($"Can't find connection record for type {credentialRequest.Type}");
-            var connection = connectionSearch.First();
-
-            var (details, _) = await MessageSerializer.UnpackSealedAsync<CredentialRequestDetails>(
-                credentialRequest.Content, wallet, connection.MyVk);
-
-            var request = JObject.Parse(details.OfferJson);
+           
+            var request = JObject.Parse(credentialRequest.OfferJson);
             var nonce = request["nonce"].ToObject<string>();
 
             var query = new SearchRecordQuery { { TagConstants.Nonce , nonce } };
@@ -291,10 +237,10 @@ namespace Streetcred.Sdk.Runtime
             // Offer should already be present
             // credential.OfferJson = details.OfferJson;
 
-            if (!string.IsNullOrEmpty(details.CredentialValuesJson) && JObject.Parse(details.CredentialValuesJson).Count != 0)
-                    credential.ValuesJson = details.CredentialValuesJson;
+            if (!string.IsNullOrEmpty(credentialRequest.CredentialValuesJson) && JObject.Parse(credentialRequest.CredentialValuesJson).Count != 0)
+                    credential.ValuesJson = credentialRequest.CredentialValuesJson;
 
-            credential.RequestJson = details.CredentialRequestJson;
+            credential.RequestJson = credentialRequest.CredentialRequestJson;
 
             await credential.TriggerAsync(CredentialTrigger.Request);
 
@@ -359,7 +305,7 @@ namespace Streetcred.Sdk.Runtime
                 credentialRecord.CredentialRevocationId = issuedCredential.RevocId;
             }
 
-            var credentialDetails = new CredentialDetails
+            var msg = new CredentialMessage
             {
                 CredentialJson = issuedCredential.CredentialJson,
                 RevocationRegistryId = revocationRegistryId
@@ -368,16 +314,7 @@ namespace Streetcred.Sdk.Runtime
             await credentialRecord.TriggerAsync(CredentialTrigger.Issue);
             await RecordService.UpdateAsync(wallet, credentialRecord);
 
-            var credential = await MessageSerializer.PackSealedAsync<CredentialMessage>(credentialDetails, wallet,
-                connection.MyVk,
-                connection.TheirVk);
-            credential.Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.Credential);
-
-            await RouterService.ForwardAsync(new ForwardEnvelopeMessage
-            {
-                Content = credential.ToJson(),
-                Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.Forward)
-            }, connection.Endpoint);
+            await RouterService.SendAsync(wallet, msg, connection.TheirVk, connection.MyVk, connection.Endpoint);
         }
 
         /// <inheritdoc />

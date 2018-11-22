@@ -24,7 +24,7 @@ namespace Streetcred.Sdk.Tests
     {
         internal static async Task<(ConnectionRecord firstParty, ConnectionRecord secondParty)> EstablishConnectionAsync(
             IConnectionService connectionService,
-            IProducerConsumerCollection<IEnvelopeMessage> _messages,
+            IProducerConsumerCollection<IAgentMessage> _messages,
             Wallet firstWallet,
             Wallet secondWallet,
             bool autoConnectionFlow = false)
@@ -32,7 +32,7 @@ namespace Streetcred.Sdk.Tests
             // Create invitation by the issuer
             var issuerConnectionId = Guid.NewGuid().ToString();
 
-            var inviteConfig = new DefaultCreateInviteConfiguration()
+            var inviteConfig = new InviteConfiguration()
             {
                 ConnectionId = issuerConnectionId,
                 AutoAcceptConnection = autoConnectionFlow,
@@ -64,14 +64,11 @@ namespace Streetcred.Sdk.Tests
             Assert.Equal(ConnectionState.Negotiating, connectionHolder.State);
 
             // Issuer processes incoming message
-            var issuerMessage = _messages.OfType<ForwardToKeyEnvelopeMessage>()
-                .First(x => x.Type.Contains(connectionIssuer.Tags.Single(item => item.Key == "connectionKey").Value));
-
-            var requestMessage = GetContentMessage(issuerMessage) as ConnectionRequestMessage;
-            Assert.NotNull(requestMessage);
+            var issuerMessage = _messages.OfType<ConnectionRequestMessage>().FirstOrDefault();
+            Assert.NotNull(issuerMessage);
 
             // Issuer processes the connection request by storing it and accepting it if auto connection flow is enabled
-            await connectionService.ProcessRequestAsync(firstWallet, requestMessage);
+            await connectionService.ProcessRequestAsync(firstWallet, issuerMessage, connectionIssuer);
 
             if (!autoConnectionFlow)
             {
@@ -86,14 +83,11 @@ namespace Streetcred.Sdk.Tests
             Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
 
             // Holder processes incoming message
-            var holderMessage = _messages.OfType<ForwardEnvelopeMessage>()
-                .First(x => x.Type.Contains(connectionHolder.MyDid));
-
-            var responseMessage = GetContentMessage(holderMessage) as ConnectionResponseMessage;
-            Assert.NotNull(responseMessage);
+            var holderMessage = _messages.OfType<ConnectionResponseMessage>().FirstOrDefault();
+            Assert.NotNull(holderMessage);
 
             // Holder processes the response message by accepting it
-            await connectionService.ProcessResponseAsync(secondWallet, responseMessage);
+            await connectionService.ProcessResponseAsync(secondWallet, holderMessage, connectionHolder);
 
             // Retrieve updated connection state for both issuer and holder
             connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
@@ -109,8 +103,8 @@ namespace Streetcred.Sdk.Tests
         
         internal static async Task<(CredentialRecord issuerCredential, CredentialRecord holderCredential)> IssueCredentialAsync(
             ISchemaService schemaService, ICredentialService credentialService,
-            IProducerConsumerCollection<IEnvelopeMessage> messages,
-            string issuerConnectionId, Wallet issuerWallet, Wallet holderWallet,
+            IProducerConsumerCollection<IAgentMessage> messages,
+            ConnectionRecord issuerConnection, ConnectionRecord holderConnection, Wallet issuerWallet, Wallet holderWallet,
             Pool pool, string proverMasterSecretId, bool revocable)
         {
             // Create an issuer DID/VK. Can also be created during provisioning
@@ -123,13 +117,13 @@ namespace Streetcred.Sdk.Tests
             var definitionId =
                 await schemaService.CreateCredentialDefinitionAsync(pool, issuerWallet, schemaId, issuer.Did, revocable, 100, new Uri("http://mock/tails"));
 
-            var offerConfig = new DefaultCreateOfferConfiguration()
+            var offerConfig = new OfferConfiguration()
             {
-                ConnectionId = issuerConnectionId,
+                ConnectionId = issuerConnection.GetId(),
                 IssuerDid = issuer.Did,
                 CredentialDefinitionId = definitionId
             };
-
+            
             // Send an offer to the holder using the established connection channel
             await credentialService.SendOfferAsync(issuerWallet, offerConfig);
 
@@ -138,7 +132,7 @@ namespace Streetcred.Sdk.Tests
 
             // Holder processes the credential offer by storing it
             var holderCredentialId =
-                await credentialService.ProcessOfferAsync(holderWallet, credentialOffer);
+                await credentialService.ProcessOfferAsync(holderWallet, credentialOffer, holderConnection);
 
             // Holder creates master secret. Will also be created during wallet agent provisioning
             await AnonCreds.ProverCreateMasterSecretAsync(holderWallet, proverMasterSecretId);
@@ -157,7 +151,7 @@ namespace Streetcred.Sdk.Tests
 
             // Issuer processes the credential request by storing it
             var issuerCredentialId =
-                await credentialService.ProcessCredentialRequestAsync(issuerWallet, credentialRequest);
+                await credentialService.ProcessCredentialRequestAsync(issuerWallet, credentialRequest, issuerConnection);
 
             // Issuer accepts the credential requests and issues a credential
             await credentialService.IssueCredentialAsync(pool, issuerWallet, issuer.Did, issuerCredentialId);
@@ -167,7 +161,7 @@ namespace Streetcred.Sdk.Tests
             Assert.NotNull(credential);
 
             // Holder processes the credential by storing it in their wallet
-            await credentialService.ProcessCredentialAsync(pool, holderWallet, credential);
+            await credentialService.ProcessCredentialAsync(pool, holderWallet, credential, holderConnection);
 
             // Verify states of both credential records are set to 'Issued'
             var issuerCredential = await credentialService.GetAsync(issuerWallet, issuerCredentialId);
@@ -176,11 +170,8 @@ namespace Streetcred.Sdk.Tests
             return (issuerCredential, holderCredential);
         }
 
-        static IContentMessage GetContentMessage(IEnvelopeMessage message)
-            => JsonConvert.DeserializeObject<IContentMessage>(message.Content);
-
-        private static T FindContentMessage<T>(IEnumerable<IEnvelopeMessage> collection)
-            where T : IContentMessage
-            => collection.Select(GetContentMessage).OfType<T>().Single();
+        private static T FindContentMessage<T>(IEnumerable<IAgentMessage> collection)
+            where T : IAgentMessage
+            => collection.OfType<T>().Single();
     }
 }

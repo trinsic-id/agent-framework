@@ -42,7 +42,7 @@ namespace Streetcred.Sdk.Tests
         private readonly ISchemaService _schemaService;
         private readonly IPoolService _poolService;
 
-        private readonly ConcurrentBag<IEnvelopeMessage> _messages = new ConcurrentBag<IEnvelopeMessage>();
+        private readonly ConcurrentBag<IAgentMessage> _messages = new ConcurrentBag<IAgentMessage>();
 
         public ProofTests()
         {
@@ -58,8 +58,8 @@ namespace Streetcred.Sdk.Tests
                     Task.FromResult<ProvisioningRecord>(new ProvisioningRecord() {MasterSecretId = MasterSecretId}));
 
             var routingMock = new Mock<IRouterService>();
-            routingMock.Setup(x => x.ForwardAsync(It.IsNotNull<IEnvelopeMessage>(), It.IsAny<AgentEndpoint>()))
-                .Callback((IEnvelopeMessage content, AgentEndpoint endpoint) => { _messages.Add(content); })
+            routingMock.Setup(x => x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AgentEndpoint>()))
+                .Callback((Wallet _, IAgentMessage content, string __, string ___, AgentEndpoint endpoint) => { _messages.Add(content); })
                 .Returns(Task.CompletedTask);
 
             var provisioningMock = new Mock<IProvisioningService>();
@@ -151,12 +151,12 @@ namespace Streetcred.Sdk.Tests
         public async Task CredentialProofDemo()
         { 
             //Setup a connection and issue the credentials to the holder
-            var (issuerConnection, _) = await Scenarios.EstablishConnectionAsync(
+            var (issuerConnection, holderConnection) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _issuerWallet, _holderWallet);
 
             await Scenarios.IssueCredentialAsync(
-                _schemaService, _credentialService, _messages, issuerConnection.GetId(),
-                _issuerWallet, _holderWallet, _pool, MasterSecretId, true);
+                _schemaService, _credentialService, _messages, issuerConnection, 
+                holderConnection, _issuerWallet, _holderWallet, _pool, MasterSecretId, true);
 
             _messages.Clear();
 
@@ -178,8 +178,7 @@ namespace Streetcred.Sdk.Tests
                 };
 
                 //Requestor sends a proof request
-                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.ConnectionId,
-                    proofRequestObject);
+                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.ConnectionId, proofRequestObject);
             }
 
             // Holder accepts the proof requests and builds a proof
@@ -189,7 +188,7 @@ namespace Streetcred.Sdk.Tests
                 Assert.NotNull(proofRequest);
 
                 //Holder stores the proof request
-                var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest);
+                var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest, holderConnection);
                 var holderProofRecord = await _proofService.GetAsync(_holderWallet, holderProofRequestId);
                 var holderProofObject =
                     JsonConvert.DeserializeObject<ProofRequest>(holderProofRecord.RequestJson);
@@ -234,7 +233,7 @@ namespace Streetcred.Sdk.Tests
             Assert.NotNull(proof);
 
             //Requestor stores proof
-            var requestorProofId = await _proofService.ProcessProofAsync(_requestorWallet, proof);
+            var requestorProofId = await _proofService.ProcessProofAsync(_requestorWallet, proof, requestorConnection);
 
             //Requestor verifies proof
             var requestorVerifyResult = await _proofService.VerifyProofAsync(_requestorWallet, _pool, requestorProofId);
@@ -249,12 +248,9 @@ namespace Streetcred.Sdk.Tests
             ////Verify that both parties have a copy of the proof
             //Assert.Equal(requestorProof, holderProof);
         }
-
-        private IContentMessage GetContentMessage(IEnvelopeMessage message)
-            => JsonConvert.DeserializeObject<IContentMessage>(message.Content);
-
-        private T FindContentMessage<T>() where T : IContentMessage
-            => _messages.Select(GetContentMessage).OfType<T>().Single();
+        
+        private T FindContentMessage<T>() where T : IAgentMessage
+            => _messages.OfType<T>().Single();
 
         public async Task DisposeAsync()
         {

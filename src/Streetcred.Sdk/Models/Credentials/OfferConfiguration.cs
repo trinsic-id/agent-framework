@@ -5,7 +5,7 @@ namespace Streetcred.Sdk.Models.Credentials
     /// <summary>
     /// Config for controlling credential offer creation.
     /// </summary>
-    public class DefaultCreateOfferConfiguration
+    public class OfferConfiguration
     {
         /// <summary>
         /// Id of the credential definition used to create
