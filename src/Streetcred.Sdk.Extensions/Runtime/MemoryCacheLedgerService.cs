@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Hyperledger.Indy.LedgerApi;
 using Hyperledger.Indy.PoolApi;
 using Microsoft.Extensions.Caching.Memory;
-using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Runtime;
 
 namespace Streetcred.Sdk.Extensions.Runtime

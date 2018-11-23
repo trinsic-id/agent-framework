@@ -17,13 +17,13 @@ namespace Streetcred.Sdk.Models.Connections
         /// Alias object for marking the invite subject
         /// with an alias for giving the inviter greater context. 
         /// </summary>
-        public ConnectionAlias TheirAlias { get; set; }
+        public ConnectionAlias TheirAlias { get; set; } = new ConnectionAlias();
 
         /// <summary>
         /// For optionally setting my alias information
         /// on the invite.
         /// </summary>
-        public ConnectionAlias MyAlias { get; set; }
+        public ConnectionAlias MyAlias { get; set; } = new ConnectionAlias();
 
         /// <summary>
         /// For automatically accepting a
@@ -34,6 +34,6 @@ namespace Streetcred.Sdk.Models.Connections
         /// <summary>
         /// Controls the tags that are persisted against the invite/connection record.
         /// </summary>
-        public Dictionary<string, string> Tags { get; set; }
+        public Dictionary<string, string> Tags { get; set; } = new Dictionary<string, string>();
     }
 }

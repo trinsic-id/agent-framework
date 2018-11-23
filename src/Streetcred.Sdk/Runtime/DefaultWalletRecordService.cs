@@ -81,7 +81,7 @@ namespace Streetcred.Sdk.Runtime
                 var record = JsonConvert.DeserializeObject<T>(item.Value);
                 record.Tags.Clear();
                 foreach (var tag in item.Tags)
-                    record.Tags.Add(tag.Key, tag.Value);
+                    record.Tags[tag.Key] = tag.Value;
                 return record;
             }
             catch (WalletItemNotFoundException)

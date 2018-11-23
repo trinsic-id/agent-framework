@@ -14,8 +14,6 @@ namespace Streetcred.Sdk.Runtime
         protected static readonly ConcurrentDictionary<string, Wallet> Wallets =
             new ConcurrentDictionary<string, Wallet>();
 
-        public const string MasterSecretName = "master_secret";
-
         /// <inheritdoc />
         public virtual async Task<Wallet> GetWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
         {
@@ -36,10 +34,6 @@ namespace Streetcred.Sdk.Runtime
         public virtual async Task CreateWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
         {
             await Wallet.CreateWalletAsync(configuration.ToJson(), credentials.ToJson());
-
-            // Create master secret. This should later be moved to a credential related context
-            await AnonCreds.ProverCreateMasterSecretAsync(await GetWalletAsync(configuration, credentials),
-                MasterSecretName);
         }
 
         /// <inheritdoc />
