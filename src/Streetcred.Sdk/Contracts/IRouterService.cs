@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
+using Hyperledger.Indy.WalletApi;
 using Streetcred.Sdk.Messages;
-using Streetcred.Sdk.Models;
+using Streetcred.Sdk.Models.Records;
 
 namespace Streetcred.Sdk.Contracts
 {
@@ -12,9 +13,10 @@ namespace Streetcred.Sdk.Contracts
         /// <summary>
         /// Forwards the asynchronous.
         /// </summary>
-        /// <param name="envelope">The content.</param>
-        /// <param name="endpoint">The endpoint.</param>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="message">The message.</param>
+        /// <param name="connection">The connection record.</param>
         /// <returns></returns>
-        Task ForwardAsync(IEnvelopeMessage envelope, AgentEndpoint endpoint);
+        Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connection);
     }
 }

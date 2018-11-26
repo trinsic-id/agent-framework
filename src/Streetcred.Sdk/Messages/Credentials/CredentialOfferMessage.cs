@@ -5,7 +5,7 @@ namespace Streetcred.Sdk.Messages.Credentials
     /// <summary>
     /// A credential offer content message.
     /// </summary>
-    public class CredentialOfferMessage : IContentMessage
+    public class CredentialOfferMessage : IAgentMessage
     {
         /// <summary>
         /// Gets or sets the type.
@@ -14,14 +14,14 @@ namespace Streetcred.Sdk.Messages.Credentials
         /// The type.
         /// </value>
         [JsonProperty("@type")]
-        public string Type { get; set; }
+        public string Type { get; set; } = MessageTypes.CredentialOffer;
 
         /// <summary>
-        /// Gets or sets the content of the message.
+        /// Gets or sets the offer json.
         /// </summary>
         /// <value>
-        /// The content.
+        /// The offer json.
         /// </value>
-        public string Content { get; set; }
+        public string OfferJson { get; set; }
     }
 }

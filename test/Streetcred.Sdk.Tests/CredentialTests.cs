@@ -34,7 +34,7 @@ namespace Streetcred.Sdk.Tests
         private readonly ISchemaService _schemaService;
         private readonly IPoolService _poolService;
 
-        private readonly ConcurrentBag<IEnvelopeMessage> _messages = new ConcurrentBag<IEnvelopeMessage>();
+        private readonly ConcurrentBag<IAgentMessage> _messages = new ConcurrentBag<IAgentMessage>();
 
         public CredentialTests()
         {
@@ -45,8 +45,8 @@ namespace Streetcred.Sdk.Tests
             _poolService = new DefaultPoolService();
 
             var routingMock = new Mock<IRouterService>();
-            routingMock.Setup(x => x.ForwardAsync(It.IsNotNull<IEnvelopeMessage>(), It.IsAny<AgentEndpoint>()))
-                .Callback((IEnvelopeMessage content, AgentEndpoint endpoint) => { _messages.Add(content); })
+            routingMock.Setup(x => x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>()))
+                .Callback((Wallet _, IAgentMessage content, ConnectionRecord __) => { _messages.Add(content); })
                 .Returns(Task.CompletedTask);
 
             var provisioningMock = new Mock<IProvisioningService>();
@@ -126,8 +126,8 @@ namespace Streetcred.Sdk.Tests
                 _connectionService, _messages, _issuerWallet, _holderWallet);
 
             var (issuerCredential, holderCredential) = await Scenarios.IssueCredentialAsync(
-                _schemaService, _credentialService, _messages, issuerConnection.GetId(),
-                _issuerWallet, _holderWallet, _pool, MasterSecretId, false);
+                _schemaService, _credentialService, _messages, issuerConnection,
+                holderConnection, _issuerWallet, _holderWallet, _pool, MasterSecretId, false);
 
             Assert.Equal(issuerCredential.State, holderCredential.State);
             Assert.Equal(CredentialState.Issued, issuerCredential.State);

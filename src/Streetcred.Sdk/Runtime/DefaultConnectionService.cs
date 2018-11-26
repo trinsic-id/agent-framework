@@ -9,7 +9,6 @@ using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Exceptions;
-using Streetcred.Sdk.Messages;
 using Streetcred.Sdk.Messages.Connections;
 using Streetcred.Sdk.Models.Connections;
 using Streetcred.Sdk.Models.Records;
@@ -43,13 +42,13 @@ namespace Streetcred.Sdk.Runtime
 
         /// <inheritdoc />
         public virtual async Task<ConnectionInvitationMessage> CreateInvitationAsync(Wallet wallet,
-            DefaultCreateInviteConfiguration config = null)
+            InviteConfiguration config = null)
         {
             var connectionId = !string.IsNullOrEmpty(config?.ConnectionId)
                 ? config.ConnectionId
                 : Guid.NewGuid().ToString();
 
-            config = config ?? new DefaultCreateInviteConfiguration();
+            config = config ?? new InviteConfiguration();
 
             Logger.LogInformation(LoggingEvents.CreateInvitation, "ConnectionId {0}", connectionId);
 
@@ -57,7 +56,8 @@ namespace Streetcred.Sdk.Runtime
 
             var connection = new ConnectionRecord();
             connection.ConnectionId = connectionId;
-            connection.Tags.Add(TagConstants.ConnectionKey, connectionKey);
+            connection.Tags[TagConstants.ConnectionKey] = connectionKey;
+            connection.Tags[TagConstants.MyKey] = connectionKey;
 
             if (config.AutoAcceptConnection)
                 connection.Tags.Add(TagConstants.AutoAcceptConnection, "true");
@@ -116,64 +116,39 @@ namespace Streetcred.Sdk.Runtime
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await RecordService.AddAsync(wallet, connection);
 
-            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet) ??
-                               throw new StreetcredSdkException(ErrorCode.RecordNotFound,
-                                   "Provisioning record not found");
-            var connectionDetails = new ConnectionDetails
+            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+            var msg = new ConnectionRequestMessage
             {
                 Did = my.Did,
                 Verkey = my.VerKey,
                 Endpoint = provisioning.Endpoint
             };
-
-            var request = await MessageSerializer.PackSealedAsync<ConnectionRequestMessage>(connectionDetails, wallet,
-                my.VerKey, invitation.ConnectionKey);
-            request.Key = invitation.ConnectionKey;
-            request.Type = MessageUtils.FormatKeyMessageType(invitation.ConnectionKey, MessageTypes.ConnectionRequest);
-
-            var forwardMessage = new ForwardToKeyEnvelopeMessage
-            {
-                Type = MessageUtils.FormatKeyMessageType(invitation.ConnectionKey, MessageTypes.ForwardToKey),
-                Content = request.ToJson()
-            };
-
-            await RouterService.ForwardAsync(forwardMessage, invitation.Endpoint);
+            
+            await RouterService.SendAsync(wallet, msg, connection);
 
             return connection.GetId();
         }
 
         /// <inheritdoc />
-        public async Task<string> ProcessRequestAsync(Wallet wallet, ConnectionRequestMessage request)
+        public async Task<string> ProcessRequestAsync(Wallet wallet, ConnectionRequestMessage request, ConnectionRecord connection)
         {
-            Logger.LogInformation(LoggingEvents.StoreConnectionRequest, "Key {0}", request.Key);
-
-            var (didOrKey, _) = MessageUtils.ParseMessageType(request.Type);
-
-            var connectionSearch = await RecordService.SearchAsync<ConnectionRecord>(wallet,
-                new SearchRecordQuery {{TagConstants.ConnectionKey, didOrKey}}, null, 1);
-
-            var connection = connectionSearch.SingleOrDefault() ??
-                             throw new StreetcredSdkException(ErrorCode.RecordNotFound,
-                                 "Connection record not found");
-
-            var (their, theirKey) =
-                await MessageSerializer.UnpackSealedAsync<ConnectionDetails>(request.Content, wallet, request.Key);
-
-            if (!their.Verkey.Equals(theirKey)) throw new ArgumentException("Signed and enclosed keys don't match");
-
+            Logger.LogInformation(LoggingEvents.ProcessConnectionRequest, "Key {0}", request.Verkey);
+            
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
 
             var my = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
 
-            await Did.StoreTheirDidAsync(wallet, new {did = their.Did, verkey = their.Verkey}.ToJson());
+            await Did.StoreTheirDidAsync(wallet, new {did = request.Did, verkey = request.Verkey}.ToJson());
 
-            connection.Endpoint = their.Endpoint;
-            connection.TheirDid = their.Did;
-            connection.TheirVk = their.Verkey;
+            connection.Endpoint = request.Endpoint;
+            connection.TheirDid = request.Did;
+            connection.TheirVk = request.Verkey;
             connection.MyDid = my.Did;
             connection.MyVk = my.VerKey;
             connection.Tags[TagConstants.MyDid] = my.Did;
-            connection.Tags[TagConstants.TheirDid] = their.Did;
+            connection.Tags[TagConstants.MyKey] = my.VerKey;
+            connection.Tags[TagConstants.TheirDid] = request.Did;
+            connection.Tags[TagConstants.TheirKey] = request.Verkey;
 
             await RecordService.UpdateAsync(wallet, connection);
 
@@ -181,6 +156,30 @@ namespace Streetcred.Sdk.Runtime
                 await AcceptRequestAsync(wallet, connection.ConnectionId);
 
             return connection.GetId();
+        }
+
+        /// <inheritdoc />
+        public async Task ProcessResponseAsync(Wallet wallet, ConnectionResponseMessage response, ConnectionRecord connection)
+        {
+            Logger.LogInformation(LoggingEvents.AcceptConnectionResponse, "To {1}", connection.MyDid);
+
+            await connection.TriggerAsync(ConnectionTrigger.Response);
+
+            await Did.StoreTheirDidAsync(wallet,
+                new { did = response.Did, verkey = response.Verkey }.ToJson());
+
+            await Pairwise.CreateAsync(wallet, response.Did, connection.MyDid,
+                response.Endpoint.ToJson());
+
+            connection.TheirDid = response.Did;
+            connection.TheirVk = response.Verkey;
+            connection.Tags[TagConstants.TheirDid] = response.Did;
+            connection.Tags[TagConstants.TheirKey] = response.Verkey;
+
+            if (response.Endpoint != null)
+                connection.Endpoint = response.Endpoint;
+
+            await RecordService.UpdateAsync(wallet, connection);
         }
 
         /// <inheritdoc />
@@ -198,64 +197,15 @@ namespace Streetcred.Sdk.Runtime
             await RecordService.UpdateAsync(wallet, connection);
 
             // Send back response message
-            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet) ??
-                               throw new StreetcredSdkException(ErrorCode.RecordNotFound,
-                                   "Provisioning record not found");
-
-            var response = new ConnectionDetails
+            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+            var response = new ConnectionResponseMessage
             {
                 Did = connection.MyDid,
                 Endpoint = provisioning.Endpoint,
                 Verkey = connection.MyVk
             };
 
-            var responseMessage =
-                await MessageSerializer.PackSealedAsync<ConnectionResponseMessage>(response, wallet, connection.MyVk,
-                    connection.TheirVk);
-            responseMessage.Type =
-                MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.ConnectionResponse);
-            responseMessage.To = connection.TheirDid;
-
-            var forwardMessage = new ForwardEnvelopeMessage
-            {
-                Type = MessageUtils.FormatDidMessageType(connection.TheirDid, MessageTypes.Forward),
-                Content = responseMessage.ToJson()
-            };
-
-            await RouterService.ForwardAsync(forwardMessage, connection.Endpoint);
-        }
-
-        /// <inheritdoc />
-        public async Task ProcessResponseAsync(Wallet wallet, ConnectionResponseMessage response)
-        {
-            Logger.LogInformation(LoggingEvents.AcceptConnectionResponse, "To {0}", response.To);
-
-            var (didOrKey, _) = MessageUtils.ParseMessageType(response.Type);
-
-            var connectionSearch = await RecordService.SearchAsync<ConnectionRecord>(wallet,
-                new SearchRecordQuery {{TagConstants.MyDid, didOrKey}}, null, 1);
-
-            var connection = connectionSearch.SingleOrDefault() ??
-                             throw new StreetcredSdkException(ErrorCode.RecordNotFound,
-                                 "Connection record not found");
-
-            await connection.TriggerAsync(ConnectionTrigger.Response);
-
-            var (connectionDetails, _) = await MessageSerializer.UnpackSealedAsync<ConnectionDetails>(response.Content,
-                wallet, connection.MyVk);
-
-            await Did.StoreTheirDidAsync(wallet,
-                new {did = connectionDetails.Did, verkey = connectionDetails.Verkey}.ToJson());
-
-            await Pairwise.CreateAsync(wallet, connectionDetails.Did, connection.MyDid,
-                connectionDetails.Endpoint.ToJson());
-
-            connection.TheirDid = connectionDetails.Did;
-            connection.TheirVk = connectionDetails.Verkey;
-            connection.Endpoint = connectionDetails.Endpoint;
-
-            connection.Tags[TagConstants.TheirDid] = connectionDetails.Did;
-            await RecordService.UpdateAsync(wallet, connection);
+            await RouterService.SendAsync(wallet, response, connection);
         }
 
         /// <inheritdoc />

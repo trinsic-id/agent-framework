@@ -15,58 +15,29 @@ namespace Streetcred.Sdk.Tests
         [Fact]
         public void CanConvertToInvitation()
         {
-            var expected = new ConnectionInvitationMessage {ConnectionKey = "123"};
+            var expected = new ConnectionInvitationMessage { ConnectionKey = "123" };
             var json = JsonConvert.SerializeObject(expected);
 
-            var actual = JsonConvert.DeserializeObject<IUnsecuredMessage>(json);
+            var actual = JsonConvert.DeserializeObject<IAgentMessage>(json);
 
             Assert.IsType<ConnectionInvitationMessage>(actual);
             Assert.Equal("123", ((ConnectionInvitationMessage) actual).ConnectionKey);
         }
-
-        [Fact]
-        public void CanConvertUnsecuredMessage()
-        {
-            var expected = new ConnectionInvitationMessage { ConnectionKey = "123"};
-            var json = JsonConvert.SerializeObject(expected);
-
-            var actual = JsonConvert.DeserializeObject<IUnsecuredMessage>(json);
-
-            Assert.IsType<ConnectionInvitationMessage>(actual);
-            Assert.Equal("123", ((ConnectionInvitationMessage) actual).ConnectionKey);
-        }
-
-        [Fact]
-        public void CanConvertEnvelopeMessage()
-        {
-            var type = MessageUtils.FormatDidMessageType("3NnbYBdhyHfuFZnbaZhuU6", MessageTypes.Forward);
-
-            var expected = new ForwardEnvelopeMessage {Type = type};
-            var json = JsonConvert.SerializeObject(expected);
-
-            var actual = JsonConvert.DeserializeObject<IEnvelopeMessage>(json);
-
-            Assert.IsType<ForwardEnvelopeMessage>(actual);
-            Assert.Equal(type, ((ForwardEnvelopeMessage) actual).Type);
-        }
-
+        
         [Fact]
         public void CanConvertContentMessage()
         {
-            var type = MessageUtils.FormatKeyMessageType("2J6h65V5CjvWceHDMq7htRkG6EdCE2SiDEtCRyfngwfw",
-                MessageTypes.ConnectionRequest);
-
             var expected = new ConnectionRequestMessage
             {
-                Key = "2J6h65V5CjvWceHDMq7htRkG6EdCE2SiDEtCRyfngwfw",
-                Type = type
+                Did = "test-did"
             };
+
             var json = JsonConvert.SerializeObject(expected);
 
-            var actual = JsonConvert.DeserializeObject<IContentMessage>(json);
+            var actual = JsonConvert.DeserializeObject<IAgentMessage>(json);
 
             Assert.IsType<ConnectionRequestMessage>(actual);
-            Assert.Equal(type, ((ConnectionRequestMessage) actual).Type);
+            Assert.Equal(MessageTypes.ConnectionRequest, ((ConnectionRequestMessage) actual).Type);
         }
 
         [Fact]

@@ -36,7 +36,7 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="config">An optional configuration object used to configure the resulting invitations presentation</param>
         /// <returns></returns>
-        Task<ConnectionInvitationMessage> CreateInvitationAsync(Wallet wallet, DefaultCreateInviteConfiguration config = null);
+        Task<ConnectionInvitationMessage> CreateInvitationAsync(Wallet wallet, InviteConfiguration config = null);
 
         /// <summary>
         /// Accepts the connection invitation async.
@@ -49,14 +49,15 @@ namespace Streetcred.Sdk.Contracts
         Task<string> AcceptInvitationAsync(Wallet wallet, ConnectionInvitationMessage offer);
 
         /// <summary>
-        /// Process the connection request async.
+        /// Process the connection request for a given connection async.
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="request">Request.</param>
+        /// <param name="connection">Connection.</param>
         /// <returns>
         /// Connection identifier this requests is related to.
         /// </returns>
-        Task<string> ProcessRequestAsync(Wallet wallet, ConnectionRequestMessage request);
+        Task<string> ProcessRequestAsync(Wallet wallet, ConnectionRequestMessage request, ConnectionRecord connection);
 
         /// <summary>
         /// Accepts the connection request and sends a connection response
@@ -67,14 +68,15 @@ namespace Streetcred.Sdk.Contracts
         Task AcceptRequestAsync(Wallet wallet, string connectionId);
 
         /// <summary>
-        /// Processes the connection response async.
+        /// Processes the connection response for a given connection async.
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="response">Response.</param>
+        /// <param name="connection">Connection.</param>
         /// <returns>
         /// The response async.
         /// </returns>
-        Task ProcessResponseAsync(Wallet wallet, ConnectionResponseMessage response);
+        Task ProcessResponseAsync(Wallet wallet, ConnectionResponseMessage response, ConnectionRecord connection);
 
         /// <summary>
         /// Deletes a connection from the local store

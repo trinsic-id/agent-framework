@@ -53,20 +53,22 @@ namespace Streetcred.Sdk.Contracts
         Task<ProofRequestMessage> CreateProofRequestAsync(Wallet wallet, string connectionId, string proofRequestJson);
 
         /// <summary>
-        /// Processes a proof request and stores it
+        /// Processes a proof request and stores it for a given connection
         /// </summary>
         /// <returns>The identifier for the stored proof request.</returns>
         /// <param name="wallet">Wallet.</param>
         /// <param name="proofRequest">A proof request.</param>
-        Task<string> ProcessProofRequestAsync(Wallet wallet, ProofRequestMessage proofRequest);
+        /// <param name="connection">Connection</param>
+        Task<string> ProcessProofRequestAsync(Wallet wallet, ProofRequestMessage proofRequest, ConnectionRecord connection);
 
         /// <summary>
-        /// Processes a proof and stores it
+        /// Processes a proof and stores it for a given connection
         /// </summary>
         /// <returns>The identifier for the stored proof.</returns>
         /// <param name="wallet">Wallet.</param>
         /// <param name="proof">A proof.</param>
-        Task<string> ProcessProofAsync(Wallet wallet, ProofMessage proof);
+        /// <param name="connection">Connection.</param>
+        Task<string> ProcessProofAsync(Wallet wallet, ProofMessage proof, ConnectionRecord connection);
 
         /// <summary>
         /// Creates a proof
