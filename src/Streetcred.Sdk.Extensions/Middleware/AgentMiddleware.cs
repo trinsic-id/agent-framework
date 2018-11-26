@@ -2,13 +2,12 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Extensions.Options;
-using Streetcred.Sdk.Messages;
 using Streetcred.Sdk.Messages.Connections;
 using Streetcred.Sdk.Messages.Credentials;
 using Streetcred.Sdk.Messages.Proofs;
+using Streetcred.Sdk.Messages.Routing;
 
 namespace Streetcred.Sdk.Extensions.Middleware
 {
@@ -20,7 +19,6 @@ namespace Streetcred.Sdk.Extensions.Middleware
         private readonly IMessageSerializer _messageSerializer;
         private readonly IConnectionService _connectionService;
         private readonly ICredentialService _credentialService;
-        private readonly IProvisioningService _provisioningService;
         private readonly PoolOptions _poolOptions;
         private readonly WalletOptions _walletOptions;
 
@@ -30,7 +28,6 @@ namespace Streetcred.Sdk.Extensions.Middleware
             IMessageSerializer messageSerializer,
             IConnectionService connectionService,
             ICredentialService credentialService,
-            IProvisioningService provisioningService,
             IOptions<WalletOptions> walletOptions,
             IOptions<PoolOptions> poolOptions)
         {
@@ -40,7 +37,6 @@ namespace Streetcred.Sdk.Extensions.Middleware
             _messageSerializer = messageSerializer;
             _connectionService = connectionService;
             _credentialService = credentialService;
-            _provisioningService = provisioningService;
             _poolOptions = poolOptions.Value;
             _walletOptions = walletOptions.Value;
         }
@@ -55,35 +51,43 @@ namespace Streetcred.Sdk.Extensions.Middleware
 
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
                 _walletOptions.WalletCredentials);
-            var endpoint = await _provisioningService.GetProvisioningAsync(wallet);
-
+            
             if (context.Request.ContentLength != null)
             {
                 var body = new byte[(int) context.Request.ContentLength];
 
                 await context.Request.Body.ReadAsync(body, 0, body.Length);
 
-                var decrypted =
-                    await _messageSerializer.UnpackAsync<IEnvelopeMessage>(body, wallet, endpoint.Endpoint.Verkey);
-                var decoded = JsonConvert.DeserializeObject<IContentMessage>(decrypted.Content);
+                //TODO the below functionality will be handled by a seperate forwarding agent in future
+                var outerMessage =
+                    await _messageSerializer.AnonUnpackAsync(body, wallet);
+
+                var forwardMessage = outerMessage as ForwardMessage ?? throw new Exception("Expected inner message to be of type 'ForwardMessage'");
+
+                var innerMessageContents = Convert.FromBase64String(forwardMessage.Message);
+
+                (var message, _, var myKey) = 
+                    await _messageSerializer.AuthUnpackAsync(innerMessageContents, wallet);
+
+                var connectionRecord = await _connectionService.ResolveByMyKeyAsync(wallet, myKey);
                 
-                switch (decoded)
+                switch (message)
                 {
                     case ConnectionRequestMessage request:
-                        await _connectionService.ProcessRequestAsync(wallet, request);
+                        await _connectionService.ProcessRequestAsync(wallet, request, connectionRecord);
                         break;
                     case ConnectionResponseMessage response:
-                        await _connectionService.ProcessResponseAsync(wallet, response);
+                        await _connectionService.ProcessResponseAsync(wallet, response, connectionRecord);
                         break;
                     case CredentialOfferMessage offer:
-                        await _credentialService.ProcessOfferAsync(wallet, offer);
+                        await _credentialService.ProcessOfferAsync(wallet, offer, connectionRecord);
                         break;
                     case CredentialRequestMessage request:
-                        await _credentialService.ProcessCredentialRequestAsync(wallet, request);
+                        await _credentialService.ProcessCredentialRequestAsync(wallet, request, connectionRecord);
                         break;
                     case CredentialMessage credential:
                         var pool = await _poolService.GetPoolAsync(_poolOptions.PoolName, _poolOptions.ProtocolVersion);
-                        await _credentialService.ProcessCredentialAsync(pool, wallet, credential);
+                        await _credentialService.ProcessCredentialAsync(pool, wallet, credential, connectionRecord);
                         break;
                     case ProofMessage _:
                         break;

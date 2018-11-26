@@ -1,20 +1,40 @@
 ﻿using Newtonsoft.Json;
+using Streetcred.Sdk.Models;
 
 namespace Streetcred.Sdk.Messages.Connections
 {
     /// <summary>
     /// Represents a connection response message
     /// </summary>
-    public class ConnectionResponseMessage : IContentMessage
+    public class ConnectionResponseMessage : IAgentMessage
     {
         /// <summary>
-        /// Gets or sets to.
+        /// Gets or sets the did.
         /// </summary>
         /// <value>
-        /// To.
+        /// The did.
         /// </value>
-        public string To { get; set; }
-        
+        [JsonProperty("did")]
+        public string Did { get; set; }
+
+        /// <summary>
+        /// Gets or sets the verkey.
+        /// </summary>
+        /// <value>
+        /// The verkey.
+        /// </value>
+        [JsonProperty("verkey")]
+        public string Verkey { get; set; }
+
+        /// <summary>
+        /// Gets or sets the public endpoint.
+        /// </summary>
+        /// <value>
+        /// The public endpoint.
+        /// </value>
+        [JsonProperty("endpoint")]
+        public AgentEndpoint Endpoint { get; set; }
+
         /// <summary>
         /// Gets or sets the type.
         /// </summary>
@@ -22,14 +42,6 @@ namespace Streetcred.Sdk.Messages.Connections
         /// The type.
         /// </value>
         [JsonProperty("@type")]
-        public string Type { get; set; }
-
-        /// <summary>
-        /// Gets or sets the content.
-        /// </summary>
-        /// <value>
-        /// The content.
-        /// </value>
-        public string Content { get; set; }
+        public string Type { get; set; } = MessageTypes.ConnectionResponse;
     }
 }

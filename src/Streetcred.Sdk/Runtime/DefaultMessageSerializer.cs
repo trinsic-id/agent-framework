@@ -13,53 +13,58 @@ namespace Streetcred.Sdk.Runtime
     /// <inheritdoc />
     public class DefaultMessageSerializer : IMessageSerializer
     {
+        private async Task<byte[]> AnonPackAsync(string message, string theirKey)
+        {
+            var messageData = Encoding.UTF8.GetBytes(message);
+            var encrypted = await Crypto.AnonCryptAsync(theirKey, messageData);
+
+            return Encoding.UTF8.GetBytes(new AgentWireMessage
+            {
+                To = theirKey,
+                Message = Convert.ToBase64String(encrypted)
+            }.ToJson());
+        }
+
         /// <inheritdoc />
-        public virtual async Task<T> PackSealedAsync<T>(object message, Wallet wallet, string myKey, string theirKey)
-            where T : IContentMessage, new()
+        public virtual Task<byte[]> AnonPackAsync(IAgentMessage message, string theirKey) => AnonPackAsync(message.ToJson(), theirKey);
+
+        /// <inheritdoc />
+        public virtual async Task<byte[]> AuthPackAsync(Wallet wallet, IAgentMessage message, string myKey, string theirKey)
         {
             var messageData = Encoding.UTF8.GetBytes(message.ToJson());
             var encrypted = await Crypto.AuthCryptAsync(wallet, myKey, theirKey, messageData);
 
-            return new T {Content = Convert.ToBase64String(encrypted)};
+            return Encoding.UTF8.GetBytes(new AgentWireMessage
+            {
+                To = theirKey,
+                From = myKey,
+                Message = Convert.ToBase64String(encrypted)
+            }.ToJson());
         }
 
         /// <inheritdoc />
-        public virtual async Task<(T Message, string TheirKey)> UnpackSealedAsync<T>(string content, Wallet wallet,
-            string myKey)
+        public virtual async Task<(IAgentMessage Message, string TheirKey, string MyKey)> AuthUnpackAsync(byte[] content, Wallet wallet)
         {
-            var decoded = Convert.FromBase64String(content);
-            var decrypted = await Crypto.AuthDecryptAsync(wallet, myKey, decoded);
+            var wireMessageJson = Encoding.UTF8.GetString(content);
+            var wireMessage = JsonConvert.DeserializeObject<AgentWireMessage>(wireMessageJson);
+            var innerMessage = Convert.FromBase64String(wireMessage.Message);
 
-            var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(decrypted.MessageData));
-            return (message, decrypted.TheirVk);
+            var result = await Crypto.AuthDecryptAsync(wallet, wireMessage.To, innerMessage);
+            var message = JsonConvert.DeserializeObject<IAgentMessage>(Encoding.UTF8.GetString(result.MessageData));
+            var theirVerKey = result.TheirVk;
+            
+            return (message, theirVerKey, wireMessage.To);
         }
-
+        
         /// <inheritdoc />
-        public virtual async Task<byte[]> PackAsync(object message, string key)
+        public async Task<IAgentMessage> AnonUnpackAsync(byte[] content, Wallet wallet)
         {
-            var messageData = Encoding.UTF8.GetBytes(message.ToJson());
-            var encrypted = await Crypto.AnonCryptAsync(key, messageData);
+            var wireMessageJson = Encoding.UTF8.GetString(content);
+            var wireMessage = JsonConvert.DeserializeObject<AgentWireMessage>(wireMessageJson);
+            var innerMessage = Convert.FromBase64String(wireMessage.Message);
 
-            return encrypted;
-        }
-
-        /// <inheritdoc />
-        public virtual async Task<T> UnpackAsync<T>(byte[] data, Wallet wallet, string key)
-        {
-            var decrypted = await Crypto.AnonDecryptAsync(wallet, key, data);
-
-            var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(decrypted));
-            return message;
-        }
-
-        public virtual (string did, string type) DecodeType(string messageType)
-        {
-            throw new NotImplementedException();
-        }
-
-        public virtual string EncodeType(string did, string messageType)
-        {
-            throw new NotImplementedException();
+            var result = await Crypto.AnonDecryptAsync(wallet, wireMessage.To, innerMessage);
+            return JsonConvert.DeserializeObject<IAgentMessage>(Encoding.UTF8.GetString(result));
         }
     }
 }

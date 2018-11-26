@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Newtonsoft.Json;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Messages;
 using Streetcred.Sdk.Models;
@@ -27,15 +26,15 @@ namespace Streetcred.Sdk.Tests
 
         private readonly IConnectionService _connectionService;
 
-        private readonly ConcurrentBag<IEnvelopeMessage> _messages = new ConcurrentBag<IEnvelopeMessage>();
+        private readonly ConcurrentBag<IAgentMessage> _messages = new ConcurrentBag<IAgentMessage>();
 
         public ConnectionTests()
         {
             var messageSerializer = new DefaultMessageSerializer();
 
             var routingMock = new Mock<IRouterService>();
-            routingMock.Setup(x => x.ForwardAsync(It.IsNotNull<IEnvelopeMessage>(), It.IsAny<AgentEndpoint>()))
-                .Callback((IEnvelopeMessage content, AgentEndpoint endpoint) => { _messages.Add(content); })
+            routingMock.Setup(x => x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>()))
+                .Callback((Wallet _, IAgentMessage content, ConnectionRecord __) => { _messages.Add(content); })
                 .Returns(Task.CompletedTask);
 
             var provisioningMock = new Mock<IProvisioningService>();
@@ -83,7 +82,7 @@ namespace Streetcred.Sdk.Tests
             var connectionId = Guid.NewGuid().ToString();
 
             var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new DefaultCreateInviteConfiguration() {ConnectionId = connectionId});
+                new InviteConfiguration() {ConnectionId = connectionId});
 
             var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
 
@@ -122,10 +121,7 @@ namespace Streetcred.Sdk.Tests
             Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
             Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
         }
-
-        private static IContentMessage GetContentMessage(IEnvelopeMessage message)
-            => JsonConvert.DeserializeObject<IContentMessage>(message.Content);
-
+         
         public async Task DisposeAsync()
         {
             if (_issuerWallet != null) await _issuerWallet.CloseAsync();

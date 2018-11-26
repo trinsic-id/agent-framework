@@ -24,7 +24,11 @@
 
         public const string MyDid = "myDid";
 
+        public const string MyKey = "myKey";
+
         public const string TheirDid = "theirDid";
+
+        public const string TheirKey = "theirKey";
 
         public const string IssuerDid = "issuerDid";
 

@@ -10,56 +10,37 @@ namespace Streetcred.Sdk.Contracts
     public interface IMessageSerializer
     {
         /// <summary>
-        /// Packs a content by auth crypting the content and returns a base64 string
+        /// Packs by auth crypting the message and wrapping in an agent wire message.
         /// </summary>
-        /// <param name="message">The content.</param>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="myKey">The myKey.</param>
+        /// <param name="message">The agent message.</param>
         /// <param name="theirKey">Their myKey.</param>
-        /// <returns></returns>
-        Task<T> PackSealedAsync<T>(object message, Wallet wallet, string myKey, string theirKey) where T : IContentMessage, new();
+        /// <returns>A UTF8 byte array representing a json formatted wire message.</returns>
+        Task<byte[]> AnonPackAsync(IAgentMessage message, string theirKey);
 
         /// <summary>
-        /// Unpacks auth crypted content and returns the content of the message as JSON string and the myKey
+        /// Packs by auth crypting the message and wrapping in an agent wire message.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="content">The base64 encoded message content.</param>
         /// <param name="wallet">The wallet.</param>
-        /// <param name="myKey">The myKey.</param>
-        /// <returns></returns>
-        Task<(T Message, string TheirKey)> UnpackSealedAsync<T>(string content, Wallet wallet, string myKey);
-
-        /// <summary>
-        /// Packs a message by anon crypting the serialized content
-        /// </summary>
         /// <param name="message">The message.</param>
-        /// <param name="key">The key.</param>
-        /// <returns></returns>
-        Task<byte[]> PackAsync(object message, string key);
+        /// <param name="myKey">My key.</param>
+        /// <param name="theirKey">Their key.</param>
+        /// <returns>A UTF8 byte array representing a json formatted wire message.</returns>
+        Task<byte[]> AuthPackAsync(Wallet wallet, IAgentMessage message, string myKey, string theirKey);
 
         /// <summary>
-        /// Unpacks a message by anon decrypting the serialized content
+        /// Unpacks by auth decrypting an agent wire message.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="data">The data.</param>
+        /// <param name="content">A UTF8 byte array of a json formatted wire message.</param>
         /// <param name="wallet">The wallet.</param>
-        /// <param name="key">The key.</param>
-        /// <returns></returns>
-        Task<T> UnpackAsync<T>(byte[] data, Wallet wallet, string key);
-
+        /// <returns>An agent message, the sender key, my key.</returns>
+        Task<(IAgentMessage Message, string TheirKey, string MyKey)> AuthUnpackAsync(byte[] content, Wallet wallet);
+        
         /// <summary>
-        /// Extracts the DID information from the message type
+        /// Unpacks by anon decrypting an agent wire message.
         /// </summary>
-        /// <param name="messageType">Type of the message.</param>
-        /// <returns></returns>
-        (string did, string type) DecodeType(string messageType);
-
-        /// <summary>
-        /// Encodes the type.
-        /// </summary>
-        /// <param name="did">The did.</param>
-        /// <param name="messageType">Type of the message.</param>
-        /// <returns></returns>
-        string EncodeType(string did, string messageType);
+        /// <param name="content">A UTF8 byte array of a json formatted wire message.</param>
+        /// <param name="wallet">The wallet.</param>
+        /// <returns>An agent message.</returns>
+        Task<IAgentMessage> AnonUnpackAsync(byte[] content, Wallet wallet);
     }
 }

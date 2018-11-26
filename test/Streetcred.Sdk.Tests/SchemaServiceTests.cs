@@ -134,6 +134,9 @@ namespace Streetcred.Sdk.Tests
             if (_issuerWallet != null) await _issuerWallet.CloseAsync();
             if (_pool != null) await _pool.CloseAsync();
 
+            _issuerWallet?.Dispose();
+            _pool?.Dispose();
+
             await Wallet.DeleteWalletAsync(_issuerConfig, Credentials);
             await Pool.DeletePoolLedgerConfigAsync(_poolName);
         }

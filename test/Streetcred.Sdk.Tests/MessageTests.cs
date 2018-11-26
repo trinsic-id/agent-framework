@@ -27,19 +27,6 @@ namespace Streetcred.Sdk.Tests
             Assert.Equal(did.Did, parsedDid);
             Assert.Equal(parsedType, MessageTypes.ConnectionRequest);
         }
-
-        [Fact]
-        public async Task CanParseKeyPattern()
-        {
-            var key = await Crypto.CreateKeyAsync(_wallet, "{}");
-
-            var messageType = MessageUtils.FormatKeyMessageType(key, MessageTypes.ForwardToKey);
-
-            var (parsedKey, parsedType) = MessageUtils.ParseMessageType(messageType);
-
-            Assert.Equal(key, parsedKey);
-            Assert.Equal(parsedType, MessageTypes.ForwardToKey);
-        }
         
         public async Task InitializeAsync()
         {
