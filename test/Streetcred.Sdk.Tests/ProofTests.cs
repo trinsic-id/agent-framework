@@ -58,8 +58,8 @@ namespace Streetcred.Sdk.Tests
                     Task.FromResult<ProvisioningRecord>(new ProvisioningRecord() {MasterSecretId = MasterSecretId}));
 
             var routingMock = new Mock<IRouterService>();
-            routingMock.Setup(x => x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AgentEndpoint>()))
-                .Callback((Wallet _, IAgentMessage content, string __, string ___, AgentEndpoint endpoint) => { _messages.Add(content); })
+            routingMock.Setup(x => x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>()))
+                .Callback((Wallet _, IAgentMessage content, ConnectionRecord __) => { _messages.Add(content); })
                 .Returns(Task.CompletedTask);
 
             var provisioningMock = new Mock<IProvisioningService>();

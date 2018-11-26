@@ -9,9 +9,7 @@ using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Contracts;
-using Streetcred.Sdk.Messages;
 using Streetcred.Sdk.Messages.Credentials;
-using Streetcred.Sdk.Messages.Routing;
 using Streetcred.Sdk.Models.Credentials;
 using Streetcred.Sdk.Models.Records;
 using Streetcred.Sdk.Models.Records.Search;
@@ -118,7 +116,7 @@ namespace Streetcred.Sdk.Runtime
             };
 
             //TODO we need roll back, i.e if we fail to send the A2A message the credential record should revert to Offer phase
-            await RouterService.SendAsync(wallet, msg, connection.TheirVk, connection.MyVk, connection.Endpoint); 
+            await RouterService.SendAsync(wallet, msg, connection); 
         }
 
         /// <inheritdoc />
@@ -217,7 +215,7 @@ namespace Streetcred.Sdk.Runtime
             var connection = await ConnectionService.GetAsync(wallet, config.ConnectionId);
             var offer = await CreateOfferAsync(wallet, config);
 
-            await RouterService.SendAsync(wallet, offer, connection.TheirVk, connection.MyVk, connection.Endpoint);
+            await RouterService.SendAsync(wallet, offer, connection);
         }
 
         /// <inheritdoc />
@@ -313,7 +311,7 @@ namespace Streetcred.Sdk.Runtime
             await credentialRecord.TriggerAsync(CredentialTrigger.Issue);
             await RecordService.UpdateAsync(wallet, credentialRecord);
 
-            await RouterService.SendAsync(wallet, msg, connection.TheirVk, connection.MyVk, connection.Endpoint);
+            await RouterService.SendAsync(wallet, msg, connection);
         }
 
         /// <inheritdoc />

@@ -19,7 +19,6 @@ namespace Streetcred.Sdk.Extensions.Middleware
         private readonly IMessageSerializer _messageSerializer;
         private readonly IConnectionService _connectionService;
         private readonly ICredentialService _credentialService;
-        private readonly IProvisioningService _provisioningService;
         private readonly PoolOptions _poolOptions;
         private readonly WalletOptions _walletOptions;
 
@@ -29,7 +28,6 @@ namespace Streetcred.Sdk.Extensions.Middleware
             IMessageSerializer messageSerializer,
             IConnectionService connectionService,
             ICredentialService credentialService,
-            IProvisioningService provisioningService,
             IOptions<WalletOptions> walletOptions,
             IOptions<PoolOptions> poolOptions)
         {
@@ -39,7 +37,6 @@ namespace Streetcred.Sdk.Extensions.Middleware
             _messageSerializer = messageSerializer;
             _connectionService = connectionService;
             _credentialService = credentialService;
-            _provisioningService = provisioningService;
             _poolOptions = poolOptions.Value;
             _walletOptions = walletOptions.Value;
         }
@@ -54,9 +51,7 @@ namespace Streetcred.Sdk.Extensions.Middleware
 
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
                 _walletOptions.WalletCredentials);
-
-            var provisioningRecord = await _provisioningService.GetProvisioningAsync(wallet);
-
+            
             if (context.Request.ContentLength != null)
             {
                 var body = new byte[(int) context.Request.ContentLength];
@@ -64,17 +59,17 @@ namespace Streetcred.Sdk.Extensions.Middleware
                 await context.Request.Body.ReadAsync(body, 0, body.Length);
 
                 //TODO the below functionality will be handled by a seperate forwarding agent in future
-                (var outerMessage, _ , _) =
-                    await _messageSerializer.UnpackAsync(body, wallet, provisioningRecord.Endpoint.Verkey);
+                var outerMessage =
+                    await _messageSerializer.AnonUnpackAsync(body, wallet);
 
                 var forwardMessage = outerMessage as ForwardMessage ?? throw new Exception("Expected inner message to be of type 'ForwardMessage'");
 
                 var innerMessageContents = Convert.FromBase64String(forwardMessage.Message);
 
                 (var message, _, var myKey) = 
-                    await _messageSerializer.UnpackAsync(innerMessageContents, wallet);
+                    await _messageSerializer.AuthUnpackAsync(innerMessageContents, wallet);
 
-                var connectionRecord = await _connectionService.GetByMyKey(wallet, myKey);
+                var connectionRecord = await _connectionService.ResolveByMyKeyAsync(wallet, myKey);
                 
                 switch (message)
                 {

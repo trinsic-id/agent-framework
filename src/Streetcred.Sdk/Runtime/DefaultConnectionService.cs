@@ -9,7 +9,6 @@ using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Exceptions;
-using Streetcred.Sdk.Messages;
 using Streetcred.Sdk.Messages.Connections;
 using Streetcred.Sdk.Models.Connections;
 using Streetcred.Sdk.Models.Records;
@@ -125,7 +124,7 @@ namespace Streetcred.Sdk.Runtime
                 Endpoint = provisioning.Endpoint
             };
             
-            await RouterService.SendAsync(wallet, msg, connection.TheirVk, connection.MyVk, connection.Endpoint);
+            await RouterService.SendAsync(wallet, msg, connection);
 
             return connection.GetId();
         }
@@ -206,7 +205,7 @@ namespace Streetcred.Sdk.Runtime
                 Verkey = connection.MyVk
             };
 
-            await RouterService.SendAsync(wallet, response, connection.TheirVk, connection.MyVk, connection.Endpoint);
+            await RouterService.SendAsync(wallet, response, connection);
         }
 
         /// <inheritdoc />

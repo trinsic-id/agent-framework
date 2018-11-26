@@ -10,9 +10,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Streetcred.Sdk.Contracts;
 using Streetcred.Sdk.Exceptions;
-using Streetcred.Sdk.Messages;
 using Streetcred.Sdk.Messages.Proofs;
-using Streetcred.Sdk.Messages.Routing;
 using Streetcred.Sdk.Models.Credentials;
 using Streetcred.Sdk.Models.Proofs;
 using Streetcred.Sdk.Models.Records;
@@ -62,7 +60,7 @@ namespace Streetcred.Sdk.Runtime
                                  "Connection record not found");
             var request = await CreateProofRequestAsync(wallet, connectionId, proofRequest);
 
-            await RouterService.SendAsync(wallet, request, connection.TheirVk, connection.MyVk, connection.Endpoint);
+            await RouterService.SendAsync(wallet, request, connection);
         }
 
         /// <inheritdoc />
@@ -75,7 +73,7 @@ namespace Streetcred.Sdk.Runtime
                                  "Connection record not found");
             var request = await CreateProofRequestAsync(wallet, connectionId, proofRequestJson);
 
-            await RouterService.SendAsync(wallet, request, connection.TheirVk, connection.MyVk, connection.Endpoint);
+            await RouterService.SendAsync(wallet, request, connection);
         }
 
         /// <inheritdoc />
@@ -215,7 +213,7 @@ namespace Streetcred.Sdk.Runtime
 
             var proof = await CreateProofAsync(wallet, pool, proofRequestId, requestedCredentials);
 
-            await RouterService.SendAsync(wallet, proof, connection.TheirVk, connection.MyVk, connection.Endpoint);
+            await RouterService.SendAsync(wallet, proof, connection);
         }
 
         /// <inheritdoc />

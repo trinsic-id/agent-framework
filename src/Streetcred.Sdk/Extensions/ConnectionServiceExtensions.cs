@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Hyperledger.Indy.WalletApi;
+using Streetcred.Sdk.Exceptions;
 using Streetcred.Sdk.Models.Records;
 using Streetcred.Sdk.Models.Records.Search;
 using Streetcred.Sdk.Utils;
@@ -55,11 +57,26 @@ namespace Streetcred.Sdk.Contracts
         /// </summary>
         /// <returns>The connection record.</returns>
         /// <param name="connectionService">Connection service.</param>
-        /// <param name="wallet">Wallet.</param>
+        /// <param name="wallet">My wallet.</param>
         /// <param name="myKey">My key.</param>
-        public static async Task<ConnectionRecord> GetByMyKey(
+        /// <exception cref="ArgumentNullException"/>
+        /// <exception cref="StreetcredSdkException">Throw with error code 'RecordNotFound' if a connection record for the key was not found</exception>
+        public static async Task<ConnectionRecord> ResolveByMyKeyAsync(
             this IConnectionService connectionService, Wallet wallet, string myKey)
-            => (await connectionService.ListAsync(wallet,
-                new SearchRecordQuery { { TagConstants.MyKey, myKey } }, 1)).FirstOrDefault();
+        {
+            if (string.IsNullOrEmpty(myKey))
+                throw new ArgumentNullException(nameof(myKey));
+
+            if (wallet == null)
+                throw new ArgumentNullException(nameof(wallet));
+
+            var record = (await connectionService.ListAsync(wallet,
+                new SearchRecordQuery {{TagConstants.MyKey, myKey}}, 1)).FirstOrDefault();
+            
+            if (record == null)
+                throw new StreetcredSdkException(ErrorCode.RecordNotFound, "Connection Record not found");
+
+            return record;
+        }
     }
 }
