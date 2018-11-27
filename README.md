@@ -1,13 +1,11 @@
-Streetcred SDK
-
 | Stage | Status |
 | --- | --- |
 | Build | [![Build status](https://streetcred.visualstudio.com/Streetcred/_apis/build/status/SDK/SDK%20(Compile%20Only))](https://streetcred.visualstudio.com/Streetcred/_build/latest?definitionId=7) |
 | Package | [![Build status](https://streetcred.visualstudio.com/Streetcred/_apis/build/status/SDK/SDK%20(Build%20Package%20&%20Publish))](https://streetcred.visualstudio.com/Streetcred/_build/latest?definitionId=2) |
 | Unit Tests | [![Build Status](https://travis-ci.com/streetcred-id/agent-framework.svg?branch=master)](https://travis-ci.com/streetcred-id/agent-framework) |
 
-# Streetcred SDK
-## Agent Framework for building Sovrin agent services w/ .NET Core
+# AgentFramework
+## .NET Core tools for building Sovrin agent services
 
 ### Contents
 - TODO
