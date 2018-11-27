@@ -35,6 +35,6 @@ namespace AgentFramework.Core.Models.Wallets
         /// </summary>
         /// <value>The storage credentials.</value>
         [JsonProperty("storage_credentials", NullValueHandling = NullValueHandling.Ignore)]
-        public WalletStorageCredentials StorageCredentials { get; set; }
+        public object StorageCredentials { get; set; }
     }
 }
