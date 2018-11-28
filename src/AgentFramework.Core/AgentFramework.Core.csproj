@@ -3,8 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;xamarinios10</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyName>Streetcred.Sdk</AssemblyName>
-    <Description>Streetcred SDK</Description>
+    <Description>.NET Core tools for building agent services</Description>
     <Version>1.1.0</Version>
     <AssemblyVersion>1.1.0</AssemblyVersion>
     <FileVersion>1.1.0</FileVersion>
