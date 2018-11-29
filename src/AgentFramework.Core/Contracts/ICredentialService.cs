@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Records;
@@ -15,7 +16,7 @@ namespace AgentFramework.Core.Contracts
     public interface ICredentialService
     {
         /// <summary>
-        /// Gets credential record for the given identifier
+        /// Gets credential record for the given identifier.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialId">The credential identifier.</param>
@@ -23,7 +24,7 @@ namespace AgentFramework.Core.Contracts
         Task<CredentialRecord> GetAsync(Wallet wallet, string credentialId);
 
         /// <summary>
-        /// Retreives a list of <see cref="CredentialRecord"/> items for the given search criteria
+        /// Retreives a list of <see cref="CredentialRecord"/> items for the given search criteria.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="query">The query.</param>
@@ -37,7 +38,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialOffer">The credential offer.</param>
         /// <param name="connection">The connection.</param>
-        /// <returns>The credential identifier of the stored credential record</returns>
+        /// <returns>The credential identifier of the stored credential record.</returns>
         Task<string> ProcessOfferAsync(Wallet wallet, CredentialOfferMessage credentialOffer, ConnectionRecord connection);
 
         /// <summary>
@@ -47,7 +48,9 @@ namespace AgentFramework.Core.Contracts
         /// <param name="pool">The pool.</param>
         /// <param name="credentialId">The credential identifier.</param>
         /// <param name="attributeValues">The attribute values.</param>
-        /// <returns></returns>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionFailure.</exception>
+        /// <returns>The response async.</returns>
         Task AcceptOfferAsync(Wallet wallet, Pool pool, string credentialId, Dictionary<string, string> attributeValues);
 
         /// <summary>
@@ -55,7 +58,8 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialId">The credential identifier.</param>
-        /// <returns></returns>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <returns>The response async.</returns>
         Task RejectOfferAsync(Wallet wallet, string credentialId);
 
         /// <summary>
@@ -65,7 +69,8 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="credential">The credential.</param>
         /// <param name="connection">The connection.</param>
-        /// <returns></returns>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <returns>The response async.</returns>
         Task ProcessCredentialAsync(Pool pool, Wallet wallet, CredentialMessage credential, ConnectionRecord connection);
 
         /// <summary>
@@ -73,9 +78,8 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="config">A configuration object used to configure the resulting offers presentation</param>
-        /// <returns>
-        /// The offer.
-        /// </returns>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <returns>The offer. </returns>
         Task<CredentialOfferMessage> CreateOfferAsync(Wallet wallet, OfferConfiguration config);
 
         /// <summary>
@@ -83,16 +87,18 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="config">A configuration object used to configure the resulting offers presentation</param>
-        /// <returns></returns>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionFailure.</exception>
+        /// <returns>The reponse async.</returns>
         Task SendOfferAsync(Wallet wallet, OfferConfiguration config);
 
         /// <summary>
         /// Processes the credential request and stores in the designated wallet.
         /// </summary>
-        /// <param name="pool">The pool.</param>
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialRequest">The credential request.</param>
         /// <param name="connection">The connection.</param>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <returns>The credential identifier of the stored credential record.</returns>
         Task<string> ProcessCredentialRequestAsync(Wallet wallet, CredentialRequestMessage credentialRequest, ConnectionRecord connection);
 
@@ -116,6 +122,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="issuerDid">Issuer did.</param>
         /// <param name="credentialId">Credential identifier.</param>
         /// <param name="values">Values.</param>
+        /// <returns>The response async.</returns>
         Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId, Dictionary<string, string> values);
 
         /// <summary>
@@ -123,7 +130,8 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialId">The credential identifier.</param>
-        /// <returns></returns>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <returns>The response async.</returns>
         Task RejectCredentialRequestAsync(Wallet wallet, string credentialId);
 
         /// <summary>

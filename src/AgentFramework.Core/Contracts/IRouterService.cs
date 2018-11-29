@@ -16,7 +16,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="message">The message.</param>
         /// <param name="connection">The connection record.</param>
-        /// <returns></returns>
-        Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connection);
+        /// <returns>Boolean status indicating if the message was delivered sucessfully.</returns>
+        Task<bool> SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connection);
     }
 }

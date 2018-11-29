@@ -30,7 +30,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connectionRecord)
+        public async Task<bool> SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connectionRecord)
         {
             _logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0} Endpoint {1}", connectionRecord.TheirVk, connectionRecord.Endpoint.Uri);
             
@@ -57,7 +57,7 @@ namespace AgentFramework.Core.Runtime
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
             var response = await _httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
+            return response.IsSuccessStatusCode;
         }
     }
 }

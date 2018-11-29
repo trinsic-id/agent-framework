@@ -4,6 +4,8 @@
     {
         WalletAlreadyProvisioned,
         RecordNotFound,
-        LedgerOperationRejected
+        RecordInInvalidState,
+        LedgerOperationRejected,
+        A2AMessageTransmissionFailure
     }
 }

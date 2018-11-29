@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
@@ -43,8 +44,9 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="offer">Offer.</param>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionFailure</exception>
         /// <returns>
-        /// Connection identifier unique for this connection
+        /// Connection identifier unique for this connection.
         /// </returns>
         Task<string> AcceptInvitationAsync(Wallet wallet, ConnectionInvitationMessage offer);
 
@@ -64,7 +66,10 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="connectionId">Connection identifier.</param>
-        /// <returns></returns>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionFailure</exception>
+        /// <returns>
+        /// The response async.
+        /// </returns>
         Task AcceptRequestAsync(Wallet wallet, string connectionId);
 
         /// <summary>
