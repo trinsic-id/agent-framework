@@ -24,6 +24,9 @@ namespace AFMobileSample
 
         async void OnCreateClicked(object sender, EventArgs e)
         {
+            ProgressIndicator.IsRunning = true;
+            CreateButton.IsEnabled = false;
+
             try
             {
                 await _walletService.CreateWalletAsync(_config, _creds);
@@ -39,6 +42,9 @@ namespace AFMobileSample
             Device.BeginInvokeOnMainThread(() =>
             {
                 DidLabel.Text = $"Identity created -> Did: {did.Did}";
+
+                ProgressIndicator.IsRunning = false;
+                CreateButton.IsEnabled = true;
             });
         }
     }

@@ -7,6 +7,7 @@ using Android.Views;
 using Android.Widget;
 using Android.OS;
 using Java.Lang;
+using Android;
 
 namespace AFMobileSample.Droid
 {
@@ -24,6 +25,11 @@ namespace AFMobileSample.Droid
             base.OnCreate(savedInstanceState);
             global::Xamarin.Forms.Forms.Init(this, savedInstanceState);
             LoadApplication(new App());
+
+            if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
+            {
+                RequestPermissions(new[] { Manifest.Permission.ReadExternalStorage }, 10);
+            }
         }
     }
 }
