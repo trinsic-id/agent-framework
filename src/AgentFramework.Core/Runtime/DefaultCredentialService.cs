@@ -54,8 +54,26 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual Task<CredentialRecord> GetAsync(Wallet wallet, string credentialId) =>
-            RecordService.GetAsync<CredentialRecord>(wallet, credentialId);
+        public virtual async Task<CredentialRecord> GetAsync(Wallet wallet, string credentialId)
+        {
+            var record = await RecordService.GetAsync<CredentialRecord>(wallet, credentialId);
+
+            if (record == null)
+                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Credential record not found");
+
+            return record;
+        }
+
+        public virtual async Task<CredentialRecord> GetAsync(Wallet wallet, string credentialId, CredentialState expectedState)
+        {
+            var record = await GetAsync(wallet, credentialId);
+
+            if (record.State != expectedState)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                    $"Credential state was invalid. Expected '{expectedState}', found '{record.State}'");
+
+            return record;
+        }
 
         /// <inheritdoc />
         public virtual Task<List<CredentialRecord>> ListAsync(Wallet wallet, ISearchQuery query = null, int count = 100) =>
@@ -92,22 +110,13 @@ namespace AgentFramework.Core.Runtime
         public virtual async Task AcceptOfferAsync(Wallet wallet, Pool pool, string credentialId,
             Dictionary<string, string> attributeValues = null)
         {
-            var credential = await RecordService.GetAsync<CredentialRecord>(wallet, credentialId);
-
-            if (credential == null)
-                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Credential record not found");
-
+            var credential = await GetAsync(wallet, credentialId);
+            
             var connection = await ConnectionService.GetAsync(wallet, credential.ConnectionId);
-
-            if (connection == null)
-                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Connection record not found");
-
+            
             var definition = await LedgerService.LookupDefinitionAsync(pool, connection.MyDid, credential.CredentialDefinitionId);
             var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
-
-            if (provisioning == null)
-                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Provisioning record not found");
-
+            
             var request = await AnonCreds.ProverCreateCredentialReqAsync(wallet, connection.MyDid, credential.OfferJson,
                 definition.ObjectJson, provisioning.MasterSecretId);
 
@@ -135,11 +144,8 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public virtual async Task RejectOfferAsync(Wallet wallet, string credentialId)
         {
-            var credential = await RecordService.GetAsync<CredentialRecord>(wallet, credentialId);
-
-            if (credential == null)
-                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Credential record not found");
-
+            var credential = await GetAsync(wallet, credentialId, CredentialState.Offered);
+            
             await credential.TriggerAsync(CredentialTrigger.Reject);
             await RecordService.UpdateAsync(wallet, credential);
         }
@@ -165,6 +171,10 @@ namespace AgentFramework.Core.Runtime
 
             var credentialRecord = credentialSearch.Single();
             // TODO: Should resolve if multiple credential records are found
+
+            if (credentialRecord.State != CredentialState.Requested)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                    $"Credential state was invalid. Expected '{CredentialState.Requested}', found '{credentialRecord.State}'");
 
             var credentialDefinition = await LedgerService.LookupDefinitionAsync(pool, connection.MyDid, definitionId);
 
@@ -230,7 +240,8 @@ namespace AgentFramework.Core.Runtime
             Logger.LogInformation(LoggingEvents.SendCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
                 config.CredentialDefinitionId, config.ConnectionId, config.IssuerDid);
 
-            var connection = await ConnectionService.GetAsync(wallet, config.ConnectionId);
+            var connection = await ConnectionService.GetAsync(wallet, config.ConnectionId, ConnectionState.Connected);
+            
             var offer = await CreateOfferAsync(wallet, config);
 
             if (!await RouterService.SendAsync(wallet, offer, connection))
@@ -255,7 +266,11 @@ namespace AgentFramework.Core.Runtime
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Credential record not found");
 
             var credential = credentialSearch.Single();
-            
+
+            if (credential.State != CredentialState.Offered)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                    $"Credential state was invalid. Expected '{CredentialState.Offered}', found '{credential.State}'");
+
             if (!string.IsNullOrEmpty(credentialRequest.CredentialValuesJson) && JObject.Parse(credentialRequest.CredentialValuesJson).Count != 0)
                     credential.ValuesJson = credentialRequest.CredentialValuesJson;
 
@@ -271,11 +286,8 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public virtual async Task RejectCredentialRequestAsync(Wallet wallet, string credentialId)
         {
-            var credential = await RecordService.GetAsync<CredentialRecord>(wallet, credentialId);
-
-            if (credential == null)
-                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Credential record not found");
-
+            var credential = await GetAsync(wallet, credentialId, CredentialState.Requested);
+            
             await credential.TriggerAsync(CredentialTrigger.Reject);
             await RecordService.UpdateAsync(wallet, credential);
         }
@@ -290,30 +302,16 @@ namespace AgentFramework.Core.Runtime
         public virtual async Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId,
            Dictionary<string, string> values)
         {
-            var credential = await RecordService.GetAsync<CredentialRecord>(wallet, credentialId);
-
-            if (credential == null)
-                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Credential record not found");
-
-            if (credential.State != CredentialState.Requested)
-                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
-                    $"Credential sate was invalid. Expected '{CredentialState.Requested}', found '{credential.State}'");
-
+            var credential = await GetAsync(wallet, credentialId, CredentialState.Requested);
+            
             if (values != null && values.Count > 0)
                 credential.ValuesJson = CredentialUtils.FormatCredentialValues(values);
 
             var definitionRecord =
                 await SchemaService.GetCredentialDefinitionAsync(wallet, credential.CredentialDefinitionId);
 
-            var connection = await ConnectionService.GetAsync(wallet, credential.ConnectionId);
-
-            if (connection == null)
-                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Connection record not found");
-
-            if (connection.State != ConnectionState.Connected)
-                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
-                    $"Connection sate was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
-
+            var connection = await ConnectionService.GetAsync(wallet, credential.ConnectionId, ConnectionState.Connected);
+            
             string revocationRegistryId = null;
             BlobStorageReader tailsReader = null;
             if (definitionRecord.SupportsRevocation)
@@ -347,15 +345,20 @@ namespace AgentFramework.Core.Runtime
             await credential.TriggerAsync(CredentialTrigger.Issue);
             await RecordService.UpdateAsync(wallet, credential);
 
-            await RouterService.SendAsync(wallet, msg, connection);
+            if (!await RouterService.SendAsync(wallet, msg, connection))
+            {
+                await credential.TriggerAsync(CredentialTrigger.Error);
+                await RecordService.UpdateAsync(wallet, credential);
+                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionFailure, "Failed sending credential request message");
+            }
         }
 
         /// <inheritdoc />
         public virtual async Task RevokeCredentialAsync(Pool pool, Wallet wallet, string credentialId, string issuerDid)
         {
-            var credential = await GetAsync(wallet, credentialId);
-            var definition =
-                await SchemaService.GetCredentialDefinitionAsync(wallet, credential.CredentialDefinitionId);
+            var credential = await GetAsync(wallet, credentialId, CredentialState.Issued);
+            
+            var definition = await SchemaService.GetCredentialDefinitionAsync(wallet, credential.CredentialDefinitionId);
 
             // Check if the state machine is valid for revocation
             await credential.TriggerAsync(CredentialTrigger.Revoke);

@@ -67,9 +67,7 @@ namespace AgentFramework.Core.Runtime
             foreach (var tag in config.Tags)
                 connection.SetTag(tag.Key, tag.Value);
 
-            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet) ??
-                               throw new AgentFrameworkException(ErrorCode.RecordNotFound,
-                                   "Provisioning record not found");
+            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
 
             await RecordService.AddAsync(wallet, connection);
 
@@ -181,9 +179,7 @@ namespace AgentFramework.Core.Runtime
         {
             Logger.LogInformation(LoggingEvents.AcceptConnectionRequest, "ConnectionId {0}", connectionId);
 
-            var connection = await GetAsync(wallet, connectionId) ??
-                             throw new AgentFrameworkException(ErrorCode.RecordNotFound,
-                                 "Connection record not found");
+            var connection = await GetAsync(wallet, connectionId);
 
             await Pairwise.CreateAsync(wallet, connection.TheirDid, connection.MyDid, connection.Endpoint.ToJson());
 
@@ -208,11 +204,28 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual Task<ConnectionRecord> GetAsync(Wallet wallet, string connectionId)
+        public virtual async Task<ConnectionRecord> GetAsync(Wallet wallet, string connectionId)
         {
             Logger.LogInformation(LoggingEvents.GetConnection, "ConnectionId {0}", connectionId);
 
-            return RecordService.GetAsync<ConnectionRecord>(wallet, connectionId);
+            var record = await RecordService.GetAsync<ConnectionRecord>(wallet, connectionId);
+
+            if (record == null)
+                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Connection record not found");
+
+            return record;
+        }
+
+        /// <inheritdoc />
+        public virtual async Task<ConnectionRecord> GetAsync(Wallet wallet, string connectionId, ConnectionState expectedState)
+        {
+            var record = await GetAsync(wallet, connectionId);
+
+            if (record.State != expectedState)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                    $"Connection state was invalid. Expected '{expectedState}', found '{record.State}'");
+
+            return record;
         }
 
         /// <inheritdoc />
@@ -228,10 +241,7 @@ namespace AgentFramework.Core.Runtime
         public virtual async Task<bool> DeleteAsync(Wallet wallet, string connectionId)
         {
             Logger.LogInformation(LoggingEvents.DeleteConnection, "ConnectionId {0}", connectionId);
-
-            if ((await RecordService.GetAsync<ConnectionRecord>(wallet, connectionId)) == null)
-                return true;
-
+            
             return await RecordService.DeleteAsync<ConnectionRecord>(wallet, connectionId);
         }
     }

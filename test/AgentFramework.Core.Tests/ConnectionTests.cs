@@ -35,7 +35,7 @@ namespace AgentFramework.Core.Tests
             var routingMock = new Mock<IRouterService>();
             routingMock.Setup(x => x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>()))
                 .Callback((Wallet _, IAgentMessage content, ConnectionRecord __) => { _messages.Add(content); })
-                .Returns(Task.CompletedTask);
+                .Returns(Task.FromResult(true));
 
             var provisioningMock = new Mock<IProvisioningService>();
             provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))

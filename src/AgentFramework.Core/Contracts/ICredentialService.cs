@@ -20,8 +20,20 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialId">The credential identifier.</param>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <returns>The stored credental record</returns>
         Task<CredentialRecord> GetAsync(Wallet wallet, string credentialId);
+
+        /// <summary>
+        /// Gets credential record for the given identifier.
+        /// </summary>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="credentialId">The credential identifier.</param>
+        /// <param name="expectedState">Expected state of the credential record.</param>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
+        /// <returns>The stored credental record</returns>
+        Task<CredentialRecord> GetAsync(Wallet wallet, string credentialId, CredentialState expectedState);
 
         /// <summary>
         /// Retreives a list of <see cref="CredentialRecord"/> items for the given search criteria.
@@ -59,6 +71,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="credentialId">The credential identifier.</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
         /// <returns>The response async.</returns>
         Task RejectOfferAsync(Wallet wallet, string credentialId);
 
@@ -70,6 +83,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="credential">The credential.</param>
         /// <param name="connection">The connection.</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
         /// <returns>The response async.</returns>
         Task ProcessCredentialAsync(Pool pool, Wallet wallet, CredentialMessage credential, ConnectionRecord connection);
 

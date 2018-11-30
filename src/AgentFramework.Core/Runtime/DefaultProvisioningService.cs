@@ -22,8 +22,15 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual Task<ProvisioningRecord> GetProvisioningAsync(Wallet wallet) =>
-            RecordService.GetAsync<ProvisioningRecord>(wallet, ProvisioningRecord.UniqueRecordId);
+        public virtual async Task<ProvisioningRecord> GetProvisioningAsync(Wallet wallet)
+        {
+            var record = await RecordService.GetAsync<ProvisioningRecord>(wallet, ProvisioningRecord.UniqueRecordId);
+
+            if (record == null)
+                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Provisioning record not found");
+
+            return record;
+        }
 
         /// <inheritdoc />
         public virtual async Task ProvisionAgentAsync(Wallet wallet, ProvisioningConfiguration provisioningConfiguration)
@@ -32,8 +39,15 @@ namespace AgentFramework.Core.Runtime
             if (provisioningConfiguration.EndpointUri == null)
                 throw new ArgumentNullException(nameof(provisioningConfiguration.EndpointUri));
 
-            var record = await GetProvisioningAsync(wallet);
-            if (record != null) throw new AgentFrameworkException(ErrorCode.WalletAlreadyProvisioned);
+            ProvisioningRecord record = null;
+            try
+            {
+                record = await GetProvisioningAsync(wallet);
+            }
+            catch (AgentFrameworkException e) when(e.ErrorCode == ErrorCode.RecordNotFound){}
+
+            if (record != null)
+                throw new AgentFrameworkException(ErrorCode.WalletAlreadyProvisioned);
 
             var agent = await Did.CreateAndStoreMyDidAsync(wallet,
                 provisioningConfiguration.AgentSeed != null
