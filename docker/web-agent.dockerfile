@@ -3,12 +3,12 @@ WORKDIR /app
 
 FROM streetcred/dotnet-indy:latest AS build
 WORKDIR /src
-COPY ["example/WebAgent/WebAgent.csproj", "WebAgent/"]
-RUN dotnet restore "WebAgent/WebAgent.csproj" \
+COPY ["samples/aspnetcore-sample/WebAgent.csproj", "."]
+RUN dotnet restore "WebAgent.csproj" \
     -s "https://api.nuget.org/v3/index.json" \
     -s "https://www.myget.org/F/streetcred-sdk/api/v3/index.json"
-COPY example/ .
-WORKDIR /src/WebAgent
+COPY ["samples/aspnetcore-sample/", "."]
+COPY ["docker/docker_pool_genesis.txn", "./pool_genesis.txn"]
 RUN dotnet build "WebAgent.csproj" -c Release -o /app
 
 FROM build AS publish
