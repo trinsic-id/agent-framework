@@ -122,7 +122,7 @@ namespace AgentFramework.Core.Contracts
         /// <returns>
         /// A list of proofs.
         /// </returns>
-        Task<List<ProofRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100);
+        Task<List<ProofRecord>> ListAsync(Wallet wallet, ISearchQuery query = null, int count = 100);
 
         /// <summary>
         /// Gets a particular proof stored in the wallet
