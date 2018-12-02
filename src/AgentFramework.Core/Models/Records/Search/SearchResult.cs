@@ -6,13 +6,13 @@ namespace AgentFramework.Core.Models.Records.Search
     /// <summary>
     /// Search record result.
     /// </summary>
-    public class SearchRecordResult
+    public class SearchResult
     {
         /// <summary>
         /// Gets or sets the resulting records.
         /// </summary>
         /// <value>The resulting records.</value>
         [JsonProperty("records")]
-        public List<SearchRecordItem> Records { get; set; }
+        public List<SearchItem> Records { get; set; }
     }
 }

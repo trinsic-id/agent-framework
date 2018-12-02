@@ -28,7 +28,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">The wallet to search</param>
         /// <param name="query">The query used to filter the search results.</param>
         /// <param name="count">The maximum item count of items to return to return.</param>
-        Task<List<ConnectionRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100);
+        Task<List<ConnectionRecord>> ListAsync(Wallet wallet, ISearchQuery query = null, int count = 100);
 
         /// <summary>
         /// Creates the invitation asynchronous.

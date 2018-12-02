@@ -29,7 +29,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="query">The query.</param>
         /// <param name="count">The number of items to return</param>
         /// <returns>A list of credential records matchinc the search criteria</returns>
-        Task<List<CredentialRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100);
+        Task<List<CredentialRecord>> ListAsync(Wallet wallet, ISearchQuery query = null, int count = 100);
 
         /// <summary>
         /// Process the offer and stores in the desinated wallet asynchronous.

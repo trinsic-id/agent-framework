@@ -5,7 +5,7 @@ namespace AgentFramework.Core.Models.Records.Search
     /// <summary>
     /// Search record options.
     /// </summary>
-    public class SearchRecordOptions
+    public class SearchOptions
     {
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="T:AgentFramework.Core.Models.Records.Search.SearchRecordOptions"/>
