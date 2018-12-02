@@ -26,14 +26,14 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<List<T>> SearchAsync<T>(Wallet wallet, SearchRecordQuery query, SearchRecordOptions options, int count)
+        public virtual async Task<List<T>> SearchAsync<T>(Wallet wallet, ISearchQuery query, SearchOptions options, int count)
             where T : WalletRecord, new()
         {
             using (var search = await NonSecrets.OpenSearchAsync(wallet, new T().GetTypeName(),
-                (query ?? new SearchRecordQuery()).ToJson(),
-                (options ?? new SearchRecordOptions()).ToJson()))
+                (query ?? SearchQuery.Empty).ToJson(),
+                (options ?? new SearchOptions()).ToJson()))
             {
-                var result = JsonConvert.DeserializeObject<SearchRecordResult>(await search.NextAsync(wallet, count));
+                var result = JsonConvert.DeserializeObject<SearchResult>(await search.NextAsync(wallet, count));
                 // TODO: Add support for pagination
 
                 return result.Records?
@@ -72,11 +72,11 @@ namespace AgentFramework.Core.Runtime
                 var recordJson = await NonSecrets.GetRecordAsync(wallet,
                     new T().GetTypeName(),
                     id,
-                    new SearchRecordOptions().ToJson());
+                    new SearchOptions().ToJson());
 
                 if (recordJson == null) return null;
 
-                var item = JsonConvert.DeserializeObject<SearchRecordItem>(recordJson);
+                var item = JsonConvert.DeserializeObject<SearchItem>(recordJson);
 
                 var record = JsonConvert.DeserializeObject<T>(item.Value);
                 record.Tags.Clear();

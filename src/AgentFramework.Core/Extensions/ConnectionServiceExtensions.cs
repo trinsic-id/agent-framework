@@ -26,7 +26,7 @@ namespace AgentFramework.Core.Extensions
         public static Task<List<ConnectionRecord>> ListNegotiatingConnectionsAsync(
             this IConnectionService connectionService, Wallet wallet, int count = 100)
             => connectionService.ListAsync(wallet,
-                new SearchRecordQuery {{ TagConstants.State, ConnectionState.Negotiating.ToString("G")}}, count);
+                SearchQuery.Equal(TagConstants.State, ConnectionState.Negotiating.ToString("G")), count);
 
         /// <summary>
         /// Retrieves a list of <see cref="ConnectionRecord"/> that are in <see cref="ConnectionState.Connected"/> state.
@@ -38,7 +38,7 @@ namespace AgentFramework.Core.Extensions
         public static Task<List<ConnectionRecord>> ListConnectedConnectionsAsync(
             this IConnectionService connectionService, Wallet wallet, int count = 100)
             => connectionService.ListAsync(wallet,
-                new SearchRecordQuery {{ TagConstants.State, ConnectionState.Connected.ToString("G")}}, count);
+                SearchQuery.Equal(TagConstants.State, ConnectionState.Connected.ToString("G")), count);
 
         /// <summary>
         /// Retrieves a list of <see cref="ConnectionRecord"/> that are in <see cref="ConnectionState.Invited"/> state.
@@ -50,7 +50,7 @@ namespace AgentFramework.Core.Extensions
         public static Task<List<ConnectionRecord>> ListInvitedConnectionsAsync(
             this IConnectionService connectionService, Wallet wallet, int count = 100)
             => connectionService.ListAsync(wallet,
-                new SearchRecordQuery {{ TagConstants.State, ConnectionState.Invited.ToString("G")}}, count);
+                SearchQuery.Equal(TagConstants.State, ConnectionState.Invited.ToString("G")), count);
 
         /// <summary>
         /// Retrieves a <see cref="ConnectionRecord"/> by key.
@@ -71,7 +71,7 @@ namespace AgentFramework.Core.Extensions
                 throw new ArgumentNullException(nameof(wallet));
 
             var record = (await connectionService.ListAsync(wallet,
-                new SearchRecordQuery {{TagConstants.MyKey, myKey}}, 1)).FirstOrDefault();
+               SearchQuery.Equal(TagConstants.MyKey, myKey), 1)).FirstOrDefault();
             
             if (record == null)
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Connection Record not found");

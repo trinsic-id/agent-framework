@@ -217,7 +217,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual Task<List<ConnectionRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null,
+        public virtual Task<List<ConnectionRecord>> ListAsync(Wallet wallet, ISearchQuery query = null,
             int count = 100)
         {
             Logger.LogInformation(LoggingEvents.ListConnections, "List Connections");

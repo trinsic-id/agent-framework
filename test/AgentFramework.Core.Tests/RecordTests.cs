@@ -69,7 +69,7 @@ namespace AgentFramework.Core.Tests
 
             var search =
                 await _recordService.SearchAsync<ConnectionRecord>(_wallet,
-                    new SearchRecordQuery() { { tagName, tagValue } }, null, 100);
+                    SearchQuery.Equal(tagName, tagValue), null, 100);
 
             var retrieved = search.Single();
 
@@ -120,7 +120,7 @@ namespace AgentFramework.Core.Tests
         {
             var record = await _recordService.SearchAsync<ConnectionRecord>(
                 _wallet,
-                new SearchRecordQuery { { Guid.NewGuid().ToString(), Guid.NewGuid().ToString() } }, null, 100);
+                SearchQuery.Equal(Guid.NewGuid().ToString(), Guid.NewGuid().ToString()), null, 100);
             Assert.False(record.Any());
         }
 
