@@ -178,7 +178,7 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.ConnectionId, proofRequestObject);
+                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
             }
 
             // Holder accepts the proof requests and builds a proof

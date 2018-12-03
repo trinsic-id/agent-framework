@@ -1,27 +1,22 @@
-﻿namespace AgentFramework.Core.Models.Records
+﻿using Newtonsoft.Json;
+
+namespace AgentFramework.Core.Models.Records
 {
     /// <summary>
     /// Schema definition record.
     /// </summary>
-    public class DefinitionRecord : WalletRecord
+    public class DefinitionRecord : RecordBase
     {
-        /// <summary>
-        /// Gets the identifier.
-        /// </summary>
-        /// <returns>The identifier.</returns>
-        public override string GetId() => DefinitionId;
-
-        /// <summary>
-        /// Gets or sets the definition identifier.
-        /// </summary>
-        /// <value>The definition identifier.</value>
-        public string DefinitionId { get; set; }
-
         /// <summary>
         /// Gets or sets the identifier of the schema the definition is derived from.
         /// </summary>
         /// <value>The schema identifier.</value>
-        public string SchemaId { get; set; }
+        [JsonIgnore]
+        public string SchemaId
+        {
+            get => Get();
+            set => Set(value);
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether this definition supports credential revocation.
@@ -29,7 +24,11 @@
         /// <value>
         ///   <c>true</c> if this definition supports credential revocation; otherwise, <c>false</c>.
         /// </value>
-        public bool SupportsRevocation { get; set; }
+        public bool SupportsRevocation
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether requests are automatically issued a credential.
@@ -37,12 +36,16 @@
         /// <value>
         ///   <c>true</c> if [require approval]; otherwise, <c>false</c>.
         /// </value>
-        public bool RequireApproval { get; set; }
+        public bool RequireApproval
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets the name of the type.
         /// </summary>
         /// <returns>The type name.</returns>
-        public override string GetTypeName() => "CredentialDefinition";
+        public override string TypeName => "AF.CredentialDefinition";
     }
 }

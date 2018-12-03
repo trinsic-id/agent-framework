@@ -74,19 +74,17 @@ namespace AgentFramework.Core.Runtime
             {
                 Id = Guid.NewGuid().ToString(),
                 OfferJson = offerJson,
-                ConnectionId = connection.GetId(),
+                ConnectionId = connection.Id,
                 CredentialDefinitionId = definitionId,
+                SchemaId = schemaId,
                 State = CredentialState.Offered
             };
-            credentialRecord.Tags.Add(TagConstants.ConnectionId, connection.GetId());
-            credentialRecord.Tags.Add(TagConstants.Role, TagConstants.Holder);
-            credentialRecord.Tags.Add(TagConstants.Nonce, nonce);
-            credentialRecord.Tags.Add(TagConstants.SchemaId, schemaId);
-            credentialRecord.Tags.Add(TagConstants.DefinitionId, definitionId);
+            credentialRecord.SetTag(TagConstants.Role, TagConstants.Holder);
+            credentialRecord.SetTag(TagConstants.Nonce, nonce);
 
             await RecordService.AddAsync(wallet, credentialRecord);
 
-            return credentialRecord.GetId();
+            return credentialRecord.Id;
         }
 
         /// <inheritdoc />
@@ -139,9 +137,9 @@ namespace AgentFramework.Core.Runtime
             var credentialSearch =
                 await RecordService.SearchAsync<CredentialRecord>(wallet,
                 SearchQuery.And(
-                    SearchQuery.Equal(TagConstants.SchemaId, schemaId),
-                    SearchQuery.Equal(TagConstants.DefinitionId, definitionId),
-                    SearchQuery.Equal(TagConstants.ConnectionId, connection.GetId())
+                    SearchQuery.Equal(nameof(CredentialRecord.SchemaId), schemaId),
+                    SearchQuery.Equal(nameof(CredentialRecord.CredentialDefinitionId), definitionId),
+                    SearchQuery.Equal(nameof(CredentialRecord.ConnectionId), connection.Id)
                 ), null, 1);
 
             var credentialRecord = credentialSearch.Single();
@@ -185,11 +183,10 @@ namespace AgentFramework.Core.Runtime
                 OfferJson = offerJson,
                 ValuesJson = CredentialUtils.FormatCredentialValues(config.CredentialAttributeValues),
                 State = CredentialState.Offered,
-                ConnectionId = connection.GetId(),
+                ConnectionId = connection.Id,
             };
-            credentialRecord.Tags.Add(TagConstants.Nonce, nonce);
-            credentialRecord.Tags.Add(TagConstants.Role, TagConstants.Issuer);
-            credentialRecord.Tags.Add(TagConstants.ConnectionId, connection.GetId());
+            credentialRecord.SetTag(TagConstants.Nonce, nonce);
+            credentialRecord.SetTag(TagConstants.Role, TagConstants.Issuer);
 
             if (!string.IsNullOrEmpty(config.IssuerDid))
                 credentialRecord.Tags.Add(TagConstants.IssuerDid, config.IssuerDid);
@@ -243,7 +240,7 @@ namespace AgentFramework.Core.Runtime
 
             await RecordService.UpdateAsync(wallet, credential);
             
-            return credential.GetId();
+            return credential.Id;
         }
 
         /// <inheritdoc />
@@ -284,10 +281,11 @@ namespace AgentFramework.Core.Runtime
             if (definitionRecord.SupportsRevocation)
             {
                 var revocationRecordSearch = await RecordService.SearchAsync<RevocationRegistryRecord>(
-                wallet, SearchQuery.Equal(TagConstants.CredentialDefinitionId , definitionRecord.DefinitionId), null, 1);
-                var revocationRecord = revocationRecordSearch.First();
+                    wallet, SearchQuery.Equal(nameof(RevocationRegistryRecord.CredentialDefinitionId), definitionRecord.Id), null, 1);
 
-                revocationRegistryId = revocationRecord.RevocationRegistryId;
+                var revocationRecord = revocationRecordSearch.First(); // TODO: Credential definition can have multiple revocation registries
+
+                revocationRegistryId = revocationRecord.Id;
                 tailsReader = await TailsService.OpenTailsAsync(revocationRecord.TailsFile);
             }
 
@@ -325,17 +323,17 @@ namespace AgentFramework.Core.Runtime
             await credential.TriggerAsync(CredentialTrigger.Revoke);
 
             var revocationRecordSearch = await RecordService.SearchAsync<RevocationRegistryRecord>(
-                wallet, SearchQuery.Equal(TagConstants.CredentialDefinitionId , definition.DefinitionId), null, 1);
+                wallet, SearchQuery.Equal(nameof(RevocationRegistryRecord.CredentialDefinitionId), definition.Id), null, 1);
             var revocationRecord = revocationRecordSearch.First();
 
             // Revoke the credential
             var tailsReader = await TailsService.OpenTailsAsync(revocationRecord.TailsFile);
             var revocRegistryDeltaJson = await AnonCreds.IssuerRevokeCredentialAsync(wallet, tailsReader,
-                revocationRecord.RevocationRegistryId, credential.CredentialRevocationId);
+                revocationRecord.Id, credential.CredentialRevocationId);
 
             // Write the delta state on the ledger for the corresponding revocation registry
             await LedgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid,
-                revocationRecord.RevocationRegistryId,
+                revocationRecord.Id,
                 "CL_ACCUM", revocRegistryDeltaJson);
 
             // Update local credential record

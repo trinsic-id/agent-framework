@@ -35,12 +35,12 @@ namespace AgentFramework.Core.Runtime
         {
             var schema = await AnonCreds.IssuerCreateSchemaAsync(issuerDid, name, version, attributeNames.ToJson());
 
-            var schemaRecord = new SchemaRecord { SchemaId = schema.SchemaId };
+            var schemaRecord = new SchemaRecord { Id = schema.SchemaId };
 
             await LedgerService.RegisterSchemaAsync(pool, wallet, issuerDid, schema.SchemaJson);
             await RecordService.AddAsync(wallet, schemaRecord);
 
-            return schemaRecord.SchemaId;
+            return schemaRecord.Id;
         }
 
         /// <inheritdoc />
@@ -117,10 +117,8 @@ namespace AgentFramework.Core.Runtime
                 credentialDefinition.CredDefJson);
 
             definitionRecord.SupportsRevocation = supportsRevocation;
-            definitionRecord.DefinitionId = credentialDefinition.CredDefId;
+            definitionRecord.Id = credentialDefinition.CredDefId;
             definitionRecord.SchemaId = schemaId;
-
-            definitionRecord.Tags.Add(TagConstants.SchemaId, schemaId);
 
             if (supportsRevocation)
             {
@@ -144,10 +142,10 @@ namespace AgentFramework.Core.Runtime
 
                 var revocationRecord = new RevocationRegistryRecord
                 {
-                    RevocationRegistryId = revocationRegistry.RevRegId,
-                    TailsFile = tailsfile
+                    Id = revocationRegistry.RevRegId,
+                    TailsFile = tailsfile,
+                    CredentialDefinitionId = credentialDefinition.CredDefId
                 };
-                revocationRecord.Tags[TagConstants.CredentialDefinitionId] = credentialDefinition.CredDefId;
                 await RecordService.AddAsync(wallet, revocationRecord);
             }
 
