@@ -246,7 +246,7 @@ namespace AgentFramework.Core.Runtime
 
             if (!await RouterService.SendAsync(wallet, offer, connection))
             {
-                //TODO delete offer if I couldn't send it
+                await RecordService.DeleteAsync<CredentialRecord>(wallet, id);
                 throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionFailure, "Failed sending credential offer message");
             }
 
