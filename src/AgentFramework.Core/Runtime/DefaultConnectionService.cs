@@ -179,7 +179,7 @@ namespace AgentFramework.Core.Runtime
         {
             Logger.LogInformation(LoggingEvents.AcceptConnectionRequest, "ConnectionId {0}", connectionId);
 
-            var connection = await GetAsync(wallet, connectionId);
+            var connection = await GetAsync(wallet, connectionId, ConnectionState.Negotiating);
 
             await Pairwise.CreateAsync(wallet, connection.TheirDid, connection.MyDid, connection.Endpoint.ToJson());
 

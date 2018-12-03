@@ -197,7 +197,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<CredentialOfferMessage> CreateOfferAsync(Wallet wallet, OfferConfiguration config)
+        public virtual async Task<(CredentialOfferMessage,string)> CreateOfferAsync(Wallet wallet, OfferConfiguration config)
         {
             Logger.LogInformation(LoggingEvents.CreateCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
                 config.CredentialDefinitionId, config.ConnectionId, config.IssuerDid);
@@ -231,24 +231,26 @@ namespace AgentFramework.Core.Runtime
 
             await RecordService.AddAsync(wallet, credentialRecord);
 
-            return new CredentialOfferMessage { OfferJson = offerJson };
+            return (new CredentialOfferMessage { OfferJson = offerJson }, credentialRecord.GetId());
         }
 
         /// <inheritdoc />
-        public virtual async Task SendOfferAsync(Wallet wallet, OfferConfiguration config)
+        public virtual async Task<string> SendOfferAsync(Wallet wallet, OfferConfiguration config)
         {
             Logger.LogInformation(LoggingEvents.SendCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
                 config.CredentialDefinitionId, config.ConnectionId, config.IssuerDid);
 
             var connection = await ConnectionService.GetAsync(wallet, config.ConnectionId, ConnectionState.Connected);
             
-            var offer = await CreateOfferAsync(wallet, config);
+            (var offer, string id) = await CreateOfferAsync(wallet, config);
 
             if (!await RouterService.SendAsync(wallet, offer, connection))
             {
                 //TODO delete offer if I couldn't send it
                 throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionFailure, "Failed sending credential offer message");
             }
+
+            return id;
         }
 
         /// <inheritdoc />

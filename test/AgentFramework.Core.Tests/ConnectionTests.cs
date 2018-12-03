@@ -2,7 +2,9 @@
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
+using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
@@ -21,6 +23,10 @@ namespace AgentFramework.Core.Tests
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
         private const string MockEndpointUri = "http://mock";
 
+        private readonly Mock<IRouterService> _badRoutingMock;
+
+        private readonly Mock<IProvisioningService> _provisioningMock;
+
         private Wallet _issuerWallet;
         private Wallet _holderWallet;
 
@@ -32,13 +38,18 @@ namespace AgentFramework.Core.Tests
         {
             var messageSerializer = new DefaultMessageSerializer();
 
+            _badRoutingMock = new Mock<IRouterService>();
+            _badRoutingMock.Setup(x => x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>()))
+                .Callback((Wallet _, IAgentMessage content, ConnectionRecord __) => { })
+                .Returns(Task.FromResult(false));
+
             var routingMock = new Mock<IRouterService>();
             routingMock.Setup(x => x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>()))
                 .Callback((Wallet _, IAgentMessage content, ConnectionRecord __) => { _messages.Add(content); })
                 .Returns(Task.FromResult(true));
 
-            var provisioningMock = new Mock<IProvisioningService>();
-            provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
+            _provisioningMock = new Mock<IProvisioningService>();
+            _provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(Task.FromResult(new ProvisioningRecord
                 {
                     Endpoint = new AgentEndpoint {Uri = MockEndpointUri}
@@ -47,7 +58,7 @@ namespace AgentFramework.Core.Tests
             _connectionService = new DefaultConnectionService(
                 new DefaultWalletRecordService(),
                 routingMock.Object,
-                provisioningMock.Object,
+                _provisioningMock.Object,
                 messageSerializer,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
         }
@@ -88,6 +99,97 @@ namespace AgentFramework.Core.Tests
 
             Assert.Equal(ConnectionState.Invited, connection.State);
             Assert.Equal(connectionId, connection.Id);
+        }
+
+        [Fact]
+        public async Task AcceptInviteThrowsExceptionUnableToSendA2AMessage()
+        {
+            var connectionService = new DefaultConnectionService(new DefaultWalletRecordService(),
+                                                                 _badRoutingMock.Object,
+                                                                 _provisioningMock.Object,
+                                                                 new DefaultMessageSerializer(),
+                                                                 new Mock<ILogger<DefaultConnectionService>>().Object);
+
+            var invitation = await connectionService.CreateInvitationAsync(_issuerWallet,
+                new InviteConfiguration() { ConnectionId = Guid.NewGuid().ToString() });
+            
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await connectionService.AcceptInvitationAsync(_holderWallet, invitation));
+
+            Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionFailure);
+        }
+
+        [Fact]
+        public async Task AcceptRequestThrowsExceptionConnectionNotFound()
+        {
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.AcceptRequestAsync(_issuerWallet, "bad-connection-id"));
+            Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
+        }
+
+        [Fact]
+        public async Task AcceptRequestThrowsExceptionConnectionInvalidState()
+        {
+            var connectionId = Guid.NewGuid().ToString();
+            
+            await _connectionService.CreateInvitationAsync(_issuerWallet,
+                new InviteConfiguration() { ConnectionId = connectionId, AutoAcceptConnection = false });
+
+            //Process a connection request
+            var connectionRecord = await _connectionService.GetAsync(_issuerWallet, connectionId);
+
+            await _connectionService.ProcessRequestAsync(_issuerWallet, new ConnectionRequestMessage
+            {
+                Did = "EYS94e95kf6LXF49eARL76",
+                Verkey = "~LGkX716up2KAimNfz11HRr",
+                Endpoint = new AgentEndpoint
+                {
+                    Did = "EYS94e95kf6LXF49eARL76",
+                    Verkey = "~LGkX716up2KAimNfz11HRr"
+                },
+                Type = MessageTypes.ConnectionRequest
+            }, connectionRecord);
+
+            //Accept the connection request
+            await _connectionService.AcceptRequestAsync(_issuerWallet, connectionId);
+
+            //Now try and accept it again
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.AcceptRequestAsync(_issuerWallet, connectionId));
+
+            Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
+        }
+
+        [Fact]
+        public async Task AcceptRequestThrowsExceptionUnableToSendA2AMessage()
+        {
+            var connectionService = new DefaultConnectionService(new DefaultWalletRecordService(),
+                _badRoutingMock.Object,
+                _provisioningMock.Object,
+                new DefaultMessageSerializer(),
+                new Mock<ILogger<DefaultConnectionService>>().Object);
+
+            var connectionId = Guid.NewGuid().ToString();
+            
+            await connectionService.CreateInvitationAsync(_issuerWallet,
+                new InviteConfiguration() { ConnectionId = connectionId, AutoAcceptConnection = false });
+
+            //Process a connection request
+            var connectionRecord = await connectionService.GetAsync(_issuerWallet, connectionId);
+
+            await connectionService.ProcessRequestAsync(_issuerWallet, new ConnectionRequestMessage
+            {
+                Did = "EYS94e95kf6LXF49eARL76",
+                Verkey = "~LGkX716up2KAimNfz11HRr",
+                Endpoint = new AgentEndpoint
+                {
+                    Did = "EYS94e95kf6LXF49eARL76",
+                    Verkey = "~LGkX716up2KAimNfz11HRr"
+                },
+                Type = MessageTypes.ConnectionRequest
+            }, connectionRecord);
+            
+            //Now try and accept it again
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await connectionService.AcceptRequestAsync(_issuerWallet, connectionId));
+
+            Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionFailure);
         }
 
         [Fact]

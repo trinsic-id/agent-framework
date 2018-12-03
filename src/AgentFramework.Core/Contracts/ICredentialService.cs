@@ -93,8 +93,8 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="config">A configuration object used to configure the resulting offers presentation</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
-        /// <returns>The offer. </returns>
-        Task<CredentialOfferMessage> CreateOfferAsync(Wallet wallet, OfferConfiguration config);
+        /// <returns>The offer message and the identifer. </returns>
+        Task<(CredentialOfferMessage, string)> CreateOfferAsync(Wallet wallet, OfferConfiguration config);
 
         /// <summary>
         /// Sends the offer asynchronous.
@@ -103,8 +103,8 @@ namespace AgentFramework.Core.Contracts
         /// <param name="config">A configuration object used to configure the resulting offers presentation</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionFailure.</exception>
-        /// <returns>The reponse async.</returns>
-        Task SendOfferAsync(Wallet wallet, OfferConfiguration config);
+        /// <returns>The offer identifier.</returns>
+        Task<string> SendOfferAsync(Wallet wallet, OfferConfiguration config);
 
         /// <summary>
         /// Processes the credential request and stores in the designated wallet.
