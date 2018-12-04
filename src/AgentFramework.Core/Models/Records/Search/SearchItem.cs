@@ -6,7 +6,7 @@ namespace AgentFramework.Core.Models.Records.Search
     /// <summary>
     /// Search record item.
     /// </summary>
-    public class SearchRecordItem
+    public class SearchItem
     {
         /// <summary>
         /// Gets or sets the records.

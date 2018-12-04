@@ -119,7 +119,7 @@ namespace AgentFramework.Core.Runtime
 
             var proofRecordSearch =
                 await RecordService.SearchAsync<ProofRecord>(wallet,
-                    new SearchRecordQuery {{ TagConstants.Nonce, proof.RequestNonce}}, null, 1);
+                    SearchQuery.Equal(TagConstants.Nonce, proof.RequestNonce), null, 1);
             if (!proofRecordSearch.Any())
                 throw new Exception($"Can't find proof record");
             var proofRecord = proofRecordSearch.SingleOrDefault() ??
@@ -257,7 +257,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual Task<List<ProofRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100) =>
+        public virtual Task<List<ProofRecord>> ListAsync(Wallet wallet, ISearchQuery query = null, int count = 100) =>
             RecordService.SearchAsync<ProofRecord>(wallet, query, null, count);
 
         /// <inheritdoc />

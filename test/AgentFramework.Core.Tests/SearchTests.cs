@@ -49,7 +49,7 @@ namespace AgentFramework.Core.Tests
                 new ConnectionRecord {ConnectionId = "2", State = ConnectionState.Connected});
 
             var searchResult = await _recordService.SearchAsync<ConnectionRecord>(_wallet,
-                new SearchRecordQuery {{ TagConstants.State, ConnectionState.Invited.ToString("G")}}, null, 10);
+                SearchQuery.Equal(TagConstants.State, ConnectionState.Invited.ToString("G")), null, 10);
 
             Assert.Single(searchResult);
             Assert.Equal("1", searchResult.Single().ConnectionId);
@@ -78,12 +78,11 @@ namespace AgentFramework.Core.Tests
 
 
             var searchResult = await _recordService.SearchAsync<ConnectionRecord>(_wallet,
-                new SearchRecordQuery
-                {
-                    {"State", ConnectionState.Connected.ToString("G")},
-                    {"tagName", "tagValue"}
+                SearchQuery.And(
+                    SearchQuery.Equal("State", ConnectionState.Connected.ToString("G")),
+                    SearchQuery.Equal("tagName", "tagValue")
 
-                }, null, 10);
+                ), null, 10);
 
             Assert.Single(searchResult);
             Assert.Equal("2", searchResult.Single().ConnectionId);
@@ -103,11 +102,10 @@ namespace AgentFramework.Core.Tests
                 new ConnectionRecord {ConnectionId = Guid.NewGuid().ToString(), State = ConnectionState.Connected});
 
             var searchResult = await _recordService.SearchAsync<ConnectionRecord>(_wallet,
-                new SearchRecordQuery
-                {
-                    {"State", ConnectionState.Connected.ToString("G")},
-                    {"tagName", "tagValue"}
-                }, null, 10);
+                SearchQuery.And(
+                    SearchQuery.Equal("State", ConnectionState.Connected.ToString("G")),
+                    SearchQuery.Equal("tagName", "tagValue")
+                ), null, 10);
 
             Assert.Empty(searchResult);
         }

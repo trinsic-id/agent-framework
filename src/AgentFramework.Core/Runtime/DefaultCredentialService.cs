@@ -57,7 +57,7 @@ namespace AgentFramework.Core.Runtime
             RecordService.GetAsync<CredentialRecord>(wallet, credentialId);
 
         /// <inheritdoc />
-        public virtual Task<List<CredentialRecord>> ListAsync(Wallet wallet, SearchRecordQuery query = null, int count = 100) =>
+        public virtual Task<List<CredentialRecord>> ListAsync(Wallet wallet, ISearchQuery query = null, int count = 100) =>
             RecordService.SearchAsync<CredentialRecord>(wallet, query, null, count);
 
         /// <inheritdoc />
@@ -137,12 +137,12 @@ namespace AgentFramework.Core.Runtime
             var revRegId = offer["rev_reg_id"]?.ToObject<string>();
 
             var credentialSearch =
-                await RecordService.SearchAsync<CredentialRecord>(wallet, new SearchRecordQuery
-                {
-                    { TagConstants.SchemaId, schemaId},
-                    { TagConstants.DefinitionId, definitionId},
-                    { TagConstants.ConnectionId, connection.GetId()}
-                }, null, 1);
+                await RecordService.SearchAsync<CredentialRecord>(wallet,
+                SearchQuery.And(
+                    SearchQuery.Equal(TagConstants.SchemaId, schemaId),
+                    SearchQuery.Equal(TagConstants.DefinitionId, definitionId),
+                    SearchQuery.Equal(TagConstants.ConnectionId, connection.GetId())
+                ), null, 1);
 
             var credentialRecord = credentialSearch.Single();
             // TODO: Should throw or resolve conflict gracefully if multiple credential records are found
@@ -226,7 +226,7 @@ namespace AgentFramework.Core.Runtime
             var request = JObject.Parse(credentialRequest.OfferJson);
             var nonce = request["nonce"].ToObject<string>();
 
-            var query = new SearchRecordQuery { { TagConstants.Nonce , nonce } };
+            var query = SearchQuery.Equal(TagConstants.Nonce , nonce);
             var credentialSearch = await RecordService.SearchAsync<CredentialRecord>(wallet, query, null, 1);
 
             var credential = credentialSearch.Single();
@@ -284,7 +284,7 @@ namespace AgentFramework.Core.Runtime
             if (definitionRecord.SupportsRevocation)
             {
                 var revocationRecordSearch = await RecordService.SearchAsync<RevocationRegistryRecord>(
-                wallet, new SearchRecordQuery { { TagConstants.CredentialDefinitionId , definitionRecord.DefinitionId } }, null, 1);
+                wallet, SearchQuery.Equal(TagConstants.CredentialDefinitionId , definitionRecord.DefinitionId), null, 1);
                 var revocationRecord = revocationRecordSearch.First();
 
                 revocationRegistryId = revocationRecord.RevocationRegistryId;
@@ -325,7 +325,7 @@ namespace AgentFramework.Core.Runtime
             await credential.TriggerAsync(CredentialTrigger.Revoke);
 
             var revocationRecordSearch = await RecordService.SearchAsync<RevocationRegistryRecord>(
-                wallet, new SearchRecordQuery { { TagConstants.CredentialDefinitionId , definition.DefinitionId } }, null, 1);
+                wallet, SearchQuery.Equal(TagConstants.CredentialDefinitionId , definition.DefinitionId), null, 1);
             var revocationRecord = revocationRecordSearch.First();
 
             // Revoke the credential

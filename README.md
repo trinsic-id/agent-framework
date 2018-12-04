@@ -22,7 +22,7 @@ Navigate to [http://localhost:7001](), [http://localhost:7002]() and [http://loc
 ### Running the unit tests
 
 ```lang=bash
-docker-compose -f docker-compose.test.yaml up --build --abort-on-container-exit --exit-code-from test-agent
+docker-compose -f docker-compose.test.yaml up --build --remove-orphans --abort-on-container-exit --exit-code-from test-agent
 ```
 
 Note: You may need to cleanup previous docker network created using `docker network prune`

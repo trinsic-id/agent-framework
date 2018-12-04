@@ -25,7 +25,7 @@ namespace Streetcred.Sdk.Contracts
         public static Task<List<ProofRecord>> ListRequestedAsync(this IProofService proofService,
             Wallet wallet, int count = 100)
             => proofService.ListAsync(wallet,
-                new SearchRecordQuery {{ TagConstants.State, ProofState.Requested.ToString("G")}}, count);
+                SearchQuery.Equal(TagConstants.State, ProofState.Requested.ToString("G")), count);
 
         /// <summary>
         /// Retrieves a list of accepted proof records.
@@ -37,6 +37,6 @@ namespace Streetcred.Sdk.Contracts
         public static Task<List<ProofRecord>> ListAcceptedAsync(this IProofService proofService,
             Wallet wallet, int count = 100)
             => proofService.ListAsync(wallet,
-                new SearchRecordQuery {{ TagConstants.State, ProofState.Accepted.ToString("G")}}, count);
+                SearchQuery.Equal(TagConstants.State, ProofState.Accepted.ToString("G")), count);
     }
 }
