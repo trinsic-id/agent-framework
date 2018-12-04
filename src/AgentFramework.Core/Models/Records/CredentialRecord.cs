@@ -9,8 +9,8 @@ namespace AgentFramework.Core.Models.Records
     /// <summary>
     /// Represents a credential record in the agency wallet.
     /// </summary>
-    /// <seealso cref="WalletRecord" />
-    public class CredentialRecord : WalletRecord
+    /// <seealso cref="RecordBase" />
+    public class CredentialRecord : RecordBase
     {
         private CredentialState _state;
 
@@ -20,74 +20,108 @@ namespace AgentFramework.Core.Models.Records
         }
 
         /// <summary>
-        /// Gets the identifier.
-        /// </summary>
-        /// <returns>The identifier.</returns>
-        public override string GetId() => Id;
-
-        /// <summary>
         /// Gets the name of the type.
         /// </summary>
         /// <returns>The type name.</returns>
-        public override string GetTypeName() => "CredentialRecord";
-
-        /// <summary>
-        /// Gets or sets the identifier.
-        /// </summary>
-        /// <value>The identifier.</value>
-        public string Id { get; set; }
+        public override string TypeName => "AF.CredentialRecord";
 
         /// <summary>
         /// Gets or sets the definition identifier of this credential.
         /// </summary>
         /// <value>The credential definition identifier.</value>
-        public string CredentialDefinitionId { get; set; }
+        [JsonIgnore]
+        public string CredentialDefinitionId
+        {
+            get => Get();
+            set => Set(value);
+        }
 
         /// <summary>
         /// Gets or sets the credential request json.
         /// </summary>
         /// <value>The request json.</value>
-        public string RequestJson { get; set; }
+        public string RequestJson
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the user values json.
         /// </summary>
         /// <value>The values json.</value>
-        [JsonProperty("~ValuesJson")]
-        public string ValuesJson { get; set; }
+        public string ValuesJson
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the credential offer json.
         /// </summary>
         /// <value>The offer json.</value>
-        public string OfferJson { get; set; }
-        
+        public string OfferJson
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Gets or sets the credential revocation identifier.
         /// This field is only present in the issuer wallet.
         /// </summary>
         /// <value>The credential revocation identifier.</value>
-        public string CredentialRevocationId { get; set; }
+        [JsonIgnore]
+        public string CredentialRevocationId
+        {
+            get => Get();
+            set => Set(value);
+        }
+
+        /// <summary>
+        /// Gets or sets the schema identifier.
+        /// </summary>
+        /// <value>The schema identifier.</value>
+        [JsonIgnore]
+        public string SchemaId
+        {
+            get => Get();
+            set => Set(value);
+        }
 
         /// <summary>
         /// Gets or sets the connection identifier associated with this credential.
         /// </summary>
         /// <value>The connection identifier.</value>
-        public string ConnectionId { get; set; }
+        [JsonIgnore]
+        public string ConnectionId
+        {
+            get => Get();
+            set => Set(value);
+        }
 
         /// <summary>
         /// Gets or sets the credential request metadata json.
         /// This field is only present in the holder wallet.
         /// </summary>
         /// <value>The credential request metadata json.</value>
-        public string CredentialRequestMetadataJson { get; set; }
+        public string CredentialRequestMetadataJson
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the credential identifier.
         /// This field is only present in the holder wallet.
         /// </summary>
         /// <value>The credential identifier.</value>
-        public string CredentialId { get; set; }
+        [JsonIgnore]
+        public string CredentialId
+        {
+            get => Get();
+            set => Set(value);
+        }
 
         #region State Machine Implementation
         /// <summary>
@@ -98,11 +132,7 @@ namespace AgentFramework.Core.Models.Records
         public CredentialState State
         {
             get => _state;
-            set
-            {
-                _state = value;
-                Tags[TagConstants.State] = value.ToString("G");
-            }
+            set => Set(value, ref _state);
         }
 
         /// <summary>

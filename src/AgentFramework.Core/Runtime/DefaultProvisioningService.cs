@@ -23,7 +23,7 @@ namespace AgentFramework.Core.Runtime
 
         /// <inheritdoc />
         public virtual Task<ProvisioningRecord> GetProvisioningAsync(Wallet wallet) =>
-            RecordService.GetAsync<ProvisioningRecord>(wallet, ProvisioningRecord.RecordId);
+            RecordService.GetAsync<ProvisioningRecord>(wallet, ProvisioningRecord.UniqueRecordId);
 
         /// <inheritdoc />
         public virtual async Task ProvisionAgentAsync(Wallet wallet, ProvisioningConfiguration provisioningConfiguration)

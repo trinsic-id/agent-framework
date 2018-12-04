@@ -44,33 +44,35 @@ namespace AgentFramework.Core.Tests
         public async Task CanFilterSearchableProperties()
         {
             await _recordService.AddAsync(_wallet,
-                new ConnectionRecord {ConnectionId = "1", State = ConnectionState.Invited});
+                new ConnectionRecord {Id = "1", State = ConnectionState.Invited});
             await _recordService.AddAsync(_wallet,
-                new ConnectionRecord {ConnectionId = "2", State = ConnectionState.Connected});
+                new ConnectionRecord {Id = "2", State = ConnectionState.Connected});
 
             var searchResult = await _recordService.SearchAsync<ConnectionRecord>(_wallet,
-                SearchQuery.Equal(TagConstants.State, ConnectionState.Invited.ToString("G")), null, 10);
+                SearchQuery.Equal(nameof(ConnectionRecord.State), ConnectionState.Invited.ToString("G")), null, 10);
 
             Assert.Single(searchResult);
-            Assert.Equal("1", searchResult.Single().ConnectionId);
+            Assert.Equal("1", searchResult.Single().Id);
         }
 
         [Fact]
         public async Task CanSearchMulipleProperties()
         {
-            var record1 = new ConnectionRecord {State = ConnectionState.Connected, ConnectionId = "1"};
+            var record1 = new ConnectionRecord {State = ConnectionState.Connected, Id = "1"};
             var record2 = new ConnectionRecord
             {
                 State = ConnectionState.Connected,
-                ConnectionId = "2",
-                Tags = {["tagName"] = "tagValue"}
+                Id = "2"
             };
+            record2.SetTag("tagName", "tagValue");
+
             var record3 = new ConnectionRecord
             {
                 State = ConnectionState.Invited,
-                ConnectionId = "3",
-                Tags = {["tagName"] = "tagValue"}
+                Id = "3"
             };
+            record3.SetTag("tagName", "tagValue");
+            
 
             await _recordService.AddAsync(_wallet, record1);
             await _recordService.AddAsync(_wallet, record2);
@@ -85,21 +87,22 @@ namespace AgentFramework.Core.Tests
                 ), null, 10);
 
             Assert.Single(searchResult);
-            Assert.Equal("2", searchResult.Single().ConnectionId);
+            Assert.Equal("2", searchResult.Single().Id);
         }
 
         [Fact]
         public async Task ReturnsEmptyIfNoRecordsMatchCriteria()
         {
+            var record = new ConnectionRecord
+            {
+                Id = Guid.NewGuid().ToString(),
+                State = ConnectionState.Invited
+            };
+            record.SetTag("tagName", "tagValue");
+
+            await _recordService.AddAsync(_wallet, record);
             await _recordService.AddAsync(_wallet,
-                new ConnectionRecord
-                {
-                    ConnectionId = Guid.NewGuid().ToString(),
-                    State = ConnectionState.Invited,
-                    Tags = {["tagName"] = "tagValue"}
-                });
-            await _recordService.AddAsync(_wallet,
-                new ConnectionRecord {ConnectionId = Guid.NewGuid().ToString(), State = ConnectionState.Connected});
+                new ConnectionRecord {Id = Guid.NewGuid().ToString(), State = ConnectionState.Connected});
 
             var searchResult = await _recordService.SearchAsync<ConnectionRecord>(_wallet,
                 SearchQuery.And(
