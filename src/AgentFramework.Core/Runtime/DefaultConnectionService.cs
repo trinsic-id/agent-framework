@@ -125,7 +125,7 @@ namespace AgentFramework.Core.Runtime
             }
             catch (Exception e)
             {
-                await RecordService.DeleteAsync<ConnectionRecord>(wallet, connection.GetId());
+                await RecordService.DeleteAsync<ConnectionRecord>(wallet, connection.Id);
                 throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send connection request message", e);
             }
 
@@ -157,7 +157,7 @@ namespace AgentFramework.Core.Runtime
             }
             catch (Exception)
             {
-                await RecordService.DeleteAsync<ConnectionRecord>(wallet, connection.GetId());
+                await RecordService.DeleteAsync<ConnectionRecord>(wallet, connection.Id);
                 throw;
             }
 

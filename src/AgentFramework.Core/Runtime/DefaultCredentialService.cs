@@ -238,7 +238,7 @@ namespace AgentFramework.Core.Runtime
 
             await RecordService.AddAsync(wallet, credentialRecord);
 
-            return (new CredentialOfferMessage { OfferJson = offerJson }, credentialRecord.GetId());
+            return (new CredentialOfferMessage { OfferJson = offerJson }, credentialRecord.Id);
         }
 
         /// <inheritdoc />

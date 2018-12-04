@@ -133,7 +133,7 @@ namespace AgentFramework.Core.Runtime
 
             await RecordService.AddAsync(wallet, proofRecord);
 
-            return (new ProofRequestMessage { ProofRequestJson = proofRequestJson }, proofRecord.GetId());
+            return (new ProofRequestMessage { ProofRequestJson = proofRequestJson }, proofRecord.Id);
         }
 
         /// <inheritdoc />

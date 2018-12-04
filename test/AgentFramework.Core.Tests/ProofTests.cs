@@ -318,7 +318,7 @@ namespace AgentFramework.Core.Tests
 
                 //Requestor sends a proof request
                 _routeMessage = false;
-                var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.ConnectionId, proofRequestObject));
+                var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject));
                 _routeMessage = true;
 
                 Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionError);
@@ -400,7 +400,7 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.ConnectionId, proofRequestObject);
+                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
             }
 
             // Holder accepts the proof requests and builds a proof
@@ -500,7 +500,7 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.ConnectionId, proofRequestObject);
+                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
             }
 
             // Holder accepts the proof requests and builds a proof
@@ -591,7 +591,7 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.ConnectionId, proofRequestObject);
+                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
             }
             
             //Holder retrives proof request message from their cloud agent

@@ -214,7 +214,7 @@ namespace AgentFramework.Core.Tests
             _routeMessage = false;
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.SendOfferAsync(_issuerWallet, new OfferConfiguration
             {
-                ConnectionId = issuerConnection.ConnectionId,
+                ConnectionId = issuerConnection.Id,
                 CredentialDefinitionId = credId
             }));
             _routeMessage = true;
@@ -261,7 +261,7 @@ namespace AgentFramework.Core.Tests
 
             var offerConfig = new OfferConfiguration()
             {
-                ConnectionId = issuerConnection.GetId(),
+                ConnectionId = issuerConnection.Id,
                 IssuerDid = issuer.Did,
                 CredentialDefinitionId = definitionId
             };
@@ -329,7 +329,7 @@ namespace AgentFramework.Core.Tests
 
             var offerConfig = new OfferConfiguration()
             {
-                ConnectionId = issuerConnection.GetId(),
+                ConnectionId = issuerConnection.Id,
                 IssuerDid = issuer.Did,
                 CredentialDefinitionId = definitionId
             };
@@ -387,7 +387,7 @@ namespace AgentFramework.Core.Tests
 
             var offerConfig = new OfferConfiguration()
             {
-                ConnectionId = issuerConnection.GetId(),
+                ConnectionId = issuerConnection.Id,
                 IssuerDid = issuer.Did,
                 CredentialDefinitionId = definitionId
             };
@@ -452,7 +452,7 @@ namespace AgentFramework.Core.Tests
 
             var offerConfig = new OfferConfiguration()
             {
-                ConnectionId = issuerConnection.GetId(),
+                ConnectionId = issuerConnection.Id,
                 IssuerDid = issuer.Did,
                 CredentialDefinitionId = definitionId
             };
