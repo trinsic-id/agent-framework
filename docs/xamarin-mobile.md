@@ -1,7 +1,5 @@
 # Using Indy SDK and Agent Framework with Xamarin
 
-Contents
-
 [Working with Xamarin](#working-with-xamarin)
 
 [Instructions for Android](#instructions-for-anroid)
@@ -18,15 +16,15 @@ TODO
 
 To setup Indy on Android you need to add the native libindy references and dependencies. The process is described in detail at the official Xamarin documentation [Using Native Libraries with Xamarin.Android](https://docs.microsoft.com/en-us/xamarin/android/platform/native-libraries).
 
-Below are few additional things that are not covered by the documentation that are Indy specific.
+Below are a few additional things that are not covered by the documentation that are Indy specific.
 
-For Android the entire library and it dependencies are compiled into a single shared object (*.so). In order for libindy.so to be executable we must also include libgnustl_shared.so.
+For Android the entire library and it dependencies are compiled into a single shared object (*.so). In order for `libindy.so` to be executable we must also include `libgnustl_shared.so`.
 
 Depending on the target abi(s) for the resulting app, not all of the artifacts need to be included, for ease of use below we document including all abi(s).
 
 ### Setup the Android references
 
-In Visual Studio (for Windows or Mac) create new Xamarin Android project. If you want to use Xamarin Forms, the instructions are the same. Apply the changes to your iOS project in Xamarin Forms.
+In Visual Studio (for Windows or Mac) create new Xamarin Android project. If you want to use Xamarin Forms, the instructions are the same. Apply the changes to your Android project in Xamarin Forms.
 
 Download the static libraries required [here](../samples/xamarin-mobile-sample/libs-android) or other versions of libindy can be found [here](https://repo.sovrin.org/android/libindy/)
 
@@ -58,15 +56,15 @@ Next we need to invoke these dependencies at runtime. To do this add the followi
   JavaSystem.LoadLibrary("indy");
 ```
 
-In order to use indy in any capacity, the following permissions must be granted in your AndroidManifest.xml.
+In order to use most of libindy's functionality, the following permissions must be granted to your app, you can do this by adjusting your AndroidManifest.xml, located under properties in your project.
 
 ```lang=xml
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-	<uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.INTERNET" />
 ```
 
-If you are running at API level 23 and above these permissions also must be requested at runtime, in order to do this add the following to your MainActivity.cs
+If you are running your android app at API level 23 and above, these permissions also must be requested at runtime, in order to do this add the following to your MainActivity.cs
 
 ```lang=csharp
   if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
@@ -86,7 +84,7 @@ Finally, check the Xamarin Sample we have included for a fully configured projec
 
 To setup Indy on iOS you need to add the native libindy references and dependencies. The process is described in detail at the official Xamarin documentation [Native References in iOS, Mac, and Bindings Projects](https://docs.microsoft.com/en-us/xamarin/cross-platform/macios/native-references).
 
-Below are few additional things that are not covered by the documentation that are Indy specific.
+Below are a few additional things that are not covered by the documentation that are Indy specific.
 
 In order to enable the Indy SDK package to recognize the `DllImport` calls to the native static libraries, we need to include them in our solution.
 
