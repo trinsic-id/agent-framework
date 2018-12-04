@@ -19,6 +19,19 @@ namespace AgentFramework.Core.Models.Records
             State = ConnectionState.Invited;
         }
 
+        public ConnectionRecord ShallowCopy()
+        {
+            return (ConnectionRecord)this.MemberwiseClone();
+        }
+
+        public ConnectionRecord DeepCopy()
+        {
+            ConnectionRecord copy = (ConnectionRecord)this.MemberwiseClone();
+            copy.Alias = new ConnectionAlias(Alias);
+            copy.Endpoint = new AgentEndpoint(Endpoint);
+            return copy;
+        }
+
         /// <summary>
         /// Gets the name of the type.
         /// </summary>
@@ -113,10 +126,8 @@ namespace AgentFramework.Core.Models.Records
             var state = new StateMachine<ConnectionState, ConnectionTrigger>(() => State, x => State = x);
             state.Configure(ConnectionState.Invited).Permit(ConnectionTrigger.InvitationAccept, ConnectionState.Negotiating);
             state.Configure(ConnectionState.Invited).Permit(ConnectionTrigger.Request, ConnectionState.Negotiating);
-            state.Configure(ConnectionState.Negotiating).Permit(ConnectionTrigger.Error, ConnectionState.Invited);
             state.Configure(ConnectionState.Negotiating).Permit(ConnectionTrigger.Request, ConnectionState.Connected);
             state.Configure(ConnectionState.Negotiating).Permit(ConnectionTrigger.Response, ConnectionState.Connected);
-            state.Configure(ConnectionState.Connected).Permit(ConnectionTrigger.Error, ConnectionState.Negotiating);
             return state;
         }
 
@@ -141,7 +152,6 @@ namespace AgentFramework.Core.Models.Records
     {
         InvitationAccept,
         Request,
-        Response,
-        Error
+        Response
     }
 }

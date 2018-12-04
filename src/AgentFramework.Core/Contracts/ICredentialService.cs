@@ -25,17 +25,6 @@ namespace AgentFramework.Core.Contracts
         Task<CredentialRecord> GetAsync(Wallet wallet, string credentialId);
 
         /// <summary>
-        /// Gets credential record for the given identifier.
-        /// </summary>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="credentialId">The credential identifier.</param>
-        /// <param name="expectedState">Expected state of the credential record.</param>
-        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
-        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
-        /// <returns>The stored credental record</returns>
-        Task<CredentialRecord> GetAsync(Wallet wallet, string credentialId, CredentialState expectedState);
-
-        /// <summary>
         /// Retreives a list of <see cref="CredentialRecord"/> items for the given search criteria.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
@@ -61,7 +50,8 @@ namespace AgentFramework.Core.Contracts
         /// <param name="credentialId">The credential identifier.</param>
         /// <param name="attributeValues">The attribute values.</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
-        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionFailure.</exception>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
         /// <returns>The response async.</returns>
         Task AcceptOfferAsync(Wallet wallet, Pool pool, string credentialId, Dictionary<string, string> attributeValues);
 
@@ -102,7 +92,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="config">A configuration object used to configure the resulting offers presentation</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
-        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionFailure.</exception>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
         /// <returns>The offer identifier.</returns>
         Task<string> SendOfferAsync(Wallet wallet, OfferConfiguration config);
 

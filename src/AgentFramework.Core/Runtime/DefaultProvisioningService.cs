@@ -35,7 +35,8 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public virtual async Task ProvisionAgentAsync(Wallet wallet, ProvisioningConfiguration provisioningConfiguration)
         {
-            if (provisioningConfiguration == null) throw new ArgumentNullException(nameof(provisioningConfiguration));
+            if (provisioningConfiguration == null)
+                throw new ArgumentNullException(nameof(provisioningConfiguration));
             if (provisioningConfiguration.EndpointUri == null)
                 throw new ArgumentNullException(nameof(provisioningConfiguration.EndpointUri));
 
@@ -58,7 +59,6 @@ namespace AgentFramework.Core.Runtime
 
             record = new ProvisioningRecord
             {
-                IssuerSeed = provisioningConfiguration.IssuerSeed,
                 AgentSeed = provisioningConfiguration.AgentSeed,
                 MasterSecretId = masterSecretId,
                 Endpoint =
@@ -71,12 +71,13 @@ namespace AgentFramework.Core.Runtime
                 {
                     Name = provisioningConfiguration.OwnerName,
                     ImageUrl = provisioningConfiguration.OwnerImageUrl
-                },
-                TailsBaseUri = provisioningConfiguration.TailsBaseUri.ToString()
+                }
             };
 
             if (provisioningConfiguration.CreateIssuer)
             {
+                record.IssuerSeed = provisioningConfiguration.IssuerSeed;
+
                 var issuer = await Did.CreateAndStoreMyDidAsync(wallet,
                     provisioningConfiguration.IssuerSeed != null
                         ? new {seed = provisioningConfiguration.IssuerSeed}.ToJson()
@@ -84,6 +85,7 @@ namespace AgentFramework.Core.Runtime
 
                 record.IssuerDid = issuer.Did;
                 record.IssuerVerkey = issuer.VerKey;
+                record.TailsBaseUri = provisioningConfiguration.TailsBaseUri?.ToString();
             }
 
             await RecordService.AddAsync(wallet, record);

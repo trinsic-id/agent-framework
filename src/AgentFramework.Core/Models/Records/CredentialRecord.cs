@@ -19,6 +19,17 @@ namespace AgentFramework.Core.Models.Records
             State = CredentialState.Offered;
         }
 
+        public CredentialRecord ShallowCopy()
+        {
+            return (CredentialRecord)this.MemberwiseClone();
+        }
+
+        public CredentialRecord DeepCopy()
+        {
+            CredentialRecord copy = (CredentialRecord)this.MemberwiseClone();
+            return copy;
+        }
+
         /// <summary>
         /// Gets the name of the type.
         /// </summary>
@@ -146,11 +157,10 @@ namespace AgentFramework.Core.Models.Records
         {
             var state = new StateMachine<CredentialState, CredentialTrigger>(() => State, x => State = x);
             state.Configure(CredentialState.Offered).Permit(CredentialTrigger.Request, CredentialState.Requested);
-            state.Configure(CredentialState.Requested).Permit(CredentialTrigger.Error, CredentialState.Offered);
+            state.Configure(CredentialState.Offered).Permit(CredentialTrigger.Reject, CredentialState.Rejected);
             state.Configure(CredentialState.Requested).Permit(CredentialTrigger.Issue, CredentialState.Issued);
             state.Configure(CredentialState.Requested).Permit(CredentialTrigger.Reject, CredentialState.Rejected);
             state.Configure(CredentialState.Issued).Permit(CredentialTrigger.Revoke, CredentialState.Revoked);
-            state.Configure(CredentialState.Issued).Permit(CredentialTrigger.Error, CredentialState.Requested);
 
             return state;
         }
@@ -178,7 +188,6 @@ namespace AgentFramework.Core.Models.Records
         Request,
         Issue,
         Reject,
-        Revoke,
-        Error
+        Revoke
     }
 }

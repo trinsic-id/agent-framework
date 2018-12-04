@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Routing;
 using AgentFramework.Core.Models.Records;
@@ -30,7 +31,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<bool> SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connectionRecord)
+        public async Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connectionRecord)
         {
             _logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0} Endpoint {1}", connectionRecord.TheirVk, connectionRecord.Endpoint.Uri);
             
@@ -57,7 +58,15 @@ namespace AgentFramework.Core.Runtime
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
             var response = await _httpClient.SendAsync(request);
-            return response.IsSuccessStatusCode;
+
+            try
+            {
+                response.EnsureSuccessStatusCode();
+            }
+            catch (Exception e)
+            {
+                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send A2A message", e);
+            }
         }
     }
 }

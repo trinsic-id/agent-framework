@@ -6,6 +6,7 @@
         RecordNotFound,
         RecordInInvalidState,
         LedgerOperationRejected,
-        A2AMessageTransmissionFailure
+        RouteMessageError,
+        A2AMessageTransmissionError
     }
 }

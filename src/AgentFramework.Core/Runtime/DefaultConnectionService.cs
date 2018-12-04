@@ -119,11 +119,14 @@ namespace AgentFramework.Core.Runtime
                 Endpoint = provisioning.Endpoint
             };
 
-            if (!await RouterService.SendAsync(wallet, msg, connection))
+            try
             {
-                await connection.TriggerAsync(ConnectionTrigger.Error);
-                await RecordService.UpdateAsync(wallet, connection);
-                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionFailure, "Failed sending connection request message");
+                await RouterService.SendAsync(wallet, msg, connection);
+            }
+            catch (Exception e)
+            {
+                await RecordService.DeleteAsync<ConnectionRecord>(wallet, connection.GetId());
+                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send connection request message", e);
             }
 
             return connection.Id;
@@ -147,8 +150,16 @@ namespace AgentFramework.Core.Runtime
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await RecordService.UpdateAsync(wallet, connection);
 
-            if (connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
-                await AcceptRequestAsync(wallet, connection.Id);
+            try
+            {
+                if (connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
+                    await AcceptRequestAsync(wallet, connection.Id);
+            }
+            catch (Exception)
+            {
+                await RecordService.DeleteAsync<ConnectionRecord>(wallet, connection.GetId());
+                throw;
+            }
 
             return connection.Id;
         }
@@ -181,6 +192,8 @@ namespace AgentFramework.Core.Runtime
 
             var connection = await GetAsync(wallet, connectionId, ConnectionState.Negotiating);
 
+            var connectionCopy = connection.DeepCopy();
+
             await Pairwise.CreateAsync(wallet, connection.TheirDid, connection.MyDid, connection.Endpoint.ToJson());
 
             await connection.TriggerAsync(ConnectionTrigger.Request);
@@ -195,11 +208,14 @@ namespace AgentFramework.Core.Runtime
                 Verkey = connection.MyVk
             };
 
-            if (!await RouterService.SendAsync(wallet, response, connection))
+            try
             {
-                await connection.TriggerAsync(ConnectionTrigger.Error);
-                await RecordService.UpdateAsync(wallet, connection);
-                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionFailure, "Failed sending connection response message");
+                await RouterService.SendAsync(wallet, response, connection);
+            }
+            catch (Exception e)
+            {
+                await RecordService.UpdateAsync(wallet, connectionCopy);
+                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send connection response message", e);
             }
         }
 

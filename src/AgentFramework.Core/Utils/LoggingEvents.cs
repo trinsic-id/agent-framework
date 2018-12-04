@@ -8,9 +8,10 @@
         public const int StoreCredentialRequest = 1002;
 
         //Proof events
-        public const int CreateProofRequest = 2000;
-        public const int SendProofRequest = 2001;
-        public const int StoreProofRequest = 2002;
+        public const int GetProofRecord = 2000;
+        public const int CreateProofRequest = 2001;
+        public const int SendProofRequest = 2002;
+        public const int StoreProofRequest = 2003;
 
         // Connection events
         public const int CreateInvitation = 4000;
