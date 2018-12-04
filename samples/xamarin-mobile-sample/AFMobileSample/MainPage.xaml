@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:local="clr-namespace:AFMobileSample" x:Class="AFMobileSample.MainPage">
+    <FlexLayout Direction="Column"
+                AlignItems="Center"
+                JustifyContent="SpaceEvenly">
+        <!-- Place new controls here -->
+        <Label Text="Welcome to Agent Framework!" HorizontalOptions="Center" VerticalOptions="CenterAndExpand" />
+        <Button x:Name="CreateButton" Text="Create Wallet and Did" Clicked="OnCreateClicked" VerticalOptions="Start" HorizontalOptions="Center"/>
+        <ActivityIndicator x:Name="ProgressIndicator" IsRunning="false" />
+        <Label x:Name="DidLabel" HorizontalTextAlignment="Center" />
+    </FlexLayout>
+</ContentPage>
