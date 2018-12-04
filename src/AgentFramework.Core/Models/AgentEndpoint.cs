@@ -5,6 +5,15 @@
     /// </summary>
     public class AgentEndpoint
     {
+        public AgentEndpoint(AgentEndpoint copy)
+        {
+            Did = copy.Did;
+            Verkey = copy.Verkey;
+            Uri = copy.Uri;
+        }
+
+        public AgentEndpoint() { }
+
         /// <summary>
         /// Gets or sets the did of the agent.
         /// </summary>

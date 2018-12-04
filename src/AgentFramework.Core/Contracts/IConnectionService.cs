@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
@@ -19,6 +20,8 @@ namespace AgentFramework.Core.Contracts
         /// <returns>The async.</returns>
         /// <param name="wallet">Wallet.</param>
         /// <param name="connectionId">Connection identifier.</param>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <returns>The connection record.</returns>
         Task<ConnectionRecord> GetAsync(Wallet wallet, string connectionId);
 
         /// <summary>
@@ -43,9 +46,8 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="offer">Offer.</param>
-        /// <returns>
-        /// Connection identifier unique for this connection
-        /// </returns>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError</exception>
+        /// <returns>Connection identifier unique for this connection.</returns>
         Task<string> AcceptInvitationAsync(Wallet wallet, ConnectionInvitationMessage offer);
 
         /// <summary>
@@ -54,9 +56,8 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="request">Request.</param>
         /// <param name="connection">Connection.</param>
-        /// <returns>
-        /// Connection identifier this requests is related to.
-        /// </returns>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError</exception>
+        /// <returns>Connection identifier this requests is related to.</returns>
         Task<string> ProcessRequestAsync(Wallet wallet, ConnectionRequestMessage request, ConnectionRecord connection);
 
         /// <summary>
@@ -64,7 +65,10 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="connectionId">Connection identifier.</param>
-        /// <returns></returns>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError</exception>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
+        /// <returns>The response async.</returns>
         Task AcceptRequestAsync(Wallet wallet, string connectionId);
 
         /// <summary>
@@ -73,9 +77,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="response">Response.</param>
         /// <param name="connection">Connection.</param>
-        /// <returns>
-        /// The response async.
-        /// </returns>
+        /// <returns>The response async.</returns>
         Task ProcessResponseAsync(Wallet wallet, ConnectionResponseMessage response, ConnectionRecord connection);
 
         /// <summary>
