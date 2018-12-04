@@ -43,17 +43,17 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CanStoreAndRetrieveRecordWithTags()
         {
-            var record = new ConnectionRecord { ConnectionId = "123" };
-            record.Tags.Add("tag1", "tagValue1");
+            var record = new ConnectionRecord { Id = "123" };
+            record.SetTag("tag1", "tagValue1");
 
             await _recordService.AddAsync(_wallet, record);
 
             var retrieved = await _recordService.GetAsync<ConnectionRecord>(_wallet, "123");
 
             Assert.NotNull(retrieved);
-            Assert.Equal(retrieved.GetId(), record.GetId());
-            Assert.True(retrieved.Tags.ContainsKey("tag1"));
-            Assert.Equal("tagValue1", retrieved.Tags["tag1"]);
+            Assert.Equal(retrieved.Id, record.Id);
+            Assert.NotNull(retrieved.GetTag("tag1"));
+            Assert.Equal("tagValue1", retrieved.GetTag("tag1"));
         }
 
         [Fact]
@@ -62,8 +62,8 @@ namespace AgentFramework.Core.Tests
             var tagName = Guid.NewGuid().ToString();
             var tagValue = Guid.NewGuid().ToString();
 
-            var record = new ConnectionRecord { ConnectionId = Guid.NewGuid().ToString() };
-            record.Tags.Add(tagName, tagValue);
+            var record = new ConnectionRecord { Id = Guid.NewGuid().ToString() };
+            record.SetTag(tagName, tagValue);
 
             await _recordService.AddAsync(_wallet, record);
 
@@ -74,9 +74,9 @@ namespace AgentFramework.Core.Tests
             var retrieved = search.Single();
 
             Assert.NotNull(retrieved);
-            Assert.Equal(retrieved.GetId(), record.GetId());
-            Assert.True(retrieved.Tags.ContainsKey(tagName));
-            Assert.Equal(tagValue, retrieved.Tags[tagName]);
+            Assert.Equal(retrieved.Id, record.Id);
+            Assert.NotNull(retrieved.GetTag(tagName));
+            Assert.Equal(tagValue, retrieved.GetTag(tagName));
         }
 
         [Fact]
@@ -87,24 +87,24 @@ namespace AgentFramework.Core.Tests
 
             var id = Guid.NewGuid().ToString();
 
-            var record = new ConnectionRecord { ConnectionId = id };
-            record.Tags.Add(tagName, tagValue);
+            var record = new ConnectionRecord { Id = id };
+            record.SetTag(tagName, tagValue);
 
             await _recordService.AddAsync(_wallet, record);
 
             var retrieved = await _recordService.GetAsync<ConnectionRecord>(_wallet, id);
 
             retrieved.MyDid = "123";
-            retrieved.Tags[tagName] = "value";
+            retrieved.SetTag(tagName, "value");
 
             await _recordService.UpdateAsync(_wallet, retrieved);
 
             var updated = await _recordService.GetAsync<ConnectionRecord>(_wallet, id);
 
             Assert.NotNull(updated);
-            Assert.Equal(updated.GetId(), record.GetId());
-            Assert.True(updated.Tags.ContainsKey(tagName));
-            Assert.Equal("value", updated.Tags[tagName]);
+            Assert.Equal(updated.Id, record.Id);
+            Assert.NotNull(updated.GetTag(tagName));
+            Assert.Equal("value", updated.GetTag(tagName));
             Assert.Equal("123", updated.MyDid);
         }
 
@@ -130,7 +130,7 @@ namespace AgentFramework.Core.Tests
             var record = new ConnectionRecord();
 
             Assert.True(record.State == ConnectionState.Invited);
-            Assert.True(record.Tags[TagConstants.State] == ConnectionState.Invited.ToString("G"));
+            Assert.True(record.GetTag(nameof(ConnectionRecord.State)) == ConnectionState.Invited.ToString("G"));
         }
 
         [Fact]
@@ -139,7 +139,7 @@ namespace AgentFramework.Core.Tests
             var record = new CredentialRecord();
 
             Assert.True(record.State == CredentialState.Offered);
-            Assert.True(record.Tags[TagConstants.State] == CredentialState.Offered.ToString("G"));
+            Assert.True(record.GetTag(nameof(CredentialRecord.State)) == CredentialState.Offered.ToString("G"));
         }
 
         public async Task DisposeAsync()

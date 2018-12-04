@@ -6,15 +6,7 @@
     /// </summary>
     public static class TagConstants
     {
-        public const string State = "State";
-
         public const string Nonce = "nonce";
-
-        public const string ConnectionId = "connectionId";
-
-        public const string SchemaId = "schemaId";
-
-        public const string DefinitionId = "definitionId";
 
         public const string Did = "did";
 
@@ -22,17 +14,7 @@
 
         public const string ConnectionKey = "connectionKey";
 
-        public const string MyDid = "myDid";
-
-        public const string MyKey = "myKey";
-
-        public const string TheirDid = "theirDid";
-
-        public const string TheirKey = "theirKey";
-
         public const string IssuerDid = "issuerDid";
-
-        public const string CredentialDefinitionId = "credentialDefinitionId";
 
         public const string AutoAcceptConnection = "autoAcceptConnection";
 

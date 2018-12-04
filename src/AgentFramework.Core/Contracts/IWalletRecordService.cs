@@ -19,7 +19,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="record">Record.</param>
         /// <param name="id">Identifier.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
-        Task AddAsync<T>(Wallet wallet, T record) where T : WalletRecord, new();
+        Task AddAsync<T>(Wallet wallet, T record) where T : RecordBase, new();
 
         /// <summary>
         /// Searchs the records async.
@@ -30,7 +30,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="options">Options.</param>
         /// <param name="count">The number of items to return</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
-        Task<List<T>> SearchAsync<T>(Wallet wallet, ISearchQuery query, SearchOptions options, int count) where T : WalletRecord, new();
+        Task<List<T>> SearchAsync<T>(Wallet wallet, ISearchQuery query, SearchOptions options, int count) where T : RecordBase, new();
 
         /// <summary>
         /// Updates the record async.
@@ -39,7 +39,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="record">Credential record.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
-        Task UpdateAsync<T>(Wallet wallet, T record) where T : WalletRecord, new();
+        Task UpdateAsync<T>(Wallet wallet, T record) where T : RecordBase, new();
 
         /// <summary>
         /// Gets the record async.
@@ -48,7 +48,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="id">Identifier.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
-        Task<T> GetAsync<T>(Wallet wallet, string id) where T : WalletRecord, new();
+        Task<T> GetAsync<T>(Wallet wallet, string id) where T : RecordBase, new();
 
         /// <summary>
         /// Deletes the record async.
@@ -57,6 +57,6 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="id">Record Identifier.</param>
         /// <returns>Boolean status indicating if the removal succeed</returns>
-        Task<bool> DeleteAsync<T>(Wallet wallet, string id) where T : WalletRecord, new();
+        Task<bool> DeleteAsync<T>(Wallet wallet, string id) where T : RecordBase, new();
     }
 }

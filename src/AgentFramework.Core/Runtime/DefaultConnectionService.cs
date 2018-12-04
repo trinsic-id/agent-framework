@@ -54,20 +54,18 @@ namespace AgentFramework.Core.Runtime
 
             var connectionKey = await Crypto.CreateKeyAsync(wallet, "{}");
 
-            var connection = new ConnectionRecord();
-            connection.ConnectionId = connectionId;
-            connection.Tags[TagConstants.ConnectionKey] = connectionKey;
-            connection.Tags[TagConstants.MyKey] = connectionKey;
+            var connection = new ConnectionRecord { Id = connectionId };
+            connection.SetTag(TagConstants.ConnectionKey, connectionKey);
 
             if (config.AutoAcceptConnection)
-                connection.Tags.Add(TagConstants.AutoAcceptConnection, "true");
+                connection.SetTag(TagConstants.AutoAcceptConnection, "true");
 
             connection.Alias = config.TheirAlias;
             if (!string.IsNullOrEmpty(config.TheirAlias.Name))
-                connection.Tags.Add(TagConstants.Alias, config.TheirAlias.Name);
+                connection.SetTag(TagConstants.Alias, config.TheirAlias.Name);
 
             foreach (var tag in config.Tags)
-                connection.Tags[tag.Key] = tag.Value;
+                connection.SetTag(tag.Key, tag.Value);
 
             await RecordService.AddAsync(wallet, connection);
 
@@ -97,9 +95,8 @@ namespace AgentFramework.Core.Runtime
                 Endpoint = invitation.Endpoint,
                 MyDid = my.Did,
                 MyVk = my.VerKey,
-                ConnectionId = Guid.NewGuid().ToString().ToLowerInvariant()
+                Id = Guid.NewGuid().ToString().ToLowerInvariant()
             };
-            connection.Tags.Add(TagConstants.MyDid, my.Did);
 
             if (!string.IsNullOrEmpty(invitation.Name) || !string.IsNullOrEmpty(invitation.ImageUrl))
             {
@@ -110,7 +107,7 @@ namespace AgentFramework.Core.Runtime
                 };
 
                 if (string.IsNullOrEmpty(invitation.Name))
-                    connection.Tags.Add(TagConstants.Alias, invitation.Name);
+                    connection.SetTag(TagConstants.Alias, invitation.Name);
             }
 
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
@@ -123,39 +120,35 @@ namespace AgentFramework.Core.Runtime
                 Verkey = my.VerKey,
                 Endpoint = provisioning.Endpoint
             };
-            
+
             await RouterService.SendAsync(wallet, msg, connection);
 
-            return connection.GetId();
+            return connection.Id;
         }
 
         /// <inheritdoc />
         public async Task<string> ProcessRequestAsync(Wallet wallet, ConnectionRequestMessage request, ConnectionRecord connection)
         {
             Logger.LogInformation(LoggingEvents.ProcessConnectionRequest, "Key {0}", request.Verkey);
-            
+
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
 
             var my = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
 
-            await Did.StoreTheirDidAsync(wallet, new {did = request.Did, verkey = request.Verkey}.ToJson());
+            await Did.StoreTheirDidAsync(wallet, new { did = request.Did, verkey = request.Verkey }.ToJson());
 
             connection.Endpoint = request.Endpoint;
             connection.TheirDid = request.Did;
             connection.TheirVk = request.Verkey;
             connection.MyDid = my.Did;
             connection.MyVk = my.VerKey;
-            connection.Tags[TagConstants.MyDid] = my.Did;
-            connection.Tags[TagConstants.MyKey] = my.VerKey;
-            connection.Tags[TagConstants.TheirDid] = request.Did;
-            connection.Tags[TagConstants.TheirKey] = request.Verkey;
 
             await RecordService.UpdateAsync(wallet, connection);
 
-            if (connection.Tags.Any(_ => _.Key == TagConstants.AutoAcceptConnection && _.Value == "true"))
-                await AcceptRequestAsync(wallet, connection.ConnectionId);
+            if (connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
+                await AcceptRequestAsync(wallet, connection.Id);
 
-            return connection.GetId();
+            return connection.Id;
         }
 
         /// <inheritdoc />
@@ -173,8 +166,6 @@ namespace AgentFramework.Core.Runtime
 
             connection.TheirDid = response.Did;
             connection.TheirVk = response.Verkey;
-            connection.Tags[TagConstants.TheirDid] = response.Did;
-            connection.Tags[TagConstants.TheirKey] = response.Verkey;
 
             if (response.Endpoint != null)
                 connection.Endpoint = response.Endpoint;

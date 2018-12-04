@@ -100,12 +100,11 @@ namespace AgentFramework.Core.Runtime
             var proofRecord = new ProofRecord
             {
                 Id = Guid.NewGuid().ToString(),
-                ConnectionId = connection.ConnectionId,
+                ConnectionId = connection.Id,
                 RequestJson = proofRequestJson
             };
-            proofRecord.Tags[TagConstants.Nonce] = proofJobj["nonce"].ToObject<string>();
-            proofRecord.Tags[TagConstants.ConnectionId] = connection.GetId();
-            proofRecord.Tags[TagConstants.Role] = TagConstants.Requestor;
+            proofRecord.SetTag(TagConstants.Nonce, proofJobj["nonce"].ToObject<string>());
+            proofRecord.SetTag(TagConstants.Role, TagConstants.Requestor);
 
             await RecordService.AddAsync(wallet, proofRecord);
 
@@ -130,7 +129,7 @@ namespace AgentFramework.Core.Runtime
             await proofRecord.TriggerAsync(ProofTrigger.Accept);
             await RecordService.UpdateAsync(wallet, proofRecord);
 
-            return proofRecord.GetId();
+            return proofRecord.Id;
         }
 
         /// <inheritdoc />
@@ -146,16 +145,15 @@ namespace AgentFramework.Core.Runtime
             {
                 Id = Guid.NewGuid().ToString(),
                 RequestJson = requestJson,
-                ConnectionId = connection.GetId(),
+                ConnectionId = connection.Id,
                 State = ProofState.Requested
             };
-            proofRecord.Tags[TagConstants.ConnectionId] = connection.GetId();
-            proofRecord.Tags[TagConstants.Nonce] = nonce;
-            proofRecord.Tags[TagConstants.Role] = TagConstants.Holder;
+            proofRecord.SetTag(TagConstants.Nonce, nonce);
+            proofRecord.SetTag(TagConstants.Role, TagConstants.Holder);
 
             await RecordService.AddAsync(wallet, proofRecord);
 
-            return proofRecord.GetId();
+            return proofRecord.Id;
         }
 
         /// <inheritdoc />
@@ -340,7 +338,7 @@ namespace AgentFramework.Core.Runtime
                 var tailsReader = await TailsService.OpenTailsAsync(tailsfile);
 
                 var state = await AnonCreds.CreateRevocationStateAsync(tailsReader, registryDefinition.ObjectJson,
-                    delta.ObjectJson, (long) delta.Timestamp, credential.CredentialRevocationId);
+                    delta.ObjectJson, (long)delta.Timestamp, credential.CredentialRevocationId);
 
                 if (!result.ContainsKey(credential.RevocationRegistryId))
                     result.Add(credential.RevocationRegistryId, new Dictionary<string, JObject>());

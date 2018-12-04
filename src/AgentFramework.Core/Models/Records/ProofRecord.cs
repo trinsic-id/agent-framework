@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using AgentFramework.Core.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Stateless;
@@ -9,8 +8,8 @@ namespace AgentFramework.Core.Models.Records
     /// <summary>
     /// Represents a proof record in the agency wallet
     /// </summary>
-    /// <seealso cref="WalletRecord" />
-    public class ProofRecord : WalletRecord
+    /// <seealso cref="RecordBase" />
+    public class ProofRecord : RecordBase
     {
         private ProofState _state;
 
@@ -20,40 +19,41 @@ namespace AgentFramework.Core.Models.Records
         }
 
         /// <summary>
-        /// Gets the identifier.
-        /// </summary>
-        /// <returns>The identifier.</returns>
-        public override string GetId() => Id;
-
-        /// <summary>
         /// Gets the name of the type.
         /// </summary>
         /// <returns>The type name.</returns>
-        public override string GetTypeName() => "ProofRecord";
-
-        /// <summary>
-        /// Gets or sets the identifier.
-        /// </summary>
-        /// <value>The identifier.</value>
-        public string Id { get; set; }
+        public override string TypeName => "AF.ProofRecord";
 
         /// <summary>
         /// Gets or sets the proof request json.
         /// </summary>
         /// <value>The proof request json.</value>
-        public string RequestJson { get; set; }
+        public string RequestJson
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the proof json.
         /// </summary>
         /// <value>The proof json.</value>
-        public string ProofJson { get; set; }
+        public string ProofJson
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the connection identifier associated with this proof request.
         /// </summary>
         /// <value>The connection identifier.</value>
-        public string ConnectionId { get; set; }
+        [JsonIgnore]
+        public string ConnectionId
+        {
+            get => Get();
+            set => Set(value);
+        }
 
         #region State Machine Implementation
 
@@ -65,13 +65,9 @@ namespace AgentFramework.Core.Models.Records
         public ProofState State
         {
             get => _state;
-            set
-            {
-                _state = value;
-                Tags[TagConstants.State] = value.ToString("G");
-            }
+            set => Set(value, ref _state);
         }
-        
+
         /// <summary>
         /// Triggers the async.
         /// </summary>

@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using AgentFramework.Core.Models.Connections;
-using AgentFramework.Core.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Stateless;
@@ -10,8 +9,8 @@ namespace AgentFramework.Core.Models.Records
     /// <summary>
     /// Represents a connection record in the agency wallet.
     /// </summary>
-    /// <seealso cref="WalletRecord" />
-    public class ConnectionRecord : WalletRecord
+    /// <seealso cref="RecordBase" />
+    public class ConnectionRecord : RecordBase
     {
         private ConnectionState _state;
 
@@ -21,60 +20,74 @@ namespace AgentFramework.Core.Models.Records
         }
 
         /// <summary>
-        /// Gets the identifier.
-        /// </summary>
-        /// <returns>The identifier.</returns>
-        public override string GetId() => ConnectionId;
-
-        /// <summary>
-        /// Gets or sets the connection identifier.
-        /// </summary>
-        /// <value>
-        /// The connection identifier.
-        /// </value>
-        public string ConnectionId { get; set; }
-
-        /// <summary>
         /// Gets the name of the type.
         /// </summary>
         /// <returns>The type name.</returns>
-        public override string GetTypeName() => "ConnectionRecord";
+        public override string TypeName => "AF.ConnectionRecord";
 
         /// <summary>
         /// Gets or sets my did.
         /// </summary>
         /// <value>My did.</value>
-        public string MyDid { get; set; }
+        [JsonIgnore]
+        public string MyDid
+        {
+            get => Get();
+            set => Set(value);
+        }
 
         /// <summary>
         /// Gets or sets my verkey
         /// </summary>
         /// <value>My vk.</value>
-        public string MyVk { get; set; }
+        [JsonIgnore]
+        public string MyVk
+        {
+            get => Get();
+            set => Set(value);
+        }
 
         /// <summary>
         /// Gets or sets their did.
         /// </summary>
         /// <value>Their did.</value>
-        public string TheirDid { get; set; }
+        [JsonIgnore]
+        public string TheirDid
+        {
+            get => Get();
+            set => Set(value);
+        }
 
         /// <summary>
         /// Gets or sets their verkey.
         /// </summary>
         /// <value>Their vk.</value>
-        public string TheirVk { get; set; }
+        [JsonIgnore]
+        public string TheirVk
+        {
+            get => Get();
+            set => Set(value);
+        }
 
         /// <summary>
         /// Gets or sets the alias associated to the connection.
         /// </summary>
         /// <value>The connection alias.</value>
-        public ConnectionAlias Alias { get; set; }
+        public ConnectionAlias Alias
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the endpoint.
         /// </summary>
         /// <value>The endpoint.</value>
-        public AgentEndpoint Endpoint { get; set; }
+        public AgentEndpoint Endpoint
+        {
+            get;
+            set;
+        }
 
         #region State Machine Implementation
 
@@ -82,15 +95,10 @@ namespace AgentFramework.Core.Models.Records
         /// Gets or sets the state.
         /// </summary>
         /// <value>The state.</value>
-        [JsonConverter(typeof(StringEnumConverter))]
         public ConnectionState State
         {
             get => _state;
-            set
-            {
-                _state = value;
-                Tags[TagConstants.State] = value.ToString("G");
-            }
+            set => Set(value, ref _state);
         }
 
         /// <summary>
@@ -116,6 +124,7 @@ namespace AgentFramework.Core.Models.Records
     /// <summary>
     /// Enumeration of possible connection states
     /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum ConnectionState
     {
         Invited = 0,
