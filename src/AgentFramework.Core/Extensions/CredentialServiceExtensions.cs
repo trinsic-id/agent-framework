@@ -25,7 +25,7 @@ namespace Streetcred.Sdk.Contracts
         public static Task<List<CredentialRecord>> ListOffersAsync(this ICredentialService credentialService,
             Wallet wallet, int count = 100)
             => credentialService.ListAsync(wallet,
-               SearchQuery.Equal(TagConstants.State, CredentialState.Offered.ToString("G")), count);
+               SearchQuery.Equal(nameof(CredentialRecord.State), CredentialState.Offered.ToString("G")), count);
 
         /// <summary>
         /// Retrieves a list of credential requests
@@ -37,7 +37,7 @@ namespace Streetcred.Sdk.Contracts
         public static Task<List<CredentialRecord>> ListRequestsAsync(this ICredentialService credentialService,
             Wallet wallet, int count = 100)
             => credentialService.ListAsync(wallet,
-                SearchQuery.Equal(TagConstants.State, CredentialState.Requested.ToString("G")), count);
+                SearchQuery.Equal(nameof(CredentialRecord.State), CredentialState.Requested.ToString("G")), count);
 
         /// <summary>
         /// Retreives a list of issued credentials
@@ -49,7 +49,7 @@ namespace Streetcred.Sdk.Contracts
         public static Task<List<CredentialRecord>> ListIssuedCredentialsAsync(this ICredentialService credentialService,
             Wallet wallet, int count = 100)
             => credentialService.ListAsync(wallet,
-                SearchQuery.Equal(TagConstants.State, CredentialState.Issued.ToString("G")), count);
+                SearchQuery.Equal(nameof(CredentialRecord.State), CredentialState.Issued.ToString("G")), count);
 
         /// <summary>
         /// Retrieves a list of revoked credentials
@@ -61,7 +61,7 @@ namespace Streetcred.Sdk.Contracts
         public static Task<List<CredentialRecord>> ListRevokedCredentialsAsync(
             this ICredentialService credentialService, Wallet wallet, int count = 100)
             => credentialService.ListAsync(wallet,
-                SearchQuery.Equal(TagConstants.State, CredentialState.Revoked.ToString("G")), count);
+                SearchQuery.Equal(nameof(CredentialRecord.State), CredentialState.Revoked.ToString("G")), count);
 
         /// <summary>
         /// Retrieves a list of rejected/declined credentials.
@@ -74,6 +74,6 @@ namespace Streetcred.Sdk.Contracts
         public static Task<List<CredentialRecord>> ListRejectedCredentialsAsync(
             this ICredentialService credentialService, Wallet wallet, int count = 100)
             => credentialService.ListAsync(wallet,
-                SearchQuery.Equal(TagConstants.State, CredentialState.Rejected.ToString("G")), count);
+                SearchQuery.Equal(nameof(CredentialRecord.State), CredentialState.Rejected.ToString("G")), count);
     }
 }

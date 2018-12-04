@@ -3,8 +3,8 @@
     /// <summary>
     /// Represents a provisioning record in the agency wallet
     /// </summary>
-    /// <seealso cref="WalletRecord" />
-    public class ProvisioningRecord : WalletRecord
+    /// <seealso cref="RecordBase" />
+    public class ProvisioningRecord : RecordBase
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ProvisioningRecord"/> class.
@@ -18,67 +18,99 @@
         /// <summary>
         /// Record Identifier
         /// </summary>
-        internal const string RecordId = "SingleRecord";
+        internal const string UniqueRecordId = "SingleRecord";
 
         /// <summary>
         /// Gets the identifier.
         /// </summary>
-        /// <returns>The identifier.</returns>
-        public override string GetId() => RecordId;
-        
+        /// <value>The identifier.</value>
+        public override string Id => UniqueRecordId;
+
         /// <summary>
         /// Gets the name of the type.
         /// </summary>
         /// <returns>The type name.</returns>
-        public override string GetTypeName() => "ProvisioningRecord";
+        public override string TypeName => "AF.ProvisioningRecord";
 
         /// <summary>
         /// Gets or sets the endpoint information for the provisioned agent.
         /// </summary>
         /// <returns>The endpoint informtation for the provisioned agent</returns>
-        public AgentEndpoint Endpoint { get; set; }
+        public AgentEndpoint Endpoint
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the owner information for the provisioned agent.
         /// </summary>
         /// <returns>The owner informtation for the provisioned agent</returns>
-        public AgentOwner Owner { get; set; }
+        public AgentOwner Owner
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the seed used to generate the did for the provisioned agent.
         /// </summary>
         /// <returns>The seed used to generate the did for the provisioned agent</returns>
-        public string AgentSeed { get; set; }
+        public string AgentSeed
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the seed used to generate the issuer did for the provisioned agent.
         /// </summary>
         /// <returns>The seed used to generate the issuer did for the provisioned agent</returns>
-        public string IssuerSeed { get; set; }
+        public string IssuerSeed
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the issuer did for the provisioned agent.
         /// </summary>
         /// <returns>The issuer did for the provisioned agent</returns>
-        public string IssuerDid { get; set; }
+        public string IssuerDid
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the issuer verkey for the provisioned agent.
         /// </summary>
         /// <returns>The issuer verkey for the provisioned agent</returns>
-        public string IssuerVerkey { get; set; }
+        public string IssuerVerkey
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the master key identifier for the provisioned agent.
         /// </summary>
         /// <returns>The master key identifier for the provisioned agent</returns>
-        public string MasterSecretId { get; set; }
+        public string MasterSecretId
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the tails base uri for the provisioned agent.
         /// </summary>
         /// <returns>The tails base uri for the provisioned agent</returns>
-        public string TailsBaseUri { get; set; }
+        public string TailsBaseUri
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Determines whether this wallet is provisioned as issuer.

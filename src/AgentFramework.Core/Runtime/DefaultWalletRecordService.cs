@@ -14,35 +14,44 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultWalletRecordService : IWalletRecordService
     {
+        private readonly JsonSerializerSettings _jsonSettings;
+
+        public DefaultWalletRecordService()
+        {
+            _jsonSettings = new JsonSerializerSettings
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            };
+        }
+
         /// <inheritdoc />
         public virtual Task AddAsync<T>(Wallet wallet, T record)
-            where T : WalletRecord, new()
+            where T : RecordBase, new()
         {
             return NonSecrets.AddRecordAsync(wallet,
-                record.GetTypeName(),
-                record.GetId(),
-                record.ToJson(),
+                record.TypeName,
+                record.Id,
+                record.ToJson(_jsonSettings),
                 record.Tags.ToJson());
         }
 
         /// <inheritdoc />
         public virtual async Task<List<T>> SearchAsync<T>(Wallet wallet, ISearchQuery query, SearchOptions options, int count)
-            where T : WalletRecord, new()
+            where T : RecordBase, new()
         {
-            using (var search = await NonSecrets.OpenSearchAsync(wallet, new T().GetTypeName(),
+            using (var search = await NonSecrets.OpenSearchAsync(wallet, new T().TypeName,
                 (query ?? SearchQuery.Empty).ToJson(),
                 (options ?? new SearchOptions()).ToJson()))
             {
-                var result = JsonConvert.DeserializeObject<SearchResult>(await search.NextAsync(wallet, count));
+                var result = JsonConvert.DeserializeObject<SearchResult>(await search.NextAsync(wallet, count), _jsonSettings);
                 // TODO: Add support for pagination
 
                 return result.Records?
                            .Select(x =>
                            {
                                var record = JsonConvert.DeserializeObject<T>(x.Value);
-                               record.Tags.Clear();
                                foreach (var tag in x.Tags)
-                                   record.Tags.Add(tag.Key, tag.Value);
+                                   record.Tags[tag.Key] = tag.Value;
                                return record;
                            })
                            .ToList()
@@ -51,35 +60,34 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task UpdateAsync<T>(Wallet wallet, T record) where T : WalletRecord, new()
+        public virtual async Task UpdateAsync<T>(Wallet wallet, T record) where T : RecordBase, new()
         {
             await NonSecrets.UpdateRecordValueAsync(wallet,
-                record.GetTypeName(),
-                record.GetId(),
-                record.ToJson());
+                record.TypeName,
+                record.Id,
+                record.ToJson(_jsonSettings));
 
             await NonSecrets.UpdateRecordTagsAsync(wallet,
-                record.GetTypeName(),
-                record.GetId(),
-                record.Tags.ToJson());
+                record.TypeName,
+                record.Id,
+                record.Tags.ToJson(_jsonSettings));
         }
 
         /// <inheritdoc />
-        public virtual async Task<T> GetAsync<T>(Wallet wallet, string id) where T : WalletRecord, new()
+        public virtual async Task<T> GetAsync<T>(Wallet wallet, string id) where T : RecordBase, new()
         {
             try
             {
                 var recordJson = await NonSecrets.GetRecordAsync(wallet,
-                    new T().GetTypeName(),
+                    new T().TypeName,
                     id,
                     new SearchOptions().ToJson());
 
                 if (recordJson == null) return null;
 
-                var item = JsonConvert.DeserializeObject<SearchItem>(recordJson);
+                var item = JsonConvert.DeserializeObject<SearchItem>(recordJson, _jsonSettings);
 
-                var record = JsonConvert.DeserializeObject<T>(item.Value);
-                record.Tags.Clear();
+                var record = JsonConvert.DeserializeObject<T>(item.Value, _jsonSettings);
                 foreach (var tag in item.Tags)
                     record.Tags[tag.Key] = tag.Value;
                 return record;
@@ -91,12 +99,12 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<bool> DeleteAsync<T>(Wallet wallet, string id) where T : WalletRecord, new()
+        public virtual async Task<bool> DeleteAsync<T>(Wallet wallet, string id) where T : RecordBase, new()
         {
             try
             {
                 await NonSecrets.DeleteRecordAsync(wallet,
-                     new T().GetTypeName(),
+                     new T().TypeName,
                      id);
 
                 return true;

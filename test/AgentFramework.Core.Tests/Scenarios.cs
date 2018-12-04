@@ -118,7 +118,7 @@ namespace AgentFramework.Core.Tests
 
             var offerConfig = new OfferConfiguration()
             {
-                ConnectionId = issuerConnection.GetId(),
+                ConnectionId = issuerConnection.Id,
                 IssuerDid = issuer.Did,
                 CredentialDefinitionId = definitionId
             };

@@ -87,7 +87,7 @@ namespace AgentFramework.Core.Tests
             var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
 
             Assert.Equal(ConnectionState.Invited, connection.State);
-            Assert.Equal(connectionId, connection.GetId());
+            Assert.Equal(connectionId, connection.Id);
         }
 
         [Fact]
