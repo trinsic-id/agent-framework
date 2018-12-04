@@ -111,11 +111,8 @@ namespace AgentFramework.Core.Tests
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
             // Creata a schema and credential definition for this issuer
-            var schemaId = await schemaService.CreateSchemaAsync(pool, issuerWallet, issuer.Did,
-                $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", new[] { "first_name", "last_name" });
-            var definitionId =
-                await schemaService.CreateCredentialDefinitionAsync(pool, issuerWallet, schemaId, issuer.Did, revocable, 100, new Uri("http://mock/tails"));
-
+            (string definitionId, _) = await CreateDummySchemaAndNonRevokableCredDef(pool, issuerWallet, schemaService, issuer.Did, new[] { "first_name", "last_name" });
+            
             var offerConfig = new OfferConfiguration()
             {
                 ConnectionId = issuerConnection.Id,
@@ -167,6 +164,14 @@ namespace AgentFramework.Core.Tests
             var holderCredential = await credentialService.GetAsync(holderWallet, holderCredentialId);
 
             return (issuerCredential, holderCredential);
+        }
+
+        internal static async Task<(string,string)> CreateDummySchemaAndNonRevokableCredDef(Pool pool, Wallet wallet, ISchemaService schemaService, string issuerDid, string[] attributeValues)
+        {
+            // Creata a schema and credential definition for this issuer
+            var schemaId = await schemaService.CreateSchemaAsync(pool, wallet, issuerDid,
+                $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", attributeValues);
+            return (await schemaService.CreateCredentialDefinitionAsync(pool, wallet, schemaId, issuerDid, false, 100, new Uri("http://mock/tails")), schemaId);
         }
 
         private static T FindContentMessage<T>(IEnumerable<IAgentMessage> collection)

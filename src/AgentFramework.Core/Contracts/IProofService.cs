@@ -16,62 +16,67 @@ namespace AgentFramework.Core.Contracts
     public interface IProofService
     {
         /// <summary>
-        /// Sends a proof request
+        /// Sends a proof request.
         /// </summary>
         /// <returns>The async.</returns>
         /// <param name="wallet">Wallet.</param>
         /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="proofRequest">Proof request object describing the proof request.</param>
+        /// <returns>The response async.</returns>
         Task SendProofRequestAsync(Wallet wallet, string connectionId, ProofRequest proofRequest);
 
         /// <summary>
-        /// Sends a proof request
+        /// Sends a proof request.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="connectionId">The connection identifier.</param>
         /// <param name="proofRequestJson">The proof request json.</param>
-        /// <returns></returns>
+        /// <returns>The response async.</returns>
         Task SendProofRequestAsync(Wallet wallet, string connectionId, string proofRequestJson);
 
         /// <summary>
-        /// Creates a proof request
+        /// Creates a proof request.
         /// </summary>
         /// <returns>The proof request.</returns>
         /// <param name="wallet">Wallet.</param>
         /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="proofRequest">An enumeration of attribute we wish the prover to disclose.</param>
-        Task<ProofRequestMessage> CreateProofRequestAsync(Wallet wallet, string connectionId,
+        /// <returns>Proof Request message and identfier.</returns>
+        Task<(ProofRequestMessage, string)> CreateProofRequestAsync(Wallet wallet, string connectionId,
             ProofRequest proofRequest);
 
         /// <summary>
-        /// Creates a proof request
+        /// Creates a proof request.
         /// </summary>
         /// <returns>The proof request.</returns>
         /// <param name="wallet">Wallet.</param>
         /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="proofRequestJson">A string representation of proof request json object</param>
-        Task<ProofRequestMessage> CreateProofRequestAsync(Wallet wallet, string connectionId, string proofRequestJson);
+        /// <returns>Proof Request message and identfier.</returns>
+        Task<(ProofRequestMessage, string)> CreateProofRequestAsync(Wallet wallet, string connectionId, string proofRequestJson);
 
         /// <summary>
-        /// Processes a proof request and stores it for a given connection
+        /// Processes a proof request and stores it for a given connection.
         /// </summary>
         /// <returns>The identifier for the stored proof request.</returns>
         /// <param name="wallet">Wallet.</param>
         /// <param name="proofRequest">A proof request.</param>
         /// <param name="connection">Connection</param>
+        /// <returns>Proof identfier.</returns>
         Task<string> ProcessProofRequestAsync(Wallet wallet, ProofRequestMessage proofRequest, ConnectionRecord connection);
 
         /// <summary>
-        /// Processes a proof and stores it for a given connection
+        /// Processes a proof and stores it for a given connection.
         /// </summary>
         /// <returns>The identifier for the stored proof.</returns>
         /// <param name="wallet">Wallet.</param>
         /// <param name="proof">A proof.</param>
         /// <param name="connection">Connection.</param>
+        /// <returns>Proof identfier.</returns>
         Task<string> ProcessProofAsync(Wallet wallet, ProofMessage proof, ConnectionRecord connection);
 
         /// <summary>
-        /// Creates a proof
+        /// Creates a proof.
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="pool">The pool.</param>
@@ -84,7 +89,7 @@ namespace AgentFramework.Core.Contracts
             RequestedCredentials requestedCredentials);
 
         /// <summary>
-        /// Accepts a proof request by generating a proof and sending it to the requestor
+        /// Accepts a proof request by generating a proof and sending it to the requestor.
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="pool">The pool.</param>
@@ -97,7 +102,7 @@ namespace AgentFramework.Core.Contracts
             RequestedCredentials requestedCredentials);
 
         /// <summary>
-        /// Rejects a proof request
+        /// Rejects a proof request.
         /// </summary>
         /// <returns>The proof.</returns>
         /// <param name="wallet">Wallet.</param>
@@ -105,16 +110,16 @@ namespace AgentFramework.Core.Contracts
         Task RejectProofRequestAsync(Wallet wallet, string proofRequestId);
 
         /// <summary>
-        /// Verifies a proof
+        /// Verifies a proof.
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="pool">The pool.</param>
         /// <param name="proofRecId">Identifier of the proof record.</param>
-        /// <returns></returns>
+        /// <returns>Staus indicating validity of proof</returns>
         Task<bool> VerifyProofAsync(Wallet wallet, Pool pool, string proofRecId);
 
         /// <summary>
-        /// Gets an enumeration of proofs stored in the wallet
+        /// Gets an enumeration of proofs stored in the wallet.
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="query">The query.</param>
@@ -125,13 +130,13 @@ namespace AgentFramework.Core.Contracts
         Task<List<ProofRecord>> ListAsync(Wallet wallet, ISearchQuery query = null, int count = 100);
 
         /// <summary>
-        /// Gets a particular proof stored in the wallet
+        /// Gets a particular proof stored in the wallet.
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="proofRecId">Identifier of the proof record.</param>
         /// <returns>The proof.</returns>
         Task<ProofRecord> GetAsync(Wallet wallet, string proofRecId);
-
+        
         /// <summary>
         /// Lists the credentials available for the given proof request.
         /// </summary>
