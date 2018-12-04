@@ -190,7 +190,11 @@ namespace AgentFramework.Core.Runtime
         {
             Logger.LogInformation(LoggingEvents.AcceptConnectionRequest, "ConnectionId {0}", connectionId);
 
-            var connection = await GetAsync(wallet, connectionId, ConnectionState.Negotiating);
+            var connection = await GetAsync(wallet, connectionId);
+
+            if (connection.State != ConnectionState.Negotiating)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                    $"Connection state was invalid. Expected '{ConnectionState.Negotiating}', found '{connection.State}'");
 
             var connectionCopy = connection.DeepCopy();
 
@@ -228,18 +232,6 @@ namespace AgentFramework.Core.Runtime
 
             if (record == null)
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Connection record not found");
-
-            return record;
-        }
-
-        /// <inheritdoc />
-        public virtual async Task<ConnectionRecord> GetAsync(Wallet wallet, string connectionId, ConnectionState expectedState)
-        {
-            var record = await GetAsync(wallet, connectionId);
-
-            if (record.State != expectedState)
-                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
-                    $"Connection state was invalid. Expected '{expectedState}', found '{record.State}'");
 
             return record;
         }
