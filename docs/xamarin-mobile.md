@@ -10,7 +10,7 @@
 
 ## Working with Xamarin
 
-TODO
+When working with Xamarin, we can fully leverage the offical [Indy wrapper for dotnet](https://github.com/hyperledger/indy-sdk/tree/master/wrappers/dotnet), since the package is fully compatible with Xamarin runtime. The wrapper uses `DllImport` to invoke the native Indy library which exposes all functionality as C callable functions. In order to make the library work in Xamarin, we need to make libindy available for Android and iOS, which requires bundling static libraries of libindy and it's dependencies built for each platform.
 
 ## Instructions for Android
 
