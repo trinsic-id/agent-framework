@@ -55,12 +55,13 @@ namespace AgentFramework.Core.Runtime
                 Method = HttpMethod.Post,
                 Content = new ByteArrayContent(agentEndpointWireMessage)
             };
-            request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
-            var response = await _httpClient.SendAsync(request);
+            //TODO this mime type should be changed in accordance with the message format hipe emerging
+            request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
             try
             {
+                var response = await _httpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
             }
             catch (Exception e)
