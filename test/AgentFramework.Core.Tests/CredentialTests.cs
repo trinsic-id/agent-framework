@@ -37,8 +37,6 @@ namespace AgentFramework.Core.Tests
         private Wallet _issuerWallet;
         private Wallet _holderWallet;
 
-        private readonly Mock<IProvisioningService> _provisioningMock;
-
         private Pool _pool;
 
         private readonly IConnectionService _connectionService;
@@ -46,19 +44,15 @@ namespace AgentFramework.Core.Tests
 
         private readonly ISchemaService _schemaService;
         private readonly IPoolService _poolService;
-        private readonly IMessageSerializer _messageSerializer;
-        private readonly IWalletRecordService _recordService;
-        private readonly ILedgerService _ledgerService;
-        private readonly ITailsService _tailsService;
 
         private bool _routeMessage = true;
         private readonly ConcurrentBag<IAgentMessage> _messages = new ConcurrentBag<IAgentMessage>();
 
         public CredentialTests()
         {
-            _messageSerializer = new DefaultMessageSerializer();
-            _recordService = new DefaultWalletRecordService();
-            _ledgerService = new DefaultLedgerService();
+            var messageSerializer = new DefaultMessageSerializer();
+            var recordService = new DefaultWalletRecordService();
+            var ledgerService = new DefaultLedgerService();
 
             _poolService = new DefaultPoolService();
 
@@ -74,8 +68,8 @@ namespace AgentFramework.Core.Tests
                 })
                 .Returns(Task.FromResult(false));
 
-            _provisioningMock = new Mock<IProvisioningService>();
-            _provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
+            var provisioningMock = new Mock<IProvisioningService>();
+            provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(Task.FromResult(new ProvisioningRecord
                 {
                     Endpoint = new AgentEndpoint {Uri = MockEndpointUri},
@@ -83,25 +77,25 @@ namespace AgentFramework.Core.Tests
                     TailsBaseUri = MockEndpointUri
                 }));
 
-            _tailsService = new DefaultTailsService(_ledgerService);
-            _schemaService = new DefaultSchemaService(_recordService, _ledgerService, _tailsService);
+            var tailsService = new DefaultTailsService(ledgerService);
+            _schemaService = new DefaultSchemaService(recordService, ledgerService, tailsService);
 
             _connectionService = new DefaultConnectionService(
-                _recordService,
+                recordService,
                 routingMock.Object,
-                _provisioningMock.Object,
-                _messageSerializer,
+                provisioningMock.Object,
+                messageSerializer,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
 
             _credentialService = new DefaultCredentialService(
                 routingMock.Object,
-                _ledgerService,
+                ledgerService,
                 _connectionService,
-                _recordService,
-                _messageSerializer,
+                recordService,
+                messageSerializer,
                 _schemaService,
-                _tailsService,
-                _provisioningMock.Object,
+                tailsService,
+                provisioningMock.Object,
                 new Mock<ILogger<DefaultCredentialService>>().Object);
         }
 

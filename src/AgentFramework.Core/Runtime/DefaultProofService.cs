@@ -321,19 +321,7 @@ namespace AgentFramework.Core.Runtime
 
             return record;
         }
-
-        /// <inheritdoc />
-        //public virtual async Task<ProofRecord> GetAsync(Wallet wallet, string proofRecId, ProofState expectedState)
-        //{
-        //    var record = await GetAsync(wallet, proofRecId);
-
-        //    if (record.State != expectedState)
-        //        throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
-        //            $"Proof record state was invalid. Expected '{expectedState}', found '{record.State}'");
-
-        //    return record;
-        //}
-
+        
         /// <inheritdoc />
         public virtual async Task<List<Credential>> ListCredentialsForProofRequestAsync(Wallet wallet,
             ProofRequest proofRequest, string attributeReferent)

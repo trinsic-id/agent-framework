@@ -22,6 +22,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="proofRequest">Proof request object describing the proof request.</param>
+        /// <returns>The response async.</returns>
         Task SendProofRequestAsync(Wallet wallet, string connectionId, ProofRequest proofRequest);
 
         /// <summary>
@@ -30,7 +31,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="connectionId">The connection identifier.</param>
         /// <param name="proofRequestJson">The proof request json.</param>
-        /// <returns></returns>
+        /// <returns>The response async.</returns>
         Task SendProofRequestAsync(Wallet wallet, string connectionId, string proofRequestJson);
 
         /// <summary>
@@ -40,6 +41,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="proofRequest">An enumeration of attribute we wish the prover to disclose.</param>
+        /// <returns>Proof Request message and identfier.</returns>
         Task<(ProofRequestMessage, string)> CreateProofRequestAsync(Wallet wallet, string connectionId,
             ProofRequest proofRequest);
 
@@ -50,6 +52,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="proofRequestJson">A string representation of proof request json object</param>
+        /// <returns>Proof Request message and identfier.</returns>
         Task<(ProofRequestMessage, string)> CreateProofRequestAsync(Wallet wallet, string connectionId, string proofRequestJson);
 
         /// <summary>
@@ -59,6 +62,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="proofRequest">A proof request.</param>
         /// <param name="connection">Connection</param>
+        /// <returns>Proof identfier.</returns>
         Task<string> ProcessProofRequestAsync(Wallet wallet, ProofRequestMessage proofRequest, ConnectionRecord connection);
 
         /// <summary>
@@ -68,6 +72,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="proof">A proof.</param>
         /// <param name="connection">Connection.</param>
+        /// <returns>Proof identfier.</returns>
         Task<string> ProcessProofAsync(Wallet wallet, ProofMessage proof, ConnectionRecord connection);
 
         /// <summary>
@@ -110,7 +115,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="pool">The pool.</param>
         /// <param name="proofRecId">Identifier of the proof record.</param>
-        /// <returns></returns>
+        /// <returns>Staus indicating validity of proof</returns>
         Task<bool> VerifyProofAsync(Wallet wallet, Pool pool, string proofRecId);
 
         /// <summary>
