@@ -19,6 +19,19 @@ namespace AgentFramework.Core.Models.Records
             State = ConnectionState.Invited;
         }
 
+        public ConnectionRecord ShallowCopy()
+        {
+            return (ConnectionRecord)this.MemberwiseClone();
+        }
+
+        public ConnectionRecord DeepCopy()
+        {
+            ConnectionRecord copy = (ConnectionRecord)this.MemberwiseClone();
+            copy.Alias = new ConnectionAlias(Alias);
+            copy.Endpoint = new AgentEndpoint(Endpoint);
+            return copy;
+        }
+
         /// <summary>
         /// Gets the name of the type.
         /// </summary>

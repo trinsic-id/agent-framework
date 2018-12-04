@@ -16,11 +16,8 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public virtual async Task<Wallet> GetWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
         {
-
             if (Wallets.TryGetValue(configuration.Id, out var wallet))
-            {
                 return wallet;
-            }
 
             wallet = await Wallet.OpenWalletAsync(configuration.ToJson(), credentials.ToJson());
 
