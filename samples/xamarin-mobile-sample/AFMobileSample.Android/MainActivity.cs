@@ -29,6 +29,8 @@ namespace AFMobileSample.Droid
             if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
             {
                 RequestPermissions(new[] { Manifest.Permission.ReadExternalStorage }, 10);
+                RequestPermissions(new[] { Manifest.Permission.WriteExternalStorage }, 10);
+                RequestPermissions(new[] { Manifest.Permission.Internet }, 10);
             }
         }
     }

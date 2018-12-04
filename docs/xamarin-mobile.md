@@ -16,14 +16,81 @@ TODO
 
 ## Instructions for Android
 
-TODO
+To setup Indy on Android you need to add the native libindy references and dependencies. The process is described in detail at the official Xamarin documentation [Using Native Libraries with Xamarin.Android](https://docs.microsoft.com/en-us/xamarin/android/platform/native-libraries).
+
+Below are few additional things that are not covered by the documentation that are Indy specific.
+
+For Android the entire library and it dependencies are compiled into a single shared object (*.so). In order for libindy.so to be executable we must also include libgnustl_shared.so.
+
+Depending on the target abi(s) for the resulting app, not all of the artifacts need to be included, for ease of use below we document including all abi(s).
+
+### Setup the Android references
+
+In Visual Studio (for Windows or Mac) create new Xamarin Android project. If you want to use Xamarin Forms, the instructions are the same. Apply the changes to your iOS project in Xamarin Forms.
+
+Download the static libraries required [here](../samples/xamarin-mobile-sample/libs-android) or other versions of libindy can be found [here](https://repo.sovrin.org/android/libindy/)
+
+The required files can be added via your IDE by clicking Add-Item and setting the build action to `AndroidNativeLibrary`. However when dealing with multiple ABI targets it is easier to manually add the references via the android projects .csproj. Note - if the path contains the abi i.e `..\x86\library.so` then the build process automatically infers the target ABI.
+
+If you are adding all the target ABI's to you android project add the following snippet to your .csproj.
+
+```lang=xml
+<ItemGroup>
+    <AndroidNativeLibrary Include="..\libs-android\armeabi\libindy.so" />
+    <AndroidNativeLibrary Include="..\libs-android\arm64-v8a\libindy.so" />
+    <AndroidNativeLibrary Include="..\libs-android\armeabi-v7a\libindy.so" />
+    <AndroidNativeLibrary Include="..\libs-android\x86\libindy.so" />
+    <AndroidNativeLibrary Include="..\libs-android\x86_64\libindy.so" />
+    <AndroidNativeLibrary Include="..\libs-android\armeabi\libgnustl_shared.so" />
+    <AndroidNativeLibrary Include="..\libs-android\arm64-v8a\libgnustl_shared.so" />
+    <AndroidNativeLibrary Include="..\libs-android\armeabi-v7a\libgnustl_shared.so" />
+    <AndroidNativeLibrary Include="..\libs-android\x86\libgnustl_shared.so" />
+    <AndroidNativeLibrary Include="..\libs-android\x86_64\libgnustl_shared.so" />
+  </ItemGroup>
+```
+
+Note - paths listed above will vary project to project.
+
+Next we need to invoke these dependencies at runtime. To do this add the following to your MainActivity.cs
+
+```lang=csharp
+  JavaSystem.LoadLibrary("gnustl_shared");
+  JavaSystem.LoadLibrary("indy");
+```
+
+In order to use indy in any capacity, the following permissions must be granted in your AndroidManifest.xml.
+
+```lang=xml
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.INTERNET" />
+```
+
+If you are running at API level 23 and above these permissions also must be requested at runtime, in order to do this add the following to your MainActivity.cs
+
+```lang=csharp
+  if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
+  {
+      RequestPermissions(new[] { Manifest.Permission.ReadExternalStorage }, 10);
+      RequestPermissions(new[] { Manifest.Permission.WriteExternalStorage }, 10);
+      RequestPermissions(new[] { Manifest.Permission.Internet }, 10);
+  }
+```
+
+Next, install the Nuget packages for Indy SDK and/or Agent Framework and build your solution. Everything should work and run just fine.
+If you run into any errors or need help setting up, please open an issue in this repo.
+
+Finally, check the Xamarin Sample we have included for a fully configured project.
 
 ## Instructions for iOS
 
-To setup Indy on iOS you need to add the native libindy references and dependencies. The process is described in details at the official Xamarin documentation for [Native References in iOS, Mac, and Bindings Projects](https://docs.microsoft.com/en-us/xamarin/cross-platform/macios/native-references).
-There are few additional things that are not covered by the documentation that are Indy specific.
+To setup Indy on iOS you need to add the native libindy references and dependencies. The process is described in detail at the official Xamarin documentation [Native References in iOS, Mac, and Bindings Projects](https://docs.microsoft.com/en-us/xamarin/cross-platform/macios/native-references).
+
+Below are few additional things that are not covered by the documentation that are Indy specific.
 
 In order to enable the Indy SDK package to recognize the `DllImport` calls to the native static libraries, we need to include them in our solution.
+
+
 These includes the following static libraries:
 
 - libindy.a
@@ -46,7 +113,7 @@ The above links should help you build the 4 static libraries that libindy depend
 
 In Visual Studio (for Windows or Mac) create new Xamarin iOS project. If you want to use Xamarin Forms, the instructions are the same. Apply the changes to your iOS project in Xamarin Forms.
 
-Download the static libraries required [here](../samples/xamarin-mobile-sample/libs-ios)
+Download the static libraries required [here](../samples/xamarin-mobile-sample/libs-ios) or other versions of the static libraries can be found [here](https://repo.sovrin.org/ios/libindy/)
 Add each library as native reference, either by right cicking the project and Add Native Reference, or add them directly in the project file.
 
 Make sure libraries are set to `Static` in the properties window, and additionally `Is C++` is checked for `libzqm.a` only.
