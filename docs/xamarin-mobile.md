@@ -88,7 +88,6 @@ Below are a few additional things that are not covered by the documentation that
 
 In order to enable the Indy SDK package to recognize the `DllImport` calls to the native static libraries, we need to include them in our solution.
 
-
 These includes the following static libraries:
 
 - libindy.a
@@ -97,7 +96,7 @@ These includes the following static libraries:
 - libcrypto.a
 - libzmq.a
 
-The Indy team doesn't provide static libraries for all of the dependencies, so we need to build them ourselves. We have included pre-built libraries in our samples project, you can use these to get started quickly, or you can build them yourself. Here are some helpful instructions on building the dependencies for iOS should you decide to take that route.
+The Indy team doesn't provide static libraries for all of the dependencies, so we need to build them ourselves. We have included [pre-built libraries](../samples/xamarin-mobile-sample/libs-ios) in our samples project, you can use these to get started quickly, or you can build them yourself. Here are some helpful instructions on building the dependencies for iOS should you decide to take that route.
 
 [Open SSL for iOS](https://github.com/x2on/OpenSSL-for-iPhone)
 
@@ -112,7 +111,7 @@ The above links should help you build the 4 static libraries that libindy depend
 In Visual Studio (for Windows or Mac) create new Xamarin iOS project. If you want to use Xamarin Forms, the instructions are the same. Apply the changes to your iOS project in Xamarin Forms.
 
 Download the static libraries required [here](../samples/xamarin-mobile-sample/libs-ios) or other versions of the static libraries can be found [here](https://repo.sovrin.org/ios/libindy/)
-Add each library as native reference, either by right cicking the project and Add Native Reference, or add them directly in the project file.
+Add each library as native reference, either by right clicking the project and Add Native Reference, or add them directly in the project file.
 
 Make sure libraries are set to `Static` in the properties window, and additionally `Is C++` is checked for `libzqm.a` only.
 
