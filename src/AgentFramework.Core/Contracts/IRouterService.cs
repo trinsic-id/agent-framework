@@ -16,7 +16,8 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="message">The message.</param>
         /// <param name="connection">The connection record.</param>
+        /// <param name="recipientKey">The recipients verkey to encrypt the message for.</param>
         /// <returns></returns>
-        Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connection);
+        Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connection, string recipientKey = null);
     }
 }

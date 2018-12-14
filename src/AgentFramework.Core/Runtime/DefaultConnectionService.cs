@@ -121,7 +121,7 @@ namespace AgentFramework.Core.Runtime
                 Endpoint = provisioning.Endpoint
             };
 
-            await RouterService.SendAsync(wallet, msg, connection);
+            await RouterService.SendAsync(wallet, msg, connection, invitation.ConnectionKey);
 
             return connection.Id;
         }
