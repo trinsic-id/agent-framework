@@ -67,11 +67,9 @@ namespace AgentFramework.Core.Runtime
             foreach (var tag in config.Tags)
                 connection.SetTag(tag.Key, tag.Value);
 
-            await RecordService.AddAsync(wallet, connection);
+            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
 
-            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet) ??
-                               throw new AgentFrameworkException(ErrorCode.RecordNotFound,
-                                   "Provisioning record not found");
+            await RecordService.AddAsync(wallet, connection);
 
             return new ConnectionInvitationMessage
             {
@@ -121,7 +119,15 @@ namespace AgentFramework.Core.Runtime
                 Endpoint = provisioning.Endpoint
             };
 
-            await RouterService.SendAsync(wallet, msg, connection, invitation.ConnectionKey);
+            try
+            {
+                await RouterService.SendAsync(wallet, msg, connection, invitation.ConnectionKey);
+            }
+            catch (Exception e)
+            {
+                await RecordService.DeleteAsync<ConnectionRecord>(wallet, connection.Id);
+                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send connection request message", e);
+            }
 
             return connection.Id;
         }
@@ -130,9 +136,7 @@ namespace AgentFramework.Core.Runtime
         public async Task<string> ProcessRequestAsync(Wallet wallet, ConnectionRequestMessage request, ConnectionRecord connection)
         {
             Logger.LogInformation(LoggingEvents.ProcessConnectionRequest, "Key {0}", request.Verkey);
-
-            await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
-
+            
             var my = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
 
             await Did.StoreTheirDidAsync(wallet, new { did = request.Did, verkey = request.Verkey }.ToJson());
@@ -143,10 +147,19 @@ namespace AgentFramework.Core.Runtime
             connection.MyDid = my.Did;
             connection.MyVk = my.VerKey;
 
+            await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await RecordService.UpdateAsync(wallet, connection);
 
-            if (connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
-                await AcceptRequestAsync(wallet, connection.Id);
+            try
+            {
+                if (connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
+                    await AcceptRequestAsync(wallet, connection.Id);
+            }
+            catch (Exception)
+            {
+                await RecordService.DeleteAsync<ConnectionRecord>(wallet, connection.Id);
+                throw;
+            }
 
             return connection.Id;
         }
@@ -155,9 +168,7 @@ namespace AgentFramework.Core.Runtime
         public async Task ProcessResponseAsync(Wallet wallet, ConnectionResponseMessage response, ConnectionRecord connection)
         {
             Logger.LogInformation(LoggingEvents.AcceptConnectionResponse, "To {1}", connection.MyDid);
-
-            await connection.TriggerAsync(ConnectionTrigger.Response);
-
+            
             await Did.StoreTheirDidAsync(wallet,
                 new { did = response.Did, verkey = response.Verkey }.ToJson());
 
@@ -170,6 +181,7 @@ namespace AgentFramework.Core.Runtime
             if (response.Endpoint != null)
                 connection.Endpoint = response.Endpoint;
 
+            await connection.TriggerAsync(ConnectionTrigger.Response);
             await RecordService.UpdateAsync(wallet, connection);
         }
 
@@ -178,13 +190,17 @@ namespace AgentFramework.Core.Runtime
         {
             Logger.LogInformation(LoggingEvents.AcceptConnectionRequest, "ConnectionId {0}", connectionId);
 
-            var connection = await GetAsync(wallet, connectionId) ??
-                             throw new AgentFrameworkException(ErrorCode.RecordNotFound,
-                                 "Connection record not found");
+            var connection = await GetAsync(wallet, connectionId);
 
-            await connection.TriggerAsync(ConnectionTrigger.Request);
+            if (connection.State != ConnectionState.Negotiating)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                    $"Connection state was invalid. Expected '{ConnectionState.Negotiating}', found '{connection.State}'");
+
+            var connectionCopy = connection.DeepCopy();
 
             await Pairwise.CreateAsync(wallet, connection.TheirDid, connection.MyDid, connection.Endpoint.ToJson());
+
+            await connection.TriggerAsync(ConnectionTrigger.Request);
             await RecordService.UpdateAsync(wallet, connection);
 
             // Send back response message
@@ -196,15 +212,28 @@ namespace AgentFramework.Core.Runtime
                 Verkey = connection.MyVk
             };
 
-            await RouterService.SendAsync(wallet, response, connection);
+            try
+            {
+                await RouterService.SendAsync(wallet, response, connection);
+            }
+            catch (Exception e)
+            {
+                await RecordService.UpdateAsync(wallet, connectionCopy);
+                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send connection response message", e);
+            }
         }
 
         /// <inheritdoc />
-        public virtual Task<ConnectionRecord> GetAsync(Wallet wallet, string connectionId)
+        public virtual async Task<ConnectionRecord> GetAsync(Wallet wallet, string connectionId)
         {
             Logger.LogInformation(LoggingEvents.GetConnection, "ConnectionId {0}", connectionId);
 
-            return RecordService.GetAsync<ConnectionRecord>(wallet, connectionId);
+            var record = await RecordService.GetAsync<ConnectionRecord>(wallet, connectionId);
+
+            if (record == null)
+                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Connection record not found");
+
+            return record;
         }
 
         /// <inheritdoc />
@@ -220,10 +249,7 @@ namespace AgentFramework.Core.Runtime
         public virtual async Task<bool> DeleteAsync(Wallet wallet, string connectionId)
         {
             Logger.LogInformation(LoggingEvents.DeleteConnection, "ConnectionId {0}", connectionId);
-
-            if ((await RecordService.GetAsync<ConnectionRecord>(wallet, connectionId)) == null)
-                return true;
-
+            
             return await RecordService.DeleteAsync<ConnectionRecord>(wallet, connectionId);
         }
     }

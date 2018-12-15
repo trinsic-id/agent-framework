@@ -18,6 +18,16 @@ namespace AgentFramework.Core.Models.Records
             State = ProofState.Requested;
         }
 
+        public ProofRecord ShallowCopy()
+        {
+            return (ProofRecord)this.MemberwiseClone();
+        }
+
+        public ProofRecord DeepCopy()
+        {
+            return (ProofRecord)this.MemberwiseClone();
+        }
+
         /// <summary>
         /// Gets the name of the type.
         /// </summary>

@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Routing;
 using AgentFramework.Core.Models.Records;
@@ -60,10 +61,19 @@ namespace AgentFramework.Core.Runtime
                 Method = HttpMethod.Post,
                 Content = new ByteArrayContent(agentEndpointWireMessage)
             };
+
+            //TODO this mime type should be changed in accordance with the message format hipe emerging
             request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
-            var response = await _httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode();
+            try
+            {
+                var response = await _httpClient.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+            }
+            catch (Exception e)
+            {
+                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send A2A message", e);
+            }
         }
     }
 }

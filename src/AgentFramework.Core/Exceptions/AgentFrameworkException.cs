@@ -15,5 +15,10 @@ namespace AgentFramework.Core.Exceptions
         {
             ErrorCode = errorCode;
         }
+
+        public AgentFrameworkException(ErrorCode errorCode, string message, Exception innerException) : base(message, innerException)
+        {
+            ErrorCode = errorCode;
+        }
     }
 }

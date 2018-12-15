@@ -7,6 +7,14 @@
     /// </summary>
     public class ConnectionAlias
     {
+        public ConnectionAlias(ConnectionAlias copy)
+        {
+            Name = copy.Name;
+            ImageUrl = copy.ImageUrl;
+        }
+
+        public ConnectionAlias() { }
+
         /// <summary>
         /// Gets or sets the name of the alias for the connection.
         /// </summary>

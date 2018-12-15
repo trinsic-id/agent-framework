@@ -44,7 +44,7 @@ namespace AgentFramework.Core.Tests
         public async Task CanFilterSearchableProperties()
         {
             await _recordService.AddAsync(_wallet,
-                new ConnectionRecord {Id = "1", State = ConnectionState.Invited});
+                new ConnectionRecord {Id= "1", State = ConnectionState.Invited});
             await _recordService.AddAsync(_wallet,
                 new ConnectionRecord {Id = "2", State = ConnectionState.Connected});
 
