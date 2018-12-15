@@ -1,8 +1,5 @@
-| Stage | Status |
-| --- | --- |
-| Build | [![Build status](https://streetcred.visualstudio.com/Streetcred/_apis/build/status/SDK/SDK%20(Compile%20Only))](https://streetcred.visualstudio.com/Streetcred/_build/latest?definitionId=7) |
-| Package | [![Build status](https://streetcred.visualstudio.com/Streetcred/_apis/build/status/SDK/SDK%20(Build%20Package%20&%20Publish))](https://streetcred.visualstudio.com/Streetcred/_build/latest?definitionId=2) |
-| Unit Tests | [![Build Status](https://travis-ci.com/streetcred-id/agent-framework.svg?branch=master)](https://travis-ci.com/streetcred-id/agent-framework) |
+[![Build Status](https://dev.azure.com/streetcred/Agent%20Framework/_apis/build/status/Agent%20Framework%20-%20Build?branchName=master)](https://dev.azure.com/streetcred/Agent%20Framework/_build/latest?definitionId=10?branchName=master)
+[![Build Status](https://travis-ci.com/streetcred-id/agent-framework.svg?branch=master)](https://travis-ci.com/streetcred-id/agent-framework)
 
 # AgentFramework
 ## .NET Core tools for building Sovrin agent services
