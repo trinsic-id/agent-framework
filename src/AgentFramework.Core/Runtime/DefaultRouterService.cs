@@ -31,20 +31,26 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connectionRecord)
+        public async Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connectionRecord, string recipientKey = null)
         {
             _logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0} Endpoint {1}", connectionRecord.TheirVk, connectionRecord.Endpoint.Uri);
-            
+
+            byte[] wireMessage;
+
             //Create a wire message for the destination agent
-            var wireMessage = await _messageSerializer.AuthPackAsync(wallet, message, connectionRecord.TheirVk, connectionRecord.MyVk);
+            if (string.IsNullOrEmpty(recipientKey))
+                wireMessage = await _messageSerializer.AuthPackAsync(wallet, message, connectionRecord.TheirVk, connectionRecord.MyVk);
+            else
+                wireMessage = await _messageSerializer.AuthPackAsync(wallet, message, recipientKey, connectionRecord.MyVk);
 
             var innerMessage = Convert.ToBase64String(wireMessage);
 
-            var forwardMessage = new ForwardMessage
-            {
-                To = connectionRecord.TheirVk,
-                Message = innerMessage
-            };
+            var forwardMessage = new ForwardMessage { Message = innerMessage };
+
+            if (string.IsNullOrEmpty(recipientKey))
+                forwardMessage.To = connectionRecord.TheirVk;
+            else
+                forwardMessage.To = recipientKey;
 
             //Pack this message inside another and encrypt for the agent endpoint
             var agentEndpointWireMessage = await _messageSerializer.AnonPackAsync(forwardMessage, connectionRecord.Endpoint.Verkey);
