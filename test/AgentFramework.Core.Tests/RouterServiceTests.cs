@@ -24,7 +24,7 @@ namespace AgentFramework.Core.Tests
 {
     public class RouterServiceTests : IAsyncLifetime
     {
-        private const string HolderConfig = "{\"id\":\"holder_proof_test_wallet\"}";
+        private string Config = "{\"id\":\"" + Guid.NewGuid() + "\"}";
         private const string WalletCredentials = "{\"key\":\"test_wallet_key\"}";
 
         private Wallet _wallet;
@@ -70,20 +70,20 @@ namespace AgentFramework.Core.Tests
         {
             try
             {
-                await Wallet.CreateWalletAsync(HolderConfig, WalletCredentials);
+                await Wallet.CreateWalletAsync(Config, WalletCredentials);
             }
             catch (WalletExistsException)
             {
                 // OK
             }
 
-            _wallet = await Wallet.OpenWalletAsync(HolderConfig, WalletCredentials);
+            _wallet = await Wallet.OpenWalletAsync(Config, WalletCredentials);
         }
 
         public async Task DisposeAsync()
         {
             if (_wallet != null) await _wallet.CloseAsync();
-            await Wallet.DeleteWalletAsync(HolderConfig, WalletCredentials);
+            await Wallet.DeleteWalletAsync(Config, WalletCredentials);
         }
 
         [Fact]
