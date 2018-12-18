@@ -23,11 +23,11 @@ namespace AgentFramework.Core.Runtime
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AgentFramework.Core.Runtime.DefaultRouterService"/> class.
         /// </summary>
-        public DefaultRouterService(IMessageSerializer messageSerializer, ILogger<DefaultRouterService> logger)
+        public DefaultRouterService(IMessageSerializer messageSerializer, ILogger<DefaultRouterService> logger, HttpClient httpClient)
         {
             _messageSerializer = messageSerializer;
             _logger = logger;
-            _httpClient = new HttpClient();
+            _httpClient = httpClient;
         }
 
         /// <inheritdoc />

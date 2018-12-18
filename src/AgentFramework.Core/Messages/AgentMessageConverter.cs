@@ -2,6 +2,7 @@
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Messages.Proofs;
+using AgentFramework.Core.Messages.Routing;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -28,6 +29,9 @@ namespace AgentFramework.Core.Messages
             IAgentMessage message;
             switch (item["@type"].ToString())
             {
+                case MessageTypes.Forward:
+                    message = new ForwardMessage();
+                    break;
                 case MessageTypes.ConnectionInvitation:
                     message = new ConnectionInvitationMessage();
                     break;
