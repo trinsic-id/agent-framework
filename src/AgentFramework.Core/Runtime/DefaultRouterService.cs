@@ -18,7 +18,7 @@ namespace AgentFramework.Core.Runtime
     {
         private readonly IMessageSerializer _messageSerializer;
         private readonly ILogger<DefaultRouterService> _logger;
-        private readonly HttpClient _httpClient;
+        private readonly HttpClient _httpClient; 
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AgentFramework.Core.Runtime.DefaultRouterService"/> class.
@@ -39,9 +39,9 @@ namespace AgentFramework.Core.Runtime
 
             //Create a wire message for the destination agent
             if (string.IsNullOrEmpty(recipientKey))
-                wireMessage = await _messageSerializer.AuthPackAsync(wallet, message, connectionRecord.TheirVk, connectionRecord.MyVk);
+                wireMessage = await _messageSerializer.AuthPackAsync(wallet, message, connectionRecord.MyVk, connectionRecord.TheirVk);
             else
-                wireMessage = await _messageSerializer.AuthPackAsync(wallet, message, recipientKey, connectionRecord.MyVk);
+                wireMessage = await _messageSerializer.AuthPackAsync(wallet, message, connectionRecord.MyVk, recipientKey);
 
             var innerMessage = Convert.ToBase64String(wireMessage);
 
