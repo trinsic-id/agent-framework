@@ -20,22 +20,16 @@
         /// </summary>
         internal const string UniqueRecordId = "SingleRecord";
 
-        /// <summary>
-        /// Gets the identifier.
-        /// </summary>
-        /// <value>The identifier.</value>
+        /// <inheritdoc />
         public override string Id => UniqueRecordId;
 
-        /// <summary>
-        /// Gets the name of the type.
-        /// </summary>
-        /// <returns>The type name.</returns>
+        /// <inheritdoc />
         public override string TypeName => "AF.ProvisioningRecord";
 
         /// <summary>
         /// Gets or sets the endpoint information for the provisioned agent.
         /// </summary>
-        /// <returns>The endpoint informtation for the provisioned agent</returns>
+        /// <returns>The endpoint information for the provisioned agent</returns>
         public AgentEndpoint Endpoint
         {
             get;
@@ -45,28 +39,8 @@
         /// <summary>
         /// Gets or sets the owner information for the provisioned agent.
         /// </summary>
-        /// <returns>The owner informtation for the provisioned agent</returns>
+        /// <returns>The owner information for the provisioned agent</returns>
         public AgentOwner Owner
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the seed used to generate the did for the provisioned agent.
-        /// </summary>
-        /// <returns>The seed used to generate the did for the provisioned agent</returns>
-        public string AgentSeed
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the seed used to generate the issuer did for the provisioned agent.
-        /// </summary>
-        /// <returns>The seed used to generate the issuer did for the provisioned agent</returns>
-        public string IssuerSeed
         {
             get;
             set;
@@ -111,13 +85,5 @@
             get;
             set;
         }
-
-        /// <summary>
-        /// Determines whether this wallet is provisioned as issuer.
-        /// </summary>
-        /// <returns>
-        ///   <c>true</c> if this instance is issuer; otherwise, <c>false</c>.
-        /// </returns>
-        public bool IsIssuer() => !string.IsNullOrEmpty(IssuerDid);
     }
 }

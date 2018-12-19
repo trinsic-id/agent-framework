@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Wallets;
@@ -25,6 +26,14 @@ namespace AgentFramework.Core.Contracts
         /// <param name="wallet">The wallet.</param>
         /// <param name="provisioningConfiguration">The provisioning request.</param>
         /// <returns>The response async.</returns>
+        [Obsolete]
         Task ProvisionAgentAsync(Wallet wallet, ProvisioningConfiguration provisioningConfiguration);
+
+        /// <summary>
+        /// Creates a wallet and provisions a new agent with the given <see cref="ProvisioningConfiguration" />
+        /// </summary>
+        /// <param name="configuration">The provisioning configuration.</param>
+        /// <returns></returns>
+        Task ProvisionAgentAsync(ProvisioningConfiguration configuration);
     }
 }
