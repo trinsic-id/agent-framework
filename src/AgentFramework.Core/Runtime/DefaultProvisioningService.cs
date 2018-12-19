@@ -128,7 +128,7 @@ namespace AgentFramework.Core.Runtime
             {
                 var agent = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
                 endpoint.Did = agent.Did;
-                endpoint.Uri = agent.VerKey;
+                endpoint.Verkey = agent.VerKey;
             }
 
             var masterSecretId = await AnonCreds.ProverCreateMasterSecretAsync(wallet, null);
