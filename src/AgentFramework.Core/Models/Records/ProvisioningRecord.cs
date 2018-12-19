@@ -33,7 +33,7 @@
         public AgentEndpoint Endpoint
         {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -53,7 +53,7 @@
         public string IssuerDid
         {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -63,7 +63,7 @@
         public string IssuerVerkey
         {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -73,7 +73,7 @@
         public string MasterSecretId
         {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
@@ -83,7 +83,7 @@
         public string TailsBaseUri
         {
             get;
-            set;
+            internal set;
         }
     }
 }
