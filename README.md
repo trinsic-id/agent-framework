@@ -1,5 +1,6 @@
 [![Build Status](https://dev.azure.com/streetcred/Agent%20Framework/_apis/build/status/Agent%20Framework%20-%20Build?branchName=master)](https://dev.azure.com/streetcred/Agent%20Framework/_build/latest?definitionId=10?branchName=master)
 [![Build Status](https://travis-ci.com/streetcred-id/agent-framework.svg?branch=master)](https://travis-ci.com/streetcred-id/agent-framework)
+[![MyGet](https://img.shields.io/myget/agent-framework/v/AgentFramework.Core.svg)](https://www.myget.org/feed/agent-framework/package/nuget/AgentFramework.Core)
 
 # AgentFramework
 ## .NET Core tools for building Sovrin agent services
