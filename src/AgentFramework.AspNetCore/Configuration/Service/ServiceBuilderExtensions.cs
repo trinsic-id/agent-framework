@@ -1,4 +1,5 @@
-﻿using AgentFramework.AspNetCore.Runtime;
+﻿using System.Net.Http;
+using AgentFramework.AspNetCore.Runtime;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Runtime;
 using Microsoft.Extensions.Caching.Memory;
@@ -19,6 +20,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             builder.Services.TryAddSingleton<IProofService, DefaultProofService>();
             builder.Services.TryAddSingleton<IProvisioningService, DefaultProvisioningService>();
             builder.Services.TryAddSingleton<IRouterService, DefaultRouterService>();
+            builder.Services.TryAddSingleton<HttpClient>();
             builder.Services.TryAddSingleton<ISchemaService, DefaultSchemaService>();
             builder.Services.TryAddSingleton<ITailsService, DefaultTailsService>();
             builder.Services.TryAddSingleton<IWalletRecordService, DefaultWalletRecordService>();
