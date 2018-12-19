@@ -159,5 +159,14 @@ namespace AgentFramework.Core.Runtime
 
             await RecordService.AddAsync(wallet, record);
         }
+
+        /// <inheritdoc />
+        public async Task UpdateEndpointAsync(Wallet wallet, AgentEndpoint endpoint)
+        {
+            var record = await GetProvisioningAsync(wallet);
+            record.Endpoint = endpoint;
+
+            await RecordService.UpdateAsync(wallet, record);
+        }
     }
 }
