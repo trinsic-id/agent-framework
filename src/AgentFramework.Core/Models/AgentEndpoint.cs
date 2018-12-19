@@ -1,10 +1,19 @@
-﻿namespace AgentFramework.Core.Models
+﻿using Newtonsoft.Json;
+
+namespace AgentFramework.Core.Models
 {
     /// <summary>
     /// An object for containing agent endpoint information.
     /// </summary>
     public class AgentEndpoint
     {
+        [JsonProperty]
+        private string _did;
+        [JsonProperty]
+        private string _verkey;
+        [JsonProperty]
+        private string _uri;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AgentEndpoint"/> class.
         /// </summary>
@@ -37,7 +46,12 @@
         /// <value>
         /// The did of the agent.
         /// </value>
-        public string Did { get; internal set; }
+        [JsonIgnore]
+        public string Did
+        {
+            get => _did;
+            internal set => _did = value;
+        }
 
         /// <summary>
         /// Gets or sets the verkey of the agent.
@@ -45,7 +59,12 @@
         /// <value>
         /// The verkey of the agent.
         /// </value>
-        public string Verkey { get; internal set; }
+        [JsonIgnore]
+        public string Verkey
+        {
+            get => _verkey;
+            internal set => _verkey = value;
+        }
 
         /// <summary>
         /// Gets or sets the uri of the agent.
@@ -53,6 +72,11 @@
         /// <value>
         /// The uri of the agent.
         /// </value>
-        public string Uri { get; internal set; }
+        [JsonIgnore]
+        public string Uri
+        {
+            get => _uri;
+            internal set => _uri = value;
+        }
     }
 }

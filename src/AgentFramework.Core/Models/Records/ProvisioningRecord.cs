@@ -1,4 +1,6 @@
-﻿namespace AgentFramework.Core.Models.Records
+﻿using Newtonsoft.Json;
+
+namespace AgentFramework.Core.Models.Records
 {
     /// <summary>
     /// Represents a provisioning record in the agency wallet
@@ -6,6 +8,15 @@
     /// <seealso cref="RecordBase" />
     public class ProvisioningRecord : RecordBase
     {
+        [JsonProperty]
+        private string _tailsBaseUri;
+        [JsonProperty]
+        private string _masterSecretId;
+        [JsonProperty]
+        private string _issuerVerkey;
+        [JsonProperty]
+        private string _issuerDid;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ProvisioningRecord"/> class.
         /// </summary>
@@ -43,47 +54,51 @@
         public AgentOwner Owner
         {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
         /// Gets or sets the issuer did for the provisioned agent.
         /// </summary>
         /// <returns>The issuer did for the provisioned agent</returns>
+        [JsonIgnore]
         public string IssuerDid
         {
-            get;
-            internal set;
+            get => _issuerDid;
+            internal set => _issuerDid = value;
         }
 
         /// <summary>
         /// Gets or sets the issuer verkey for the provisioned agent.
         /// </summary>
         /// <returns>The issuer verkey for the provisioned agent</returns>
+        [JsonIgnore]
         public string IssuerVerkey
         {
-            get;
-            internal set;
+            get => _issuerVerkey;
+            internal set => _issuerVerkey = value;
         }
 
         /// <summary>
         /// Gets or sets the master key identifier for the provisioned agent.
         /// </summary>
         /// <returns>The master key identifier for the provisioned agent</returns>
+        [JsonIgnore]
         public string MasterSecretId
         {
-            get;
-            internal set;
+            get => _masterSecretId;
+            internal set => _masterSecretId = value;
         }
 
         /// <summary>
         /// Gets or sets the tails base uri for the provisioned agent.
         /// </summary>
         /// <returns>The tails base uri for the provisioned agent</returns>
+        [JsonIgnore]
         public string TailsBaseUri
         {
-            get;
-            internal set;
+            get => _tailsBaseUri;
+            internal set => _tailsBaseUri = value;
         }
     }
 }
