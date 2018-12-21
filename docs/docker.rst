@@ -1,11 +1,13 @@
-# Hosting agents in docker containers
+***********************************
+Hosting agents in docker containers
+***********************************
 
 Hosting agents in docker container is the easiest way to ensure your running environment has all dependencies required by the framework.
 We provide images with libindy and dotnet-sdk preinstalled.
 
 ## Usage
 
-```docker
+```lang-docker
 FROM streetcred/dotnet-indy:latest
 ```
 
