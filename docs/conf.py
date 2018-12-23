@@ -135,7 +135,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'AgentFramework.tex', u'Agent Framework Documentation',
-     u'Tomislav Markovski, Tobias Looker', 'manual'),
+     u'Agent Framework and contributors', 'manual'),
 ]
 
 
