@@ -66,18 +66,18 @@ namespace AgentFramework.Core.Runtime
             record = new ProvisioningRecord
             {
                 MasterSecretId = masterSecretId,
-                Endpoint =
-                {
-                    Uri = provisioningConfiguration.EndpointUri.ToString(),
-                    Did = agent.Did,
-                    Verkey = agent.VerKey
-                },
                 Owner =
                 {
                     Name = provisioningConfiguration.OwnerName,
                     ImageUrl = provisioningConfiguration.OwnerImageUrl
                 }
             };
+
+            record.Services.Add(new AgencyService
+            {
+                ServiceEndpoint = provisioningConfiguration.EndpointUri.ToString(),
+                Verkey = agent.VerKey
+            });
 
             if (provisioningConfiguration.CreateIssuer)
             {

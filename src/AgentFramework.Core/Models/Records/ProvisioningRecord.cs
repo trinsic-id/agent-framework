@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections;
+using System.Collections.Generic;
+using AgentFramework.Core.Models.Did;
+using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Models.Records
 {
@@ -22,7 +25,7 @@ namespace AgentFramework.Core.Models.Records
         /// </summary>
         public ProvisioningRecord()
         {
-            Endpoint = new AgentEndpoint();
+            Services = new List<IDidService>();
             Owner = new AgentOwner();
         }
 
@@ -38,10 +41,10 @@ namespace AgentFramework.Core.Models.Records
         public override string TypeName => "AF.ProvisioningRecord";
 
         /// <summary>
-        /// Gets or sets the endpoint information for the provisioned agent.
+        /// Gets or sets the services for the provisioned agent.
         /// </summary>
-        /// <returns>The endpoint information for the provisioned agent</returns>
-        public AgentEndpoint Endpoint
+        /// <returns>The service information for the provisioned agent</returns>
+        public IList<IDidService> Services
         {
             get;
             internal set;

@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AgentFramework.Core.Models.Connections;
+using AgentFramework.Core.Models.Did;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Stateless;
@@ -16,6 +19,7 @@ namespace AgentFramework.Core.Models.Records
 
         public ConnectionRecord()
         {
+            Services = new List<IDidService>();
             State = ConnectionState.Invited;
         }
 
@@ -28,7 +32,7 @@ namespace AgentFramework.Core.Models.Records
         {
             ConnectionRecord copy = (ConnectionRecord)this.MemberwiseClone();
             copy.Alias = new ConnectionAlias(Alias);
-            copy.Endpoint = new AgentEndpoint(Endpoint);
+            copy.Services = Services.ToList();
             return copy;
         }
 
@@ -93,10 +97,10 @@ namespace AgentFramework.Core.Models.Records
         }
 
         /// <summary>
-        /// Gets or sets the endpoint.
+        /// Gets or sets the associated services to the connection.
         /// </summary>
         /// <value>The endpoint.</value>
-        public AgentEndpoint Endpoint
+        public IList<IDidService> Services
         {
             get;
             set;

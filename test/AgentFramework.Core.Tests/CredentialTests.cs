@@ -71,12 +71,12 @@ namespace AgentFramework.Core.Tests
 
             var provisioningMock = new Mock<IProvisioningService>();
             provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
-                .Returns(Task.FromResult(new ProvisioningRecord
+                .Returns(() =>
                 {
-                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri},
-                    MasterSecretId = MasterSecretId,
-                    TailsBaseUri = MockEndpointUri
-                }));
+                    var provisioningRecord = new ProvisioningRecord();
+                    provisioningRecord.Services.Add(new AgencyService() { ServiceEndpoint = MockEndpointUri });
+                    return Task.FromResult(provisioningRecord);
+                });
 
             var tailsService = new DefaultTailsService(ledgerService);
             _schemaService = new DefaultSchemaService(recordService, ledgerService, tailsService);

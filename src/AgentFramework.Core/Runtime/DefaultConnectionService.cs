@@ -73,7 +73,7 @@ namespace AgentFramework.Core.Runtime
 
             return new ConnectionInvitationMessage
             {
-                Endpoint = provisioning.Endpoint,
+                Endpoint = provisioning.Services[0],
                 ConnectionKey = connectionKey,
                 Name = config.MyAlias.Name ?? provisioning.Owner.Name,
                 ImageUrl = config.MyAlias.ImageUrl ?? provisioning.Owner.ImageUrl
@@ -84,17 +84,18 @@ namespace AgentFramework.Core.Runtime
         public virtual async Task<string> AcceptInvitationAsync(Wallet wallet, ConnectionInvitationMessage invitation)
         {
             Logger.LogInformation(LoggingEvents.AcceptInvitation, "Key {0}, Endpoint {1}",
-                invitation.ConnectionKey, invitation.Endpoint.Uri);
+                invitation.ConnectionKey, invitation.Endpoint.ServiceEndpoint);
 
             var my = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
 
             var connection = new ConnectionRecord
             {
-                Endpoint = invitation.Endpoint,
                 MyDid = my.Did,
                 MyVk = my.VerKey,
                 Id = Guid.NewGuid().ToString().ToLowerInvariant()
             };
+
+            connection.Services.Add(invitation.Endpoint);
 
             if (!string.IsNullOrEmpty(invitation.Name) || !string.IsNullOrEmpty(invitation.ImageUrl))
             {
@@ -116,7 +117,7 @@ namespace AgentFramework.Core.Runtime
             {
                 Did = my.Did,
                 Verkey = my.VerKey,
-                Endpoint = provisioning.Endpoint
+                Endpoint = provisioning.Services[0]
             };
 
             try
@@ -141,7 +142,7 @@ namespace AgentFramework.Core.Runtime
 
             await Did.StoreTheirDidAsync(wallet, new { did = request.Did, verkey = request.Verkey }.ToJson());
 
-            connection.Endpoint = request.Endpoint;
+            connection.Services.Add(request.Endpoint);
             connection.TheirDid = request.Did;
             connection.TheirVk = request.Verkey;
             connection.MyDid = my.Did;
@@ -178,9 +179,6 @@ namespace AgentFramework.Core.Runtime
             connection.TheirDid = response.Did;
             connection.TheirVk = response.Verkey;
 
-            if (response.Endpoint != null)
-                connection.Endpoint = response.Endpoint;
-
             await connection.TriggerAsync(ConnectionTrigger.Response);
             await RecordService.UpdateAsync(wallet, connection);
         }
@@ -198,7 +196,7 @@ namespace AgentFramework.Core.Runtime
 
             var connectionCopy = connection.DeepCopy();
 
-            await Pairwise.CreateAsync(wallet, connection.TheirDid, connection.MyDid, connection.Endpoint.ToJson());
+            await Pairwise.CreateAsync(wallet, connection.TheirDid, connection.MyDid, "{}");
 
             await connection.TriggerAsync(ConnectionTrigger.Request);
             await RecordService.UpdateAsync(wallet, connection);
@@ -208,7 +206,7 @@ namespace AgentFramework.Core.Runtime
             var response = new ConnectionResponseMessage
             {
                 Did = connection.MyDid,
-                Endpoint = provisioning.Endpoint,
+                Endpoint = provisioning.Services[0],
                 Verkey = connection.MyVk
             };
 

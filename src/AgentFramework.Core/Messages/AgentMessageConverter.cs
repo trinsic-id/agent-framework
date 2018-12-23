@@ -56,6 +56,21 @@ namespace AgentFramework.Core.Messages
                 case MessageTypes.DisclosedProof:
                     message = new ProofMessage();
                     break;
+                case MessageTypes.ForwardMultiple:
+                    message = new ForwardMultipleMessage();
+                    break;
+                case MessageTypes.Forward:
+                    message = new ForwardMessage();
+                    break;
+                case MessageTypes.CreateRoute:
+                    message = new CreateRouteMessage();
+                    break;
+                case MessageTypes.DeleteRoute:
+                    message = new DeleteRouteMessage();
+                    break;
+                case MessageTypes.GetRoutes:
+                    message = new GetRoutesMessage();
+                    break;
                 default:
                     throw new TypeLoadException("Unsupported serialization type.");
             }

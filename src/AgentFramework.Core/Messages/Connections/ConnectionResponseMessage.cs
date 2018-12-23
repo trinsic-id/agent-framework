@@ -1,4 +1,5 @@
 ﻿using AgentFramework.Core.Models;
+using AgentFramework.Core.Models.Did;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Messages.Connections
@@ -33,7 +34,7 @@ namespace AgentFramework.Core.Messages.Connections
         /// The public endpoint.
         /// </value>
         [JsonProperty("endpoint")]
-        public AgentEndpoint Endpoint { get; set; }
+        public IDidService Endpoint { get; set; }
 
         /// <summary>
         /// Gets or sets the type.

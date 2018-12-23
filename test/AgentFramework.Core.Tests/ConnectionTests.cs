@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
@@ -52,10 +53,12 @@ namespace AgentFramework.Core.Tests
 
             _provisioningMock = new Mock<IProvisioningService>();
             _provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
-                .Returns(Task.FromResult(new ProvisioningRecord
+                .Returns(() =>
                 {
-                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri}
-                }));
+                    var provisioningRecord = new ProvisioningRecord();
+                    provisioningRecord.Services.Add(new AgencyService() { ServiceEndpoint = MockEndpointUri});
+                    return Task.FromResult(provisioningRecord);
+                });
 
             _connectionService = new DefaultConnectionService(
                 new DefaultWalletRecordService(new DateTimeHelper()),
@@ -140,9 +143,8 @@ namespace AgentFramework.Core.Tests
             {
                 Did = "EYS94e95kf6LXF49eARL76",
                 Verkey = "~LGkX716up2KAimNfz11HRr",
-                Endpoint = new AgentEndpoint
+                Endpoint = new AgencyService
                 {
-                    Did = "EYS94e95kf6LXF49eARL76",
                     Verkey = "~LGkX716up2KAimNfz11HRr"
                 },
                 Type = MessageTypes.ConnectionRequest
@@ -173,9 +175,8 @@ namespace AgentFramework.Core.Tests
             {
                 Did = "EYS94e95kf6LXF49eARL76",
                 Verkey = "~LGkX716up2KAimNfz11HRr",
-                Endpoint = new AgentEndpoint
+                Endpoint = new AgencyService
                 {
-                    Did = "EYS94e95kf6LXF49eARL76",
                     Verkey = "~LGkX716up2KAimNfz11HRr"
                 },
                 Type = MessageTypes.ConnectionRequest
@@ -205,8 +206,13 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(connectionIssuer.MyDid, connectionHolder.TheirDid);
             Assert.Equal(connectionIssuer.TheirDid, connectionHolder.MyDid);
 
-            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
-            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
+            Assert.True(connectionIssuer.Services.Count() == 1);
+            var agency = connectionIssuer.Services[0] as AgencyService;
+            Assert.True(agency?.ServiceEndpoint == MockEndpointUri);
+
+            Assert.True(connectionHolder.Services.Count() == 1);
+            agency = connectionHolder.Services[0] as AgencyService;
+            Assert.True(agency?.ServiceEndpoint == MockEndpointUri);
         }
 
         [Fact]
@@ -221,8 +227,13 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(connectionIssuer.MyDid, connectionHolder.TheirDid);
             Assert.Equal(connectionIssuer.TheirDid, connectionHolder.MyDid);
 
-            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
-            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
+            Assert.True(connectionIssuer.Services.Count() == 1);
+            var agency = connectionIssuer.Services[0] as AgencyService;
+            Assert.True(agency?.ServiceEndpoint == MockEndpointUri);
+
+            Assert.True(connectionHolder.Services.Count() == 1);
+            agency = connectionHolder.Services[0] as AgencyService;
+            Assert.True(agency?.ServiceEndpoint == MockEndpointUri);
         }
          
         public async Task DisposeAsync()
