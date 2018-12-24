@@ -10,7 +10,6 @@
     <StartAction>Project</StartAction>
     <EnvironmentVariables>
       <Variable name="ASPNETCORE_ENVIRONMENT" value="Development" />
-      <Variable name="STREETCRED_OWNER_NAME" value="Local Joe" />
     </EnvironmentVariables>
     <ApplicationURL>http://localhost:5000/</ApplicationURL>
   </PropertyGroup>

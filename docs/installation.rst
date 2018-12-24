@@ -55,13 +55,6 @@ Linux
 Build instructions for [Ubuntu based distros](https://github.com/hyperledger/indy-sdk/blob/master/doc/ubuntu-build.md) and [RHEL
 based distros](https://github.com/hyperledger/indy-sdk/blob/master/doc/rhel-build.md).
 
-Hosting and configuring agent services for production
-=====================================================
-
-- [ASP.NET Core](web-agents-aspnetcore.md)
-- [Xamarin](xamarin-mobile.md)
-- [Hosting agents in Docker container](docker-agents.md)
-
 Introduction to Agent Framework Core
 ====================================
 
@@ -73,24 +66,3 @@ We strongly suggest that you go over the [Indy SDK Getting Started Guide](https:
 - Credentials - issuing credentials
 - Proofs - credential attestations and verifications
 - Notes on revocation and tails services
-
-Samples
-=======
-
-Running the example
--------------------
-
-.. code-block:: bash
-
-    docker-compose up
-
-This will create an agent network with a pool and three identical agents able to communicate with each other in the network.
-Navigate to [http://localhost:7001](), [http://localhost:7002]() and [http://localhost:7003]() to create and accept connection invitations between the different agents.
-
-### Running the unit tests
-
-```lang=bash
-docker-compose -f docker-compose.test.yaml up --build --remove-orphans --abort-on-container-exit --exit-code-from test-agent
-```
-
-Note: You may need to cleanup previous docker network created using `docker network prune`

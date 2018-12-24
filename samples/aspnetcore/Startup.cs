@@ -43,12 +43,11 @@ namespace WebAgent
 
             app.UseStaticFiles();
 
-            app.UseAgent(
-                $"{Environment.GetEnvironmentVariable("ASPNETCORE_URLS")}/agent",
+            app.UseAgent($"{Environment.GetEnvironmentVariable("ASPNETCORE_URLS")}/agent",
                 (obj) =>
-            {
-                obj.AddOwnershipInfo(Environment.GetEnvironmentVariable("STREETCRED_OWNER_NAME"), null);
-            });
+                {
+                    obj.AddOwnershipInfo(Environment.GetEnvironmentVariable("AF_OWNER_NAME") ?? "Random Muggle", null);
+                });
 
             app.UseMvc(routes =>
             {
