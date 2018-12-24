@@ -54,15 +54,3 @@ Linux
 
 Build instructions for [Ubuntu based distros](https://github.com/hyperledger/indy-sdk/blob/master/doc/ubuntu-build.md) and [RHEL
 based distros](https://github.com/hyperledger/indy-sdk/blob/master/doc/rhel-build.md).
-
-Introduction to Agent Framework Core
-====================================
-
-Before you begin reading any of the topics below, please familiarize youself with the core idea behind Hyperledger Indy.
-We strongly suggest that you go over the [Indy SDK Getting Started Guide](https://github.com/hyperledger/indy-sdk/blob/master/doc/getting-started/getting-started.md) first.
-
-- Connections - establishing secure peer to peer connection
-- Working with schemas and definitions
-- Credentials - issuing credentials
-- Proofs - credential attestations and verifications
-- Notes on revocation and tails services

@@ -13,6 +13,7 @@ Configure required services
 Inside your ``Startup.cs`` fine in ``ConfigureServices(IServiceCollection services)`` use the extension methods to add all dependent services and optionally pass configuration data.
 
 .. code-block:: csharp
+    :emphasize-lines: 4
 
     public void ConfigureServices(IServiceCollection services)
     {
@@ -73,9 +74,15 @@ Initialize agent middleware
 In ``Configure(IApplicationBuilder app, IHostingEnvironment env)`` start the default agent middleware
 
 .. code-block:: csharp
+    :emphasize-lines: 4
 
-    // Endpoint can be any address you'd like to bind to this middleware
-    app.UseAgent("http://localhost:5000/agent"); 
+    public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+    {
+        // Endpoint can be any address you'd like to bind to this middleware
+        app.UseAgent("http://localhost:5000/agent"); 
+
+        // .. other services like app.UseMvc()
+    }
 
 The default agent middleware is a simple implementation. You can `create your middleware
 <https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-2.2>`_ and use that instead if you'd like to customize the message handling.
