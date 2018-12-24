@@ -5,14 +5,19 @@ Hosting agents in docker containers
 Hosting agents in docker container is the easiest way to ensure your running environment has all dependencies required by the framework.
 We provide images with libindy and dotnet-sdk preinstalled.
 
-## Usage
+Usage
+=====
 
-```lang-docker
-FROM streetcred/dotnet-indy:latest
-```
+.. code-block:: docker
+    :name: Docker
 
-The images are based on `ubuntu:16.04`. You can check [the docker repo](https://github.com/streetcred-id/docker) if you want to build your own image or require specific version of .NET Core or libindy.
+    FROM streetcred/dotnet-indy:latest
 
-## Example build
+The images are based on `ubuntu:16.04`. You can check `the docker repo
+<https://github.com/streetcred-id/docker>`_ if you want to build your own image or require specific version of .NET Core or libindy.
 
-Our [web agent docker file](../docker/web-agent.dockerfile) is an example of building and running ASP.NET Core project inside docker container with libindy support.
+Example build
+=============
+
+Check the `web agent docker file
+<https://github.com/streetcred-id/agent-framework/blob/master/docker/web-agent.dockerfile>`_ for an example of building and running ASP.NET Core project inside docker container with libindy support.

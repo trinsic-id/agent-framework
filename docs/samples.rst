@@ -53,6 +53,7 @@ Running the example
 -------------------
 
 .. code-block:: bash
+    :name: Command line
 
     docker-compose up
 
@@ -63,6 +64,7 @@ Running the unit tests
 ----------------------
 
 .. code-block:: bash
+    :name: Command line
 
     docker-compose -f docker-compose.test.yaml up --build --remove-orphans --abort-on-container-exit --exit-code-from test-agent
 

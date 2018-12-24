@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgentFramework.Core", "src\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02ADBA96-A50C-44F0-A9D9-FA0629AA2DF4}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sdk", "Sdk", "{73FF6DBD-5847-4F2D-94BE-196AE9A80228}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Framework", "Framework", "{73FF6DBD-5847-4F2D-94BE-196AE9A80228}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgentFramework.Core.Tests", "test\AgentFramework.Core.Tests\AgentFramework.Core.Tests.csproj", "{0334EA27-52D1-434B-90F5-F108F7630409}"
 EndProject
