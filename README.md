@@ -10,11 +10,20 @@ The framework runs .NET Standard (2.0+), including ASP.NET Core and Xamarin.
 
 ## Documentation
 
-## Quick demo
+- [Installation and configuration](https://agent-framework.readthedocs.io/en/latest/installation.html)
+- [Agent Workflows](https://agent-framework.readthedocs.io/en/latest/quickstart.html)
+- [Mobile Agents with Xamarin](https://agent-framework.readthedocs.io/en/latest/xamarin.html)
+- [Web Agent services with ASP.NET Core](https://agent-framework.readthedocs.io/en/latest/aspnetcore.html)
+- [Hosting agents in docker containers](https://agent-framework.readthedocs.io/en/latest/docker.html)
+- [Samples and demos](https://agent-framework.readthedocs.io/en/latest/samples.html)
+
+## A very quick demo
+
+With [Docker](https://www.docker.com) installed, run
 
 ```lang=bash
 docker-compose up
 ```
 
-This will create an agent network with a pool and three identical agents able to communicate with each other in the network.
+This will create an agent network with a pool of 4 indy nodes and 3 agents able to communicate with each other in the network.
 Navigate to [http://localhost:7001](http://localhost:7001), [http://localhost:7002](http://localhost:7001) and [http://localhost:7003](http://localhost:7001) to create and accept connection invitations between the different agents.

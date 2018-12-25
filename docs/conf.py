@@ -20,8 +20,8 @@
 # -- Project information -----------------------------------------------------
 
 project = u'Agent Framework'
-copyright = u'2018, Tomislav Markovski, Tobias Looker'
-author = u'Tomislav Markovski, Tobias Looker'
+copyright = u'2018, Agent Framework'
+author = u'Agent Framework and contributors'
 
 # The short X.Y version
 version = u''
