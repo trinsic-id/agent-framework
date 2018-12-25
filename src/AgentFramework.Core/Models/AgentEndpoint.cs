@@ -1,18 +1,44 @@
-﻿namespace AgentFramework.Core.Models
+﻿using Newtonsoft.Json;
+
+namespace AgentFramework.Core.Models
 {
     /// <summary>
     /// An object for containing agent endpoint information.
     /// </summary>
     public class AgentEndpoint
     {
-        public AgentEndpoint(AgentEndpoint copy)
+        [JsonProperty]
+        private string _did;
+        [JsonProperty]
+        private string _verkey;
+        [JsonProperty]
+        private string _uri;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AgentEndpoint"/> class.
+        /// </summary>
+        /// <param name="copy">The copy.</param>
+        internal AgentEndpoint(AgentEndpoint copy)
         {
             Did = copy.Did;
             Verkey = copy.Verkey;
             Uri = copy.Uri;
         }
 
-        public AgentEndpoint() { }
+        internal AgentEndpoint() { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AgentEndpoint"/> class.
+        /// </summary>
+        /// <param name="uri">The URI.</param>
+        /// <param name="did">The did.</param>
+        /// <param name="verkey">The verkey.</param>
+        public AgentEndpoint(string uri, string did, string verkey)
+        {
+            Uri = uri;
+            Did = did;
+            Verkey = verkey;
+        }
 
         /// <summary>
         /// Gets or sets the did of the agent.
@@ -20,7 +46,12 @@
         /// <value>
         /// The did of the agent.
         /// </value>
-        public string Did { get; set; }
+        [JsonIgnore]
+        public string Did
+        {
+            get => _did;
+            internal set => _did = value;
+        }
 
         /// <summary>
         /// Gets or sets the verkey of the agent.
@@ -28,7 +59,12 @@
         /// <value>
         /// The verkey of the agent.
         /// </value>
-        public string Verkey { get; set; }
+        [JsonIgnore]
+        public string Verkey
+        {
+            get => _verkey;
+            internal set => _verkey = value;
+        }
 
         /// <summary>
         /// Gets or sets the uri of the agent.
@@ -36,6 +72,11 @@
         /// <value>
         /// The uri of the agent.
         /// </value>
-        public string Uri { get; set; }
+        [JsonIgnore]
+        public string Uri
+        {
+            get => _uri;
+            internal set => _uri = value;
+        }
     }
 }
