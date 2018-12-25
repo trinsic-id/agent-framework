@@ -121,7 +121,7 @@ namespace AgentFramework.Core.Runtime
 
             try
             {
-                await RouterService.SendAsync(wallet, msg, connection);
+                await RouterService.SendAsync(wallet, msg, connection, invitation.ConnectionKey);
             }
             catch (Exception e)
             {

@@ -33,6 +33,22 @@ namespace AgentFramework.Core.Models.Wallets
         public string AgentSeed { get; set; }
 
         /// <summary>
+        /// Gets or sets the agent did.
+        /// </summary>
+        /// <value>
+        /// The agent did.
+        /// </value>
+        public string AgentDid { get; set; }
+
+        /// <summary>
+        /// Gets or sets the agent verkey.
+        /// </summary>
+        /// <value>
+        /// The agent verkey.
+        /// </value>
+        public string AgentVerkey { get; set; }
+
+        /// <summary>
         /// Gets or sets the endpoint URI that this agent will receive Sovrin messages
         /// </summary>
         /// <value>
@@ -62,5 +78,21 @@ namespace AgentFramework.Core.Models.Wallets
         /// </summary>
         /// <value>The tails base URI.</value>
         public Uri TailsBaseUri { get; set; }
+
+        /// <summary>
+        /// Gets or sets the wallet configuration.
+        /// </summary>
+        /// <value>
+        /// The wallet configuration.
+        /// </value>
+        public WalletConfiguration WalletConfiguration { get; set; }
+
+        /// <summary>
+        /// Gets or sets the wallet credentials.
+        /// </summary>
+        /// <value>
+        /// The wallet credentials.
+        /// </value>
+        public WalletCredentials WalletCredentials { get; set; }
     }
 }

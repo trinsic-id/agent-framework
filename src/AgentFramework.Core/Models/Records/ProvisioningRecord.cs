@@ -1,4 +1,6 @@
-﻿namespace AgentFramework.Core.Models.Records
+﻿using Newtonsoft.Json;
+
+namespace AgentFramework.Core.Models.Records
 {
     /// <summary>
     /// Represents a provisioning record in the agency wallet
@@ -6,6 +8,15 @@
     /// <seealso cref="RecordBase" />
     public class ProvisioningRecord : RecordBase
     {
+        [JsonProperty]
+        private string _tailsBaseUri;
+        [JsonProperty]
+        private string _masterSecretId;
+        [JsonProperty]
+        private string _issuerVerkey;
+        [JsonProperty]
+        private string _issuerDid;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ProvisioningRecord"/> class.
         /// </summary>
@@ -20,104 +31,74 @@
         /// </summary>
         internal const string UniqueRecordId = "SingleRecord";
 
-        /// <summary>
-        /// Gets the identifier.
-        /// </summary>
-        /// <value>The identifier.</value>
+        /// <inheritdoc />
         public override string Id => UniqueRecordId;
 
-        /// <summary>
-        /// Gets the name of the type.
-        /// </summary>
-        /// <returns>The type name.</returns>
+        /// <inheritdoc />
         public override string TypeName => "AF.ProvisioningRecord";
 
         /// <summary>
         /// Gets or sets the endpoint information for the provisioned agent.
         /// </summary>
-        /// <returns>The endpoint informtation for the provisioned agent</returns>
+        /// <returns>The endpoint information for the provisioned agent</returns>
         public AgentEndpoint Endpoint
         {
             get;
-            set;
+            internal set;
         }
 
         /// <summary>
         /// Gets or sets the owner information for the provisioned agent.
         /// </summary>
-        /// <returns>The owner informtation for the provisioned agent</returns>
+        /// <returns>The owner information for the provisioned agent</returns>
         public AgentOwner Owner
         {
             get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the seed used to generate the did for the provisioned agent.
-        /// </summary>
-        /// <returns>The seed used to generate the did for the provisioned agent</returns>
-        public string AgentSeed
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets the seed used to generate the issuer did for the provisioned agent.
-        /// </summary>
-        /// <returns>The seed used to generate the issuer did for the provisioned agent</returns>
-        public string IssuerSeed
-        {
-            get;
-            set;
+            internal set;
         }
 
         /// <summary>
         /// Gets or sets the issuer did for the provisioned agent.
         /// </summary>
         /// <returns>The issuer did for the provisioned agent</returns>
+        [JsonIgnore]
         public string IssuerDid
         {
-            get;
-            set;
+            get => _issuerDid;
+            internal set => _issuerDid = value;
         }
 
         /// <summary>
         /// Gets or sets the issuer verkey for the provisioned agent.
         /// </summary>
         /// <returns>The issuer verkey for the provisioned agent</returns>
+        [JsonIgnore]
         public string IssuerVerkey
         {
-            get;
-            set;
+            get => _issuerVerkey;
+            internal set => _issuerVerkey = value;
         }
 
         /// <summary>
         /// Gets or sets the master key identifier for the provisioned agent.
         /// </summary>
         /// <returns>The master key identifier for the provisioned agent</returns>
+        [JsonIgnore]
         public string MasterSecretId
         {
-            get;
-            set;
+            get => _masterSecretId;
+            internal set => _masterSecretId = value;
         }
 
         /// <summary>
         /// Gets or sets the tails base uri for the provisioned agent.
         /// </summary>
         /// <returns>The tails base uri for the provisioned agent</returns>
+        [JsonIgnore]
         public string TailsBaseUri
         {
-            get;
-            set;
+            get => _tailsBaseUri;
+            internal set => _tailsBaseUri = value;
         }
-
-        /// <summary>
-        /// Determines whether this wallet is provisioned as issuer.
-        /// </summary>
-        /// <returns>
-        ///   <c>true</c> if this instance is issuer; otherwise, <c>false</c>.
-        /// </returns>
-        public bool IsIssuer() => !string.IsNullOrEmpty(IssuerDid);
     }
 }
