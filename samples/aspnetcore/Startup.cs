@@ -1,11 +1,11 @@
 using System;
 using System.IO;
+using AgentFramework.AspNetCore.Configuration.Service;
+using AgentFramework.AspNetCore.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Streetcred.Sdk.Extensions.Configuration.Service;
-using Streetcred.Sdk.Extensions.Options;
 
 namespace WebAgent
 {
