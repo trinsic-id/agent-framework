@@ -6,6 +6,7 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models.Connections;
+using AgentFramework.Core.Models.Did;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Utils;
@@ -69,11 +70,18 @@ namespace AgentFramework.Core.Runtime
 
             var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
 
+            IDidService service;
+
+            if (!string.IsNullOrEmpty(config.ServiceId))
+                service = provisioning.Services.FirstOrDefault(_ => _.Id == config.ServiceId);
+            else
+                service = provisioning.Services[0];
+
             await RecordService.AddAsync(wallet, connection);
 
             return new ConnectionInvitationMessage
             {
-                Endpoint = provisioning.Services[0],
+                Endpoint = service,
                 ConnectionKey = connectionKey,
                 Name = config.MyAlias.Name ?? provisioning.Owner.Name,
                 ImageUrl = config.MyAlias.ImageUrl ?? provisioning.Owner.ImageUrl

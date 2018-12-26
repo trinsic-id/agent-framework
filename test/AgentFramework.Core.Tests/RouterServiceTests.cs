@@ -6,11 +6,13 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Messages.Routing;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
+using AgentFramework.Core.Models.Did;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Runtime;
 using Hyperledger.Indy.DidApi;
@@ -36,6 +38,8 @@ namespace AgentFramework.Core.Tests
 
         public RouterServiceTests()
         {
+            var walletService = new DefaultWalletRecordService();
+
             var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             handlerMock
                 .Protected()
@@ -63,7 +67,7 @@ namespace AgentFramework.Core.Tests
             _messageSerializer = new DefaultMessageSerializer();
 
             _routerService = new DefaultRouterService(_messageSerializer,
-                new Mock<ILogger<DefaultRouterService>>().Object, httpClient);
+                new Mock<ILogger<DefaultRouterService>>().Object, httpClient, walletService);
         }
 
         public async Task InitializeAsync()
@@ -87,13 +91,12 @@ namespace AgentFramework.Core.Tests
         }
 
         [Fact]
-        public async Task CanSendMessage()
+        public async Task CanSendMessageToAgentService()
         {
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var their = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
-            var agency = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
 
-            var connection = new ConnectionRecord
+            var myConnection = new ConnectionRecord
             {
                 MyDid = my.Did,
                 MyVk = my.VerKey,
@@ -101,16 +104,16 @@ namespace AgentFramework.Core.Tests
                 {
                     Name = "Test"
                 },
-                Endpoint = new AgentEndpoint
-                {
-                    Uri = "https://mock.com",
-                    Verkey = agency.VerKey
-                },
                 TheirDid = their.Did,
                 TheirVk = their.VerKey
             };
 
-            await _routerService.SendAsync(_wallet, new ConnectionRequestMessage(), connection);
+            myConnection.Services.Add(new AgentService
+            {
+                ServiceEndpoint = "https://mock.com"
+            });
+
+            await _routerService.SendAsync(_wallet, new ConnectionRequestMessage(), myConnection);
 
             var httpMessage = _messages.FirstOrDefault();
 
@@ -118,22 +121,75 @@ namespace AgentFramework.Core.Tests
 
             Assert.True(httpMessage.Method == HttpMethod.Post);
             Assert.True(httpMessage.RequestUri == new Uri("https://mock.com"));
-            Assert.True(httpMessage.Content.Headers.ContentType.ToString() == "application/octet-stream");
+            Assert.True(httpMessage.Content.Headers.ContentType.ToString() == DefaultRouterService.AgentWireMessageMimeType);
+
+            byte[] body = await httpMessage.Content.ReadAsByteArrayAsync();
+
+            (var message, var theirKey, var to) =
+                await _messageSerializer.AuthUnpackAsync(body, _wallet);
+
+            Assert.True(message.Type == MessageTypes.ConnectionRequest);
+            Assert.True(their.VerKey == theirKey);
+            Assert.True(my.VerKey == to);
+        }
+
+        [Fact]
+        public async Task CanSendMessageToAgencyService()
+        {
+            var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            var their = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            var agency = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+
+            var myConnection = new ConnectionRecord
+            {
+                MyDid = my.Did,
+                MyVk = my.VerKey,
+                Alias = new ConnectionAlias
+                {
+                    Name = "Test"
+                },
+                TheirDid = their.Did,
+                TheirVk = their.VerKey
+            };
+
+            myConnection.Services.Add(new AgencyService
+            {
+                ServiceEndpoint = "https://mock.com",
+                Verkey = agency.VerKey
+            });
+
+            await _routerService.SendAsync(_wallet, new ConnectionRequestMessage(), myConnection);
+
+            var httpMessage = _messages.FirstOrDefault();
+
+            Assert.True(httpMessage != null);
+
+            Assert.True(httpMessage.Method == HttpMethod.Post);
+            Assert.True(httpMessage.RequestUri == new Uri("https://mock.com"));
+            Assert.True(httpMessage.Content.Headers.ContentType.ToString() == DefaultRouterService.AgentWireMessageMimeType);
 
             byte[] body = await httpMessage.Content.ReadAsByteArrayAsync();
 
             var outerMessage = await _messageSerializer.AnonUnpackAsync(body, _wallet);
 
-            var forwardMessage = outerMessage as ForwardMessage ?? 
-                throw new Exception("Expected inner message to be of type 'ForwardMessage'");
+            Assert.IsType<ForwardMessage>(outerMessage);
+
+            var forwardMessage = outerMessage as ForwardMessage;
 
             var innerMessageContents = Convert.FromBase64String(forwardMessage.Message);
 
-            (var message, _, var theirKey) =
+            (var message, var theirKey, var to) =
                 await _messageSerializer.AuthUnpackAsync(innerMessageContents, _wallet);
 
             Assert.True(message.Type == MessageTypes.ConnectionRequest);
             Assert.True(their.VerKey == theirKey);
+            Assert.True(my.VerKey == to);
+        }
+        
+        [Fact]
+        public async Task CanCreateRouteRecord()
+        {
+            
         }
     }
 }

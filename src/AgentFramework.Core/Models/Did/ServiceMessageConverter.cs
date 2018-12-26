@@ -20,6 +20,9 @@ namespace AgentFramework.Core.Models.Did
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue,
             JsonSerializer serializer)
         {
+            if (reader.Value == null)
+                return null;
+
             var item = JObject.Load(reader);
 
             IDidService message;
@@ -27,6 +30,9 @@ namespace AgentFramework.Core.Models.Did
             {
                 case DidServiceTypes.Agency:
                     message = new AgencyService();
+                    break;
+                case DidServiceTypes.Agent:
+                    message = new AgentService();
                     break;
                 default:
                     throw new TypeLoadException("Unsupported serialization type.");

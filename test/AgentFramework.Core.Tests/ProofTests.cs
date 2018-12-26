@@ -11,6 +11,7 @@ using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Proofs;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
+using AgentFramework.Core.Models.Did;
 using AgentFramework.Core.Models.Proofs;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Runtime;

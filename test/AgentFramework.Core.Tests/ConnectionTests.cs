@@ -9,6 +9,7 @@ using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
+using AgentFramework.Core.Models.Did;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Runtime;
 using Hyperledger.Indy.WalletApi;
@@ -56,7 +57,7 @@ namespace AgentFramework.Core.Tests
                 .Returns(() =>
                 {
                     var provisioningRecord = new ProvisioningRecord();
-                    provisioningRecord.Services.Add(new AgencyService() { ServiceEndpoint = MockEndpointUri});
+                    provisioningRecord.Services.Add(new AgencyService { ServiceEndpoint = MockEndpointUri});
                     return Task.FromResult(provisioningRecord);
                 });
 

@@ -14,6 +14,11 @@ namespace AgentFramework.Core.Models.Connections
         public string ConnectionId { get; set; }
 
         /// <summary>
+        /// Id of the service to disclose in the invite.
+        /// </summary>
+        public string ServiceId { get; set; }
+
+        /// <summary>
         /// Alias object for marking the invite subject
         /// with an alias for giving the inviter greater context. 
         /// </summary>

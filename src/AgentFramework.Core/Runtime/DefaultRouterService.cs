@@ -23,7 +23,6 @@ namespace AgentFramework.Core.Runtime
         public const string AgentWireMessageMimeType = "application/ssi-agent-wire";
 
         private readonly IWalletRecordService _walletRecordService;
-        private readonly IConnectionService _connectionService;
         private readonly IMessageSerializer _messageSerializer;
         private readonly ILogger<DefaultRouterService> _logger;
         private readonly HttpClient _httpClient; 
@@ -31,50 +30,56 @@ namespace AgentFramework.Core.Runtime
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AgentFramework.Core.Runtime.DefaultRouterService"/> class.
         /// </summary>
-        public DefaultRouterService(IMessageSerializer messageSerializer, ILogger<DefaultRouterService> logger, IWalletRecordService walletRecordService, IConnectionService connectionService)
+        public DefaultRouterService(IMessageSerializer messageSerializer, ILogger<DefaultRouterService> logger, HttpClient client, IWalletRecordService walletRecordService)
         {
             _messageSerializer = messageSerializer;
             _logger = logger;
-            _httpClient = new HttpClient();
+            _httpClient = client;
             _walletRecordService = walletRecordService;
-            _connectionService = connectionService;
         }
 
         /// <inheritdoc />
-        public async Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connectionRecord, string recipientKey = null)
+        public async Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connection, string recipientKey = null)
         {
-            _logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0}", connectionRecord.TheirVk);
+            _logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0}", connection.TheirVk);
 
-            byte[] wireMessage = await _messageSerializer.AuthPackAsync(wallet, message, recipientKey, connectionRecord.MyVk);
-            await SendAsync(wallet, wireMessage, connectionRecord, recipientKey);
+            recipientKey = recipientKey ?? connection.TheirVk;
+            byte[] wireMessage = await _messageSerializer.AuthPackAsync(wallet, message, recipientKey, connection.MyVk);
+            await SendAsync(wallet, wireMessage, connection, recipientKey);
         }
 
-        public async Task SendAsync(Wallet wallet, byte[] message, ConnectionRecord connectionRecord,
+        /// <inheritdoc />
+        public async Task SendAsync(Wallet wallet, byte[] message, ConnectionRecord connection,
             string recipientKey = null)
         {
-            if (connectionRecord.Services.Any(_ => _.Type == DidServiceTypes.Agency))
+            //TODO we need here is where we need a resolver
+            if (connection.Services.Any(_ => _.Type == DidServiceTypes.Agency))
             {
-                var agencyService = connectionRecord.Services.First(_ => _.Type == DidServiceTypes.Agency) as AgencyService;
-
-                recipientKey = recipientKey ?? connectionRecord.TheirVk;
-
+                var agencyService = connection.Services.First(_ => _.Type == DidServiceTypes.Agency) as AgencyService;
                 await ForwardToAgencyServiceAsync(wallet, message, agencyService, recipientKey);
             }
-
-            throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, "Found no recognized services on the connection record");
+            else if (connection.Services.Any(_ => _.Type == DidServiceTypes.Agent))
+            {
+                var agencyService = connection.Services.First(_ => _.Type == DidServiceTypes.Agent) as AgentService;
+                await SendToEndpoint(agencyService.ServiceEndpoint, message);
+            }
+            else
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, "Found no recognized services on the connection record");
         }
 
+        /// <inheritdoc />
         public async Task ProcessForwardMessage(Wallet wallet, ForwardMessage message)
         {
             var route = await _walletRecordService.GetAsync<RouteRecord>(wallet, message.To);
 
-            var connection = await _connectionService.GetAsync(wallet, route.ConnectionId);
+            var connection = await _walletRecordService.GetAsync<ConnectionRecord>(wallet, route.ConnectionId);
 
             var messageRawContents = Convert.FromBase64String(message.Message);
 
             await SendAsync(wallet, messageRawContents, connection);
         }
 
+        /// <inheritdoc />
         public async Task ProcessCreateRouteMessage(Wallet wallet, CreateRouteMessage message, ConnectionRecord connection)
         {
             var route = new RouteRecord
@@ -86,6 +91,7 @@ namespace AgentFramework.Core.Runtime
             await _walletRecordService.AddAsync(wallet, route);
         }
 
+        /// <inheritdoc />
         public async Task ProcessDeleteRouteMessage(Wallet wallet, DeleteRouteMessage message, ConnectionRecord connection)
         {
             throw new NotImplementedException();
@@ -99,7 +105,7 @@ namespace AgentFramework.Core.Runtime
         /// <param name="service">The agency service to forward the message to.</param>
         /// <param name="recipientIdentifier">The verkey of the end recipient.</param>
         /// <returns></returns>
-        public async Task ForwardToAgencyServiceAsync(Wallet wallet, byte[] message, AgencyService service, string recipientIdentifier)
+        private async Task ForwardToAgencyServiceAsync(Wallet wallet, byte[] message, AgencyService service, string recipientIdentifier)
         {
             var innerMessage = Convert.ToBase64String(message);
 
@@ -114,8 +120,8 @@ namespace AgentFramework.Core.Runtime
 
             await SendToEndpoint(service.ServiceEndpoint, agentEndpointWireMessage);
         }
-
-        public async Task SendToEndpoint(string endpoint, byte[] message)
+        
+        private async Task SendToEndpoint(string endpoint, byte[] message)
         {
             var request = new HttpRequestMessage
             {

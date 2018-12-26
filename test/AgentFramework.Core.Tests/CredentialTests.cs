@@ -12,6 +12,7 @@ using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Credentials;
+using AgentFramework.Core.Models.Did;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Runtime;
 using AgentFramework.Core.Utils;

@@ -29,9 +29,6 @@ namespace AgentFramework.Core.Messages
             IAgentMessage message;
             switch (item["@type"].ToString())
             {
-                case MessageTypes.Forward:
-                    message = new ForwardMessage();
-                    break;
                 case MessageTypes.ConnectionInvitation:
                     message = new ConnectionInvitationMessage();
                     break;

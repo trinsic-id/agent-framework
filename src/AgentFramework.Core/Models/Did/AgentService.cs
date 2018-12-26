@@ -3,15 +3,14 @@
     /// <summary>
     /// An object for containing agent endpoint information.
     /// </summary>
-    public class AgencyService : IDidService
+    public class AgentService : IDidService
     {
-        public AgencyService(AgencyService copy)
+        public AgentService(AgencyService copy)
         {
-            Verkey = copy.Verkey;
             ServiceEndpoint = copy.ServiceEndpoint;
         }
 
-        public AgencyService() { }
+        public AgentService() { }
 
         /// <summary>
         /// Gets or sets the identifier of the service.
@@ -27,16 +26,8 @@
         /// <value>
         /// The type of the service.
         /// </value>
-        public string Type => DidServiceTypes.Agency;
+        public string Type => DidServiceTypes.Agent;
         
-        /// <summary>
-        /// Gets or sets the verkey of the agent.
-        /// </summary>
-        /// <value>
-        /// The verkey of the agent.
-        /// </value>
-        public string Verkey { get; set; }
-
         /// <summary>
         /// Gets or sets the uri of the agent.
         /// </summary>

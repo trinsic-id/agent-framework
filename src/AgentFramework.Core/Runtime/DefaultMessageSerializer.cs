@@ -50,7 +50,8 @@ namespace AgentFramework.Core.Runtime
             var innerMessage = Convert.FromBase64String(wireMessage.Message);
 
             var result = await Crypto.AuthDecryptAsync(wallet, wireMessage.To, innerMessage);
-            var message = JsonConvert.DeserializeObject<IAgentMessage>(Encoding.UTF8.GetString(result.MessageData));
+            var agentMessageJson = Encoding.UTF8.GetString(result.MessageData);
+            var message = JsonConvert.DeserializeObject<IAgentMessage>(agentMessageJson);
             var theirVerKey = result.TheirVk;
             
             return (message, theirVerKey, wireMessage.To);

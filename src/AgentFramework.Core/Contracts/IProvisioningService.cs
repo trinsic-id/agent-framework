@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AgentFramework.Core.Exceptions;
-using AgentFramework.Core.Models;
+using AgentFramework.Core.Models.Did;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Wallets;
 using Hyperledger.Indy.WalletApi;
@@ -20,6 +20,15 @@ namespace AgentFramework.Core.Contracts
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <returns>The provisioning record.</returns>
         Task<ProvisioningRecord> GetProvisioningAsync(Wallet wallet);
+
+        /// <summary>
+        /// Adds a did service to the provisioning record.
+        /// </summary>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="service">The service.</param>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <returns>The response async.</returns>
+        Task AddService(Wallet wallet, IDidService service);
 
         /// <summary>
         /// Stores the endpoint asynchronous.

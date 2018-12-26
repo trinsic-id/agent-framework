@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Models;
+using AgentFramework.Core.Models.Did;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Wallets;
 using AgentFramework.Core.Utils;
@@ -35,6 +36,15 @@ namespace AgentFramework.Core.Runtime
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Provisioning record not found");
 
             return record;
+        }
+
+        public async Task AddService(Wallet wallet, IDidService service)
+        {
+            var record = await GetProvisioningAsync(wallet);
+
+            record.Services.Add(service);
+
+            await RecordService.UpdateAsync(wallet, record);
         }
 
         /// <inheritdoc />
