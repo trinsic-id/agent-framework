@@ -20,7 +20,7 @@ services:
         AGENT_IP: 10.0.0.11
         AGENT_PORT: 7001
     environment:
-      - STREETCRED_OWNER_NAME=Hermione Granger
+      - AF_OWNER_NAME=Hermione Granger
     ports:
       - "7001:7001"
     depends_on:
@@ -39,7 +39,7 @@ services:
         AGENT_IP: 10.0.0.12
         AGENT_PORT: 7002
     environment:
-      - STREETCRED_OWNER_NAME=Harry Potter
+      - AF_OWNER_NAME=Harry Potter
     ports:
       - "7002:7002"
     depends_on:
@@ -58,7 +58,7 @@ services:
         AGENT_IP: 10.0.0.13
         AGENT_PORT: 7003
     environment:
-      - STREETCRED_OWNER_NAME=Hogwarts School of Magic
+      - AF_OWNER_NAME=Hogwarts School of Magic
     ports:
       - "7003:7003"
     depends_on:

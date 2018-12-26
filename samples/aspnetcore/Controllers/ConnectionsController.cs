@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Text;
 using System.Threading.Tasks;
+using AgentFramework.AspNetCore.Options;
+using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Messages.Connections;
+using AgentFramework.Core.Models.Connections;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Streetcred.Sdk.Contracts;
-using Streetcred.Sdk.Extensions;
-using Streetcred.Sdk.Extensions.Options;
-using Streetcred.Sdk.Model.Connections;
 using WebAgent.Models;
 
 namespace WebAgent.Controllers
@@ -49,7 +50,7 @@ namespace WebAgent.Controllers
             var provisioning = await _provisioningService.GetProvisioningAsync(wallet);
 
             var invitation = await _connectionService.CreateInvitationAsync(wallet,
-                new DefaultCreateInviteConfiguration
+                new InviteConfiguration
                 {
                     AutoAcceptConnection = true,
                     MyAlias = new ConnectionAlias {Name = provisioning.Owner.Name}
@@ -68,7 +69,7 @@ namespace WebAgent.Controllers
         public async Task<IActionResult> AcceptInvitation(AcceptConnectionViewModel model)
         {
             var invitationJson = Encoding.UTF8.GetString(Convert.FromBase64String(model.InvitationDetails));
-            var invitation = JsonConvert.DeserializeObject<ConnectionInvitation>(invitationJson);
+            var invitation = JsonConvert.DeserializeObject<ConnectionInvitationMessage>(invitationJson);
 
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
             var _ = await _connectionService.AcceptInvitationAsync(wallet, invitation);
