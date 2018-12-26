@@ -67,7 +67,7 @@ namespace AgentFramework.AspNetCore.Middleware
 
                 var innerMessageContents = Convert.FromBase64String(forwardMessage.Message);
 
-                (var message, _, var myKey) = 
+                var (message, _, myKey) = 
                     await _messageSerializer.AuthUnpackAsync(innerMessageContents, wallet);
 
                 var connectionRecord = await _connectionService.ResolveByMyKeyAsync(wallet, myKey);
