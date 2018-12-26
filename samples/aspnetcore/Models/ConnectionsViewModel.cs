@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Streetcred.Sdk.Model.Records;
+using AgentFramework.Core.Models.Records;
 
 namespace WebAgent.Models
 {

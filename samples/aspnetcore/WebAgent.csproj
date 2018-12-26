@@ -10,7 +10,7 @@
     <StartAction>Project</StartAction>
     <EnvironmentVariables>
       <Variable name="ASPNETCORE_ENVIRONMENT" value="Development" />
-      <Variable name="STREETCRED_OWNER_NAME" value="Local Joe" />
+      <Variable name="ASPNETCORE_ENVIRONMENT" value="Development" />
     </EnvironmentVariables>
     <ApplicationURL>http://localhost:5000/</ApplicationURL>
   </PropertyGroup>
@@ -19,7 +19,7 @@
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.9" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.0.1916590" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.4" />
-    <PackageReference Include="Streetcred.Sdk.Extensions" Version="1.1.0-ci-20181102.1" />
+    <PackageReference Include="AgentFramework.AspNetCore" Version="1.1.0-ci-310" />
   </ItemGroup>
 
   <ItemGroup>

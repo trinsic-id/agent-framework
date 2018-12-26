@@ -1,11 +1,11 @@
 using System;
 using System.IO;
+using AgentFramework.AspNetCore.Configuration.Service;
+using AgentFramework.AspNetCore.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Streetcred.Sdk.Extensions.Configuration.Service;
-using Streetcred.Sdk.Extensions.Options;
 
 namespace WebAgent
 {
@@ -43,12 +43,11 @@ namespace WebAgent
 
             app.UseStaticFiles();
 
-            app.UseAgent(
-                $"{Environment.GetEnvironmentVariable("ASPNETCORE_URLS")}/agent",
+            app.UseAgent($"{Environment.GetEnvironmentVariable("ASPNETCORE_URLS")}/agent",
                 (obj) =>
-            {
-                obj.AddOwnershipInfo(Environment.GetEnvironmentVariable("STREETCRED_OWNER_NAME"), null);
-            });
+                {
+                    obj.AddOwnershipInfo(Environment.GetEnvironmentVariable("AF_OWNER_NAME") ?? "Random Muggle", null);
+                });
 
             app.UseMvc(routes =>
             {
