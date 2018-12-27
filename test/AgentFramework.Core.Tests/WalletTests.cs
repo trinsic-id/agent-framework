@@ -11,7 +11,7 @@ namespace AgentFramework.Core.Tests
     public class WalletTests
     {
         [Fact]
-        public async Task ProvisionNewWallet()
+        public async Task CanProvisionNewWallet()
         {
             var walletService = new DefaultWalletService();
             var provisioningService = new DefaultProvisioningService(
@@ -20,12 +20,9 @@ namespace AgentFramework.Core.Tests
             var config = new WalletConfiguration {Id = Guid.NewGuid().ToString()};
             var creds = new WalletCredentials {Key = "1"};
 
-            await provisioningService.ProvisionAgentAsync(new ProvisioningConfiguration
-            {
-                WalletConfiguration = config,
-                WalletCredentials = creds,
-                EndpointUri = new Uri("http://mock")
-            });
+            await provisioningService.ProvisionAgentAsync(new ProvisioningConfiguration(
+                config,
+                creds));
 
             var wallet = await walletService.GetWalletAsync(config, creds);
             Assert.NotNull(wallet);
@@ -33,9 +30,13 @@ namespace AgentFramework.Core.Tests
             var provisioning = await provisioningService.GetProvisioningAsync(wallet);
 
             Assert.NotNull(provisioning);
-            Assert.NotNull(provisioning.Endpoint);
-            Assert.NotNull(provisioning.Endpoint.Did);
-            Assert.NotNull(provisioning.Endpoint.Verkey);
+            Assert.NotNull(provisioning.Services);
+
+            Assert.IsType<AgentService>(provisioning.Services[0]);
+
+            var service = provisioning.Services[0] as AgentService;
+
+            Assert.NotNull(service?.ServiceEndpoint);
         }
 
         [Fact]

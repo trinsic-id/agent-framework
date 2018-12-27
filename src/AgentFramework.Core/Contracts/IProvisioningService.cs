@@ -28,30 +28,31 @@ namespace AgentFramework.Core.Contracts
         /// <param name="service">The service.</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <returns>The response async.</returns>
-        Task AddService(Wallet wallet, IDidService service);
+        Task AddServiceAsync(Wallet wallet, IDidService service);
 
         /// <summary>
         /// Stores the endpoint asynchronous.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
-        /// <param name="provisioningConfiguration">The provisioning request.</param>
+        /// <param name="configuration">The provisioning request.</param>
         /// <returns>The response async.</returns>
         [Obsolete]
-        Task ProvisionAgentAsync(Wallet wallet, ProvisioningConfiguration provisioningConfiguration);
+        Task ProvisionAgentAsync(Wallet wallet, ProvisioningConfiguration configuration);
 
         /// <summary>
         /// Creates a wallet and provisions a new agent with the given <see cref="ProvisioningConfiguration" />
         /// </summary>
         /// <param name="configuration">The provisioning configuration.</param>
-        /// <returns></returns>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.WalletAlreadyProvisioned.</exception>
+        /// <returns>The response async.</returns>
         Task ProvisionAgentAsync(ProvisioningConfiguration configuration);
 
         /// <summary>
-        /// Updates the agent endpoint information.
+        /// Updates the specified agent service.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
-        /// <param name="endpoint">The endpoint.</param>
+        /// <param name="service">The did service.</param>
         /// <returns></returns>
-        Task UpdateEndpointAsync(Wallet wallet, AgentEndpoint endpoint);
+        Task UpdateServiceAsync(Wallet wallet, IDidService service);
     }
 }

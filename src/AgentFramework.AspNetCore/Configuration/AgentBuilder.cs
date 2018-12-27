@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Models;
+using AgentFramework.Core.Models.Did;
 using AgentFramework.Core.Models.Wallets;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
@@ -13,28 +15,23 @@ namespace AgentFramework.AspNetCore.Configuration
     public class AgentBuilder
     {
         private string _issuerSeed;
-        private string _agentSeed;
 
         private string _agentOwnerName;
         private string _agentOwnerImageUrl;
 
         internal Uri TailsBaseUri;
 
-        private readonly IWalletService _walletService;
         private readonly IPoolService _poolService;
         private readonly IProvisioningService _provisioningService;
         private readonly WalletOptions _walletOptions;
         private readonly PoolOptions _poolOptions;
-        private bool _createIssuer;
 
         public AgentBuilder(
-            IWalletService walletService,
             IPoolService poolService,
             IProvisioningService provisioningService,
             IOptions<WalletOptions> walletOptions,
             IOptions<PoolOptions> poolOptions)
         {
-            _walletService = walletService;
             _poolService = poolService;
             _provisioningService = provisioningService;
             _walletOptions = walletOptions.Value;
@@ -57,23 +54,9 @@ namespace AgentFramework.AspNetCore.Configuration
         public AgentBuilder AddIssuer(string issuerSeed = null)
         {
             _issuerSeed = issuerSeed;
-            _createIssuer = true;
-
             return this;
         }
-
-        /// <summary>
-        /// Set the agent seed for generating detemerinistic DID and VerKey. Leave <c>null</c> to generate a random one.
-        /// </summary>
-        /// <param name="agentSeed">The agent seed.</param>
-        /// <returns></returns>
-        public AgentBuilder SetAgentSeed(string agentSeed)
-        {
-            _agentSeed = agentSeed;
-
-            return this;
-        }
-
+        
         /// <summary>
         /// Sets the base URI for the tails service
         /// </summary>
@@ -82,22 +65,11 @@ namespace AgentFramework.AspNetCore.Configuration
         public AgentBuilder SetTailsBaseUri(string tailsBaseUri)
         {
             TailsBaseUri = new Uri(tailsBaseUri);
-
             return this;
         }
 
         internal async Task Build(Uri endpointUri)
         {
-            try
-            {
-                await _walletService.CreateWalletAsync(_walletOptions.WalletConfiguration,
-                    _walletOptions.WalletCredentials);
-            }
-            catch (WalletExistsException)
-            {
-                // Wallet already exists, swallow exception
-            }
-
             try
             {
                 await _poolService.CreatePoolAsync(_poolOptions.PoolName, _poolOptions.GenesisFilename);
@@ -107,22 +79,27 @@ namespace AgentFramework.AspNetCore.Configuration
                 // Pool already exists, swallow exception
             }
 
-            var wallet = await _walletService.GetWalletAsync(
-                _walletOptions.WalletConfiguration,
-                _walletOptions.WalletCredentials);
-
             try
             {
-                await _provisioningService.ProvisionAgentAsync(wallet, new ProvisioningConfiguration
+                var issuerConfig = _issuerSeed != null ? new IssuerAgentConfiguration(_issuerSeed, new Uri(endpointUri, "tails")) : null;
+
+                var agentService = new AgentService
                 {
-                    AgentSeed = _agentSeed,
-                    EndpointUri = endpointUri,
-                    CreateIssuer = _createIssuer,
-                    IssuerSeed = _issuerSeed,
-                    OwnerName = _agentOwnerName,
-                    OwnerImageUrl = _agentOwnerImageUrl,
-                    TailsBaseUri = TailsBaseUri ?? new Uri(endpointUri, "tails")
-                });
+                    ServiceEndpoint = endpointUri.ToString()
+                };
+
+                var provisionConfig = new ProvisioningConfiguration(
+                    _walletOptions.WalletConfiguration,
+                    _walletOptions.WalletCredentials,
+                    new AgentOwner
+                    {
+                        Name = _agentOwnerName,
+                        ImageUrl = _agentOwnerImageUrl
+                    },
+                    new IDidService[] { agentService },
+                    issuerConfig);
+
+                await _provisioningService.ProvisionAgentAsync(provisionConfig);
             }
             catch (AgentFrameworkException ex) when (ex.ErrorCode == ErrorCode.WalletAlreadyProvisioned)
             {

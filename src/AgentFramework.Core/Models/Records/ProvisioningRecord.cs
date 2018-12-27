@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using AgentFramework.Core.Models.Did;
 using Newtonsoft.Json;
@@ -12,7 +13,7 @@ namespace AgentFramework.Core.Models.Records
     public class ProvisioningRecord : RecordBase
     {
         [JsonProperty]
-        private string _tailsBaseUri;
+        private Uri _tailsBaseUri;
         [JsonProperty]
         private string _masterSecretId;
         [JsonProperty]
@@ -98,7 +99,7 @@ namespace AgentFramework.Core.Models.Records
         /// </summary>
         /// <returns>The tails base uri for the provisioned agent</returns>
         [JsonIgnore]
-        public string TailsBaseUri
+        public Uri TailsBaseUri
         {
             get => _tailsBaseUri;
             internal set => _tailsBaseUri = value;

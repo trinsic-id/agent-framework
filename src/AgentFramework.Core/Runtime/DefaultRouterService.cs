@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -56,19 +57,35 @@ namespace AgentFramework.Core.Runtime
             if (connection.Services.Any(_ => _.Type == DidServiceTypes.Agency))
             {
                 var agencyService = connection.Services.First(_ => _.Type == DidServiceTypes.Agency) as AgencyService;
-                await ForwardToAgencyServiceAsync(wallet, message, agencyService, recipientKey);
+                await ForwardToAgencyServiceAsync(message, agencyService, recipientKey);
             }
             else if (connection.Services.Any(_ => _.Type == DidServiceTypes.Agent))
             {
                 var agencyService = connection.Services.First(_ => _.Type == DidServiceTypes.Agent) as AgentService;
-                await SendToEndpoint(agencyService.ServiceEndpoint, message);
+                await SendToEndpointAsync(agencyService.ServiceEndpoint, message);
             }
             else
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, "Found no recognized services on the connection record");
         }
 
+        public async Task<RouteRecord> GetRoute(Wallet wallet, string id)
+        {
+            return await _walletRecordService.GetAsync<RouteRecord>(wallet, id);
+        }
+
         /// <inheritdoc />
-        public async Task ProcessForwardMessage(Wallet wallet, ForwardMessage message)
+        public async Task<IList<RouteRecord>> GetRoutesAsync(Wallet wallet, string connectionId = null)
+        {
+            ISearchQuery query = null;
+
+            if (!string.IsNullOrEmpty(connectionId))
+                query =  SearchQuery.Equal(nameof(RouteRecord.ConnectionId), connectionId);
+
+            return await _walletRecordService.SearchAsync<RouteRecord>(wallet, query, null, 100);
+        }
+
+        /// <inheritdoc />
+        public async Task ProcessForwardMessageAsync(Wallet wallet, ForwardMessage message)
         {
             var route = await _walletRecordService.GetAsync<RouteRecord>(wallet, message.To);
 
@@ -80,7 +97,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task ProcessCreateRouteMessage(Wallet wallet, CreateRouteMessage message, ConnectionRecord connection)
+        public async Task ProcessCreateRouteMessageAsync(Wallet wallet, CreateRouteMessage message, ConnectionRecord connection)
         {
             var route = new RouteRecord
             {
@@ -92,9 +109,14 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task ProcessDeleteRouteMessage(Wallet wallet, DeleteRouteMessage message, ConnectionRecord connection)
+        public async Task ProcessDeleteRouteMessageAsync(Wallet wallet, DeleteRouteMessage message, ConnectionRecord connection)
         {
-            throw new NotImplementedException();
+            var route = await GetRoute(wallet, message.RecipientIdentifier);
+
+            if (route.ConnectionId != connection.Id)
+                throw new AgentFrameworkException(ErrorCode.InvalidOperation, $"Cannot delete routing record with id : {message.RecipientIdentifier} because the route isn't owned by connection {connection.Id}");
+
+            await _walletRecordService.DeleteAsync<RouteRecord>(wallet, message.RecipientIdentifier);
         }
 
         /// <summary>
@@ -105,7 +127,7 @@ namespace AgentFramework.Core.Runtime
         /// <param name="service">The agency service to forward the message to.</param>
         /// <param name="recipientIdentifier">The verkey of the end recipient.</param>
         /// <returns></returns>
-        private async Task ForwardToAgencyServiceAsync(Wallet wallet, byte[] message, AgencyService service, string recipientIdentifier)
+        private async Task ForwardToAgencyServiceAsync(byte[] message, AgencyService service, string recipientIdentifier)
         {
             var innerMessage = Convert.ToBase64String(message);
 
@@ -118,10 +140,16 @@ namespace AgentFramework.Core.Runtime
             //Pack this message inside another and encrypt for the agent endpoint
             var agentEndpointWireMessage = await _messageSerializer.AnonPackAsync(forwardMessage, service.Verkey);
 
-            await SendToEndpoint(service.ServiceEndpoint, agentEndpointWireMessage);
+            await SendToEndpointAsync(service.ServiceEndpoint, agentEndpointWireMessage);
         }
         
-        private async Task SendToEndpoint(string endpoint, byte[] message)
+        /// <summary>
+        /// Sends a message to an endpoint.
+        /// </summary>
+        /// <param name="endpoint">Endpoint URI in string format.</param>
+        /// <param name="message">Raw message as a byte array.</param>
+        /// <returns>The response async.</returns>
+        private async Task SendToEndpointAsync(string endpoint, byte[] message)
         {
             var request = new HttpRequestMessage
             {

@@ -1,4 +1,5 @@
 ﻿using System;
+using AgentFramework.Core.Models.Did;
 
 namespace AgentFramework.Core.Models.Wallets
 {
@@ -7,85 +8,26 @@ namespace AgentFramework.Core.Models.Wallets
     /// </summary>
     public class ProvisioningConfiguration
     {
-        /// <summary>
-        /// Gets or sets the name of the owner of the agent
-        /// </summary>
-        /// <value>
-        /// The agent owner name 
-        /// </value>
-        public string OwnerName { get; set; }
-
-        /// <summary>
-        /// Gets or sets the imageUrl of the owner of the agent
-        /// </summary>
-        /// <value>
-        /// The agent owner image url
-        /// </value>
-        public string OwnerImageUrl { get; set; }
-
-        /// <summary>
-        /// Gets or sets the agent seed used to generate deterministic DID and Verkey. (32 characters)
-        /// <remarks>Leave <c>null</c> to generate random agent did and verkey</remarks>
-        /// </summary>
-        /// <value>
-        /// The agent seed.
-        /// </value>
-        public string AgentSeed { get; set; }
-
-        /// <summary>
-        /// Gets or sets the agent did.
-        /// </summary>
-        /// <value>
-        /// The agent did.
-        /// </value>
-        public string AgentDid { get; set; }
-
-        /// <summary>
-        /// Gets or sets the agent verkey.
-        /// </summary>
-        /// <value>
-        /// The agent verkey.
-        /// </value>
-        public string AgentVerkey { get; set; }
-
-        /// <summary>
-        /// Gets or sets the endpoint URI that this agent will receive Sovrin messages
-        /// </summary>
-        /// <value>
-        /// The endpoint URI.
-        /// </value>
-        public Uri EndpointUri { get; set; }
-
-        /// <summary>
-        /// Gets or sets the issuer seed used to generate deterministic DID and Verkey. (32 characters)
-        /// <remarks>Leave <c>null</c> to generate random issuer did and verkey</remarks>
-        /// </summary>
-        /// <value>
-        /// The issuer seed.
-        /// </value>
-        public string IssuerSeed { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether an issuer did and verkey should be generated.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [create issuer]; otherwise, <c>false</c>.
-        /// </value>
-        public bool CreateIssuer { get; set; }
-
-        /// <summary>
-        /// Gets or sets the tails service base URI.
-        /// </summary>
-        /// <value>The tails base URI.</value>
-        public Uri TailsBaseUri { get; set; }
-
+        public ProvisioningConfiguration(WalletConfiguration walletConfig,
+                                         WalletCredentials walletCredentials,
+                                         AgentOwner ownershipInfo = null,
+                                         IDidService[] services = null,
+                                         IssuerAgentConfiguration issuerConfiguration = null)
+        {
+            WalletConfiguration = walletConfig;
+            WalletCredentials = walletCredentials;
+            OwnershipInfo = ownershipInfo;
+            AgentServices = services;
+            IssuerAgentConfiguration = issuerConfiguration;
+        }
+        
         /// <summary>
         /// Gets or sets the wallet configuration.
         /// </summary>
         /// <value>
         /// The wallet configuration.
         /// </value>
-        public WalletConfiguration WalletConfiguration { get; set; }
+        public WalletConfiguration WalletConfiguration { get; }
 
         /// <summary>
         /// Gets or sets the wallet credentials.
@@ -93,6 +35,30 @@ namespace AgentFramework.Core.Models.Wallets
         /// <value>
         /// The wallet credentials.
         /// </value>
-        public WalletCredentials WalletCredentials { get; set; }
+        public WalletCredentials WalletCredentials { get; }
+
+        /// <summary>
+        /// Gets or sets the ownership info of the agent
+        /// </summary>
+        /// <value>
+        /// The agent ownership info
+        /// </value>
+        public AgentOwner OwnershipInfo { get; }
+
+        /// <summary>
+        /// Gets or sets the issuer agent configuration
+        /// </summary>
+        /// <value>
+        /// The issuer agent configuration.
+        /// </value>
+        public IssuerAgentConfiguration IssuerAgentConfiguration { get; }
+
+        /// <summary>
+        /// Gets or sets the agent services.
+        /// </summary>
+        /// <value>
+        /// The agent services.
+        /// </value>
+        public IDidService[] AgentServices { get; }
     }
 }
