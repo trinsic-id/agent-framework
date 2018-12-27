@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
@@ -28,6 +29,8 @@ namespace AgentFramework.Core.Runtime
         public virtual Task AddAsync<T>(Wallet wallet, T record)
             where T : RecordBase, new()
         {
+            record.SetTag(nameof(record.CreatedAt), record.CreatedAt.ToString("O"));
+
             return NonSecrets.AddRecordAsync(wallet,
                 record.TypeName,
                 record.Id,
@@ -62,6 +65,8 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public virtual async Task UpdateAsync<T>(Wallet wallet, T record) where T : RecordBase, new()
         {
+            record.SetTag(nameof(record.UpdatedAt), DateTime.Now.ToString("O"));
+
             await NonSecrets.UpdateRecordValueAsync(wallet,
                 record.TypeName,
                 record.Id,

@@ -20,6 +20,35 @@ namespace AgentFramework.Core.Models.Records
         /// <returns>The identifier.</returns>
         public virtual string Id { get; set; }
 
+        [JsonIgnore]
+        private DateTime _instantiatedAt = DateTime.Now;
+
+        [JsonIgnore] 
+        public DateTime CreatedAt
+        {
+            get
+            {
+                var createdAtStr = Get();
+
+                if (string.IsNullOrEmpty(createdAtStr))
+                    return _instantiatedAt;
+                return DateTime.Parse(createdAtStr);
+            }
+        }
+
+        [JsonIgnore]
+        public DateTime? UpdatedAt
+        {
+            get
+            {
+                var updatedAtStr = Get();
+
+                if (string.IsNullOrEmpty(updatedAtStr))
+                    return null;
+                return DateTime.Parse(updatedAtStr);
+            }
+        }
+
         /// <summary>
         /// Gets the name of the type.
         /// </summary>

@@ -13,7 +13,7 @@ namespace AgentFramework.Core.Tests
 {
     public class RecordTests : IAsyncLifetime
     {
-        private const string Config = "{\"id\":\"test_wallet\"}";
+        private readonly string Config = "{\"id\":\""+ Guid.NewGuid().ToString() + "\"}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
 
         private Wallet _wallet;
@@ -140,6 +140,42 @@ namespace AgentFramework.Core.Tests
 
             Assert.True(record.State == CredentialState.Offered);
             Assert.True(record.GetTag(nameof(CredentialRecord.State)) == CredentialState.Offered.ToString("G"));
+        }
+
+        [Fact]
+        public async Task CreatedAtPopulatedOnStoredRecord()
+        {
+            var record = new ConnectionRecord { Id = "123" };
+
+            await _recordService.AddAsync(_wallet, record);
+
+            var retrieved = await _recordService.GetAsync<ConnectionRecord>(_wallet, "123");
+
+            Assert.NotNull(retrieved);
+            Assert.Equal(retrieved.Id, record.Id);
+            Assert.Equal(retrieved.CreatedAt, record.CreatedAt);
+        }
+
+        [Fact]
+        public async Task UpdateAtPopulatedOnUpdatedRecord()
+        {
+            var record = new ConnectionRecord { Id = "123" };
+
+            await _recordService.AddAsync(_wallet, record);
+
+            var retrieved = await _recordService.GetAsync<ConnectionRecord>(_wallet, "123");
+
+            Assert.NotNull(retrieved);
+            Assert.Equal(retrieved.Id, record.Id);
+            Assert.Null(retrieved.UpdatedAt);
+
+            await _recordService.UpdateAsync(_wallet, retrieved);
+
+            retrieved = await _recordService.GetAsync<ConnectionRecord>(_wallet, "123");
+
+            Assert.NotNull(retrieved);
+            Assert.Equal(retrieved.Id, record.Id);
+            Assert.NotNull(retrieved.UpdatedAt);
         }
 
         public async Task DisposeAsync()
