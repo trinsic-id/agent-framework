@@ -14,16 +14,16 @@ namespace AgentFramework.Core.Models.Records
         /// Gets the identifier.
         /// </summary>
         /// <returns>The identifier.</returns>
-        /// <summary>
-        /// Gets the identifier.
-        /// </summary>
-        /// <returns>The identifier.</returns>
         public virtual string Id { get; set; }
 
         [JsonIgnore]
         private DateTime _instantiatedAt = DateTime.Now;
 
-        [JsonIgnore] 
+        /// <summary>
+        /// Gets the created at datetime of the record.
+        /// </summary>
+        /// <returns>The created datetime of the record.</returns>
+        [JsonIgnore]
         public DateTime CreatedAt
         {
             get
@@ -36,6 +36,10 @@ namespace AgentFramework.Core.Models.Records
             }
         }
 
+        /// <summary>
+        /// Gets the last updated datetime of the record.
+        /// </summary>
+        /// <returns>The last updated datetime of the record.</returns>
         [JsonIgnore]
         public DateTime? UpdatedAt
         {
