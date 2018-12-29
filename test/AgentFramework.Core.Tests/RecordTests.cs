@@ -156,7 +156,7 @@ namespace AgentFramework.Core.Tests
         {
             var record = new ConnectionRecord { Id = "123" };
 
-            Assert.Null(record.CreatedAt);
+            Assert.Null(record.CreatedAtUtc);
 
             await _recordService.AddAsync(_wallet, record);
 
@@ -164,7 +164,7 @@ namespace AgentFramework.Core.Tests
 
             Assert.NotNull(retrieved);
             Assert.Equal(retrieved.Id, record.Id);
-            Assert.NotNull(retrieved.CreatedAt);
+            Assert.NotNull(retrieved.CreatedAtUtc);
         }
 
         [Fact]
@@ -178,7 +178,7 @@ namespace AgentFramework.Core.Tests
 
             Assert.NotNull(retrieved);
             Assert.Equal(retrieved.Id, record.Id);
-            Assert.Null(retrieved.UpdatedAt);
+            Assert.Null(retrieved.UpdatedAtUtc);
 
             await _recordService.UpdateAsync(_wallet, retrieved);
 
@@ -186,7 +186,7 @@ namespace AgentFramework.Core.Tests
 
             Assert.NotNull(retrieved);
             Assert.Equal(retrieved.Id, record.Id);
-            Assert.NotNull(retrieved.UpdatedAt);
+            Assert.NotNull(retrieved.UpdatedAtUtc);
         }
 
         [Fact]
@@ -206,7 +206,7 @@ namespace AgentFramework.Core.Tests
 
             var records = await _recordService.SearchAsync<ConnectionRecord>(
                 _wallet,
-                SearchQuery.Greater(nameof(ConnectionRecord.CreatedAt), DateTime.UtcNow.AddMonths(-1).ToUnixTimeMilliseconds().ToString()), null, 100);
+                SearchQuery.Greater(nameof(ConnectionRecord.CreatedAtUtc), DateTime.UtcNow.AddMonths(-1)), null, 100);
 
             Assert.True(records.Count == 1);
             Assert.True(records[0].Id == "456");

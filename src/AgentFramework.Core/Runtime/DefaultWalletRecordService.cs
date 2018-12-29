@@ -32,7 +32,7 @@ namespace AgentFramework.Core.Runtime
         public virtual Task AddAsync<T>(Wallet wallet, T record)
             where T : RecordBase, new()
         {
-            record.CreatedAt = _dateTimeHelper.UtcNow();
+            record.CreatedAtUtc = _dateTimeHelper.UtcNow();
 
             return NonSecrets.AddRecordAsync(wallet,
                 record.TypeName,
@@ -68,7 +68,7 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public virtual async Task UpdateAsync<T>(Wallet wallet, T record) where T : RecordBase, new()
         {
-            record.UpdatedAt = _dateTimeHelper.UtcNow();
+            record.UpdatedAtUtc = _dateTimeHelper.UtcNow();
 
             await NonSecrets.UpdateRecordValueAsync(wallet,
                 record.TypeName,

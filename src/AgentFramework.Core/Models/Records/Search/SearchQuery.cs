@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Utils;
 
 namespace AgentFramework.Core.Models.Records.Search
@@ -45,12 +46,28 @@ namespace AgentFramework.Core.Models.Records.Search
         public static ISearchQuery Equal(string name, string value) => new EqSubquery(name, value);
 
         /// <summary>
+        /// EQUAL expression for DateTime
+        /// </summary>
+        /// <returns>The equal.</returns>
+        /// <param name="name">Name.</param>
+        /// <param name="value">DateTime Value.</param>
+        public static ISearchQuery Equal(string name, DateTime value) => new EqSubquery(name, value.ToUnixTimeMilliseconds().ToString());
+
+        /// <summary>
         /// NOT EQUAL expression
         /// </summary>
         /// <returns>The equal.</returns>
         /// <param name="name">Name.</param>
         /// <param name="value">Value.</param>
         public static ISearchQuery NotEqual(string name, string value) => new NotEqSubquery(name, value);
+
+        /// <summary>
+        /// NOT EQUAL expression for DateTime
+        /// </summary>
+        /// <returns>The equal.</returns>
+        /// <param name="name">Name.</param>
+        /// <param name="value">DateTime Value.</param>
+        public static ISearchQuery NotEqual(string name, DateTime value) => new NotEqSubquery(name, value.ToUnixTimeMilliseconds().ToString());
 
         /// <summary>
         /// IN expression, search values found inside the collection
@@ -69,12 +86,28 @@ namespace AgentFramework.Core.Models.Records.Search
         public static ISearchQuery Less(string name, string value) => new LtSubquery(name, value);
 
         /// <summary>
+        /// LESS expression for DateTime
+        /// </summary>
+        /// <returns>The less.</returns>
+        /// <param name="name">Name.</param>
+        /// <param name="value">Value.</param>
+        public static ISearchQuery Less(string name, DateTime value) => new LtSubquery(name, value.ToUnixTimeMilliseconds().ToString());
+
+        /// <summary>
         /// LESS THAN OR EQUAL expression
         /// </summary>
         /// <returns>The or equal.</returns>
         /// <param name="name">Name.</param>
         /// <param name="value">Value.</param>
         public static ISearchQuery LessOrEqual(string name, string value) => new LteSubquery(name, value);
+
+        /// <summary>
+        /// LESS THAN OR EQUAL expression for DateTime
+        /// </summary>
+        /// <returns>The or equal.</returns>
+        /// <param name="name">Name.</param>
+        /// <param name="value">Value.</param>
+        public static ISearchQuery LessOrEqual(string name, DateTime value) => new LteSubquery(name, value.ToUnixTimeMilliseconds().ToString());
 
         /// <summary>
         /// GREATER THAN expression
@@ -85,12 +118,28 @@ namespace AgentFramework.Core.Models.Records.Search
         public static ISearchQuery Greater(string name, string value) => new GtSubquery(name, value);
 
         /// <summary>
+        /// GREATER THAN expression for DateTime
+        /// </summary>
+        /// <returns>The greater.</returns>
+        /// <param name="name">Name.</param>
+        /// <param name="value">Value.</param>
+        public static ISearchQuery Greater(string name, DateTime value) => new GtSubquery(name, value.ToUnixTimeMilliseconds().ToString());
+
+        /// <summary>
         /// GREATER THAN OR EQUAL expression
         /// </summary>
         /// <returns>The or equal.</returns>
         /// <param name="name">Name.</param>
         /// <param name="value">Value.</param>
         public static ISearchQuery GreaterOrEqual(string name, string value) => new GteSubquery(name, value);
+
+        /// <summary>
+        /// GREATER THAN OR EQUAL expression
+        /// </summary>
+        /// <returns>The or equal.</returns>
+        /// <param name="name">Name.</param>
+        /// <param name="value">Value.</param>
+        public static ISearchQuery GreaterOrEqual(string name, DateTime value) => new GteSubquery(name, value.ToUnixTimeMilliseconds().ToString());
 
         /// <summary>
         /// LIKE expression, checks if substring is contained anywhere in the value

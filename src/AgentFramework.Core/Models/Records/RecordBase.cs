@@ -22,7 +22,7 @@ namespace AgentFramework.Core.Models.Records
         /// </summary>
         /// <returns>The created datetime of the record.</returns>
         [JsonIgnore]
-        public DateTime? CreatedAt
+        public DateTime? CreatedAtUtc
         {
             get => GetDateTime(false);
             internal set => Set(value, false);
@@ -33,7 +33,7 @@ namespace AgentFramework.Core.Models.Records
         /// </summary>
         /// <returns>The last updated datetime of the record.</returns>
         [JsonIgnore]
-        public DateTime? UpdatedAt
+        public DateTime? UpdatedAtUtc
         {
             get => GetDateTime(false);
             internal set => Set(value, false);
