@@ -2,11 +2,14 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Helpers;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Runtime;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.WalletApi;
+using Moq;
 using Xunit;
 
 namespace AgentFramework.Core.Tests
@@ -16,13 +19,19 @@ namespace AgentFramework.Core.Tests
         private readonly string Config = "{\"id\":\""+ Guid.NewGuid().ToString() + "\"}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
 
+        private DateTime _currentDatetime = DateTime.UtcNow;
+
         private Wallet _wallet;
 
         private readonly IWalletRecordService _recordService;
 
         public RecordTests()
         {
-            _recordService = new DefaultWalletRecordService();
+            var mockDateTimeHelper = new Mock<IDateTimeHelper>();
+                mockDateTimeHelper.Setup(_ => _.UtcNow())
+                                  .Returns(_currentDatetime);
+
+            _recordService = new DefaultWalletRecordService(mockDateTimeHelper.Object);
         }
 
         public async Task InitializeAsync()
@@ -147,13 +156,15 @@ namespace AgentFramework.Core.Tests
         {
             var record = new ConnectionRecord { Id = "123" };
 
+            Assert.Null(record.CreatedAt);
+
             await _recordService.AddAsync(_wallet, record);
 
             var retrieved = await _recordService.GetAsync<ConnectionRecord>(_wallet, "123");
 
             Assert.NotNull(retrieved);
             Assert.Equal(retrieved.Id, record.Id);
-            Assert.Equal(retrieved.CreatedAt, record.CreatedAt);
+            Assert.NotNull(retrieved.CreatedAt);
         }
 
         [Fact]
@@ -176,6 +187,29 @@ namespace AgentFramework.Core.Tests
             Assert.NotNull(retrieved);
             Assert.Equal(retrieved.Id, record.Id);
             Assert.NotNull(retrieved.UpdatedAt);
+        }
+
+        [Fact]
+        public async Task ReturnsRecordsFilteredByCreatedAt()
+        {
+            _currentDatetime = DateTime.UtcNow.AddYears(-1);
+
+            var record = new ConnectionRecord { Id = "123" };
+
+            await _recordService.AddAsync(_wallet, record);
+
+            _currentDatetime = DateTime.UtcNow;
+
+            record = new ConnectionRecord {Id = "456"};
+
+            await _recordService.AddAsync(_wallet, record);
+
+            var records = await _recordService.SearchAsync<ConnectionRecord>(
+                _wallet,
+                SearchQuery.Greater(nameof(ConnectionRecord.CreatedAt), DateTime.UtcNow.AddMonths(-1).ToUnixTimeMilliseconds().ToString()), null, 100);
+
+            Assert.True(records.Count == 1);
+            Assert.True(records[0].Id == "456");
         }
 
         public async Task DisposeAsync()

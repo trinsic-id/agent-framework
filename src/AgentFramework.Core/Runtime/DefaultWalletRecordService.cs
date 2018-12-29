@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Utils;
@@ -15,10 +16,12 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultWalletRecordService : IWalletRecordService
     {
+        private readonly IDateTimeHelper _dateTimeHelper;
         private readonly JsonSerializerSettings _jsonSettings;
 
-        public DefaultWalletRecordService()
+        public DefaultWalletRecordService(IDateTimeHelper dateTimeHelper)
         {
+            _dateTimeHelper = dateTimeHelper;
             _jsonSettings = new JsonSerializerSettings
             {
                 NullValueHandling = NullValueHandling.Ignore
@@ -29,7 +32,7 @@ namespace AgentFramework.Core.Runtime
         public virtual Task AddAsync<T>(Wallet wallet, T record)
             where T : RecordBase, new()
         {
-            record.SetTag(nameof(record.CreatedAt), record.CreatedAt.ToString("O"));
+            record.CreatedAt = _dateTimeHelper.UtcNow();
 
             return NonSecrets.AddRecordAsync(wallet,
                 record.TypeName,
@@ -65,7 +68,7 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public virtual async Task UpdateAsync<T>(Wallet wallet, T record) where T : RecordBase, new()
         {
-            record.SetTag(nameof(record.UpdatedAt), DateTime.Now.ToString("O"));
+            record.UpdatedAt = _dateTimeHelper.UtcNow();
 
             await NonSecrets.UpdateRecordValueAsync(wallet,
                 record.TypeName,
@@ -94,7 +97,19 @@ namespace AgentFramework.Core.Runtime
 
                 var record = JsonConvert.DeserializeObject<T>(item.Value, _jsonSettings);
                 foreach (var tag in item.Tags)
+                {
                     record.Tags[tag.Key] = tag.Value;
+
+                    switch (tag.Key)
+                    {
+                        case nameof(RecordBase.CreatedAt):
+                            record.CreatedAt = DateTimeExtensions.FromUnixTimeMilliseconds(Convert.ToInt64(tag.Value));
+                            break;
+                        case nameof(RecordBase.UpdatedAt):
+                            record.UpdatedAt = DateTimeExtensions.FromUnixTimeMilliseconds(Convert.ToInt64(tag.Value));
+                            break;
+                    }
+                }
                 return record;
             }
             catch (WalletItemNotFoundException)

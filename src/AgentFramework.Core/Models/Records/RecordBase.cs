@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using AgentFramework.Core.Extensions;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Models.Records
@@ -17,24 +18,32 @@ namespace AgentFramework.Core.Models.Records
         public virtual string Id { get; set; }
 
         [JsonIgnore]
-        private DateTime _instantiatedAt = DateTime.Now;
+        private DateTime _createdAt = DateTime.MinValue;
 
         /// <summary>
         /// Gets the created at datetime of the record.
         /// </summary>
         /// <returns>The created datetime of the record.</returns>
         [JsonIgnore]
-        public DateTime CreatedAt
+        public DateTime? CreatedAt
         {
             get
             {
-                var createdAtStr = Get();
-
-                if (string.IsNullOrEmpty(createdAtStr))
-                    return _instantiatedAt;
-                return DateTime.Parse(createdAtStr);
+                if (_createdAt == DateTime.MinValue)
+                    return null;
+                return _createdAt;
+            }
+            internal set
+            {
+                if (value == null)
+                    Set(DateTime.MinValue, ref _createdAt);
+                else
+                    Set(value.Value, ref _createdAt);
             }
         }
+
+        [JsonIgnore]
+        private DateTime _updatedAt = DateTime.MinValue;
 
         /// <summary>
         /// Gets the last updated datetime of the record.
@@ -45,11 +54,16 @@ namespace AgentFramework.Core.Models.Records
         {
             get
             {
-                var updatedAtStr = Get();
-
-                if (string.IsNullOrEmpty(updatedAtStr))
+                if (_updatedAt == DateTime.MinValue)
                     return null;
-                return DateTime.Parse(updatedAtStr);
+                return _updatedAt;
+            }
+            internal set
+            {
+                if (value == null)
+                    Set(DateTime.MinValue, ref _updatedAt);
+                else
+                    Set(value.Value, ref _updatedAt);
             }
         }
 
@@ -109,7 +123,19 @@ namespace AgentFramework.Core.Models.Records
         /// <typeparam name="T">The 1st type parameter.</typeparam>
         protected void Set<T>(T value, ref T field, [CallerMemberName]string name = "") where T : struct
         {
-            if (typeof(T).IsEnum)
+            if (typeof(T) == typeof(DateTime))
+            {
+                var dateVal = value as DateTime?;
+
+                if (dateVal != null)
+                {
+                    var strVal = dateVal.ToUnixTimeMilliseconds().ToString();
+                    Set(strVal, name);
+                }
+                else
+                    Set(null,name);
+            }
+            else if (typeof(T).IsEnum)
             {
                 Set((value as Enum).ToString("G"), name);
             }

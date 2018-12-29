@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using AgentFramework.Core.Helpers;
 using AgentFramework.Core.Models.Wallets;
 using AgentFramework.Core.Runtime;
 using Xunit;
@@ -15,7 +16,7 @@ namespace AgentFramework.Core.Tests
         {
             var walletService = new DefaultWalletService();
             var provisioningService = new DefaultProvisioningService(
-                new DefaultWalletRecordService(), walletService);
+                new DefaultWalletRecordService(new DateTimeHelper()), walletService);
 
             var config = new WalletConfiguration {Id = Guid.NewGuid().ToString()};
             var creds = new WalletCredentials {Key = "1"};

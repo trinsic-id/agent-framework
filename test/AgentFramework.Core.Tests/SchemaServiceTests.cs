@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Helpers;
 using AgentFramework.Core.Runtime;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.DidApi;
@@ -26,7 +27,7 @@ namespace AgentFramework.Core.Tests
 
         public SchemaServiceTests()
         {
-            var walletService = new DefaultWalletRecordService();
+            var walletService = new DefaultWalletRecordService(new DateTimeHelper());
             var ledgerService = new DefaultLedgerService();
             var tailsService = new DefaultTailsService(ledgerService);
 
