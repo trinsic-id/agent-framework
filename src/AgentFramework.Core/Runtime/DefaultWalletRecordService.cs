@@ -96,20 +96,10 @@ namespace AgentFramework.Core.Runtime
                 var item = JsonConvert.DeserializeObject<SearchItem>(recordJson, _jsonSettings);
 
                 var record = JsonConvert.DeserializeObject<T>(item.Value, _jsonSettings);
+
                 foreach (var tag in item.Tags)
-                {
                     record.Tags[tag.Key] = tag.Value;
 
-                    switch (tag.Key)
-                    {
-                        case nameof(RecordBase.CreatedAt):
-                            record.CreatedAt = DateTimeExtensions.FromUnixTimeMilliseconds(Convert.ToInt64(tag.Value));
-                            break;
-                        case nameof(RecordBase.UpdatedAt):
-                            record.UpdatedAt = DateTimeExtensions.FromUnixTimeMilliseconds(Convert.ToInt64(tag.Value));
-                            break;
-                    }
-                }
                 return record;
             }
             catch (WalletItemNotFoundException)

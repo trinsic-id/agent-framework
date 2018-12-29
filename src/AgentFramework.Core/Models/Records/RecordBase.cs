@@ -17,9 +17,6 @@ namespace AgentFramework.Core.Models.Records
         /// <returns>The identifier.</returns>
         public virtual string Id { get; set; }
 
-        [JsonIgnore]
-        private DateTime _createdAt = DateTime.MinValue;
-
         /// <summary>
         /// Gets the created at datetime of the record.
         /// </summary>
@@ -27,24 +24,10 @@ namespace AgentFramework.Core.Models.Records
         [JsonIgnore]
         public DateTime? CreatedAt
         {
-            get
-            {
-                if (_createdAt == DateTime.MinValue)
-                    return null;
-                return _createdAt;
-            }
-            internal set
-            {
-                if (value == null)
-                    Set(DateTime.MinValue, ref _createdAt);
-                else
-                    Set(value.Value, ref _createdAt);
-            }
+            get => GetDateTime(false);
+            internal set => Set(value, false);
         }
-
-        [JsonIgnore]
-        private DateTime _updatedAt = DateTime.MinValue;
-
+        
         /// <summary>
         /// Gets the last updated datetime of the record.
         /// </summary>
@@ -52,19 +35,8 @@ namespace AgentFramework.Core.Models.Records
         [JsonIgnore]
         public DateTime? UpdatedAt
         {
-            get
-            {
-                if (_updatedAt == DateTime.MinValue)
-                    return null;
-                return _updatedAt;
-            }
-            internal set
-            {
-                if (value == null)
-                    Set(DateTime.MinValue, ref _updatedAt);
-                else
-                    Set(value.Value, ref _updatedAt);
-            }
+            get => GetDateTime(false);
+            internal set => Set(value, false);
         }
 
         /// <summary>
@@ -81,28 +53,35 @@ namespace AgentFramework.Core.Models.Records
         /// Gets the attribute.
         /// </summary>
         /// <param name="name">Name.</param>
-        public string GetTag(string name) => Get(name);
+        public string GetTag(string name) => Get(name: name);
 
         /// <summary>
         /// Sets the attribute.
         /// </summary>
         /// <param name="name">Name.</param>
         /// <param name="value">Value.</param>
-        public void SetTag(string name, string value) => Set(value, name);
+        public void SetTag(string name, string value) => Set(value, name: name);
 
         /// <summary>
         /// Removes a user attribute.
         /// </summary>
         /// <returns>The attribute.</returns>
         /// <param name="name">Name.</param>
-        public void RemoveTag(string name) => Set(name, null);
+        public void RemoveTag(string name) => Set(name, name: null);
 
-        protected void Set(string value, [CallerMemberName]string name = "")
+        /// <summary>
+        /// Set the specified value, field and name.
+        /// </summary>
+        /// <param name="value">Value.</param>
+        /// <param name="encrypted">Controls whether the stored attribute should be encrypted at rest</param>
+        /// <param name="name">Name.</param>
+        protected void Set(string value, bool encrypted = true, [CallerMemberName]string name = "")
         {
             if (string.IsNullOrWhiteSpace(name))
-            {
                 throw new ArgumentNullException(nameof(name), "Attribute name must be specified.");
-            }
+
+            if (!encrypted)
+                name = $"~{name}";
 
             if (value != null)
             {
@@ -119,9 +98,37 @@ namespace AgentFramework.Core.Models.Records
         /// </summary>
         /// <param name="value">Value.</param>
         /// <param name="field">Field.</param>
+        /// <param name="encrypted">Controls whether the stored attribute should be encrypted at rest</param>
         /// <param name="name">Name.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
-        protected void Set<T>(T value, ref T field, [CallerMemberName]string name = "") where T : struct
+        protected void Set<T>(T value, ref T field, bool encrypted = true, [CallerMemberName]string name = "") where T : struct
+        {
+            Set(value, encrypted, name);
+            field = value;
+        }
+
+        /// <summary>
+        /// Set the specified value, field and name.
+        /// </summary>
+        /// <param name="value">Value.</param>
+        /// <param name="field">Field.</param>
+        /// <param name="encrypted">Controls whether the stored attribute should be encrypted at rest</param>
+        /// <param name="name">Name.</param>
+        /// <typeparam name="T">The 1st type parameter.</typeparam>
+        protected void Set<T>(T? value, ref T? field, bool encrypted = true, [CallerMemberName]string name = "") where T : struct
+        {
+            Set(value, encrypted, name);
+            field = value;
+        }
+
+        /// <summary>
+        /// Set the specified value, field and name.
+        /// </summary>
+        /// <param name="value">Value.</param>
+        /// <param name="encrypted">Controls whether the stored attribute should be encrypted at rest</param>
+        /// <param name="name">Name.</param>
+        /// <typeparam name="T">The 1st type parameter.</typeparam>
+        protected void Set<T>(T? value, bool encrypted = true, [CallerMemberName]string name = "") where T : struct
         {
             if (typeof(T) == typeof(DateTime))
             {
@@ -129,35 +136,85 @@ namespace AgentFramework.Core.Models.Records
 
                 if (dateVal != null)
                 {
-                    var strVal = dateVal.ToUnixTimeMilliseconds().ToString();
-                    Set(strVal, name);
+                    var strVal = ((DateTimeOffset)dateVal.Value).ToUnixTimeMilliseconds().ToString();
+                    Set(strVal, name: name, encrypted: encrypted);
                 }
                 else
-                    Set(null,name);
+                    Set(null, name: name, encrypted: encrypted);
             }
             else if (typeof(T).IsEnum)
             {
-                Set((value as Enum).ToString("G"), name);
+                var enumVal = (value as Enum);
+
+                if (enumVal != null)
+                    Set((value as Enum).ToString("G"), name: name, encrypted: encrypted);
+                else
+                    Set(null, name: name, encrypted: encrypted);
             }
             else
+                Set(value.ToString(), name: name, encrypted: encrypted);
+        }
+
+        /// <summary>
+        /// Set the specified value, field and name.
+        /// </summary>
+        /// <param name="value">Value.</param>
+        /// <param name="encrypted">Controls whether the stored attribute should be encrypted at rest</param>
+        /// <param name="name">Name.</param>
+        /// <typeparam name="T">The 1st type parameter.</typeparam>
+        protected void Set<T>(T value, bool encrypted = true, [CallerMemberName]string name = "") where T : struct
+        {
+            if (typeof(T) == typeof(DateTime))
             {
-                Set(value.ToString(), name);
+                var dateVal = value as DateTime?;
+
+                if (dateVal != null)
+                {
+                    var strVal = ((DateTimeOffset)dateVal.Value).ToUnixTimeMilliseconds().ToString();
+                    Set(strVal, name: name, encrypted: encrypted);
+                }
+                else
+                    Set(null, name: name, encrypted: encrypted);
             }
-            field = value;
+            else if (typeof(T).IsEnum)
+            {
+                var enumVal = (value as Enum);
+
+                if (enumVal != null)
+                    Set((value as Enum).ToString("G"), name: name, encrypted: encrypted);
+                else
+                    Set(null, name: name, encrypted: encrypted);
+            }
+            else
+                Set(value.ToString(), name: name, encrypted: encrypted);
         }
 
         /// <summary>
         /// Get the value of the specified tag name.
         /// </summary>
         /// <returns>The get.</returns>
+        /// <param name="encrypted">Controls whether the fetched attribute is encrypted at rest</param>
         /// <param name="name">Name.</param>
-        protected string Get([CallerMemberName]string name = "")
+        protected string Get(bool encrypted = true, [CallerMemberName]string name = "")
         {
+            if (!encrypted)
+                name = $"~{name}";
+
             if (Tags.ContainsKey(name))
             {
                 return Tags[name];
             }
             return null;
+        }
+
+        protected DateTime? GetDateTime(bool encrypted = true, [CallerMemberName] string name = "")
+        {
+            var strVal = Get(encrypted, name);
+
+            if (strVal == null)
+                return null;
+
+            return DatetimeExtensions.FromUnixTimeMilliseconds(Convert.ToInt64(strVal));
         }
     }
 }

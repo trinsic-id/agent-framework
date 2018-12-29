@@ -29,7 +29,7 @@ namespace AgentFramework.Core.Tests
         {
             var mockDateTimeHelper = new Mock<IDateTimeHelper>();
                 mockDateTimeHelper.Setup(_ => _.UtcNow())
-                                  .Returns(_currentDatetime);
+                                  .Returns(() => _currentDatetime);
 
             _recordService = new DefaultWalletRecordService(mockDateTimeHelper.Object);
         }

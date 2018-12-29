@@ -2,7 +2,7 @@
 
 namespace AgentFramework.Core.Extensions
 {
-    public static class DateTimeExtensions
+    public static class DatetimeExtensions
     {
         public static DateTime Truncate(this DateTime dateTime, TimeSpan timeSpan)
         {

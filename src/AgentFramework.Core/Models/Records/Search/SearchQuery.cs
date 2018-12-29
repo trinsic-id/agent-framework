@@ -192,7 +192,7 @@ namespace AgentFramework.Core.Models.Records.Search
     {
         public GtSubquery(string name, string value)
         {
-            this[name] = new SearchExpression<string> { { "$gt", value } };
+            this[$"~{name}"] = new SearchExpression<string> { { "$gt", value } };
         }
     }
 
@@ -200,7 +200,7 @@ namespace AgentFramework.Core.Models.Records.Search
     {
         public GteSubquery(string name, string value)
         {
-            this[name] = new SearchExpression<string> { { "$gte", value } };
+            this[$"~{name}"] = new SearchExpression<string> { { "$gte", value } };
         }
     }
 
@@ -208,7 +208,7 @@ namespace AgentFramework.Core.Models.Records.Search
     {
         public LtSubquery(string name, string value)
         {
-            this[name] = new SearchExpression<string> { { "$lt", value } };
+            this[$"~{name}"] = new SearchExpression<string> { { "$lt", value } };
         }
     }
 
@@ -216,7 +216,7 @@ namespace AgentFramework.Core.Models.Records.Search
     {
         public LteSubquery(string name, string value)
         {
-            this[name] = new SearchExpression<string> { { "$lte", value } };
+            this[$"~{name}"] = new SearchExpression<string> { { "$lte", value } };
         }
     }
 
