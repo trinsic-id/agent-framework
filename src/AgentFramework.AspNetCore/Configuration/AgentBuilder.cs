@@ -7,7 +7,6 @@ using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Did;
 using AgentFramework.Core.Models.Wallets;
 using Hyperledger.Indy.PoolApi;
-using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Options;
 
 namespace AgentFramework.AspNetCore.Configuration

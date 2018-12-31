@@ -10,7 +10,6 @@ using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Messages.Routing;
-using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Did;
 using AgentFramework.Core.Models.Records;
@@ -187,9 +186,22 @@ namespace AgentFramework.Core.Tests
         }
         
         [Fact]
-        public async Task CanCreateRouteRecord()
+        public async Task CanCreateAndDeleteRouteRecord()
         {
-            
+            string identifier = "dummy-identifier";
+            string connectionId = "connection-id";
+
+            await _routerService.CreateRouteAsync(_wallet, identifier, connectionId);
+
+            var record = await _routerService.GetRouteAsync(_wallet, identifier);
+
+            Assert.NotNull(record);
+
+            await _routerService.DeleteRouteAsync(_wallet, identifier);
+
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
+                await _routerService.GetRouteAsync(_wallet, identifier));
+            Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }
     }
 }

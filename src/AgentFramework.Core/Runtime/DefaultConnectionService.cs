@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages.Connections;
+using AgentFramework.Core.Messages.Routing;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Did;
 using AgentFramework.Core.Models.Records;
@@ -45,6 +46,11 @@ namespace AgentFramework.Core.Runtime
         public virtual async Task<ConnectionInvitationMessage> CreateInvitationAsync(Wallet wallet,
             InviteConfiguration config = null)
         {
+            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+
+            if (provisioning.Services.Count == 0)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, "Provisioning record contains no did services");
+
             var connectionId = !string.IsNullOrEmpty(config?.ConnectionId)
                 ? config.ConnectionId
                 : Guid.NewGuid().ToString();
@@ -68,14 +74,18 @@ namespace AgentFramework.Core.Runtime
             foreach (var tag in config.Tags)
                 connection.SetTag(tag.Key, tag.Value);
 
-            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
-
-            IDidService service;
+            IDidService service = null;
 
             if (!string.IsNullOrEmpty(config.ServiceId))
                 service = provisioning.Services.FirstOrDefault(_ => _.Id == config.ServiceId);
-            else
+
+            if (service == null)
                 service = provisioning.Services[0];
+
+            if (service.Type == DidServiceTypes.Agency)
+            {
+                //TODO create a routing record with the agency? this probably needs to be an extension
+            }
 
             await RecordService.AddAsync(wallet, connection);
 

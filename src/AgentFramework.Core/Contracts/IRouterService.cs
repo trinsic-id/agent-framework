@@ -43,7 +43,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="id">Identifier of the record.</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <returns>The record async.</returns>
-        Task<RouteRecord> GetRoute(Wallet wallet, string id);
+        Task<RouteRecord> GetRouteAsync(Wallet wallet, string id);
 
         /// <summary>
         /// Get a list of routing records in the current wallet.
@@ -52,6 +52,23 @@ namespace AgentFramework.Core.Contracts
         /// <param name="connectionId">[Optional] The connection id to filter the results to.</param>
         /// <returns>A list of routing records async.</returns>
         Task<IList<RouteRecord>> GetRoutesAsync(Wallet wallet, string connectionId = null);
+
+        /// <summary>
+        /// Creates a routing record in the current wallet.
+        /// </summary>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="recipientIdentifier">The recipient identifier for the routing record.</param>
+        /// <param name="connectionId">The connection id linked to the routing record.</param>
+        /// <returns>The response async.</returns>
+        Task CreateRouteAsync(Wallet wallet, string recipientIdentifier, string connectionId);
+
+        /// <summary>
+        /// Deletes a routing record from the current wallet.
+        /// </summary>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="recipientIdentifier">The recipient identifier of the routing record.</param>
+        /// <returns>The response async.</returns>
+        Task DeleteRouteAsync(Wallet wallet, string recipientIdentifier);
 
         /// <summary>
         /// Processes a forward message.

@@ -56,6 +56,9 @@ namespace AgentFramework.Core.Runtime
                 configuration.WalletCredentials == null)
                 throw new ArgumentNullException(nameof(configuration),
                     "Wallet configuration and credentials must be specified");
+            if (configuration.AgentServices == null || configuration.AgentServices.Length == 0)
+                throw new ArgumentNullException(nameof(configuration),
+                    "At least one agent service must be supplied for the agent");
 
             ProvisioningRecord record = null;
             try
@@ -66,7 +69,6 @@ namespace AgentFramework.Core.Runtime
 
             if (record != null)
                 throw new AgentFrameworkException(ErrorCode.WalletAlreadyProvisioned);
-
             
             var masterSecretId = await AnonCreds.ProverCreateMasterSecretAsync(wallet, null);
 
@@ -103,6 +105,9 @@ namespace AgentFramework.Core.Runtime
                 configuration.WalletCredentials == null)
                 throw new ArgumentNullException(nameof(configuration),
                     "Wallet configuration and credentials must be specified");
+            if (configuration.AgentServices == null || configuration.AgentServices.Length == 0)
+                throw new ArgumentNullException(nameof(configuration),
+                    "At least one agent service must be supplied for the agent");
 
             try
             {
