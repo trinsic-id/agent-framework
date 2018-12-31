@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Helpers;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Messages.Routing;
@@ -37,7 +38,7 @@ namespace AgentFramework.Core.Tests
 
         public RouterServiceTests()
         {
-            var walletService = new DefaultWalletRecordService();
+            var walletService = new DefaultWalletRecordService(new DateTimeHelper());
 
             var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             handlerMock
