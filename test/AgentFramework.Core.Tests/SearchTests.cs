@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Helpers;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Runtime;
@@ -22,7 +23,7 @@ namespace AgentFramework.Core.Tests
 
         public SearchTests()
         {
-            _recordService = new DefaultWalletRecordService();
+            _recordService = new DefaultWalletRecordService(new DateTimeHelper());
         }
 
         public async Task InitializeAsync()

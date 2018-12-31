@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
 using AgentFramework.AspNetCore.Runtime;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Helpers;
 using AgentFramework.Core.Runtime;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
     {
         public static AgentServicesBuilder AddCoreServices(this AgentServicesBuilder builder)
         {
+            builder.Services.TryAddSingleton<IDateTimeHelper, DateTimeHelper>();
             builder.Services.TryAddSingleton<IConnectionService, DefaultConnectionService>();
             builder.Services.TryAddSingleton<ICredentialService, DefaultCredentialService>();
             builder.Services.TryAddSingleton<ILedgerService, DefaultLedgerService>();

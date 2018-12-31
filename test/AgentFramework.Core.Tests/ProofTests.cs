@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Helpers;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Proofs;
 using AgentFramework.Core.Models;
@@ -50,7 +51,7 @@ namespace AgentFramework.Core.Tests
         public ProofTests()
         {
             var messageSerializer = new DefaultMessageSerializer();
-            var recordService = new DefaultWalletRecordService();
+            var recordService = new DefaultWalletRecordService(new DateTimeHelper());
             var ledgerService = new DefaultLedgerService();
 
             _poolService = new DefaultPoolService();
