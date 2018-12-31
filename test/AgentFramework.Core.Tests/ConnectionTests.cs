@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Helpers;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models;
@@ -57,7 +58,7 @@ namespace AgentFramework.Core.Tests
                 }));
 
             _connectionService = new DefaultConnectionService(
-                new DefaultWalletRecordService(),
+                new DefaultWalletRecordService(new DateTimeHelper()),
                 routingMock.Object,
                 _provisioningMock.Object,
                 messageSerializer,
