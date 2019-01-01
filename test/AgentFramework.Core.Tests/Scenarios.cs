@@ -7,6 +7,7 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Messages.Credentials;
+using AgentFramework.Core.Messages.Routing;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Did;
@@ -44,7 +45,7 @@ namespace AgentFramework.Core.Tests
 
         internal static async Task<(ConnectionRecord firstParty, ConnectionRecord secondParty)> EstablishConnectionAsync(
             IConnectionService connectionService,
-            IProducerConsumerCollection<IAgentMessage> _messages,
+            IProducerConsumerCollection<IAgentMessage> messages,
             Wallet firstWallet,
             Wallet secondWallet,
             bool autoConnectionFlow = false)
@@ -84,7 +85,7 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(ConnectionState.Negotiating, connectionHolder.State);
 
             // Issuer processes incoming message
-            var issuerMessage = _messages.OfType<ConnectionRequestMessage>().FirstOrDefault();
+            var issuerMessage = messages.OfType<ConnectionRequestMessage>().FirstOrDefault();
             Assert.NotNull(issuerMessage);
 
             // Issuer processes the connection request by storing it and accepting it if auto connection flow is enabled
@@ -103,7 +104,7 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
 
             // Holder processes incoming message
-            var holderMessage = _messages.OfType<ConnectionResponseMessage>().FirstOrDefault();
+            var holderMessage = messages.OfType<ConnectionResponseMessage>().FirstOrDefault();
             Assert.NotNull(holderMessage);
 
             // Holder processes the response message by accepting it
@@ -123,7 +124,7 @@ namespace AgentFramework.Core.Tests
 
         internal static async Task<(ConnectionRecord firstParty, ConnectionRecord secondParty)> EstablishConnectionUsingAgencyAsync(
             IConnectionService connectionService,
-            IProducerConsumerCollection<IAgentMessage> _messages,
+            IProducerConsumerCollection<IAgentMessage> messages,
             Wallet firstWallet,
             Wallet secondWallet,
             bool autoConnectionFlow = false)
@@ -199,6 +200,29 @@ namespace AgentFramework.Core.Tests
                         connectionHolder.Alias.ImageUrl == inviteConfig.MyAlias.ImageUrl);
 
             return (connectionIssuer, connectionHolder);
+        }
+
+        internal static async Task CreateRoutingRecord(
+            IRouterService routingService,
+            IProducerConsumerCollection<IAgentMessage> messages,
+            Wallet subjectWallet, 
+            Wallet routerWallet,
+            ConnectionRecord subjectConnection,
+            ConnectionRecord routerConnection,
+            string recipientIdentifier)
+        {
+            await routingService.SendCreateMessageRoute(subjectWallet, recipientIdentifier, subjectConnection);
+
+            // Router processes incoming message
+            var createRouteMessage = messages.OfType<CreateRouteMessage>().FirstOrDefault();
+            Assert.NotNull(createRouteMessage);
+
+            await routingService.ProcessCreateRouteMessageAsync(routerWallet, createRouteMessage, routerConnection);
+
+            //TODO
+            // Subject processes incoming message
+            //var createRouteConfirmationMessage = messages.OfType<CreateRouteMessage>().FirstOrDefault();
+            //Assert.NotNull(createRouteConfirmationMessage);
         }
 
         internal static async Task<(CredentialRecord issuerCredential, CredentialRecord holderCredential)> IssueCredentialAsync(

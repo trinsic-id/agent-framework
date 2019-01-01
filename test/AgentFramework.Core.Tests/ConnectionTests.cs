@@ -108,6 +108,12 @@ namespace AgentFramework.Core.Tests
         }
 
         [Fact]
+        public async Task CreateInvitationThrowsExceptionProvisionRecordInInvalidState()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Fact]
         public async Task AcceptInviteThrowsExceptionUnableToSendA2AMessage()
         {
             var connectionId = Guid.NewGuid().ToString();
@@ -120,6 +126,12 @@ namespace AgentFramework.Core.Tests
             _routeMessage = true;
 
             Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionError);
+        }
+
+        [Fact]
+        public async Task AcceptInviteThrowsExceptionProvisionRecordInInvalidState()
+        {
+            throw new NotImplementedException();
         }
 
         [Fact]

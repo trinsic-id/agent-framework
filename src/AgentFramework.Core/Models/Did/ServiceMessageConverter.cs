@@ -20,11 +20,17 @@ namespace AgentFramework.Core.Models.Did
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue,
             JsonSerializer serializer)
         {
-            if (reader.Value == null)
+            JObject item;
+
+            try
+            {
+                item = JObject.Load(reader);
+            }
+            catch (Exception)
+            {
                 return null;
-
-            var item = JObject.Load(reader);
-
+            }
+            
             IDidService message;
             switch (item["Type"].ToString())
             {

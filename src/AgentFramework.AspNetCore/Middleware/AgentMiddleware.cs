@@ -20,6 +20,7 @@ namespace AgentFramework.AspNetCore.Middleware
         private readonly IMessageSerializer _messageSerializer;
         private readonly IConnectionService _connectionService;
         private readonly ICredentialService _credentialService;
+        private readonly IRouterService _routerService;
         private readonly PoolOptions _poolOptions;
         private readonly WalletOptions _walletOptions;
 
@@ -29,6 +30,7 @@ namespace AgentFramework.AspNetCore.Middleware
             IMessageSerializer messageSerializer,
             IConnectionService connectionService,
             ICredentialService credentialService,
+            IRouterService routerService,
             IOptions<WalletOptions> walletOptions,
             IOptions<PoolOptions> poolOptions)
         {
@@ -38,6 +40,7 @@ namespace AgentFramework.AspNetCore.Middleware
             _messageSerializer = messageSerializer;
             _connectionService = connectionService;
             _credentialService = credentialService;
+            _routerService = routerService;
             _poolOptions = poolOptions.Value;
             _walletOptions = walletOptions.Value;
         }
@@ -89,6 +92,15 @@ namespace AgentFramework.AspNetCore.Middleware
                     case CredentialMessage credential:
                         var pool = await _poolService.GetPoolAsync(_poolOptions.PoolName, _poolOptions.ProtocolVersion);
                         await _credentialService.ProcessCredentialAsync(pool, wallet, credential, connectionRecord);
+                        break;
+                    case ForwardMessage forward:
+                        await _routerService.ProcessForwardMessageAsync(wallet, forward);
+                        break;
+                    case CreateRouteMessage createRoute:
+                        await _routerService.ProcessCreateRouteMessageAsync(wallet, createRoute, connectionRecord);
+                        break;
+                    case DeleteRouteMessage deleteRoute:
+                        await _routerService.ProcessDeleteRouteMessageAsync(wallet, deleteRoute, connectionRecord);
                         break;
                     case ProofMessage _:
                         break;

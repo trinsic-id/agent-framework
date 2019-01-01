@@ -28,6 +28,8 @@ namespace AgentFramework.Core.Runtime
         private readonly ILogger<DefaultRouterService> _logger;
         private readonly HttpClient _httpClient; 
 
+        //TODO split this service into two a message delivery service and a routing service
+
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AgentFramework.Core.Runtime.DefaultRouterService"/> class.
         /// </summary>
@@ -44,6 +46,13 @@ namespace AgentFramework.Core.Runtime
         {
             _logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0}", connection.TheirVk);
 
+            if (message == null)
+                throw new ArgumentNullException(nameof(message));
+
+            if (connection.State != ConnectionState.Connected)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                    $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
+
             recipientKey = recipientKey ?? connection.TheirVk;
             byte[] wireMessage = await _messageSerializer.AuthPackAsync(wallet, message, recipientKey, connection.MyVk);
             await SendAsync(wallet, wireMessage, connection, recipientKey);
@@ -53,11 +62,20 @@ namespace AgentFramework.Core.Runtime
         public async Task SendAsync(Wallet wallet, byte[] message, ConnectionRecord connection,
             string recipientKey = null)
         {
+            if (message == null)
+                throw new ArgumentNullException(nameof(message));
+
+            if (connection.State != ConnectionState.Connected)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                    $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
+
+            //TODO we prob need to load the provisioning record here so we know what services we use to send messages
+
             //TODO we need here is where we need a resolver
             if (connection.Services.Any(_ => _.Type == DidServiceTypes.Agency))
             {
                 var agencyService = connection.Services.First(_ => _.Type == DidServiceTypes.Agency) as AgencyService;
-                await ForwardToSecureEndpointAsync(agencyService.ServiceEndpoint, agencyService.Verkey, message, new[] { recipientKey });
+                await ForwardToSecureEndpointAsync(agencyService.ServiceEndpoint, agencyService.Verkey, message, recipientKey);
             }
             else if (connection.Services.Any(_ => _.Type == DidServiceTypes.Agent))
             {
@@ -69,7 +87,28 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<RouteRecord> GetRouteAsync(Wallet wallet, string id)
+        public async Task SendCreateMessageRoute(Wallet wallet, string recipientIdentifier, ConnectionRecord routerConnection)
+        {
+            var createRouteMessage = new CreateRouteMessage
+            {
+                RecipientIdentifier = recipientIdentifier
+            };
+            await SendAsync(wallet, createRouteMessage, routerConnection);
+        }
+
+        /// <inheritdoc />
+        public async Task SendDeleteMessageRoute(Wallet wallet, string recipientIdentifier,
+            ConnectionRecord routerConnection)
+        {
+            var deleteRouteMessage = new DeleteRouteMessage
+            {
+                RecipientIdentifier = recipientIdentifier
+            };
+            await SendAsync(wallet, deleteRouteMessage, routerConnection);
+        }
+
+        /// <inheritdoc />
+        public async Task<RouteRecord> GetRouteRecordAsync(Wallet wallet, string id)
         {
             _logger.LogInformation(LoggingEvents.GetConnection, "Id {0}", id);
 
@@ -82,7 +121,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<IList<RouteRecord>> GetRoutesAsync(Wallet wallet, string connectionId = null)
+        public async Task<IList<RouteRecord>> GetRoutesRecordsAsync(Wallet wallet, string connectionId = null)
         {
             ISearchQuery query = null;
 
@@ -93,8 +132,14 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task CreateRouteAsync(Wallet wallet, string recipientIdentifier, string connectionId)
+        public async Task CreateRouteRecordAsync(Wallet wallet, string recipientIdentifier, string connectionId)
         {
+            if (string.IsNullOrEmpty(recipientIdentifier))
+                throw new ArgumentNullException(nameof(recipientIdentifier));
+
+            if (string.IsNullOrEmpty(connectionId))
+                throw new ArgumentNullException(nameof(connectionId));
+
             var route = new RouteRecord
             {
                 Id = recipientIdentifier,
@@ -105,9 +150,10 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task DeleteRouteAsync(Wallet wallet, string recipientIdentifier)
+        public async Task DeleteRouteRecordAsync(Wallet wallet, string recipientIdentifier)
         {
-            await _walletRecordService.DeleteAsync<RouteRecord>(wallet, recipientIdentifier);
+            var record = await GetRouteRecordAsync(wallet, recipientIdentifier);
+            await _walletRecordService.DeleteAsync<RouteRecord>(wallet, record.Id);
         }
 
         /// <inheritdoc />
@@ -125,40 +171,34 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public async Task ProcessCreateRouteMessageAsync(Wallet wallet, CreateRouteMessage message, ConnectionRecord connection)
         {
-            await CreateRouteAsync(wallet, message.RecipientIdentifier, connection.Id);
+            await CreateRouteRecordAsync(wallet, message.RecipientIdentifier, connection.Id);
+            
+            //TODO should prob send back a confirmation message
         }
 
         /// <inheritdoc />
         public async Task ProcessDeleteRouteMessageAsync(Wallet wallet, DeleteRouteMessage message, ConnectionRecord connection)
         {
-            var route = await GetRouteAsync(wallet, message.RecipientIdentifier);
+            var route = await GetRouteRecordAsync(wallet, message.RecipientIdentifier);
 
             if (route.ConnectionId != connection.Id)
                 throw new AgentFrameworkException(ErrorCode.InvalidOperation, $"Cannot delete routing record with id : {message.RecipientIdentifier} because the route isn't owned by connection {connection.Id}");
 
-            await DeleteRouteAsync(wallet, message.RecipientIdentifier);
+            await DeleteRouteRecordAsync(wallet, message.RecipientIdentifier);
+
+            //TODO should prob send back a confirmation message
         }
 
-        public async Task<byte[]> PackForwardMessage(string verkey, byte[] message, string[] recipientIdentifiers)
+        /// <inheritdoc />
+        public async Task<byte[]> PackForwardMessage(string verkey, byte[] message, string recipientIdentifier)
         {
             var innerMessage = Convert.ToBase64String(message);
 
-            IAgentMessage forwardMessage;
-
-            if (recipientIdentifiers.Count() == 1)
-                forwardMessage = new ForwardMessage
-                {
-                    Message = innerMessage,
-                    To = recipientIdentifiers[0]
-                };
-            else
+            IAgentMessage forwardMessage = new ForwardMessage
             {
-                forwardMessage = new ForwardMultipleMessage
-                {
-                    Message = innerMessage,
-                    To = recipientIdentifiers
-                };
-            }
+                Message = innerMessage,
+                To = recipientIdentifier
+            };
 
             return await _messageSerializer.AnonPackAsync(forwardMessage, verkey);
         }
@@ -169,11 +209,11 @@ namespace AgentFramework.Core.Runtime
         /// <param name="endpoint">Endpoint to forward to.</param>
         /// <param name="verkey">Verkey of the endpoint to secure the message with</param>
         /// <param name="message">The raw message to forward.</param>
-        /// <param name="recipientIdentifiers">Identifiers of the recipients to pack in the outer forward message.</param>
+        /// <param name="recipientIdentifier">Identifier of the recipient to pack in the outer forward message.</param>
         /// <returns></returns>
-        private async Task ForwardToSecureEndpointAsync(string endpoint, string verkey, byte[] message, string[] recipientIdentifiers)
+        private async Task ForwardToSecureEndpointAsync(string endpoint, string verkey, byte[] message, string recipientIdentifier)
         {
-            var wireMessage = await PackForwardMessage(verkey, message, recipientIdentifiers);
+            var wireMessage = await PackForwardMessage(verkey, message, recipientIdentifier);
             await SendToEndpointAsync(endpoint, wireMessage);
         }
         

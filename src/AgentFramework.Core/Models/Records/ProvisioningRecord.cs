@@ -45,6 +45,7 @@ namespace AgentFramework.Core.Models.Records
         /// Gets or sets the services for the provisioned agent.
         /// </summary>
         /// <returns>The service information for the provisioned agent</returns>
+        [JsonProperty(ItemConverterType = typeof(ServiceMessageConverter))]
         public IList<IDidService> Services
         {
             get;

@@ -37,7 +37,7 @@ namespace AgentFramework.Core.Contracts
         /// Creates the invitation asynchronous.
         /// </summary>
         /// <param name="wallet">Wallet.</param>
-        /// <param name="config">An optional configuration object used to configure the resulting invitations presentation</param>
+        /// <param name="config">[Optional]Configuration object used to configure the resulting invitations presentation</param>
         /// <returns></returns>
         Task<ConnectionInvitationMessage> CreateInvitationAsync(Wallet wallet, InviteConfiguration config = null);
 
@@ -46,9 +46,10 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="offer">Offer.</param>
+        /// <param name="config">[Optional]Configuration object used to configure conditions underwhich the invitation is accepted</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError</exception>
         /// <returns>Connection identifier unique for this connection.</returns>
-        Task<string> AcceptInvitationAsync(Wallet wallet, ConnectionInvitationMessage offer);
+        Task<string> AcceptInvitationAsync(Wallet wallet, ConnectionInvitationMessage offer, AcceptInviteConfiguration config = null);
 
         /// <summary>
         /// Process the connection request for a given connection async.

@@ -37,28 +37,12 @@ namespace AgentFramework.Core.Runtime
             return record;
         }
 
-        public async Task AddServiceAsync(Wallet wallet, IDidService service)
-        {
-            var record = await GetProvisioningAsync(wallet);
-
-            record.Services.Add(service);
-
-            await RecordService.UpdateAsync(wallet, record);
-        }
-
         /// <inheritdoc />
         [Obsolete]
         public virtual async Task ProvisionAgentAsync(Wallet wallet, ProvisioningConfiguration configuration)
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
-            if (configuration.WalletConfiguration == null ||
-                configuration.WalletCredentials == null)
-                throw new ArgumentNullException(nameof(configuration),
-                    "Wallet configuration and credentials must be specified");
-            if (configuration.AgentServices == null || configuration.AgentServices.Length == 0)
-                throw new ArgumentNullException(nameof(configuration),
-                    "At least one agent service must be supplied for the agent");
 
             ProvisioningRecord record = null;
             try
@@ -101,13 +85,6 @@ namespace AgentFramework.Core.Runtime
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
-            if (configuration.WalletConfiguration == null ||
-                configuration.WalletCredentials == null)
-                throw new ArgumentNullException(nameof(configuration),
-                    "Wallet configuration and credentials must be specified");
-            if (configuration.AgentServices == null || configuration.AgentServices.Length == 0)
-                throw new ArgumentNullException(nameof(configuration),
-                    "At least one agent service must be supplied for the agent");
 
             try
             {
@@ -147,6 +124,16 @@ namespace AgentFramework.Core.Runtime
                 record.Services.Add(service);
 
             await RecordService.AddAsync(wallet, record);
+        }
+
+        /// <inheritdoc />
+        public async Task AddServiceAsync(Wallet wallet, IDidService service)
+        {
+            var record = await GetProvisioningAsync(wallet);
+
+            record.Services.Add(service);
+
+            await RecordService.UpdateAsync(wallet, record);
         }
 
         /// <inheritdoc />

@@ -1,6 +1,4 @@
-﻿
-using AgentFramework.Core.Messages;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Models.Did
 {

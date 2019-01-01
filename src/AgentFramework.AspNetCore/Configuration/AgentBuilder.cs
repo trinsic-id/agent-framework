@@ -90,12 +90,12 @@ namespace AgentFramework.AspNetCore.Configuration
                 var provisionConfig = new ProvisioningConfiguration(
                     _walletOptions.WalletConfiguration,
                     _walletOptions.WalletCredentials,
+                    agentService,
                     new AgentOwner
                     {
                         Name = _agentOwnerName,
                         ImageUrl = _agentOwnerImageUrl
                     },
-                    new IDidService[] { agentService },
                     issuerConfig);
 
                 await _provisioningService.ProvisionAgentAsync(provisionConfig);

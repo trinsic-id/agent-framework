@@ -46,11 +46,6 @@ namespace AgentFramework.Core.Runtime
         public virtual async Task<ConnectionInvitationMessage> CreateInvitationAsync(Wallet wallet,
             InviteConfiguration config = null)
         {
-            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
-
-            if (provisioning.Services.Count == 0)
-                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, "Provisioning record contains no did services");
-
             var connectionId = !string.IsNullOrEmpty(config?.ConnectionId)
                 ? config.ConnectionId
                 : Guid.NewGuid().ToString();
@@ -58,6 +53,11 @@ namespace AgentFramework.Core.Runtime
             config = config ?? new InviteConfiguration();
 
             Logger.LogInformation(LoggingEvents.CreateInvitation, "ConnectionId {0}", connectionId);
+
+            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+
+            if (provisioning.Services.Count == 0)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, "Provisioning record contains no did services");
 
             var connectionKey = await Crypto.CreateKeyAsync(wallet, "{}");
 
@@ -81,12 +81,7 @@ namespace AgentFramework.Core.Runtime
 
             if (service == null)
                 service = provisioning.Services[0];
-
-            if (service.Type == DidServiceTypes.Agency)
-            {
-                //TODO create a routing record with the agency? this probably needs to be an extension
-            }
-
+            
             await RecordService.AddAsync(wallet, connection);
 
             return new ConnectionInvitationMessage
@@ -99,10 +94,21 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> AcceptInvitationAsync(Wallet wallet, ConnectionInvitationMessage invitation)
+        public virtual async Task<string> AcceptInvitationAsync(Wallet wallet, ConnectionInvitationMessage invitation, AcceptInviteConfiguration config = null)
         {
             Logger.LogInformation(LoggingEvents.AcceptInvitation, "Key {0}, Endpoint {1}",
                 invitation.ConnectionKey, invitation.Endpoint.ServiceEndpoint);
+
+            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+
+            if (provisioning.Services.Count == 0)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, "Provisioning record contains no did services");
+
+            var connectionId = !string.IsNullOrEmpty(config?.ConnectionId)
+                ? config.ConnectionId
+                : Guid.NewGuid().ToString();
+
+            config = config ?? new AcceptInviteConfiguration();
 
             var my = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
 
@@ -110,32 +116,44 @@ namespace AgentFramework.Core.Runtime
             {
                 MyDid = my.Did,
                 MyVk = my.VerKey,
-                Id = Guid.NewGuid().ToString().ToLowerInvariant()
+                Id = connectionId
             };
 
             connection.Services.Add(invitation.Endpoint);
 
-            if (!string.IsNullOrEmpty(invitation.Name) || !string.IsNullOrEmpty(invitation.ImageUrl))
+            if (config?.TheirAlias != null)
+                connection.Alias = config.TheirAlias;
+            else if (!string.IsNullOrEmpty(invitation.Name) || !string.IsNullOrEmpty(invitation.ImageUrl))
             {
                 connection.Alias = new ConnectionAlias
                 {
                     Name = invitation.Name,
                     ImageUrl = invitation.ImageUrl
                 };
-
-                if (string.IsNullOrEmpty(invitation.Name))
-                    connection.SetTag(TagConstants.Alias, invitation.Name);
             }
+
+            if (string.IsNullOrEmpty(connection.Alias?.Name))
+                connection.SetTag(TagConstants.Alias, connection.Alias?.Name);
+
+            foreach (var tag in config.Tags)
+                connection.SetTag(tag.Key, tag.Value);
 
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await RecordService.AddAsync(wallet, connection);
 
-            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+            IDidService service = null;
+
+            if (!string.IsNullOrEmpty(config.ServiceId))
+                service = provisioning.Services.FirstOrDefault(_ => _.Id == config.ServiceId);
+
+            if (service == null)
+                service = provisioning.Services[0];
+
             var msg = new ConnectionRequestMessage
             {
                 Did = my.Did,
                 Verkey = my.VerKey,
-                Endpoint = provisioning.Services[0]
+                Endpoint = service
             };
 
             try

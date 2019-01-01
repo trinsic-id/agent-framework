@@ -91,6 +91,58 @@ namespace AgentFramework.Core.Tests
         }
 
         [Fact]
+        public async Task SendAsyncThrowsConnectionInvalidState()
+        {
+            var connectionRecord = new ConnectionRecord
+            {
+                State = ConnectionState.Invited
+            };
+
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _routerService.SendAsync(_wallet, new ConnectionRequestMessage(), connectionRecord, "test"));
+            Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
+        }
+
+        [Fact]
+        public async Task SendAsyncThrowsProvisionRecordInvalidStateNoDidServices()
+        {
+            var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            var their = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+
+            var connectionRecord = new ConnectionRecord
+            {
+                State = ConnectionState.Connected,
+                MyVk = my.VerKey,
+                MyDid = my.Did,
+                TheirDid = their.Did,
+                TheirVk = their.VerKey
+            };
+
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _routerService.SendAsync(_wallet, new ConnectionRequestMessage(), connectionRecord));
+            Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
+        }
+
+        [Fact]
+        public async Task GetRouteThrowsRecordNotFound()
+        {
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _routerService.GetRouteRecordAsync(_wallet, "bad-id"));
+            Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
+        }
+
+        [Fact]
+        public async Task DeleteRouteThrowsRecordNotFound()
+        {
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _routerService.DeleteRouteRecordAsync(_wallet, "bad-id"));
+            Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
+        }
+
+        [Fact]
+        public async Task CreateRouteThrowsArguementNullExceptions()
+        {
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await _routerService.CreateRouteRecordAsync(_wallet, null, "test"));
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await _routerService.CreateRouteRecordAsync(_wallet, "test", null));
+        }
+
+        [Fact]
         public async Task CanSendMessageToAgentService()
         {
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
@@ -98,6 +150,7 @@ namespace AgentFramework.Core.Tests
 
             var myConnection = new ConnectionRecord
             {
+                State = ConnectionState.Connected,
                 MyDid = my.Did,
                 MyVk = my.VerKey,
                 Alias = new ConnectionAlias
@@ -192,16 +245,16 @@ namespace AgentFramework.Core.Tests
             string identifier = "dummy-identifier";
             string connectionId = "connection-id";
 
-            await _routerService.CreateRouteAsync(_wallet, identifier, connectionId);
+            await _routerService.CreateRouteRecordAsync(_wallet, identifier, connectionId);
 
-            var record = await _routerService.GetRouteAsync(_wallet, identifier);
+            var record = await _routerService.GetRouteRecordAsync(_wallet, identifier);
 
             Assert.NotNull(record);
 
-            await _routerService.DeleteRouteAsync(_wallet, identifier);
+            await _routerService.DeleteRouteRecordAsync(_wallet, identifier);
 
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
-                await _routerService.GetRouteAsync(_wallet, identifier));
+                await _routerService.GetRouteRecordAsync(_wallet, identifier));
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }
     }
