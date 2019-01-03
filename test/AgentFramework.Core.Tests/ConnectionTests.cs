@@ -11,7 +11,9 @@ using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Did;
 using AgentFramework.Core.Models.Records;
+using AgentFramework.Core.Models.Wallets;
 using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Utils;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -21,27 +23,32 @@ namespace AgentFramework.Core.Tests
 {
     public class ConnectionTests : IAsyncLifetime
     {
-        private readonly string _issuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}"; 
-        private readonly string _holderConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
-        private const string Credentials = "{\"key\":\"test_wallet_key\"}";
+        private readonly WalletConfiguration _issuerWalletConfig = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
+        private readonly WalletConfiguration _holderWalletConfig = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
+        private readonly WalletConfiguration _agencyWalletConfig = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
+        private readonly WalletCredentials _walletCredentials = new WalletCredentials {Key = "test_wallet_key"};
+
         private const string MockEndpointUri = "http://mock";
-        
-        private readonly Mock<IProvisioningService> _provisioningMock;
+
+        private readonly IConnectionService _connectionService;
+        private readonly IProvisioningService _provisioningService;
+        private readonly IRouterService _routerService;
 
         private Wallet _issuerWallet;
         private Wallet _holderWallet;
-
-        private readonly IConnectionService _connectionService;
+        private Wallet _agencyWallet;
 
         private bool _routeMessage = true;
         private readonly ConcurrentBag<IAgentMessage> _messages = new ConcurrentBag<IAgentMessage>();
 
         public ConnectionTests()
         {
+            var walletRecordService = new DefaultWalletRecordService(new DateTimeHelper());
+
             var messageSerializer = new DefaultMessageSerializer();
 
-            var routingMock = new Mock<IRouterService>();
-            routingMock.Setup(x =>
+            var messagingMock = new Mock<IMessagingService>();
+            messagingMock.Setup(x =>
                     x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
                 .Callback((Wallet _, IAgentMessage content, ConnectionRecord __, string ___) =>
                 {
@@ -52,45 +59,60 @@ namespace AgentFramework.Core.Tests
                 })
                 .Returns(Task.FromResult(false));
 
-            _provisioningMock = new Mock<IProvisioningService>();
-            _provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
-                .Returns(() =>
-                {
-                    var provisioningRecord = new ProvisioningRecord();
-                    provisioningRecord.Services.Add(new AgencyService { ServiceEndpoint = MockEndpointUri});
-                    return Task.FromResult(provisioningRecord);
-                });
+            _provisioningService = new DefaultProvisioningService(walletRecordService, new DefaultWalletService());
+
+            _routerService = new DefaultRouterService(walletRecordService, messagingMock.Object, new Mock<ILogger<DefaultRouterService>>().Object);
 
             _connectionService = new DefaultConnectionService(
-                new DefaultWalletRecordService(new DateTimeHelper()),
-                routingMock.Object,
-                _provisioningMock.Object,
+                walletRecordService,
+                messagingMock.Object,
+                _provisioningService,
                 messageSerializer,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
         }
 
         public async Task InitializeAsync()
         {
-            try
-            {
-                await Wallet.CreateWalletAsync(_issuerConfig, Credentials);
-            }
-            catch (WalletExistsException)
-            {
-                // OK
-            }
+            await _provisioningService.ProvisionAgentAsync(
+                new ProvisioningConfiguration(_issuerWalletConfig,
+                    _walletCredentials,
+                    new IDidService[] {
+                        new AgentService
+                        {
+                            ServiceEndpoint = MockEndpointUri
+                        },
+                        new AgencyService
+                        {
+                            ServiceEndpoint = MockEndpointUri
+                        }
+                    }));
 
-            try
-            {
-                await Wallet.CreateWalletAsync(_holderConfig, Credentials);
-            }
-            catch (WalletExistsException)
-            {
-                // OK
-            }
+            await _provisioningService.ProvisionAgentAsync(
+                new ProvisioningConfiguration(_holderWalletConfig,
+                    _walletCredentials, 
+                    new IDidService[] {
+                        new AgentService
+                        {
+                            ServiceEndpoint = MockEndpointUri
+                        },
+                        new AgencyService
+                        {
+                            ServiceEndpoint = MockEndpointUri
+                        }
+                        }));
 
-            _issuerWallet = await Wallet.OpenWalletAsync(_issuerConfig, Credentials);
-            _holderWallet = await Wallet.OpenWalletAsync(_holderConfig, Credentials);
+            await _provisioningService.ProvisionAgentAsync(
+                new ProvisioningConfiguration(_agencyWalletConfig,
+                    _walletCredentials,
+                    new AgentService
+                    {
+                        ServiceEndpoint = MockEndpointUri
+                    }
+                    ));
+
+            _issuerWallet = await Wallet.OpenWalletAsync(_issuerWalletConfig.ToJson(), _walletCredentials.ToJson());
+            _holderWallet = await Wallet.OpenWalletAsync(_holderWalletConfig.ToJson(), _walletCredentials.ToJson());
+            _agencyWallet = await Wallet.OpenWalletAsync(_agencyWalletConfig.ToJson(), _walletCredentials.ToJson());
         }
 
         [Fact]
@@ -106,13 +128,7 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(ConnectionState.Invited, connection.State);
             Assert.Equal(connectionId, connection.Id);
         }
-
-        [Fact]
-        public async Task CreateInvitationThrowsExceptionProvisionRecordInInvalidState()
-        {
-            throw new NotImplementedException();
-        }
-
+        
         [Fact]
         public async Task AcceptInviteThrowsExceptionUnableToSendA2AMessage()
         {
@@ -127,13 +143,7 @@ namespace AgentFramework.Core.Tests
 
             Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionError);
         }
-
-        [Fact]
-        public async Task AcceptInviteThrowsExceptionProvisionRecordInInvalidState()
-        {
-            throw new NotImplementedException();
-        }
-
+        
         [Fact]
         public async Task AcceptRequestThrowsExceptionConnectionNotFound()
         {
@@ -208,7 +218,7 @@ namespace AgentFramework.Core.Tests
         }
 
         [Fact]
-        public async Task CanEstablishAutomaticConnectionAsync()
+        public async Task CanEstablishDirectAutomaticConnectionAsync()
         {
             var (connectionIssuer, connectionHolder) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _issuerWallet, _holderWallet, true);
@@ -220,19 +230,40 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(connectionIssuer.TheirDid, connectionHolder.MyDid);
 
             Assert.True(connectionIssuer.Services.Count() == 1);
-            var agency = connectionIssuer.Services[0] as AgencyService;
+            var agency = connectionIssuer.Services[0] as AgentService;
             Assert.True(agency?.ServiceEndpoint == MockEndpointUri);
 
             Assert.True(connectionHolder.Services.Count() == 1);
-            agency = connectionHolder.Services[0] as AgencyService;
+            agency = connectionHolder.Services[0] as AgentService;
             Assert.True(agency?.ServiceEndpoint == MockEndpointUri);
         }
 
         [Fact]
-        public async Task CanEstablishConnectionAsync()
+        public async Task CanEstablishDirectConnectionAsync()
         {
             var (connectionIssuer, connectionHolder) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _issuerWallet, _holderWallet);
+
+            Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
+            Assert.Equal(ConnectionState.Connected, connectionHolder.State);
+
+            Assert.Equal(connectionIssuer.MyDid, connectionHolder.TheirDid);
+            Assert.Equal(connectionIssuer.TheirDid, connectionHolder.MyDid);
+
+            Assert.True(connectionIssuer.Services.Count() == 1);
+            var agency = connectionIssuer.Services[0] as AgentService;
+            Assert.True(agency?.ServiceEndpoint == MockEndpointUri);
+
+            Assert.True(connectionHolder.Services.Count() == 1);
+            agency = connectionHolder.Services[0] as AgentService;
+            Assert.True(agency?.ServiceEndpoint == MockEndpointUri);
+        }
+
+        [Fact]
+        public async Task CanEstablishConnectionWithAgencyAsync()
+        {
+            var (connectionIssuer, connectionHolder) = await Scenarios.EstablishConnectionUsingAgencyAsync(
+                _connectionService, _routerService, _messages, _issuerWallet, _holderWallet, _agencyWallet);
 
             Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
             Assert.Equal(ConnectionState.Connected, connectionHolder.State);
@@ -248,14 +279,14 @@ namespace AgentFramework.Core.Tests
             agency = connectionHolder.Services[0] as AgencyService;
             Assert.True(agency?.ServiceEndpoint == MockEndpointUri);
         }
-         
+
         public async Task DisposeAsync()
         {
             if (_issuerWallet != null) await _issuerWallet.CloseAsync();
             if (_holderWallet != null) await _holderWallet.CloseAsync();
 
-            await Wallet.DeleteWalletAsync(_issuerConfig, Credentials);
-            await Wallet.DeleteWalletAsync(_holderConfig, Credentials);
+            await Wallet.DeleteWalletAsync(_issuerWalletConfig.ToJson(), _walletCredentials.ToJson());
+            await Wallet.DeleteWalletAsync(_holderWalletConfig.ToJson(), _walletCredentials.ToJson());
         }
     }
 }

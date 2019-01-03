@@ -21,8 +21,8 @@ namespace AgentFramework.Core.Runtime
 {
     public class DefaultProofService : IProofService
     {
-        protected readonly IRouterService RouterService;
         protected readonly IConnectionService ConnectionService;
+        protected readonly IMessagingService MessagingService;
         protected readonly IMessageSerializer MessageSerializer;
         protected readonly IWalletRecordService RecordService;
         protected readonly IProvisioningService ProvisioningService;
@@ -32,7 +32,7 @@ namespace AgentFramework.Core.Runtime
 
         public DefaultProofService(
             IConnectionService connectionService,
-            IRouterService routerService,
+            IMessagingService messagingService,
             IMessageSerializer messageSerializer,
             IWalletRecordService recordService,
             IProvisioningService provisioningService,
@@ -42,7 +42,7 @@ namespace AgentFramework.Core.Runtime
         {
             TailsService = tailsService;
             ConnectionService = connectionService;
-            RouterService = routerService;
+            MessagingService = messagingService;
             MessageSerializer = messageSerializer;
             RecordService = recordService;
             ProvisioningService = provisioningService;
@@ -65,7 +65,7 @@ namespace AgentFramework.Core.Runtime
 
             try
             {
-                await RouterService.SendAsync(wallet, msg, connection);
+                await MessagingService.SendAsync(wallet, msg, connection);
             }
             catch (Exception e)
             {
@@ -89,7 +89,7 @@ namespace AgentFramework.Core.Runtime
 
             try
             {
-                await RouterService.SendAsync(wallet, msg, connection);
+                await MessagingService.SendAsync(wallet, msg, connection);
             }
             catch (Exception e)
             {
@@ -252,7 +252,7 @@ namespace AgentFramework.Core.Runtime
 
             var proof = await CreateProofAsync(wallet, pool, proofRequestId, requestedCredentials);
 
-            await RouterService.SendAsync(wallet, proof, connection);
+            await MessagingService.SendAsync(wallet, proof, connection);
         }
 
         /// <inheritdoc />

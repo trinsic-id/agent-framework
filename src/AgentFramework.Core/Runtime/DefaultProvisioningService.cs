@@ -124,6 +124,8 @@ namespace AgentFramework.Core.Runtime
                 record.Services.Add(service);
 
             await RecordService.AddAsync(wallet, record);
+
+            await wallet.CloseAsync();
         }
 
         /// <inheritdoc />

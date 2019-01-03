@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Helpers;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Messages.Credentials;
@@ -12,9 +13,11 @@ using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Did;
 using AgentFramework.Core.Models.Records;
+using AgentFramework.Core.Models.Wallets;
 using AgentFramework.Core.Runtime;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.AnonCredsApi;
+using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
@@ -24,25 +27,6 @@ namespace AgentFramework.Core.Tests
 {
     internal static class Scenarios
     {
-        internal static async Task<Wallet> ProvisionAgent(string walletConfig, string walletCredentials)
-        {
-            try
-            {
-                await Wallet.CreateWalletAsync(walletConfig, walletCredentials);
-            }
-            catch (WalletExistsException)
-            {
-                // OK
-            }
-
-            var wallet = await Wallet.OpenWalletAsync(walletConfig, walletCredentials);
-
-            //var walletService = new DefaultWalletService();
-            //var provisioningService = new DefaultProvisioningService(walletService);
-
-            return wallet;
-        }
-
         internal static async Task<(ConnectionRecord firstParty, ConnectionRecord secondParty)> EstablishConnectionAsync(
             IConnectionService connectionService,
             IProducerConsumerCollection<IAgentMessage> messages,
@@ -124,105 +108,134 @@ namespace AgentFramework.Core.Tests
 
         internal static async Task<(ConnectionRecord firstParty, ConnectionRecord secondParty)> EstablishConnectionUsingAgencyAsync(
             IConnectionService connectionService,
+            IRouterService routingService,
             IProducerConsumerCollection<IAgentMessage> messages,
-            Wallet firstWallet,
-            Wallet secondWallet,
-            bool autoConnectionFlow = false)
+            Wallet inviterWallet,
+            Wallet invitee,
+            Wallet agencyWallet)
         {
-            // Create invitation by the issuer
-            var issuerConnectionId = Guid.NewGuid().ToString();
+            // Inviter creates invitation
+            var inviterConnectionId = Guid.NewGuid().ToString();
 
             var inviteConfig = new InviteConfiguration()
             {
-                ConnectionId = issuerConnectionId,
-                ServiceId = DidServiceTypes.Agency,
-                AutoAcceptConnection = autoConnectionFlow,
+                ConnectionId = inviterConnectionId,
+                MyIdentity = new ConnectionIdentity(await Did.CreateAndStoreMyDidAsync(inviterWallet, "{}"), await Crypto.CreateKeyAsync(inviterWallet, "{}")),
+                ServiceType = DidServiceTypes.Agency,
                 MyAlias = new ConnectionAlias()
                 {
-                    Name = "Issuer",
+                    Name = "Inviter",
                     ImageUrl = "www.issuerdomain.com/profilephoto"
                 },
                 TheirAlias = new ConnectionAlias()
                 {
-                    Name = "Holder",
+                    Name = "Invitee",
                     ImageUrl = "www.holderdomain.com/profilephoto"
                 }
             };
 
-            // Issuer creates an invitation
-            var invitation = await connectionService.CreateInvitationAsync(firstWallet, inviteConfig);
+            // Inviter creates routing records required to host the connection
+            await CreateRoutingRecord(connectionService, routingService, messages, inviterWallet, agencyWallet,
+                inviteConfig.MyIdentity.ConnectionKey);
+            await CreateRoutingRecord(connectionService, routingService, messages, inviterWallet, agencyWallet,
+                inviteConfig.MyIdentity.Did);
 
-            var connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
+            // Inviter creates an invitation
+            var invitation = await connectionService.CreateInvitationAsync(inviterWallet, inviteConfig);
 
-            Assert.Equal(ConnectionState.Invited, connectionIssuer.State);
+            var connectionInviter = await connectionService.GetAsync(inviterWallet, inviterConnectionId);
+
+            Assert.Equal(ConnectionState.Invited, connectionInviter.State);
             Assert.True(invitation.Name == inviteConfig.MyAlias.Name &&
                         invitation.ImageUrl == inviteConfig.MyAlias.ImageUrl);
 
-            // Holder accepts invitation and sends a message request
-            var holderConnectionId = await connectionService.AcceptInvitationAsync(secondWallet, invitation);
-            var connectionHolder = await connectionService.GetAsync(secondWallet, holderConnectionId);
-
-            Assert.Equal(ConnectionState.Negotiating, connectionHolder.State);
-
-            // Issuer processes incoming message
-            var issuerMessage = _messages.OfType<ConnectionRequestMessage>().FirstOrDefault();
-            Assert.NotNull(issuerMessage);
-
-            // Issuer processes the connection request by storing it and accepting it if auto connection flow is enabled
-            await connectionService.ProcessRequestAsync(firstWallet, issuerMessage, connectionIssuer);
-
-            if (!autoConnectionFlow)
+            var acceptInviteConfig = new AcceptInviteConfiguration
             {
-                connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
-                Assert.Equal(ConnectionState.Negotiating, connectionIssuer.State);
+                ServiceType = DidServiceTypes.Agency,
+                MyIdentity = new ConnectionIdentity(await Did.CreateAndStoreMyDidAsync(inviterWallet, "{}"))
+            };
 
-                // Issuer accepts the connection request
-                await connectionService.AcceptRequestAsync(firstWallet, issuerConnectionId);
-            }
+            //Invitee creates routing records required to host the connection
+            await CreateRoutingRecord(connectionService, routingService, messages, invitee, agencyWallet,
+                acceptInviteConfig.MyIdentity.Did);
 
-            connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
-            Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
+            // Invitee accepts invitation and sends a message request
+            var inviteeConnectionId = await connectionService.AcceptInvitationAsync(invitee, invitation, acceptInviteConfig);
+            var connectionInvitee = await connectionService.GetAsync(invitee, inviteeConnectionId);
 
-            // Holder processes incoming message
-            var holderMessage = _messages.OfType<ConnectionResponseMessage>().FirstOrDefault();
-            Assert.NotNull(holderMessage);
+            Assert.Equal(ConnectionState.Negotiating, connectionInvitee.State);
 
-            // Holder processes the response message by accepting it
-            await connectionService.ProcessResponseAsync(secondWallet, holderMessage, connectionHolder);
+            //Agency processes the incoming message
+            var agencyMessage = messages.OfType<ForwardMessage>().FirstOrDefault();
+            Assert.NotNull(agencyMessage);
+            Assert.True(agencyMessage.To == inviteConfig.MyIdentity.ConnectionKey);
 
-            // Retrieve updated connection state for both issuer and holder
-            connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
-            connectionHolder = await connectionService.GetAsync(secondWallet, holderConnectionId);
+            //Agency processes the forward message
+            await routingService.ProcessForwardMessageAsync(agencyWallet, agencyMessage);
 
-            Assert.True(connectionIssuer.Alias.Name == inviteConfig.TheirAlias.Name &&
-                        connectionIssuer.Alias.ImageUrl == inviteConfig.TheirAlias.ImageUrl);
-            Assert.True(connectionHolder.Alias.Name == inviteConfig.MyAlias.Name &&
-                        connectionHolder.Alias.ImageUrl == inviteConfig.MyAlias.ImageUrl);
+            // Inviter processes incoming message
+            var inviterMessage = messages.OfType<ConnectionRequestMessage>().FirstOrDefault();
+            Assert.NotNull(inviterMessage);
 
-            return (connectionIssuer, connectionHolder);
+            // Inviter processes the connection request by storing it and accepting it if auto connection flow is enabled
+            await connectionService.ProcessRequestAsync(inviterWallet, inviterMessage, connectionInviter);
+
+            connectionInviter = await connectionService.GetAsync(inviterWallet, inviterConnectionId);
+            Assert.Equal(ConnectionState.Negotiating, connectionInviter.State);
+
+            // Inviter accepts the connection request
+            await connectionService.AcceptRequestAsync(inviterWallet, inviterConnectionId);
+
+            connectionInviter = await connectionService.GetAsync(inviterWallet, inviterConnectionId);
+            Assert.Equal(ConnectionState.Connected, connectionInviter.State);
+
+            //Agency processes the incoming message
+            agencyMessage = messages.OfType<ForwardMessage>().FirstOrDefault();
+            Assert.NotNull(agencyMessage);
+            Assert.True(agencyMessage.To == acceptInviteConfig.MyIdentity.Did);
+
+            //Agency processes the forward message
+            await routingService.ProcessForwardMessageAsync(agencyWallet, agencyMessage);
+
+            // Invitee processes incoming message
+            var inviteeMessage = messages.OfType<ConnectionResponseMessage>().FirstOrDefault();
+            Assert.NotNull(inviteeMessage);
+
+            // Invitee processes the response message by accepting it
+            await connectionService.ProcessResponseAsync(invitee, inviteeMessage, connectionInvitee);
+
+            // Retrieve updated connection state for both inviter and invitee
+            connectionInviter = await connectionService.GetAsync(inviterWallet, inviterConnectionId);
+            connectionInvitee = await connectionService.GetAsync(invitee, inviteeConnectionId);
+
+            Assert.True(connectionInviter.Alias.Name == inviteConfig.TheirAlias.Name &&
+                        connectionInviter.Alias.ImageUrl == inviteConfig.TheirAlias.ImageUrl);
+            Assert.True(connectionInvitee.Alias.Name == inviteConfig.MyAlias.Name &&
+                        connectionInvitee.Alias.ImageUrl == inviteConfig.MyAlias.ImageUrl);
+
+            return (connectionInviter, connectionInvitee);
         }
 
         internal static async Task CreateRoutingRecord(
+            IConnectionService connectionService,
             IRouterService routingService,
             IProducerConsumerCollection<IAgentMessage> messages,
             Wallet subjectWallet, 
             Wallet routerWallet,
-            ConnectionRecord subjectConnection,
-            ConnectionRecord routerConnection,
             string recipientIdentifier)
         {
-            await routingService.SendCreateMessageRoute(subjectWallet, recipientIdentifier, subjectConnection);
+            //Establish a connection between the subject of a route and the routing agent
+            (ConnectionRecord subjectConnection, ConnectionRecord routerConnection) = await EstablishConnectionAsync(connectionService, messages, subjectWallet, routerWallet, true);
+
+            //Subject sents the router a create route message
+            await routingService.SendCreateRouteMessage(subjectWallet, recipientIdentifier, subjectConnection);
 
             // Router processes incoming message
             var createRouteMessage = messages.OfType<CreateRouteMessage>().FirstOrDefault();
             Assert.NotNull(createRouteMessage);
-
             await routingService.ProcessCreateRouteMessageAsync(routerWallet, createRouteMessage, routerConnection);
-
-            //TODO
-            // Subject processes incoming message
-            //var createRouteConfirmationMessage = messages.OfType<CreateRouteMessage>().FirstOrDefault();
-            //Assert.NotNull(createRouteConfirmationMessage);
+            
+            //TODO we will have acknowledgement messages in future
         }
 
         internal static async Task<(CredentialRecord issuerCredential, CredentialRecord holderCredential)> IssueCredentialAsync(
@@ -297,6 +310,12 @@ namespace AgentFramework.Core.Tests
             var schemaId = await schemaService.CreateSchemaAsync(pool, wallet, issuerDid,
                 $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", attributeValues);
             return (await schemaService.CreateCredentialDefinitionAsync(pool, wallet, schemaId, issuerDid, false, 100, new Uri("http://mock/tails")), schemaId);
+        }
+
+        internal static async Task ProvisionAgent(ProvisioningConfiguration config)
+        {
+            var provisionService = new DefaultProvisioningService(new DefaultWalletRecordService(new DateTimeHelper()), new DefaultWalletService());
+            await provisionService.ProvisionAgentAsync(config);
         }
 
         private static T FindContentMessage<T>(IEnumerable<IAgentMessage> collection)

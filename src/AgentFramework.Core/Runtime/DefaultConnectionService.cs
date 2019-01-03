@@ -23,19 +23,19 @@ namespace AgentFramework.Core.Runtime
     public class DefaultConnectionService : IConnectionService
     {
         protected readonly IWalletRecordService RecordService;
-        protected readonly IRouterService RouterService;
+        protected readonly IMessagingService MessagingService;
         protected readonly IProvisioningService ProvisioningService;
         protected readonly IMessageSerializer MessageSerializer;
         protected readonly ILogger<DefaultConnectionService> Logger;
 
         public DefaultConnectionService(
             IWalletRecordService recordService,
-            IRouterService routerService,
+            IMessagingService messagingService,
             IProvisioningService provisioningService,
             IMessageSerializer messageSerializer,
             ILogger<DefaultConnectionService> logger)
         {
-            RouterService = routerService;
+            MessagingService = messagingService;
             ProvisioningService = provisioningService;
             MessageSerializer = messageSerializer;
             Logger = logger;
@@ -59,9 +59,21 @@ namespace AgentFramework.Core.Runtime
             if (provisioning.Services.Count == 0)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, "Provisioning record contains no did services");
 
-            var connectionKey = await Crypto.CreateKeyAsync(wallet, "{}");
+            string connectionKey;
+
+            if (!string.IsNullOrEmpty(config.MyIdentity?.ConnectionKey))
+                connectionKey = config.MyIdentity.ConnectionKey;
+            else
+                connectionKey = await Crypto.CreateKeyAsync(wallet, "{}");
 
             var connection = new ConnectionRecord { Id = connectionId };
+
+            if (!string.IsNullOrEmpty(config.MyIdentity?.Did) && !string.IsNullOrEmpty(config.MyIdentity?.Verkey))
+            {
+                connection.MyDid = config.MyIdentity.Did;
+                connection.MyVk = config.MyIdentity.Verkey;
+            }
+
             connection.SetTag(TagConstants.ConnectionKey, connectionKey);
 
             if (config.AutoAcceptConnection)
@@ -76,8 +88,8 @@ namespace AgentFramework.Core.Runtime
 
             IDidService service = null;
 
-            if (!string.IsNullOrEmpty(config.ServiceId))
-                service = provisioning.Services.FirstOrDefault(_ => _.Id == config.ServiceId);
+            if (!string.IsNullOrEmpty(config.ServiceType))
+                service = provisioning.Services.FirstOrDefault(_ => _.Type == config.ServiceType);
 
             if (service == null)
                 service = provisioning.Services[0];
@@ -110,18 +122,19 @@ namespace AgentFramework.Core.Runtime
 
             config = config ?? new AcceptInviteConfiguration();
 
-            var my = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
+            if (string.IsNullOrEmpty(config.MyIdentity?.Did) && string.IsNullOrEmpty(config.MyIdentity?.Did))
+                config.MyIdentity = new ConnectionIdentity(await Did.CreateAndStoreMyDidAsync(wallet, "{}"));
 
             var connection = new ConnectionRecord
             {
-                MyDid = my.Did,
-                MyVk = my.VerKey,
+                MyDid = config.MyIdentity.Did,
+                MyVk = config.MyIdentity.Verkey,
                 Id = connectionId
             };
 
             connection.Services.Add(invitation.Endpoint);
 
-            if (config?.TheirAlias != null)
+            if (!string.IsNullOrEmpty(config.TheirAlias.Name) || !string.IsNullOrEmpty(config.TheirAlias.ImageUrl))
                 connection.Alias = config.TheirAlias;
             else if (!string.IsNullOrEmpty(invitation.Name) || !string.IsNullOrEmpty(invitation.ImageUrl))
             {
@@ -143,22 +156,22 @@ namespace AgentFramework.Core.Runtime
 
             IDidService service = null;
 
-            if (!string.IsNullOrEmpty(config.ServiceId))
-                service = provisioning.Services.FirstOrDefault(_ => _.Id == config.ServiceId);
+            if (!string.IsNullOrEmpty(config.ServiceType))
+                service = provisioning.Services.FirstOrDefault(_ => _.Type == config.ServiceType);
 
             if (service == null)
                 service = provisioning.Services[0];
 
             var msg = new ConnectionRequestMessage
             {
-                Did = my.Did,
-                Verkey = my.VerKey,
+                Did = config.MyIdentity.Did,
+                Verkey = config.MyIdentity.Verkey,
                 Endpoint = service
             };
 
             try
             {
-                await RouterService.SendAsync(wallet, msg, connection, invitation.ConnectionKey);
+                await MessagingService.SendAsync(wallet, msg, connection, invitation.ConnectionKey);
             }
             catch (Exception e)
             {
@@ -248,7 +261,7 @@ namespace AgentFramework.Core.Runtime
 
             try
             {
-                await RouterService.SendAsync(wallet, response, connection);
+                await MessagingService.SendAsync(wallet, response, connection);
             }
             catch (Exception e)
             {

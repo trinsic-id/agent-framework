@@ -16,13 +16,18 @@ namespace AgentFramework.Core.Models.Connections
         /// <summary>
         /// Id of the service to disclose in the invite.
         /// </summary>
-        public string ServiceId { get; set; }
+        public string ServiceType { get; set; }
 
         /// <summary>
         /// Alias object for marking the invite subject
         /// with an alias for giving the inviter greater context. 
         /// </summary>
         public ConnectionAlias TheirAlias { get; set; } = new ConnectionAlias();
+
+        /// <summary>
+        /// Identity object for pre-configuring my identity in a new connection
+        /// </summary>
+        public ConnectionIdentity MyIdentity { get; set; }
 
         /// <summary>
         /// For optionally setting my alias information

@@ -14,36 +14,13 @@ namespace AgentFramework.Core.Contracts
     public interface IRouterService
     {
         /// <summary>
-        /// Sends the message asynchronously.
-        /// </summary>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="message">The message.</param>
-        /// <param name="connection">The connection record.</param>
-        /// <param name="recipientKey">The recipients verkey to encrypt the message for.</param>
-        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
-        /// <returns>The response async.</returns>
-        Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connection, string recipientKey = null);
-
-        /// <summary>
-        /// Sends the message asynchronously.
-        /// </summary>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="message">The message.</param>
-        /// <param name="connection">The connection record.</param>
-        /// <param name="recipientKey">The recipients verkey to encrypt the message for.</param>
-        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
-        /// <returns>The response async.</returns>
-        Task SendAsync(Wallet wallet, byte[] message, ConnectionRecord connection,
-            string recipientKey = null);
-
-        /// <summary>
         /// Sends a create route message to a message router.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="recipientIdentifier">The recipient identifier to base the new route off.</param>
         /// <param name="routerConnection">The connection record for the router.</param>
         /// <returns>The response async.</returns>
-        Task SendCreateMessageRoute(Wallet wallet, string recipientIdentifier, ConnectionRecord routerConnection);
+        Task SendCreateRouteMessage(Wallet wallet, string recipientIdentifier, ConnectionRecord routerConnection);
 
         /// <summary>
         /// Sends a delete route message to a message router.
@@ -116,14 +93,5 @@ namespace AgentFramework.Core.Contracts
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.InvalidOperation.</exception>
         /// <returns>The response async.</returns>
         Task ProcessDeleteRouteMessageAsync(Wallet wallet, DeleteRouteMessage message, ConnectionRecord connection);
-
-        /// <summary>
-        /// Packs a forward message for the supplied message and recipients
-        /// </summary>
-        /// <param name="verkey">Verkey of the intermidiate recipient.</param>
-        /// <param name="message">Encrypted message for the recipients.</param>
-        /// <param name="recipientIdentifier">Recipient identifiers of the inner forward message.</param>
-        /// <returns></returns>
-        Task<byte[]> PackForwardMessage(string verkey, byte[] message, string recipientIdentifier);
     }
 }

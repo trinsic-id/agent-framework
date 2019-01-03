@@ -21,7 +21,7 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultCredentialService : ICredentialService
     {
-        protected readonly IRouterService RouterService;
+        protected readonly IMessagingService MessagingService;
         protected readonly ILedgerService LedgerService;
         protected readonly IConnectionService ConnectionService;
         protected readonly IWalletRecordService RecordService;
@@ -32,7 +32,7 @@ namespace AgentFramework.Core.Runtime
         protected readonly ILogger<DefaultCredentialService> Logger;
 
         public DefaultCredentialService(
-            IRouterService routerService,
+            IMessagingService messagingService,
             ILedgerService ledgerService,
             IConnectionService connectionService,
             IWalletRecordService recordService,
@@ -42,7 +42,7 @@ namespace AgentFramework.Core.Runtime
             IProvisioningService provisioningService,
             ILogger<DefaultCredentialService> logger)
         {
-            RouterService = routerService;
+            MessagingService = messagingService;
             LedgerService = ledgerService;
             ConnectionService = connectionService;
             RecordService = recordService;
@@ -130,7 +130,7 @@ namespace AgentFramework.Core.Runtime
 
             try
             {
-                await RouterService.SendAsync(wallet, msg, connection);
+                await MessagingService.SendAsync(wallet, msg, connection);
             }
             catch (Exception e)
             {
@@ -257,7 +257,7 @@ namespace AgentFramework.Core.Runtime
 
             try
             {
-                await RouterService.SendAsync(wallet, offer, connection);
+                await MessagingService.SendAsync(wallet, offer, connection);
             }
             catch (Exception e)
             {
@@ -378,7 +378,7 @@ namespace AgentFramework.Core.Runtime
 
             try
             {
-                await RouterService.SendAsync(wallet, msg, connection);
+                await MessagingService.SendAsync(wallet, msg, connection);
             }
             catch (Exception e)
             {

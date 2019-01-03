@@ -27,9 +27,9 @@ namespace AgentFramework.Core.Tests
     public class ProofTests : IAsyncLifetime
     {
         private readonly string _poolName = $"Pool{Guid.NewGuid()}";
-        private const string IssuerConfig = "{\"id\":\"issuer_proof_test_wallet\"}";
-        private const string HolderConfig = "{\"id\":\"holder_proof_test_wallet\"}";
-        private const string RequestorConfig = "{\"id\":\"requestor_proof_test_wallet\"}";
+        private readonly string IssuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
+        private readonly string HolderConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
+        private readonly string RequestorConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private const string WalletCredentials = "{\"key\":\"test_wallet_key\"}";
         private const string MockEndpointUri = "http://mock";
         private const string MasterSecretId = "DefaultMasterSecret";
@@ -62,8 +62,8 @@ namespace AgentFramework.Core.Tests
                 .Returns(
                     Task.FromResult<ProvisioningRecord>(new ProvisioningRecord() {MasterSecretId = MasterSecretId}));
 
-            var routingMock = new Mock<IRouterService>();
-            routingMock.Setup(x =>
+            var messagingMock = new Mock<IMessagingService>();
+            messagingMock.Setup(x =>
                     x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
                 .Callback((Wallet _, IAgentMessage content, ConnectionRecord __, string ___) =>
                 {
@@ -89,13 +89,13 @@ namespace AgentFramework.Core.Tests
 
             _connectionService = new DefaultConnectionService(
                 recordService,
-                routingMock.Object,
+                messagingMock.Object,
                 provisioningMock.Object,
                 messageSerializer,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
 
             _credentialService = new DefaultCredentialService(
-                routingMock.Object,
+                messagingMock.Object,
                 ledgerService,
                 _connectionService,
                 recordService,
@@ -107,7 +107,7 @@ namespace AgentFramework.Core.Tests
 
             _proofService = new DefaultProofService(
                 _connectionService,
-                routingMock.Object,
+                messagingMock.Object,
                 messageSerializer,
                 recordService,
                 provisionMock.Object,

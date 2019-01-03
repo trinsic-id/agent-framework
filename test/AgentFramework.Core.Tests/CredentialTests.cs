@@ -58,8 +58,8 @@ namespace AgentFramework.Core.Tests
 
             _poolService = new DefaultPoolService();
 
-            var routingMock = new Mock<IRouterService>();
-            routingMock.Setup(x =>
+            var messagingMock = new Mock<IMessagingService>();
+            messagingMock.Setup(x =>
                     x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
                 .Callback((Wallet _, IAgentMessage content, ConnectionRecord __, string ___) =>
                 {
@@ -74,8 +74,8 @@ namespace AgentFramework.Core.Tests
             provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(() =>
                 {
-                    var provisioningRecord = new ProvisioningRecord();
-                    provisioningRecord.Services.Add(new AgencyService() { ServiceEndpoint = MockEndpointUri });
+                    var provisioningRecord = new ProvisioningRecord {MasterSecretId = MasterSecretId};
+                    provisioningRecord.Services.Add(new AgencyService { ServiceEndpoint = MockEndpointUri });
                     return Task.FromResult(provisioningRecord);
                 });
 
@@ -84,13 +84,13 @@ namespace AgentFramework.Core.Tests
 
             _connectionService = new DefaultConnectionService(
                 recordService,
-                routingMock.Object,
+                messagingMock.Object,
                 provisioningMock.Object,
                 messageSerializer,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
 
             _credentialService = new DefaultCredentialService(
-                routingMock.Object,
+                messagingMock.Object,
                 ledgerService,
                 _connectionService,
                 recordService,
