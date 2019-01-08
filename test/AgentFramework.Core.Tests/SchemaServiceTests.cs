@@ -2,7 +2,6 @@
 using System.IO;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Helpers;
 using AgentFramework.Core.Runtime;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.DidApi;

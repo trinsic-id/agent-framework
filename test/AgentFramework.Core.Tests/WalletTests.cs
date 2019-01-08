@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AgentFramework.Core.Helpers;
 using AgentFramework.Core.Models.Wallets;
 using AgentFramework.Core.Runtime;
 using Hyperledger.Indy.WalletApi;

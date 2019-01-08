@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
-using AgentFramework.Core.Helpers;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Models;
@@ -21,7 +20,6 @@ using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace AgentFramework.Core.Tests
