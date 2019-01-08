@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Models.Wallets;
@@ -17,7 +18,12 @@ namespace AgentFramework.Core.Runtime
         public virtual async Task<Wallet> GetWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
         {
             if (Wallets.TryGetValue(configuration.Id, out var wallet))
-                return wallet;
+            {
+                if (wallet.IsOpen)
+                    return wallet;
+
+                Wallets.TryRemove(configuration.Id, out wallet);
+            }
 
             wallet = await Wallet.OpenWalletAsync(configuration.ToJson(), credentials.ToJson());
 
@@ -35,6 +41,13 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public virtual async Task DeleteWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
         {
+            Wallets.TryRemove(configuration.Id, out var wallet);
+
+            if (wallet.IsOpen)
+                await wallet.CloseAsync();
+
+            wallet.Dispose();
+
             await Wallet.DeleteWalletAsync(configuration.ToJson(), credentials.ToJson());
         }
     }
