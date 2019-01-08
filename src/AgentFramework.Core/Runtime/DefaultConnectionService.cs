@@ -115,7 +115,9 @@ namespace AgentFramework.Core.Runtime
             {
                 Did = my.Did,
                 Verkey = my.VerKey,
-                Endpoint = provisioning.Endpoint
+                Endpoint = provisioning.Endpoint,
+                Name = provisioning.Owner?.Name,
+                ImageUrl = provisioning.Owner?.ImageUrl
             };
 
             try
@@ -145,6 +147,12 @@ namespace AgentFramework.Core.Runtime
             connection.TheirVk = request.Verkey;
             connection.MyDid = my.Did;
             connection.MyVk = my.VerKey;
+
+            connection.Alias = new ConnectionAlias
+            {
+                Name = request.Name,
+                ImageUrl = request.ImageUrl
+            };
 
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await RecordService.UpdateAsync(wallet, connection);
