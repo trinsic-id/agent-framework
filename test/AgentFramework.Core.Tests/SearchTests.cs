@@ -21,7 +21,7 @@ namespace AgentFramework.Core.Tests
 
         public SearchTests()
         {
-            _recordService = new DefaultWalletRecordService(new DateTimeHelper());
+            _recordService = new DefaultWalletRecordService();
         }
 
         public async Task InitializeAsync()

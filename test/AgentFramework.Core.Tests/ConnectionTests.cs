@@ -57,7 +57,7 @@ namespace AgentFramework.Core.Tests
                 }));
 
             _connectionService = new DefaultConnectionService(
-                new DefaultWalletRecordService(new DateTimeHelper()),
+                new DefaultWalletRecordService(),
                 routingMock.Object,
                 _provisioningMock.Object,
                 messageSerializer,

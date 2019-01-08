@@ -26,7 +26,7 @@ namespace AgentFramework.Core.Tests
 
         public SchemaServiceTests()
         {
-            var walletService = new DefaultWalletRecordService(new DateTimeHelper());
+            var walletService = new DefaultWalletRecordService();
             var ledgerService = new DefaultLedgerService();
             var tailsService = new DefaultTailsService(ledgerService);
 

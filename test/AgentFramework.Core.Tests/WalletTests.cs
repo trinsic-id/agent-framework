@@ -14,7 +14,7 @@ namespace AgentFramework.Core.Tests
         {
             var walletService = new DefaultWalletService();
             var provisioningService = new DefaultProvisioningService(
-                new DefaultWalletRecordService(new DateTimeHelper()), walletService);
+                new DefaultWalletRecordService(), walletService);
 
             var config = new WalletConfiguration {Id = Guid.NewGuid().ToString()};
             var creds = new WalletCredentials {Key = "1"};

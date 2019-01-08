@@ -50,7 +50,7 @@ namespace AgentFramework.Core.Tests
         public ProofTests()
         {
             var messageSerializer = new DefaultMessageSerializer();
-            var recordService = new DefaultWalletRecordService(new DateTimeHelper());
+            var recordService = new DefaultWalletRecordService();
             var ledgerService = new DefaultLedgerService();
 
             _poolService = new DefaultPoolService();

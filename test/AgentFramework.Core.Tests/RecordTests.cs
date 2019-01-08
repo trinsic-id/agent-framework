@@ -24,11 +24,7 @@ namespace AgentFramework.Core.Tests
 
         public RecordTests()
         {
-            var mockDateTimeHelper = new Mock<IDateTimeHelper>();
-                mockDateTimeHelper.Setup(_ => _.UtcNow())
-                                  .Returns(() => _currentDatetime);
-
-            _recordService = new DefaultWalletRecordService(mockDateTimeHelper.Object);
+            _recordService = new DefaultWalletRecordService();
         }
 
         public async Task InitializeAsync()
