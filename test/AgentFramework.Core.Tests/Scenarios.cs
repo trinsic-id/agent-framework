@@ -25,8 +25,7 @@ namespace AgentFramework.Core.Tests
             IConnectionService connectionService,
             IProducerConsumerCollection<IAgentMessage> _messages,
             Wallet firstWallet,
-            Wallet secondWallet,
-            bool autoConnectionFlow = false)
+            Wallet secondWallet)
         {
             // Create invitation by the issuer
             var issuerConnectionId = Guid.NewGuid().ToString();
@@ -34,7 +33,6 @@ namespace AgentFramework.Core.Tests
             var inviteConfig = new InviteConfiguration()
             {
                 ConnectionId = issuerConnectionId,
-                AutoAcceptConnection = autoConnectionFlow,
                 MyAlias = new ConnectionAlias()
                 {
                     Name = "Issuer",
@@ -68,15 +66,12 @@ namespace AgentFramework.Core.Tests
 
             // Issuer processes the connection request by storing it and accepting it if auto connection flow is enabled
             await connectionService.ProcessRequestAsync(firstWallet, issuerMessage, connectionIssuer);
+            
+            connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
+            Assert.Equal(ConnectionState.Negotiating, connectionIssuer.State);
 
-            if (!autoConnectionFlow)
-            {
-                connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
-                Assert.Equal(ConnectionState.Negotiating, connectionIssuer.State);
-
-                // Issuer accepts the connection request
-                await connectionService.AcceptRequestAsync(firstWallet, issuerConnectionId);
-            }
+            // Issuer accepts the connection request
+            await connectionService.AcceptRequestAsync(firstWallet, issuerConnectionId);
 
             connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
             Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
@@ -91,12 +86,7 @@ namespace AgentFramework.Core.Tests
             // Retrieve updated connection state for both issuer and holder
             connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
             connectionHolder = await connectionService.GetAsync(secondWallet, holderConnectionId);
-
-            Assert.True(connectionIssuer.Alias.Name == inviteConfig.TheirAlias.Name &&
-                        connectionIssuer.Alias.ImageUrl == inviteConfig.TheirAlias.ImageUrl);
-            Assert.True(connectionHolder.Alias.Name == inviteConfig.MyAlias.Name &&
-                        connectionHolder.Alias.ImageUrl == inviteConfig.MyAlias.ImageUrl);
-
+            
             return (connectionIssuer, connectionHolder);
         }
         
