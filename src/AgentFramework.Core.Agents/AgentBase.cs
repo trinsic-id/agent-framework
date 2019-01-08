@@ -44,11 +44,11 @@ namespace AgentFramework.Core.Agents
 
             var result = await Crypto.AuthDecryptAsync(wallet, wireMessage.To, Convert.FromBase64String(wireMessage.Message));
             var messageData = Encoding.UTF8.GetString(result.MessageData);
-
-            var connectionRecord = await connectionService.ResolveByMyKeyAsync(wallet, wireMessage.To);
-
+            
             var jmessage = JObject.Parse(messageData);
             var messageType = jmessage["@type"].ToObject<string>();
+
+            var connectionRecord = await connectionService.ResolveByMyKeyAsync(wallet, wireMessage.To);
 
             var handler = Handlers.FirstOrDefault(x =>
                 x.SupportedMessageTypes.Any(y => y.Equals(messageType, StringComparison.OrdinalIgnoreCase)));

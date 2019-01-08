@@ -6,6 +6,7 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
+using AgentFramework.Core.Utils;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Agents.Default
@@ -34,14 +35,16 @@ namespace AgentFramework.Core.Agents.Default
             {
                 case ConnectionInvitationMessage invitation:
                     await _connectionService.AcceptInvitationAsync(context.Wallet, invitation);
-                    break;
+                    return;
                 case ConnectionRequestMessage request:
-                    var connectionId = await _connectionService.ProcessRequestAsync(context.Wallet, request, context.Connection);
-                    await _connectionService.AcceptRequestAsync(context.Wallet, connectionId);
-                    break;
+                    var connectionId =
+                        await _connectionService.ProcessRequestAsync(context.Wallet, request, context.Connection);
+                    if (context.Connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
+                        await _connectionService.AcceptRequestAsync(context.Wallet, connectionId);
+                    return;
                 case ConnectionResponseMessage response:
                     await _connectionService.ProcessResponseAsync(context.Wallet, response, context.Connection);
-                    break;
+                    return;
             }
 
             throw new AgentFrameworkException(ErrorCode.InvalidMessage, $"Unsupported message type {message.Type}");

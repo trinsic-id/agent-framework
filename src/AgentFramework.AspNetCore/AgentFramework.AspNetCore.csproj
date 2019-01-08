@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AgentFramework.Core.Agents\AgentFramework.Core.Agents.csproj" />
     <ProjectReference Include="..\AgentFramework.Core\AgentFramework.Core.csproj" />
   </ItemGroup>
 

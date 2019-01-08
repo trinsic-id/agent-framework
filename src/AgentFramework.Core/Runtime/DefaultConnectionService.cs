@@ -149,18 +149,7 @@ namespace AgentFramework.Core.Runtime
 
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await RecordService.UpdateAsync(wallet, connection);
-
-            try
-            {
-                if (connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
-                    await AcceptRequestAsync(wallet, connection.Id);
-            }
-            catch (Exception)
-            {
-                await RecordService.DeleteAsync<ConnectionRecord>(wallet, connection.Id);
-                throw;
-            }
-
+            
             return connection.Id;
         }
 
