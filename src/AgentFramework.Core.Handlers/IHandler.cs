@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AgentFramework.Core.Agents
+namespace AgentFramework.Core.Handlers
 {
     public interface IHandler
     {

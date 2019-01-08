@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
@@ -9,7 +7,7 @@ using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Utils;
 using Newtonsoft.Json;
 
-namespace AgentFramework.Core.Agents.Default
+namespace AgentFramework.Core.Handlers.Default
 {
     public class ConnectionHandler : IHandler
     {

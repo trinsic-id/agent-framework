@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace AgentFramework.Core.Agents
+namespace AgentFramework.Core.Handlers
 {
     public abstract class AgentBase
     {

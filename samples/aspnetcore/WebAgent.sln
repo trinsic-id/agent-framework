@@ -8,7 +8,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgentFramework.Core", "..\.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgentFramework.AspNetCore", "..\..\src\AgentFramework.AspNetCore\AgentFramework.AspNetCore.csproj", "{5E72F25C-D638-4ACD-9463-8D16F0A6252F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgentFramework.Core.Agents", "..\..\src\AgentFramework.Core.Agents\AgentFramework.Core.Agents.csproj", "{C6FB42E5-B8C0-4DA7-8780-855D216FBD6E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgentFramework.Core.Handlers", "..\..\src\AgentFramework.Core.Handlers\AgentFramework.Core.Handlers.csproj", "{C6FB42E5-B8C0-4DA7-8780-855D216FBD6E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AgentFramework", "AgentFramework", "{89834488-79E1-4937-B6B3-297DCD858163}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,6 +37,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5C32E43F-0C32-4222-92AA-DA7286FA9901} = {89834488-79E1-4937-B6B3-297DCD858163}
+		{5E72F25C-D638-4ACD-9463-8D16F0A6252F} = {89834488-79E1-4937-B6B3-297DCD858163}
+		{C6FB42E5-B8C0-4DA7-8780-855D216FBD6E} = {89834488-79E1-4937-B6B3-297DCD858163}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AD723D94-F48B-44E6-9AEF-BA30574C4504}

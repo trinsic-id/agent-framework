@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AgentFramework.Core.Models.Records;
+﻿using AgentFramework.Core.Models.Records;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 
-namespace AgentFramework.Core.Agents
+namespace AgentFramework.Core.Handlers
 {
     public class AgentContext
     {

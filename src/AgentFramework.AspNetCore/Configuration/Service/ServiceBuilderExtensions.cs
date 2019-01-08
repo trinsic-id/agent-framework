@@ -1,7 +1,7 @@
 ﻿using System.Net.Http;
 using AgentFramework.AspNetCore.Runtime;
-using AgentFramework.Core.Agents.Default;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Handlers.Default;
 using AgentFramework.Core.Runtime;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;

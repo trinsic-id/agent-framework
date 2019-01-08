@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.Core.Messages;
 using Newtonsoft.Json;
 
-namespace AgentFramework.Core.Agents
+namespace AgentFramework.Core.Handlers
 {
     public abstract class HandlerBase<T> : IHandler
         where T : IAgentMessage, new()
