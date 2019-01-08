@@ -185,21 +185,19 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task ReturnsRecordsFilteredByCreatedAt()
         {
-            _currentDatetime = DateTime.UtcNow.AddYears(-1);
-
             var record = new ConnectionRecord { Id = "123" };
-
             await _recordService.AddAsync(_wallet, record);
 
-            _currentDatetime = DateTime.UtcNow;
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            var now = DateTime.UtcNow;
+            await Task.Delay(TimeSpan.FromSeconds(1));
 
             record = new ConnectionRecord {Id = "456"};
-
             await _recordService.AddAsync(_wallet, record);
 
             var records = await _recordService.SearchAsync<ConnectionRecord>(
                 _wallet,
-                SearchQuery.Greater(nameof(ConnectionRecord.CreatedAtUtc), DateTime.UtcNow.AddMonths(-1)), null, 100);
+                SearchQuery.Greater(nameof(ConnectionRecord.CreatedAtUtc), now), null, 100);
 
             Assert.True(records.Count == 1);
             Assert.True(records[0].Id == "456");
