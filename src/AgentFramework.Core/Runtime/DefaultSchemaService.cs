@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.AnonCredsApi;
@@ -15,27 +16,30 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultSchemaService : ISchemaService
     {
+        protected readonly IProvisioningService ProvisioningService;
         protected readonly IWalletRecordService RecordService;
         protected readonly ILedgerService LedgerService;
         protected readonly ITailsService TailsService;
 
         public DefaultSchemaService(
+            IProvisioningService provisioningService,
             IWalletRecordService recordService,
             ILedgerService ledgerService,
             ITailsService tailsService)
         {
+            ProvisioningService = provisioningService;
             RecordService = recordService;
             LedgerService = ledgerService;
             TailsService = tailsService;
         }
-        
+
         /// <inheritdoc />
         public virtual async Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string name,
             string version, string[] attributeNames)
         {
             var schema = await AnonCreds.IssuerCreateSchemaAsync(issuerDid, name, version, attributeNames.ToJson());
 
-            var schemaRecord = new SchemaRecord { Id = schema.SchemaId };
+            var schemaRecord = new SchemaRecord {Id = schema.SchemaId};
 
             await LedgerService.RegisterSchemaAsync(pool, wallet, issuerDid, schema.SchemaJson);
             await RecordService.AddAsync(wallet, schemaRecord);
@@ -44,10 +48,23 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<string> LookupSchemaFromCredentialDefinitionAsync(Pool pool, Wallet wallet, string submitterDid,
+        public virtual async Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string name,
+            string version, string[] attributeNames)
+        {
+            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+            if (provisioning?.IssuerDid == null)
+            {
+                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "This wallet is not provisioned with issuer");
+            }
+
+            return await CreateSchemaAsync(pool, wallet, provisioning.IssuerDid, name, version, attributeNames);
+        }
+
+        /// <inheritdoc />
+        public async Task<string> LookupSchemaFromCredentialDefinitionAsync(Pool pool,
             string credentialDefinitionId)
         {
-            var credDef = await LookupCredentialDefinitionAsync(pool, wallet, submitterDid, credentialDefinitionId);
+            var credDef = await LookupCredentialDefinitionAsync(pool, credentialDefinitionId);
 
             if (string.IsNullOrEmpty(credDef))
                 return null;
@@ -55,7 +72,7 @@ namespace AgentFramework.Core.Runtime
             try
             {
                 var schemaSequenceId = Convert.ToInt32(JObject.Parse(credDef)["schemaId"].ToString());
-                return await LookupSchemaAsync(pool, wallet, submitterDid, schemaSequenceId);
+                return await LookupSchemaAsync(pool, schemaSequenceId);
             }
             catch (Exception) { }
 
@@ -64,9 +81,9 @@ namespace AgentFramework.Core.Runtime
 
         /// TODO this should return a schema object
         /// <inheritdoc />
-        public virtual async Task<string> LookupSchemaAsync(Pool pool, Wallet wallet, string submitterDid, int sequenceId)
+        public virtual async Task<string> LookupSchemaAsync(Pool pool, int sequenceId)
         {
-            var result = await LedgerService.LookupTransactionAsync(pool, submitterDid, null, sequenceId);
+            var result = await LedgerService.LookupTransactionAsync(pool, null, sequenceId);
 
             if (!string.IsNullOrEmpty(result))
             {
@@ -93,9 +110,9 @@ namespace AgentFramework.Core.Runtime
 
         /// TODO this should return a schema object
         /// <inheritdoc />
-        public virtual async Task<string> LookupSchemaAsync(Pool pool, Wallet wallet, string submitterDid, string schemaId)
+        public virtual async Task<string> LookupSchemaAsync(Pool pool, string schemaId)
         {
-            var result = await LedgerService.LookupSchemaAsync(pool, submitterDid, schemaId);
+            var result = await LedgerService.LookupSchemaAsync(pool, schemaId);
             return result?.ObjectJson;
         }
 
@@ -108,7 +125,7 @@ namespace AgentFramework.Core.Runtime
             string issuerDid, bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri)
         {
             var definitionRecord = new DefinitionRecord();
-            var schema = await LedgerService.LookupSchemaAsync(pool, issuerDid, schemaId);
+            var schema = await LedgerService.LookupSchemaAsync(pool, schemaId);
 
             var credentialDefinition = await AnonCreds.IssuerCreateAndStoreCredentialDefAsync(wallet, issuerDid,
                 schema.ObjectJson, "Tag", null, new { support_revocation = supportsRevocation }.ToJson());
@@ -153,12 +170,27 @@ namespace AgentFramework.Core.Runtime
 
             return credentialDefinition.CredDefId;
         }
-        
+
+        /// <inheritdoc />
+        public virtual async Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
+            bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri)
+        {
+            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+            if (provisioning?.IssuerDid == null)
+            {
+                throw new AgentFrameworkException(ErrorCode.RecordNotFound,
+                    "This wallet is not provisioned with issuer");
+            }
+
+            return await CreateCredentialDefinitionAsync(pool, wallet, schemaId, provisioning.IssuerDid,
+                supportsRevocation, maxCredentialCount, tailsBaseUri);
+        }
+
         /// TODO this should return a definition object
         /// <inheritdoc />
-        public virtual async Task<string> LookupCredentialDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, string definitionId)
+        public virtual async Task<string> LookupCredentialDefinitionAsync(Pool pool, string definitionId)
         {
-            var result = await LedgerService.LookupDefinitionAsync(pool, submitterDid, definitionId);
+            var result = await LedgerService.LookupDefinitionAsync(pool, definitionId);
             return result?.ObjectJson;
         }
 

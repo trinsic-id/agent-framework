@@ -81,7 +81,7 @@ namespace AgentFramework.Core.Tests
                 }));
 
             var tailsService = new DefaultTailsService(ledgerService);
-            _schemaService = new DefaultSchemaService(recordService, ledgerService, tailsService);
+            _schemaService = new DefaultSchemaService(provisioningMock.Object, recordService, ledgerService, tailsService);
 
             _connectionService = new DefaultConnectionService(
                 recordService,
