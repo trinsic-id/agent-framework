@@ -50,7 +50,7 @@ namespace AgentFramework.AspNetCore.Configuration
         }
 
         /// <summary>
-        /// Set the issuer seed for generating detemerinistic DID and VerKey. 
+        /// Set the issuer seed for generating deterministic DID and VerKey. 
         /// </summary>
         /// <param name="issuerSeed">The issuer seed. Leave <c>null</c> to generate a random one.</param>
         /// <returns></returns>
@@ -63,7 +63,7 @@ namespace AgentFramework.AspNetCore.Configuration
         }
 
         /// <summary>
-        /// Set the agent seed for generating detemerinistic DID and VerKey. Leave <c>null</c> to generate a random one.
+        /// Set the agent seed for generating deterministic DID and VerKey. Leave <c>null</c> to generate a random one.
         /// </summary>
         /// <param name="agentSeed">The agent seed.</param>
         /// <returns></returns>
@@ -90,16 +90,6 @@ namespace AgentFramework.AspNetCore.Configuration
         {
             try
             {
-                await _walletService.CreateWalletAsync(_walletOptions.WalletConfiguration,
-                    _walletOptions.WalletCredentials);
-            }
-            catch (WalletExistsException)
-            {
-                // Wallet already exists, swallow exception
-            }
-
-            try
-            {
                 await _poolService.CreatePoolAsync(_poolOptions.PoolName, _poolOptions.GenesisFilename);
             }
             catch (PoolLedgerConfigExistsException)
@@ -107,22 +97,25 @@ namespace AgentFramework.AspNetCore.Configuration
                 // Pool already exists, swallow exception
             }
 
-            var wallet = await _walletService.GetWalletAsync(
-                _walletOptions.WalletConfiguration,
-                _walletOptions.WalletCredentials);
-
             try
             {
-                await _provisioningService.ProvisionAgentAsync(wallet, new ProvisioningConfiguration
-                {
-                    AgentSeed = _agentSeed,
-                    EndpointUri = endpointUri,
-                    CreateIssuer = _createIssuer,
-                    IssuerSeed = _issuerSeed,
-                    OwnerName = _agentOwnerName,
-                    OwnerImageUrl = _agentOwnerImageUrl,
-                    TailsBaseUri = TailsBaseUri ?? new Uri(endpointUri, "tails")
-                });
+                await _provisioningService.ProvisionAgentAsync(
+                    new ProvisioningConfiguration
+                    {
+                        AgentSeed = _agentSeed,
+                        EndpointUri = endpointUri,
+                        CreateIssuer = _createIssuer,
+                        IssuerSeed = _issuerSeed,
+                        OwnerName = _agentOwnerName,
+                        OwnerImageUrl = _agentOwnerImageUrl,
+                        TailsBaseUri = TailsBaseUri ?? new Uri(endpointUri, "tails"),
+                        WalletConfiguration = _walletOptions.WalletConfiguration,
+                        WalletCredentials = _walletOptions.WalletCredentials
+                    });
+            }
+            catch (WalletExistsException)
+            {
+                // Wallet already exists, swallow exception
             }
             catch (AgentFrameworkException ex) when (ex.ErrorCode == ErrorCode.WalletAlreadyProvisioned)
             {

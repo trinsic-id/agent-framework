@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Utils;
@@ -16,12 +15,10 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultWalletRecordService : IWalletRecordService
     {
-        private readonly IDateTimeHelper _dateTimeHelper;
         private readonly JsonSerializerSettings _jsonSettings;
 
-        public DefaultWalletRecordService(IDateTimeHelper dateTimeHelper)
+        public DefaultWalletRecordService()
         {
-            _dateTimeHelper = dateTimeHelper;
             _jsonSettings = new JsonSerializerSettings
             {
                 NullValueHandling = NullValueHandling.Ignore
@@ -32,7 +29,7 @@ namespace AgentFramework.Core.Runtime
         public virtual Task AddAsync<T>(Wallet wallet, T record)
             where T : RecordBase, new()
         {
-            record.CreatedAtUtc = _dateTimeHelper.UtcNow();
+            record.CreatedAtUtc = DateTime.UtcNow;
 
             return NonSecrets.AddRecordAsync(wallet,
                 record.TypeName,
@@ -68,7 +65,7 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public virtual async Task UpdateAsync<T>(Wallet wallet, T record) where T : RecordBase, new()
         {
-            record.UpdatedAtUtc = _dateTimeHelper.UtcNow();
+            record.UpdatedAtUtc = DateTime.UtcNow;
 
             await NonSecrets.UpdateRecordValueAsync(wallet,
                 record.TypeName,

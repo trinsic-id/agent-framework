@@ -43,5 +43,23 @@ namespace AgentFramework.Core.Messages.Connections
         /// </value>
         [JsonProperty("@type")]
         public string Type { get; set; } = MessageTypes.ConnectionRequest;
+
+        /// <summary>
+        /// Gets or sets the image URL.
+        /// </summary>
+        /// <value>
+        /// The image URL.
+        /// </value>
+        [JsonProperty("imageUrl")]
+        public string ImageUrl { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name.
+        /// </summary>
+        /// <value>
+        /// The name.
+        /// </value>
+        [JsonProperty("name")]
+        public string Name { get; set; }
     }
 }

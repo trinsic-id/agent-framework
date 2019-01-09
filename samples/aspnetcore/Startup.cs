@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using AgentFramework.AspNetCore.Configuration.Service;
 using AgentFramework.AspNetCore.Options;
+using AgentFramework.Core.Models.Wallets;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -46,7 +47,7 @@ namespace WebAgent
             app.UseAgent($"{Environment.GetEnvironmentVariable("ASPNETCORE_URLS")}/agent",
                 (obj) =>
                 {
-                    obj.AddOwnershipInfo(Environment.GetEnvironmentVariable("AF_OWNER_NAME") ?? "Random Muggle", null);
+                    obj.AddOwnershipInfo(Environment.GetEnvironmentVariable("AF_OWNER_NAME"), null);
                 });
 
             app.UseMvc(routes =>
