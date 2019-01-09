@@ -15,29 +15,29 @@ namespace AgentFramework.Core.Runtime
     public class DefaultLedgerService : ILedgerService
     {
         /// <inheritdoc />
-        public virtual async Task<ParseResponseResult> LookupDefinitionAsync(Pool pool, string submitterDid,
+        public virtual async Task<ParseResponseResult> LookupDefinitionAsync(Pool pool,
             string definitionId)
         {
-            var req = await Ledger.BuildGetCredDefRequestAsync(submitterDid, definitionId);
+            var req = await Ledger.BuildGetCredDefRequestAsync(null, definitionId);
             var res = await Ledger.SubmitRequestAsync(pool, req);
 
             return await Ledger.ParseGetCredDefResponseAsync(res);
         }
 
         /// <inheritdoc />
-        public virtual async Task<ParseResponseResult> LookupRevocationRegistryDefinitionAsync(Pool pool, string submitterDid,
+        public virtual async Task<ParseResponseResult> LookupRevocationRegistryDefinitionAsync(Pool pool,
             string registryId)
         {
-            var req = await Ledger.BuildGetRevocRegDefRequestAsync(submitterDid, registryId);
+            var req = await Ledger.BuildGetRevocRegDefRequestAsync(null, registryId);
             var res = await Ledger.SubmitRequestAsync(pool, req);
 
             return await Ledger.ParseGetRevocRegDefResponseAsync(res);
         }
 
         /// <inheritdoc />
-        public virtual async Task<ParseResponseResult> LookupSchemaAsync(Pool pool, string submitterDid, string schemaId)
+        public virtual async Task<ParseResponseResult> LookupSchemaAsync(Pool pool, string schemaId)
         {
-            var req = await Ledger.BuildGetSchemaRequestAsync(submitterDid, schemaId);
+            var req = await Ledger.BuildGetSchemaRequestAsync(null, schemaId);
             var res = await Ledger.SubmitRequestAsync(pool, req);
 
             return await Ledger.ParseGetSchemaResponseAsync(res);
@@ -129,9 +129,9 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> LookupTransactionAsync(Pool pool, string submitterDid, string ledgerType, int sequenceId)
+        public virtual async Task<string> LookupTransactionAsync(Pool pool, string ledgerType, int sequenceId)
         {
-            var req = await Ledger.BuildGetTxnRequestAsync(submitterDid, ledgerType, sequenceId);
+            var req = await Ledger.BuildGetTxnRequestAsync(null, ledgerType, sequenceId);
             var res = await Ledger.SubmitRequestAsync(pool, req);
 
             return res;

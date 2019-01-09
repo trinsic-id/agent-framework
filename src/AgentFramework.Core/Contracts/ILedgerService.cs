@@ -36,50 +36,45 @@ namespace AgentFramework.Core.Contracts
         /// Lookup the schema async.
         /// </summary>
         /// <param name="pool">The pool.</param>
-        /// <param name="submitterDid">The submitter did.</param>
         /// <param name="schemaId">Schema identifier.</param>
         /// <returns>
         /// The schema async.
         /// </returns>
-        Task<ParseResponseResult> LookupSchemaAsync(Pool pool, string submitterDid, string schemaId);
+        Task<ParseResponseResult> LookupSchemaAsync(Pool pool, string schemaId);
 
         /// <summary>
         /// Lookup the ledger transaction async.
         /// </summary>
         /// <param name="pool">The pool.</param>
-        /// <param name="submitterDid">The submitter did.</param>
         /// <param name="ledgerType">The ledger type.</param>
         /// <param name="sequenceId">The sequence identifier.</param>
         /// <returns>
         /// The transaction async.
         /// </returns>
-        Task<string> LookupTransactionAsync(Pool pool, string submitterDid, string ledgerType, int sequenceId);
+        Task<string> LookupTransactionAsync(Pool pool, string ledgerType, int sequenceId);
 
         /// <summary>
         /// Lookups the definition async.
         /// </summary>
         /// <param name="pool">The pool.</param>
-        /// <param name="submitterDid">The submitter did.</param>
         /// <param name="definitionId">Definition identifier.</param>
         /// <returns>
         /// The definition async.
         /// </returns>
-        Task<ParseResponseResult> LookupDefinitionAsync(Pool pool, string submitterDid, string definitionId);
+        Task<ParseResponseResult> LookupDefinitionAsync(Pool pool, string definitionId);
 
         /// <summary>
-        /// Lookups the revocation registry defintion.
+        /// Lookups the revocation registry definition.
         /// </summary>
         /// <param name="pool">The pool.</param>
-        /// <param name="submitterDid">The submitter did.</param>
         /// <param name="registryId">The registry identifier.</param>
         /// <returns></returns>
-        Task<ParseResponseResult> LookupRevocationRegistryDefinitionAsync(Pool pool, string submitterDid,
-            string registryId);
+        Task<ParseResponseResult> LookupRevocationRegistryDefinitionAsync(Pool pool, string registryId);
 
         /// <summary>
         /// Lookup the revocation registry delta for the given registry in the range specified.
         /// </summary>
-        /// <returns>The revocation registry dela async.</returns>
+        /// <returns>The revocation registry delta.</returns>
         /// <param name="pool">Pool.</param>
         /// <param name="revocationRegistryId">Revocation registry identifier.</param>
         /// <param name="from">From.</param>
@@ -94,7 +89,8 @@ namespace AgentFramework.Core.Contracts
         /// <param name="pool">Pool.</param>
         /// <param name="revocationRegistryId">Revocation registry identifier.</param>
         /// <param name="timestamp">Timestamp.</param>
-        Task<ParseRegistryResponseResult> LookupRevocationRegistryAsync(Pool pool, string revocationRegistryId, long timestamp);
+        Task<ParseRegistryResponseResult> LookupRevocationRegistryAsync(Pool pool, string revocationRegistryId,
+            long timestamp);
 
         /// <summary>
         /// Registers the nym async.

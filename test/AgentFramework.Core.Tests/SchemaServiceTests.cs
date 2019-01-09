@@ -8,6 +8,7 @@ using AgentFramework.Core.Utils;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
+using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -31,8 +32,9 @@ namespace AgentFramework.Core.Tests
             var ledgerService = new DefaultLedgerService();
             var tailsService = new DefaultTailsService(ledgerService);
 
+            var provisioningMock = new Mock<IProvisioningService>();
             _poolService = new DefaultPoolService();
-            _schemaService = new DefaultSchemaService(walletService, ledgerService, tailsService);
+            _schemaService = new DefaultSchemaService(provisioningMock.Object, walletService, ledgerService, tailsService);
         }
 
         [Fact]
@@ -50,7 +52,7 @@ namespace AgentFramework.Core.Tests
                 schemaAttrNames);
 
             //Resolve it from the ledger with its identifier
-            var resultSchema = await _schemaService.LookupSchemaAsync(_pool, _issuerWallet, issuer.Did, schemaId);
+            var resultSchema = await _schemaService.LookupSchemaAsync(_pool, schemaId);
 
             var resultSchemaName = JObject.Parse(resultSchema)["name"].ToString();
             var resultSchemaVersion = JObject.Parse(resultSchema)["version"].ToString();
@@ -60,7 +62,7 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(schemaVersion, resultSchemaVersion);
 
             //Resolve it from the ledger with its sequence Id
-            var secondResultSchema = await _schemaService.LookupSchemaAsync(_pool, _issuerWallet, issuer.Did, sequenceId);
+            var secondResultSchema = await _schemaService.LookupSchemaAsync(_pool, sequenceId);
 
             var secondResultSchemaName = JObject.Parse(secondResultSchema)["name"].ToString();
             var secondResultSchemaVersion = JObject.Parse(secondResultSchema)["version"].ToString();
@@ -86,14 +88,13 @@ namespace AgentFramework.Core.Tests
             var credId = await _schemaService.CreateCredentialDefinitionAsync(_pool, _issuerWallet, schemaId, issuer.Did, false, 100, new Uri("http://mock/tails"));
 
             var credDef =
-                await _schemaService.LookupCredentialDefinitionAsync(_pool, _issuerWallet, issuer.Did, credId);
+                await _schemaService.LookupCredentialDefinitionAsync(_pool, credId);
 
             var resultCredId = JObject.Parse(credDef)["id"].ToString();
-            var schemaSequenceNo = JObject.Parse(credDef)["schemaId"];
 
             Assert.Equal(credId, resultCredId);
 
-            var result = await _schemaService.LookupSchemaFromCredentialDefinitionAsync(_pool, _issuerWallet, issuer.Did, credId);
+            var result = await _schemaService.LookupSchemaFromCredentialDefinitionAsync(_pool, credId);
 
             var resultSchemaName = JObject.Parse(result)["name"].ToString();
             var resultSchemaVersion = JObject.Parse(result)["version"].ToString();

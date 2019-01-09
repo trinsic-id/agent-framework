@@ -341,7 +341,7 @@ namespace AgentFramework.Core.Runtime
 
             foreach (var schemaId in schemaIds)
             {
-                var ledgerSchema = await LedgerService.LookupSchemaAsync(pool, null, schemaId);
+                var ledgerSchema = await LedgerService.LookupSchemaAsync(pool, schemaId);
                 result.Add(schemaId, JObject.Parse(ledgerSchema.ObjectJson));
             }
 
@@ -354,7 +354,7 @@ namespace AgentFramework.Core.Runtime
 
             foreach (var schemaId in credentialDefIds)
             {
-                var ledgerDefinition = await LedgerService.LookupDefinitionAsync(pool, null, schemaId);
+                var ledgerDefinition = await LedgerService.LookupDefinitionAsync(pool, schemaId);
                 result.Add(schemaId, JObject.Parse(ledgerDefinition.ObjectJson));
             }
 
@@ -388,7 +388,7 @@ namespace AgentFramework.Core.Runtime
                 }
 
                 var registryDefinition =
-                    await LedgerService.LookupRevocationRegistryDefinitionAsync(pool, null,
+                    await LedgerService.LookupRevocationRegistryDefinitionAsync(pool,
                         credential.RevocationRegistryId);
 
                 var delta = await LedgerService.LookupRevocationRegistryDeltaAsync(pool,
@@ -442,7 +442,7 @@ namespace AgentFramework.Core.Runtime
             foreach (var revocationRegistryId in revocationRegistryIds)
             {
                 var ledgerSchema =
-                    await LedgerService.LookupRevocationRegistryDefinitionAsync(pool, null, revocationRegistryId);
+                    await LedgerService.LookupRevocationRegistryDefinitionAsync(pool, revocationRegistryId);
                 result.Add(revocationRegistryId, JObject.Parse(ledgerSchema.ObjectJson));
             }
 
