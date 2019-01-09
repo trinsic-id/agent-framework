@@ -2,11 +2,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Helpers;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Runtime;
-using AgentFramework.Core.Utils;
 using Hyperledger.Indy.WalletApi;
 using Xunit;
 
@@ -23,7 +21,7 @@ namespace AgentFramework.Core.Tests
 
         public SearchTests()
         {
-            _recordService = new DefaultWalletRecordService(new DateTimeHelper());
+            _recordService = new DefaultWalletRecordService();
         }
 
         public async Task InitializeAsync()

@@ -53,7 +53,7 @@ namespace AgentFramework.Core.Contracts
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
         /// <returns>The response async.</returns>
-        Task AcceptOfferAsync(Wallet wallet, Pool pool, string credentialId, Dictionary<string, string> attributeValues);
+        Task AcceptOfferAsync(Wallet wallet, Pool pool, string credentialId, Dictionary<string, string> attributeValues = null);
 
         /// <summary>
         /// Rejects a credential offer asynchronous.

@@ -71,7 +71,9 @@ namespace AgentFramework.Core.Extensions
                 throw new ArgumentNullException(nameof(wallet));
 
             var record = (await connectionService.ListAsync(wallet,
-               SearchQuery.Equal(nameof(ConnectionRecord.MyVk), myKey), 1)).FirstOrDefault();
+                             SearchQuery.Equal(nameof(ConnectionRecord.MyVk), myKey), 1)).FirstOrDefault()
+                         ?? (await connectionService.ListAsync(wallet,
+                             SearchQuery.Equal(TagConstants.ConnectionKey, myKey), 1)).FirstOrDefault();
             
             if (record == null)
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Connection Record not found");

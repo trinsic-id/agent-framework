@@ -1,0 +1,14 @@
+<Project Sdk="MSBuild.Sdk.Extras/1.6.46">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;xamarinios10</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AgentFramework.Core\AgentFramework.Core.csproj" />
+  </ItemGroup>
+
+</Project>

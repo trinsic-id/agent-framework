@@ -27,7 +27,7 @@
             {
                 <tr>
                     <td>
-                        <a asp-area="" asp-controller="Connections" asp-action="Details" asp-route-id="@item.ConnectionId">@(item.Alias?.Name ?? item.ConnectionId)</a>
+                        <a asp-area="" asp-controller="Connections" asp-action="Details" asp-route-id="@item.Id">@(item.Alias?.Name ?? item.Id)</a>
                     </td>
                     <td>
                         @item.State
@@ -52,7 +52,7 @@
             {
                 <tr>
                     <td>
-                        <a asp-area="" asp-controller="Connections" asp-action="Details" asp-route-id="@item.ConnectionId">@(item.Alias?.Name ?? item.ConnectionId)</a>
+                        <a asp-area="" asp-controller="Connections" asp-action="Details" asp-route-id="@item.Id">@(item.Alias?.Name ?? item.Id)</a>
                     </td>
                     <td>
                         @item.State
