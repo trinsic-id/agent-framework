@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
@@ -116,7 +115,9 @@ namespace AgentFramework.Core.Runtime
             {
                 Did = my.Did,
                 Verkey = my.VerKey,
-                Endpoint = provisioning.Endpoint
+                Endpoint = provisioning.Endpoint,
+                Name = provisioning.Owner?.Name,
+                ImageUrl = provisioning.Owner?.ImageUrl
             };
 
             try
@@ -147,20 +148,15 @@ namespace AgentFramework.Core.Runtime
             connection.MyDid = my.Did;
             connection.MyVk = my.VerKey;
 
+            connection.Alias = new ConnectionAlias
+            {
+                Name = request.Name,
+                ImageUrl = request.ImageUrl
+            };
+
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await RecordService.UpdateAsync(wallet, connection);
-
-            try
-            {
-                if (connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
-                    await AcceptRequestAsync(wallet, connection.Id);
-            }
-            catch (Exception)
-            {
-                await RecordService.DeleteAsync<ConnectionRecord>(wallet, connection.Id);
-                throw;
-            }
-
+            
             return connection.Id;
         }
 
