@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace AgentFramework.Core.Handlers
 {
-    public interface IHandler
+    public interface IMessageHandler
     {
         IEnumerable<string> SupportedMessageTypes { get; }
 

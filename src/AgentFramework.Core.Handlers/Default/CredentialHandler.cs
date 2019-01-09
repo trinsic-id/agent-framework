@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Handlers.Default
 {
-    public class CredentialHandler : IHandler
+    public class CredentialHandler : IMessageHandler
     {
         private readonly ICredentialService _credentialService;
 

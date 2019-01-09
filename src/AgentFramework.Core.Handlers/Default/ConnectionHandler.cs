@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Handlers.Default
 {
-    public class ConnectionHandler : IHandler
+    public class ConnectionHandler : IMessageHandler
     {
         private readonly IConnectionService _connectionService;
 

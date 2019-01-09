@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Handlers.Default
 {
-    public class ProofHandler : IHandler
+    public class ProofHandler : IMessageHandler
     {
         private readonly IProofService _proofService;
 

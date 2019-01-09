@@ -5,12 +5,12 @@ using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Handlers
 {
-    public abstract class HandlerBase<T> : IHandler
+    public abstract class MessageHandlerBase<T> : IMessageHandler
         where T : IAgentMessage, new()
     {
         private readonly string _supportedMessageType;
 
-        protected HandlerBase()
+        protected MessageHandlerBase()
         {
             _supportedMessageType = new T().Type;
         }

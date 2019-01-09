@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Routing;
@@ -25,7 +26,7 @@ namespace AgentFramework.Core.Handlers
             ServiceProvider = serviceProvider;
         }
 
-        public abstract IEnumerable<IHandler> Handlers { get; }
+        public abstract IEnumerable<IMessageHandler> Handlers { get; }
 
         public async Task ProcessAsync(byte[] body, Wallet wallet, Pool pool = null)
         {
@@ -55,6 +56,10 @@ namespace AgentFramework.Core.Handlers
             if (handler != null)
             {
                 await handler.OnMessageAsync(messageData, new AgentContext { Wallet = wallet, Pool = pool, Connection = connectionRecord});
+            }
+            else
+            {
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage, $"Couldn't locate a message handler for type {messageType}");
             }
         }
     }

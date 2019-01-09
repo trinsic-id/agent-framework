@@ -57,7 +57,7 @@ namespace AgentFramework.AspNetCore.Middleware
             await context.Response.WriteAsync(string.Empty);
         }
 
-        public override IEnumerable<IHandler> Handlers => new IHandler[]
+        public override IEnumerable<IMessageHandler> Handlers => new IMessageHandler[]
         {
             ServiceProvider.GetService<ConnectionHandler>(),
             ServiceProvider.GetService<CredentialHandler>(),
