@@ -66,7 +66,7 @@ namespace AgentFramework.Core.Runtime
         public async Task<string> EnsureTailsExistsAsync(Pool pool, string revocationRegistryId)
         {
             var revocationRegistry =
-                await LedgerService.LookupRevocationRegistryDefinitionAsync(pool, null, revocationRegistryId);
+                await LedgerService.LookupRevocationRegistryDefinitionAsync(pool, revocationRegistryId);
             var tailsUri = JObject.Parse(revocationRegistry.ObjectJson)["value"]["tailsLocation"].ToObject<string>();
 
             var tailsfile = Path.Combine(EnvironmentUtils.GetTailsPath(), new Uri(tailsUri).Segments.Last());

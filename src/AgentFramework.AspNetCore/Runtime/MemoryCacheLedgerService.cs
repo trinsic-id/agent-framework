@@ -32,11 +32,11 @@ namespace AgentFramework.AspNetCore.Runtime
         /// <param name="pool">Pool.</param>
         /// <param name="submitterDid">Submitter did.</param>
         /// <param name="schemaId">Schema identifier.</param>
-        public override async Task<ParseResponseResult> LookupSchemaAsync(Pool pool, string submitterDid, string schemaId)
+        public override async Task<ParseResponseResult> LookupSchemaAsync(Pool pool, string schemaId)
         {
             if (!_memoryCache.TryGetValue<ParseResponseResult>(schemaId, out var result))
             {
-                result = await base.LookupSchemaAsync(pool, submitterDid, schemaId);
+                result = await base.LookupSchemaAsync(pool, schemaId);
                 // Save data in cache.
                 _memoryCache.Set(schemaId, result, _options);
             }
@@ -53,11 +53,11 @@ namespace AgentFramework.AspNetCore.Runtime
         /// <param name="pool">Pool.</param>
         /// <param name="submitterDid">Submitter did.</param>
         /// <param name="definitionId">Definition identifier.</param>
-        public override async Task<ParseResponseResult> LookupDefinitionAsync(Pool pool, string submitterDid, string definitionId)
+        public override async Task<ParseResponseResult> LookupDefinitionAsync(Pool pool, string definitionId)
         {
             if (!_memoryCache.TryGetValue<ParseResponseResult>(definitionId, out var result))
             {
-                result = await base.LookupDefinitionAsync(pool, submitterDid, definitionId);
+                result = await base.LookupDefinitionAsync(pool, definitionId);
                 
                 // Save data in cache.
                 _memoryCache.Set(definitionId, result, _options);
@@ -76,14 +76,14 @@ namespace AgentFramework.AspNetCore.Runtime
         /// <param name="submitterDid">Submitter did.</param>
         /// <param name="ledgerType">Ledger Type.</param>
         /// <param name="sequenceId">Sequence identifier.</param>
-        public override async Task<string> LookupTransactionAsync(Pool pool, string submitterDid, string ledgerType, int sequenceId)
+        public override async Task<string> LookupTransactionAsync(Pool pool, string ledgerType, int sequenceId)
         {
             if (string.IsNullOrEmpty(ledgerType))
                 ledgerType = "DOMAIN";
 
             if (!_memoryCache.TryGetValue<string>($"{ledgerType}-{sequenceId}", out var result))
             {
-                result = await base.LookupTransactionAsync(pool, submitterDid, ledgerType, sequenceId);
+                result = await base.LookupTransactionAsync(pool, ledgerType, sequenceId);
 
                 // Save data in cache.
                 _memoryCache.Set($"{ledgerType}-{sequenceId}", result, _options);

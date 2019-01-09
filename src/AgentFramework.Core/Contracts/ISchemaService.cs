@@ -13,11 +13,12 @@ namespace AgentFramework.Core.Contracts
     public interface ISchemaService
     {
         /// <summary>
-        /// Creates the schema asynchronous.
+        /// Creates and registers schema on the ledger
         /// </summary>
         /// <param name="pool">The pool.</param>
         /// <param name="wallet">The wallet.</param>
-        /// <param name="issuerDid">The issuer did.</param>
+        /// <param name="issuerDid">The issuer did.
+        /// <remarks>The DID must have `TRUST_ANCHOR` permissions on the ledger.</remarks></param>
         /// <param name="name">The name.</param>
         /// <param name="version">The version.</param>
         /// <param name="attributeNames">The attribute names.</param>
@@ -27,7 +28,18 @@ namespace AgentFramework.Core.Contracts
             string[] attributeNames);
 
         /// <summary>
-        /// Creates the credential definition asynchronous.
+        /// Creates and registers schema on the ledger
+        /// </summary>
+        /// <param name="pool">The pool.</param>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="name">The name.</param>
+        /// <param name="version">The version.</param>
+        /// <param name="attributeNames">The attribute names.</param>
+        /// <returns></returns>
+        Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string name, string version, string[] attributeNames);
+
+        /// <summary>
+        /// Creates the credential definition and registers it on the ledger.
         /// </summary>
         /// <param name="pool">The pool.</param>
         /// <param name="wallet">The wallet.</param>
@@ -42,6 +54,19 @@ namespace AgentFramework.Core.Contracts
         /// <returns>The credential definition identifier of the stored definition record.
         /// This identifier can be used for ledger definition lookup.</returns>
         Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId, string issuerDid,
+            bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri);
+
+        /// <summary>
+        /// Creates the credential definition and registers it on the ledger.
+        /// </summary>
+        /// <param name="pool">The pool.</param>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="schemaId">The schema identifier.</param>
+        /// <param name="supportsRevocation">if set to <c>true</c> [supports revocation].</param>
+        /// <param name="maxCredentialCount">The maximum credential count.</param>
+        /// <param name="tailsBaseUri">The tails base URI.</param>
+        /// <returns></returns>
+        Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
             bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri);
 
         /// <summary>
@@ -65,45 +90,37 @@ namespace AgentFramework.Core.Contracts
         /// <param name="credentialDefinitionId">The credential definition identifier.</param>
         /// <returns>The credential definition record.</returns>
         Task<DefinitionRecord> GetCredentialDefinitionAsync(Wallet wallet, string credentialDefinitionId);
-        
+
         /// <summary>
         /// Looks up the credential definition on the ledger.
         /// </summary>
         /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="submitterDid">The submitter did.</param>
         /// <param name="definitionId">The identifier of the definition to resolve.</param>
         /// <returns>A json string of the credential definition</returns>
-        Task<string> LookupCredentialDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, string definitionId);
+        Task<string> LookupCredentialDefinitionAsync(Pool pool, string definitionId);
 
         /// <summary>
         /// Looks up the schema definition on the ledger given a credential definition identifier.
         /// </summary>
         /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="submitterDid">The submitter did.</param>
         /// <param name="credentialDefinitionId">The credential definition id.</param>
         /// <returns>A json string of the schema</returns>
-        Task<string> LookupSchemaFromCredentialDefinitionAsync(Pool pool, Wallet wallet, string submitterDid, string credentialDefinitionId);
+        Task<string> LookupSchemaFromCredentialDefinitionAsync(Pool pool, string credentialDefinitionId);
 
         /// <summary>
         /// Looks up the schema definition on the ledger.
         /// </summary>
         /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="submitterDid">The submitter did.</param>
         /// <param name="sequenceId">The sequence identifier of the schema to resolve.</param>
         /// <returns>A json string of the schema</returns>
-        Task<string> LookupSchemaAsync(Pool pool, Wallet wallet, string submitterDid, int sequenceId);
+        Task<string> LookupSchemaAsync(Pool pool, int sequenceId);
 
         /// <summary>
         /// Looks up the schema definition on the ledger.
         /// </summary>
         /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="submitterDid">The submitter did.</param>
         /// <param name="schemaId">The identifier of the schema definition to resolve.</param>
         /// <returns>A json string of the schema</returns>
-        Task<string> LookupSchemaAsync(Pool pool, Wallet wallet, string submitterDid, string schemaId);
+        Task<string> LookupSchemaAsync(Pool pool, string schemaId);
     }
 }
