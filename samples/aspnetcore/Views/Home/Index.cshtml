@@ -3,24 +3,20 @@
 @{
     ViewData["Title"] = "Home";
 }
-<h2>@Model.Owner.Name</h2>
-<hr />
-<div class="row">
-    <div class="col-md-1">
-        <img style="width: 100px; height: 100px" src="@Model.Owner.ImageUrl" class="img-circle" alt="@Model.Owner.Name">
+<div class="card text-center mt-2 w-50">
+    <div class="card-header">
+        Agent Provisioning Configuration
     </div>
-    <div class="col-md-11">
-        <dl class="dl-horizontal">
+    <div class="card-body">
+        <img style="width: 100px; height: 100px" src="@Model.Owner.ImageUrl" class="rounded-circle" alt="@Model.Owner.Name">
+        <h5 class="card-title mt-2">@Model.Owner.Name</h5>
 
-            <dt>Did</dt>
-            <dd>@Model.Endpoint.Did</dd>
+        <small class="text-muted">@Model.Endpoint.Uri</small>
 
-            <dt>Verkey</dt>
-            <dd>@Model.Endpoint.Verkey</dd>
-
-            <dt>Url</dt>
-            <dd>@Model.Endpoint.Uri</dd>
-        </dl>
     </div>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item" data-toggle="tooltip" data-placement="top" title="DID">@Model.Endpoint.Did</li>
+        <li class="list-group-item" data-toggle="tooltip" data-placement="top" title="VERKEY">@Model.Endpoint.Verkey</li>
+    </ul>
+
 </div>
-

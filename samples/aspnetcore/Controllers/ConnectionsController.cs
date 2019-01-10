@@ -58,12 +58,6 @@ namespace WebAgent.Controllers
             return View();
         }
 
-        [HttpGet]
-        public IActionResult AcceptInvitation()
-        {
-            return View();
-        }
-
         [HttpPost]
         public async Task<IActionResult> AcceptInvitation(AcceptConnectionViewModel model)
         {
@@ -74,6 +68,17 @@ namespace WebAgent.Controllers
             var _ = await _connectionService.AcceptInvitationAsync(wallet, invitation);
 
             return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public IActionResult ViewInvitation(AcceptConnectionViewModel model)
+        {
+            var invitationJson = Encoding.UTF8.GetString(Convert.FromBase64String(model.InvitationDetails));
+            var invitation = JsonConvert.DeserializeObject<ConnectionInvitationMessage>(invitationJson);
+
+            ViewData["InvitationDetails"] = model.InvitationDetails;
+
+            return View(invitation);
         }
 
         [HttpGet]
