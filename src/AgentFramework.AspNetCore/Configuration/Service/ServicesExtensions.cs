@@ -6,6 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.AspNetCore.Configuration.Service
 {
+    /// <summary>
+    /// <see cref="IServiceCollection"/> extension methods
+    /// </summary>
     public static class ServicesExtensions
     {
         private static void RegisterCoreServices(this IServiceCollection services)
@@ -16,7 +19,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         }
 
         /// <summary>
-        /// Adds a sovrin issuer agent with the provided configuration
+        /// Adds a Sovrin issuer agent with the provided configuration
         /// </summary>
         /// <param name="services">The services.</param>
         /// <param name="agentConfiguration">The agent configuration.</param>
@@ -35,13 +38,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             var defaultConfiguration = new AgentConfiguration();
             agentConfiguration?.Invoke(defaultConfiguration);
 
-            services.Configure<WalletOptions>((obj) =>
+            services.Configure<WalletOptions>(obj =>
             {
                 obj.WalletConfiguration = defaultConfiguration.WalletOptions.WalletConfiguration;
                 obj.WalletCredentials = defaultConfiguration.WalletOptions.WalletCredentials;
             });
 
-            services.Configure<PoolOptions>((obj) =>
+            services.Configure<PoolOptions>(obj =>
             {
                 obj.PoolName = defaultConfiguration.PoolOptions.PoolName;
                 obj.GenesisFilename = defaultConfiguration.PoolOptions.GenesisFilename;
@@ -58,7 +61,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             Action<AgentBuilder> agentOptions = null) => UseAgent<AgentMiddleware>(app, endpointUri, agentOptions);
 
         /// <summary>
-        /// Allows agent configuration by specifyig a custom middleware
+        /// Allows agent configuration by specifying a custom middleware
         /// </summary>
         /// <param name="app">App.</param>
         /// <param name="endpointUri">The endpointUri.</param>

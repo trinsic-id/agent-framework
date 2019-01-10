@@ -1,4 +1,5 @@
-﻿@model ConnectionsViewModel
+﻿@using System.Linq
+@model ConnectionsViewModel
 
 <hr />
 <div class="btn-group pull-right">
@@ -12,31 +13,7 @@
     </ul>
 </div>
 <div class="clearfix"></div>
-@if (Model.Invitations.Any())
-{
-    <h2>Invitations</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.Invitations)
-            {
-                <tr>
-                    <td>
-                        <a asp-area="" asp-controller="Connections" asp-action="Details" asp-route-id="@item.Id">@(item.Alias?.Name ?? item.Id)</a>
-                    </td>
-                    <td>
-                        @item.State
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+
 @if (Model.Connections.Any())
 {
     <h2>Connections</h2>
@@ -45,6 +22,7 @@
             <tr>
                 <th>Name</th>
                 <th>Status</th>
+                <th>Created</th>
             </tr>
         </thead>
         <tbody>
@@ -56,6 +34,9 @@
                     </td>
                     <td>
                         @item.State
+                    </td>
+                    <td>
+                        @item.CreatedAtUtc.Value.ToLocalTime()
                     </td>
                 </tr>
             }

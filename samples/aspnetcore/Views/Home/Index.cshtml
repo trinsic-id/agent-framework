@@ -1,11 +1,26 @@
-﻿@{
+﻿@model ProvisioningRecord
+
+@{
     ViewData["Title"] = "Home";
 }
+<h2>@Model.Owner.Name</h2>
 <hr />
-<div class="jumbotron">
-    <h1>@Environment.GetEnvironmentVariable("AF_OWNER_NAME")'s Agent</h1>
-    <p>
-        Welcome! Feel free to look around, you can establish secure connections and exchange messages with other wizards and even muggles.
-    </p>
-    <p><a class="btn btn-primary btn-lg" asp-area="" asp-controller="Connections" asp-action="Index" role="button">Go to Connections</a></p>
+<div class="row">
+    <div class="col-md-1">
+        <img style="width: 100px; height: 100px" src="@Model.Owner.ImageUrl" class="img-circle" alt="@Model.Owner.Name">
+    </div>
+    <div class="col-md-11">
+        <dl class="dl-horizontal">
+
+            <dt>Did</dt>
+            <dd>@Model.Endpoint.Did</dd>
+
+            <dt>Verkey</dt>
+            <dd>@Model.Endpoint.Verkey</dd>
+
+            <dt>Url</dt>
+            <dd>@Model.Endpoint.Uri</dd>
+        </dl>
+    </div>
 </div>
+

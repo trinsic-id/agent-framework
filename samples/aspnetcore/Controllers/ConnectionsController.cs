@@ -38,8 +38,7 @@ namespace WebAgent.Controllers
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
             return View(new ConnectionsViewModel
             {
-                Connections = await _connectionService.ListAsync(wallet),
-                Invitations = await _connectionService.ListNegotiatingConnectionsAsync(wallet)
+                Connections = await _connectionService.ListAsync(wallet)
             });
         }
 

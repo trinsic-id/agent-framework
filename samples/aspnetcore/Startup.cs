@@ -2,11 +2,11 @@ using System;
 using System.IO;
 using AgentFramework.AspNetCore.Configuration.Service;
 using AgentFramework.AspNetCore.Options;
-using AgentFramework.Core.Models.Wallets;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using WebAgent.Utils;
 
 namespace WebAgent
 {
@@ -44,10 +44,13 @@ namespace WebAgent
 
             app.UseStaticFiles();
 
-            app.UseAgent($"{Environment.GetEnvironmentVariable("ASPNETCORE_URLS")}/agent",
-                (obj) =>
+            var agentBaseUrl = new Uri(Environment.GetEnvironmentVariable("ASPNETCORE_URLS"));
+
+            app.UseAgent($"{new Uri(agentBaseUrl, "/agent")}",
+                obj =>
                 {
-                    obj.AddOwnershipInfo(Environment.GetEnvironmentVariable("AF_OWNER_NAME"), null);
+                    obj.AddOwnershipInfo(NameGenerator.GetRandomName(), 
+                        $"{new Uri(agentBaseUrl, "/images/profile.png")}");
                 });
 
             app.UseMvc(routes =>
