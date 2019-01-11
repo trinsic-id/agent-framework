@@ -24,7 +24,7 @@ namespace AgentFramework.Core.Handlers.Default
             MessageTypes.Credential
         };
 
-        public async Task OnMessageAsync(string agentMessage, AgentContext context)
+        public async Task ProcessAsync(string agentMessage, ConnectionContext context)
         {
             var message = JsonConvert.DeserializeObject<IAgentMessage>(agentMessage);
 
