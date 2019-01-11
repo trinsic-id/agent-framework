@@ -8,7 +8,7 @@
         Agent Provisioning Configuration
     </div>
     <div class="card-body">
-        <img style="width: 100px; height: 100px" src="@Model.Owner.ImageUrl" class="rounded-circle" alt="@Model.Owner.Name">
+        <img style="width: 100px; height: 100px" src="@Url.Identicon(Model.Owner.Name, size: 200)" class="rounded-circle border border-dark" alt="@Model.Owner.Name">
         <h5 class="card-title mt-2">@Model.Owner.Name</h5>
 
         <small class="text-muted">@Model.Endpoint.Uri</small>

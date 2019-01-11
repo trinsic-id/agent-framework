@@ -11,7 +11,7 @@
         <div class="card-header">
             Invitation Details
         </div>
-        <img class="card-img" src="@Model.ImageUrl" alt="Card image cap">
+        <img class="card-img" src="@Url.Identicon(Model.Name, size: 300)" alt="Card image cap">
         <div class="card-body">
             <h5 class="card-title">@Model.Name</h5>
             <p class="card-text">@Model.Endpoint.Did</p>

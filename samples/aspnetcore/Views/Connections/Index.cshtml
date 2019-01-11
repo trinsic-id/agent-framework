@@ -18,8 +18,15 @@
             {
                 <tr>
                     <td>
-                        <img src="@item.Alias.ImageUrl" style="width: 25px; height: 25px" class="rounded-circle" />
-                        <a asp-area="" asp-controller="Connections" asp-action="Details" asp-route-id="@item.Id">@(item.Alias?.Name ?? item.Id)</a>
+                        @if (item.State == ConnectionState.Connected)
+                        {
+                            <img src="@Url.Identicon(item.Alias.Name, size: 50)" style="width: 25px; height: 25px" />
+                            <a asp-area="" asp-controller="Connections" asp-action="Details" asp-route-id="@item.Id">@(item.Alias?.Name ?? item.Id)</a>
+                        }
+                        else
+                        {
+                            @(item.Alias?.Name ?? item.Id)   
+                        }
                     </td>
                     <td>
                         @item.State

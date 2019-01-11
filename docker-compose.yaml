@@ -16,9 +16,6 @@ services:
     build:
       context: .
       dockerfile: docker/web-agent.dockerfile
-      args:
-        AGENT_IP: 10.0.0.11
-        AGENT_PORT: 7001
     environment:
       - ASPNETCORE_URLS=http://10.0.0.11:7001
     ports:
@@ -35,11 +32,8 @@ services:
     build:
       context: .
       dockerfile: docker/web-agent.dockerfile
-      args:
-        AGENT_IP: 10.0.0.12
-        AGENT_PORT: 7002
     environment:
-      - ASPNETCORE_URLS=http://10.0.0.11:7002
+      - ASPNETCORE_URLS=http://10.0.0.12:7002
     ports:
       - "7002:7002"
     depends_on:

@@ -1,33 +1,37 @@
 ﻿@model AgentFramework.Core.Models.Records.ConnectionRecord
 
-<h4>Connection Details</h4>
-<hr />
-<dl class="dl-horizontal">
-    <dt>
-        @Html.DisplayNameFor(model => model.Id)
-    </dt>
-    <dd>
-        @Html.DisplayFor(model => model.Id)
-    </dd>
-    
-    <dt>
-        @Html.DisplayNameFor(model => model.State)
-    </dt>
-    <dd>
-        @Html.DisplayFor(model => model.State)
-    </dd>
-    
-    <dt>
-        @Html.DisplayNameFor(model => model.MyDid)
-    </dt>
-    <dd>
-        @Html.DisplayFor(model => model.MyDid)
-    </dd>
-    
-    <dt>
-        @Html.DisplayNameFor(model => model.TheirDid)
-    </dt>
-    <dd>
-        @Html.DisplayFor(model => model.TheirDid)
-    </dd>
-</dl>
+<div class="row mt-2">
+    <div class="col-md-auto">
+        <div class="card text-center">
+            <div class="card-body">
+                <img style="width: 100px; height: 100px" src="@Url.Identicon(Model.Alias.Name, size: 200)" class="rounded-circle border border-dark" alt="@Model.Alias.Name">
+                <h5 class="card-title mt-2">@Model.Alias.Name</h5>
+
+                <small class="text-muted">@Model.Endpoint.Uri</small>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item" data-toggle="tooltip" data-placement="top" title="MY DID">@Model.MyDid</li>
+                <li class="list-group-item" data-toggle="tooltip" data-placement="top" title="THEIR DID">@Model.TheirDid</li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-header">
+                Conversation
+            </div>
+            <div class="card-body ">
+                <div class="d-flex flex-row"><div class="p-2 mb-2 bg-primary text-white rounded mw-75">Hello there</div></div>
+                <div class="d-flex flex-row-reverse"><div class="p-2 mb-2 bg-secondary text-white rounded mw-75">Well hi</div></div>
+            </div>
+            <div class="card-footer">
+                <form class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Recipient's username" aria-label="Recipient's username" aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="button">Send Message</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

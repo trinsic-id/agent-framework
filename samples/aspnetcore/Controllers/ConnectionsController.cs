@@ -3,7 +3,6 @@ using System.Text;
 using System.Threading.Tasks;
 using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models.Connections;
 using Microsoft.AspNetCore.Mvc;
@@ -48,24 +47,16 @@ namespace WebAgent.Controllers
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
             var provisioning = await _provisioningService.GetProvisioningAsync(wallet);
 
-            var invitation = await _connectionService.CreateInvitationAsync(wallet,
-                new InviteConfiguration
-                {
-                    AutoAcceptConnection = true,
-                    MyAlias = new ConnectionAlias {Name = provisioning.Owner.Name}
-                });
-            ViewData["Invitation"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(invitation)));
+            var invitation = await _connectionService.CreateInvitationAsync(wallet, new InviteConfiguration { AutoAcceptConnection = true });
+            ViewData["Invitation"] = EncodeInvitation(invitation);
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> AcceptInvitation(AcceptConnectionViewModel model)
         {
-            var invitationJson = Encoding.UTF8.GetString(Convert.FromBase64String(model.InvitationDetails));
-            var invitation = JsonConvert.DeserializeObject<ConnectionInvitationMessage>(invitationJson);
-
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
-            var _ = await _connectionService.AcceptInvitationAsync(wallet, invitation);
+            var _ = await _connectionService.AcceptInvitationAsync(wallet, DecodeInvitation(model.InvitationDetails));
 
             return RedirectToAction("Index");
         }
@@ -73,20 +64,36 @@ namespace WebAgent.Controllers
         [HttpPost]
         public IActionResult ViewInvitation(AcceptConnectionViewModel model)
         {
-            var invitationJson = Encoding.UTF8.GetString(Convert.FromBase64String(model.InvitationDetails));
-            var invitation = JsonConvert.DeserializeObject<ConnectionInvitationMessage>(invitationJson);
-
             ViewData["InvitationDetails"] = model.InvitationDetails;
 
-            return View(invitation);
+            return View(DecodeInvitation(model.InvitationDetails));
         }
 
         [HttpGet]
         public async Task<IActionResult> Details(string id)
         {
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
-
             return View(await _connectionService.GetAsync(wallet, id));
+        }
+
+        /// <summary>
+        /// Encodes the invitation to a base64 string which can be presented to the user as QR code or a deep link Url
+        /// </summary>
+        /// <returns>The invitation.</returns>
+        /// <param name="invitation">Invitation.</param>
+        public string EncodeInvitation(ConnectionInvitationMessage invitation)
+        {
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(invitation)));
+        }
+
+        /// <summary>
+        /// Decodes the invitation from base64 to strongly typed object
+        /// </summary>
+        /// <returns>The invitation.</returns>
+        /// <param name="invitation">Invitation.</param>
+        public ConnectionInvitationMessage DecodeInvitation(string invitation)
+        {
+            return JsonConvert.DeserializeObject<ConnectionInvitationMessage>(Encoding.UTF8.GetString(Convert.FromBase64String(invitation)));
         }
     }
 }
