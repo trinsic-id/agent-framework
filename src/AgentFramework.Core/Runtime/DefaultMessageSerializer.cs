@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Messages;
+using AgentFramework.Core.Messages.Routing;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.WalletApi;
@@ -50,7 +51,7 @@ namespace AgentFramework.Core.Runtime
             var innerMessage = Convert.FromBase64String(wireMessage.Message);
 
             var result = await Crypto.AuthDecryptAsync(wallet, wireMessage.To, innerMessage);
-            var message = JsonConvert.DeserializeObject<IAgentMessage>(Encoding.UTF8.GetString(result.MessageData));
+            var message = JsonConvert.DeserializeObject<ForwardMessage>(Encoding.UTF8.GetString(result.MessageData));
             var theirVerKey = result.TheirVk;
             
             return (message, theirVerKey, wireMessage.To);
@@ -64,7 +65,7 @@ namespace AgentFramework.Core.Runtime
             var innerMessage = Convert.FromBase64String(wireMessage.Message);
 
             var result = await Crypto.AnonDecryptAsync(wallet, wireMessage.To, innerMessage);
-            return JsonConvert.DeserializeObject<IAgentMessage>(Encoding.UTF8.GetString(result));
+            return JsonConvert.DeserializeObject<ForwardMessage>(Encoding.UTF8.GetString(result));
         }
     }
 }

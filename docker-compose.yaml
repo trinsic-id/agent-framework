@@ -17,9 +17,9 @@ services:
       context: .
       dockerfile: docker/web-agent.dockerfile
     environment:
-      - ASPNETCORE_URLS=http://10.0.0.11:7001
+      - ASPNETCORE_URLS=http://10.0.0.11:7000
     ports:
-      - "7001:7001"
+      - "7000:7000"
     depends_on:
       - "indy-pool"
     links:
@@ -33,9 +33,9 @@ services:
       context: .
       dockerfile: docker/web-agent.dockerfile
     environment:
-      - ASPNETCORE_URLS=http://10.0.0.12:7002
+      - ASPNETCORE_URLS=http://10.0.0.12:8000
     ports:
-      - "7002:7002"
+      - "8000:8000"
     depends_on:
       - "indy-pool"
     links:

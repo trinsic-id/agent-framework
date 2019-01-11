@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Utils;
 
 namespace AgentFramework.Core.Models.Records.Search
