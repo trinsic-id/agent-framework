@@ -17,17 +17,45 @@ using Newtonsoft.Json.Linq;
 
 namespace AgentFramework.Core.Handlers
 {
+    /// <summary>
+    /// Base agent implementation
+    /// </summary>
     public abstract class AgentBase
     {
+        /// <summary>
+        /// Gets the service provider.
+        /// </summary>
+        /// <value>
+        /// The service provider.
+        /// </value>
         public IServiceProvider ServiceProvider { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AgentBase"/> class.
+        /// </summary>
+        /// <param name="serviceProvider">The service provider.</param>
         protected AgentBase(IServiceProvider serviceProvider)
         {
             ServiceProvider = serviceProvider;
         }
 
+        /// <summary>
+        /// Gets the message handlers.
+        /// </summary>
+        /// <value>
+        /// The handlers.
+        /// </value>
         public abstract IEnumerable<IMessageHandler> Handlers { get; }
 
+        /// <summary>
+        /// Processes the asynchronous.
+        /// </summary>
+        /// <param name="body">The body.</param>
+        /// <param name="wallet">The wallet.</param>
+        /// <param name="pool">The pool.</param>
+        /// <returns></returns>
+        /// <exception cref="Exception">Expected inner message to be of type 'ForwardMessage'</exception>
+        /// <exception cref="AgentFrameworkException">Couldn't locate a message handler for type {messageType}</exception>
         public async Task ProcessAsync(byte[] body, Wallet wallet, Pool pool = null)
         {
             var messageSerializer = ServiceProvider.GetService<IMessageSerializer>();
@@ -55,7 +83,7 @@ namespace AgentFramework.Core.Handlers
                 x.SupportedMessageTypes.Any(y => y.Equals(messageType, StringComparison.OrdinalIgnoreCase)));
             if (handler != null)
             {
-                await handler.OnMessageAsync(messageData, new AgentContext { Wallet = wallet, Pool = pool, Connection = connectionRecord});
+                await handler.ProcessAsync(messageData, new ConnectionContext { Wallet = wallet, Pool = pool, Connection = connectionRecord});
             }
             else
             {
