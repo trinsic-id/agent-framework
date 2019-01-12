@@ -1,33 +1,51 @@
-﻿@model AgentFramework.Core.Models.Records.ConnectionRecord
+﻿@using WebAgent.Messages
+@model ConnectionDetailsViewModel
 
-<h4>Connection Details</h4>
-<hr />
-<dl class="dl-horizontal">
-    <dt>
-        @Html.DisplayNameFor(model => model.Id)
-    </dt>
-    <dd>
-        @Html.DisplayFor(model => model.Id)
-    </dd>
-    
-    <dt>
-        @Html.DisplayNameFor(model => model.State)
-    </dt>
-    <dd>
-        @Html.DisplayFor(model => model.State)
-    </dd>
-    
-    <dt>
-        @Html.DisplayNameFor(model => model.MyDid)
-    </dt>
-    <dd>
-        @Html.DisplayFor(model => model.MyDid)
-    </dd>
-    
-    <dt>
-        @Html.DisplayNameFor(model => model.TheirDid)
-    </dt>
-    <dd>
-        @Html.DisplayFor(model => model.TheirDid)
-    </dd>
-</dl>
+<div class="row mt-2">
+    <div class="col-md-auto">
+        <div class="card text-center">
+            <div class="card-body">
+                <img style="width: 100px; height: 100px" src="@Url.Identicon(Model.Connection.Alias.Name, size: 200)" class="rounded-circle border border-dark" alt="@Model.Connection.Alias.Name">
+                <h5 class="card-title mt-2">@Model.Connection.Alias.Name</h5>
+
+                <small class="text-muted">@Model.Connection.Endpoint.Uri</small>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item" data-toggle="tooltip" data-placement="top" title="MY DID">@Model.Connection.MyDid</li>
+                <li class="list-group-item" data-toggle="tooltip" data-placement="top" title="THEIR DID">@Model.Connection.TheirDid</li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card text-center">
+            <div class="card-header">
+                Conversation
+            </div>
+            <div class="card-body ">
+                @foreach (var message in Model.Messages.OrderBy(x => x.CreatedAtUtc))
+                {
+                    if (message.Direction == MessageDirection.Incoming)
+                    {
+                        <div class="d-flex flex-row">
+                            <div class="p-2 mb-2 mr-5 bg-primary text-white rounded">@message.Text</div></div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-row-reverse">
+                            <div class="p-2 mb-2 ml-5 bg-secondary text-white rounded">@message.Text</div></div>
+                    }
+                }
+                
+            </div>
+            <div class="card-footer">
+                <form class="input-group mb-3" asp-controller="Connections" asp-action="SendMessage">
+                    <input type="hidden" name="connectionId" value="@Model.Connection.Id"/>
+                    <input type="text" name="text" autocomplete="off" class="form-control" placeholder="Type message here" aria-label="Recipient's username" aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-primary" type="submit">Send Message</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

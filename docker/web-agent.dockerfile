@@ -17,8 +17,5 @@ RUN dotnet publish "WebAgent.csproj" -c Release -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-ARG AGENT_IP=127.0.0.1
-ARG AGENT_PORT=7001
-EXPOSE ${AGENT_PORT}
-ENV ASPNETCORE_URLS "http://${AGENT_IP}:${AGENT_PORT}"
+
 ENTRYPOINT ["dotnet", "WebAgent.dll"]
