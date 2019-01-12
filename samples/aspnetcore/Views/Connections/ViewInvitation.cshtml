@@ -5,7 +5,7 @@
     var invitationDetails = (string) ViewData["InvitationDetails"];
 }
 
-<form class="form-inline my-2 my-lg-0" asp-controller="Connections" asp-action="AcceptInvitation">
+<form asp-controller="Connections" asp-action="AcceptInvitation">
     <input type="hidden" name="InvitationDetails" value="@invitationDetails" />
     <div class="card mt-3" style="width: 18rem;">
         <div class="card-header">
