@@ -13,34 +13,6 @@ namespace AgentFramework.Core.Tests
     public class ConverterTests : IDisposable
     {
         [Fact]
-        public void CanConvertToInvitation()
-        {
-            var expected = new ConnectionInvitationMessage { ConnectionKey = "123" };
-            var json = JsonConvert.SerializeObject(expected);
-
-            var actual = JsonConvert.DeserializeObject<IAgentMessage>(json);
-
-            Assert.IsType<ConnectionInvitationMessage>(actual);
-            Assert.Equal("123", ((ConnectionInvitationMessage) actual).ConnectionKey);
-        }
-        
-        [Fact]
-        public void CanConvertContentMessage()
-        {
-            var expected = new ConnectionRequestMessage
-            {
-                Did = "test-did"
-            };
-
-            var json = JsonConvert.SerializeObject(expected);
-
-            var actual = JsonConvert.DeserializeObject<IAgentMessage>(json);
-
-            Assert.IsType<ConnectionRequestMessage>(actual);
-            Assert.Equal(MessageTypes.ConnectionRequest, ((ConnectionRequestMessage) actual).Type);
-        }
-
-        [Fact]
         public void EnumAttributeSerializesToJson()
         {
             var attributeFilter = new Dictionary<AttributeFilter, string>

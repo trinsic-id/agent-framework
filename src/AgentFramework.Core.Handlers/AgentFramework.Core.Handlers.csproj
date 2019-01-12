@@ -1,0 +1,17 @@
+<Project Sdk="MSBuild.Sdk.Extras/1.6.46">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;xamarinios10</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>2.0.0</Version>
+    <AssemblyVersion>2.0.0</AssemblyVersion>
+    <FileVersion>2.0.0</FileVersion>
+    <Description>Support for extending AgentFramework using message handlers</Description>
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\AgentFramework.Core.Handlers.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AgentFramework.Core\AgentFramework.Core.csproj" />
+  </ItemGroup>
+
+</Project>

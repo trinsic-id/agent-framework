@@ -58,8 +58,8 @@ At the root of the repo run:
 
     docker-compose up
 
-This will create an agent network with a pool and three identical agents able to communicate with each other in the network.
-Navigate to http://localhost:7001/, http://localhost:7002/ and http://localhost:7003/ to create and accept connection invitations between the different agents.
+This will create an agent network with a pool and two identical agents able to communicate with each other in the network.
+Navigate to http://localhost:7000/ and http://localhost:8000/ to create and accept connection invitations between the different agents.
 
 Running the unit tests
 ----------------------

@@ -5,7 +5,6 @@ namespace AgentFramework.Core.Messages
     /// <summary>
     /// Represents a content message
     /// </summary>
-    [JsonConverter(typeof(AgentMessageConverter))]
     public interface IAgentMessage
     {
         /// <summary>

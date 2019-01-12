@@ -1,11 +1,22 @@
-﻿@{
+﻿@model ProvisioningRecord
+
+@{
     ViewData["Title"] = "Home";
 }
-<hr />
-<div class="jumbotron">
-    <h1>@Environment.GetEnvironmentVariable("STREETCRED_OWNER_NAME")'s Agent</h1>
-    <p>
-        Welcome! Feel free to look around, you can establish secure connections and exchange messages with other wizards and even muggles.
-    </p>
-    <p><a class="btn btn-primary btn-lg" asp-area="" asp-controller="Connections" asp-action="CreateInvitation" role="button">Go to Connections</a></p>
+<div class="card text-center mt-2 w-50">
+    <div class="card-header">
+        Agent Provisioning Configuration
+    </div>
+    <div class="card-body">
+        <img style="width: 100px; height: 100px" src="@Url.Identicon(Model.Owner.Name, size: 200)" class="rounded-circle border border-dark" alt="@Model.Owner.Name">
+        <h5 class="card-title mt-2">@Model.Owner.Name</h5>
+
+        <small class="text-muted">@Model.Endpoint.Uri</small>
+
+    </div>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item" data-toggle="tooltip" data-placement="top" title="DID">@Model.Endpoint.Did</li>
+        <li class="list-group-item" data-toggle="tooltip" data-placement="top" title="VERKEY">@Model.Endpoint.Verkey</li>
+    </ul>
+
 </div>

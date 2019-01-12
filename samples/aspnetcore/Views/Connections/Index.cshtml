@@ -1,50 +1,16 @@
-﻿@model ConnectionsViewModel
+﻿@using System.Linq
+@model ConnectionsViewModel
 
-<hr />
-<div class="btn-group pull-right">
-    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <span class="glyphicon glyphicon-send" aria-hidden="true"></span> Invitations <span class="caret"></span>
-    </button>
-    <ul class="dropdown-menu">
-        <li><a asp-area="" asp-controller="Connections" asp-action="CreateInvitation">Create new invitation</a></li>
-        <li role="separator" class="divider"></li>
-        <li><a asp-area="" asp-controller="Connections" asp-action="AcceptInvitation">Accept invitation</a></li>
-    </ul>
-</div>
-<div class="clearfix"></div>
-@if (Model.Invitations.Any())
-{
-    <h2>Invitations</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.Invitations)
-            {
-                <tr>
-                    <td>
-                        <a asp-area="" asp-controller="Connections" asp-action="Details" asp-route-id="@item.ConnectionId">@(item.Alias?.Name ?? item.ConnectionId)</a>
-                    </td>
-                    <td>
-                        @item.State
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<a class="btn btn-primary mt-3" role="button" asp-controller="Connections" asp-action="CreateInvitation">Create Invitation</a>
+
 @if (Model.Connections.Any())
 {
-    <h2>Connections</h2>
-    <table class="table">
+    <table class="table mt-3">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Status</th>
+                <th scope="col">Name</th>
+                <th scope="col">Status</th>
+                <th scope="col">Created</th>
             </tr>
         </thead>
         <tbody>
@@ -52,10 +18,21 @@
             {
                 <tr>
                     <td>
-                        <a asp-area="" asp-controller="Connections" asp-action="Details" asp-route-id="@item.ConnectionId">@(item.Alias?.Name ?? item.ConnectionId)</a>
+                        @if (item.State == ConnectionState.Connected)
+                        {
+                            <img src="@Url.Identicon(item.Alias.Name, size: 50)" style="width: 25px; height: 25px" />
+                            <a asp-area="" asp-controller="Connections" asp-action="Details" asp-route-id="@item.Id">@(item.Alias?.Name ?? item.Id)</a>
+                        }
+                        else
+                        {
+                            @(item.Alias?.Name ?? item.Id)   
+                        }
                     </td>
                     <td>
                         @item.State
+                    </td>
+                    <td>
+                        @item.CreatedAtUtc.Value.ToLocalTime()
                     </td>
                 </tr>
             }

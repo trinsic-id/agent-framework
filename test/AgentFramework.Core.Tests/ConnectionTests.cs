@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
-using AgentFramework.Core.Helpers;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models;
@@ -58,7 +57,7 @@ namespace AgentFramework.Core.Tests
                 }));
 
             _connectionService = new DefaultConnectionService(
-                new DefaultWalletRecordService(new DateTimeHelper()),
+                new DefaultWalletRecordService(),
                 routingMock.Object,
                 _provisioningMock.Object,
                 messageSerializer,
@@ -191,22 +190,6 @@ namespace AgentFramework.Core.Tests
             var connectionRecordRefetched = await _connectionService.GetAsync(_issuerWallet, connectionId);
 
             Assert.True(connectionRecordRefetched.State == ConnectionState.Negotiating);
-        }
-
-        [Fact]
-        public async Task CanEstablishAutomaticConnectionAsync()
-        {
-            var (connectionIssuer, connectionHolder) = await Scenarios.EstablishConnectionAsync(
-                _connectionService, _messages, _issuerWallet, _holderWallet, true);
-
-            Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
-            Assert.Equal(ConnectionState.Connected, connectionHolder.State);
-
-            Assert.Equal(connectionIssuer.MyDid, connectionHolder.TheirDid);
-            Assert.Equal(connectionIssuer.TheirDid, connectionHolder.MyDid);
-
-            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
-            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
         }
 
         [Fact]

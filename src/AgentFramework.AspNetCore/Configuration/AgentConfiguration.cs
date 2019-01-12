@@ -2,6 +2,9 @@
 
 namespace AgentFramework.AspNetCore.Configuration
 {
+    /// <summary>
+    /// Agent Configuration
+    /// </summary>
     public class AgentConfiguration
     {
         internal AgentConfiguration()

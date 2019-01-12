@@ -109,7 +109,7 @@ namespace AgentFramework.Core.Runtime
 
             var connection = await ConnectionService.GetAsync(wallet, credential.ConnectionId);
             
-            var definition = await LedgerService.LookupDefinitionAsync(pool, connection.MyDid, credential.CredentialDefinitionId);
+            var definition = await LedgerService.LookupDefinitionAsync(pool, credential.CredentialDefinitionId);
             var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
             
             var request = await AnonCreds.ProverCreateCredentialReqAsync(wallet, connection.MyDid, credential.OfferJson,
@@ -178,14 +178,14 @@ namespace AgentFramework.Core.Runtime
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Credential state was invalid. Expected '{CredentialState.Requested}', found '{credentialRecord.State}'");
 
-            var credentialDefinition = await LedgerService.LookupDefinitionAsync(pool, connection.MyDid, definitionId);
+            var credentialDefinition = await LedgerService.LookupDefinitionAsync(pool, definitionId);
 
             string revocationRegistryDefinitionJson = null;
             if (!string.IsNullOrEmpty(revRegId))
             {
                 // If credential supports revocation, lookup registry definition
                 var revocationRegistry =
-                    await LedgerService.LookupRevocationRegistryDefinitionAsync(pool, connection.MyDid, revRegId);
+                    await LedgerService.LookupRevocationRegistryDefinitionAsync(pool, revRegId);
                 revocationRegistryDefinitionJson = revocationRegistry.ObjectJson;
             }
 

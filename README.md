@@ -27,5 +27,5 @@ With [Docker](https://www.docker.com) installed, run
 docker-compose up
 ```
 
-This will create an agent network with a pool of 4 indy nodes and 3 agents able to communicate with each other in the network.
-Navigate to [http://localhost:7001](http://localhost:7001), [http://localhost:7002](http://localhost:7001) and [http://localhost:7003](http://localhost:7001) to create and accept connection invitations between the different agents.
+This will create an agent network with a pool of 4 indy nodes and 2 agents able to communicate with each other in the network.
+Navigate to [http://localhost:7000](http://localhost:7000) and [http://localhost:8000](http://localhost:8000) to create and accept connection invitations between the different agents.

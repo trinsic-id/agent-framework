@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using AgentFramework.Core.Extensions;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Models.Records
@@ -136,7 +135,7 @@ namespace AgentFramework.Core.Models.Records
 
                 if (dateVal != null)
                 {
-                    var strVal = ((DateTimeOffset)dateVal.Value).ToUnixTimeMilliseconds().ToString();
+                    var strVal = dateVal.Value.Ticks.ToString();
                     Set(strVal, name: name, encrypted: encrypted);
                 }
                 else
@@ -214,7 +213,7 @@ namespace AgentFramework.Core.Models.Records
             if (strVal == null)
                 return null;
 
-            return DatetimeExtensions.FromUnixTimeMilliseconds(Convert.ToInt64(strVal));
+            return new DateTime(Convert.ToInt64(strVal));
         }
     }
 }
