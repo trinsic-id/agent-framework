@@ -4,7 +4,7 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Proofs;
-using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AgentFramework.Core.Handlers.Default
 {
@@ -17,28 +17,45 @@ namespace AgentFramework.Core.Handlers.Default
             _proofService = proofService;
         }
 
+        /// <summary>
+        /// Gets the supported message types.
+        /// </summary>
+        /// <value>
+        /// The supported message types.
+        /// </value>
         public IEnumerable<string> SupportedMessageTypes => new[]
         {
             MessageTypes.ProofRequest,
             MessageTypes.DisclosedProof
         };
 
+        /// <summary>
+        /// Processes the agent message
+        /// </summary>
+        /// <param name="agentMessage">The agent message.</param>
+        /// <param name="context">The context.</param>
+        /// <returns></returns>
+        /// <exception cref="AgentFrameworkException">Unsupported message type {messageType}</exception>
         public async Task ProcessAsync(string agentMessage, ConnectionContext context)
         {
-            var message = JsonConvert.DeserializeObject<IAgentMessage>(agentMessage);
+            var item = JObject.Parse(agentMessage);
+            var messageType = item["@type"].ToObject<string>();
 
-            switch (message)
+            switch (messageType)
             {
-                case ProofRequestMessage request:
+                case MessageTypes.ProofRequest:
+                    var request = item.ToObject<ProofRequestMessage>();
                     await _proofService.ProcessProofRequestAsync(context.Wallet, request, context.Connection);
                     break;
 
-                case ProofMessage proof:
+                case MessageTypes.DisclosedProof:
+                    var proof = item.ToObject<ProofMessage>();
                     await _proofService.ProcessProofAsync(context.Wallet, proof, context.Connection);
                     break;
+                default:
+                    throw new AgentFrameworkException(ErrorCode.InvalidMessage,
+                        $"Unsupported message type {messageType}");
             }
-
-            throw new AgentFrameworkException(ErrorCode.InvalidMessage, $"Unsupported message type {message.Type}");
         }
     }
 }

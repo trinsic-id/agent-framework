@@ -12,17 +12,14 @@ services:
       agent_net:
         ipv4_address: 10.0.0.10
 
-  harmione-agent:
+  web-agent-1:
     build:
       context: .
       dockerfile: docker/web-agent.dockerfile
-      args:
-        AGENT_IP: 10.0.0.11
-        AGENT_PORT: 7001
     environment:
-      - AF_OWNER_NAME=Hermione Granger
+      - ASPNETCORE_URLS=http://10.0.0.11:7000
     ports:
-      - "7001:7001"
+      - "7000:7000"
     depends_on:
       - "indy-pool"
     links:
@@ -31,17 +28,14 @@ services:
       agent_net:
         ipv4_address: 10.0.0.11
 
-  harry-agent:
+  web-agent-2:
     build:
       context: .
       dockerfile: docker/web-agent.dockerfile
-      args:
-        AGENT_IP: 10.0.0.12
-        AGENT_PORT: 7002
     environment:
-      - AF_OWNER_NAME=Harry Potter
+      - ASPNETCORE_URLS=http://10.0.0.12:8000
     ports:
-      - "7002:7002"
+      - "8000:8000"
     depends_on:
       - "indy-pool"
     links:
@@ -49,25 +43,6 @@ services:
     networks:
       agent_net:
         ipv4_address: 10.0.0.12
-
-  hogwarts-agent:
-    build:
-      context: .
-      dockerfile: docker/web-agent.dockerfile
-      args:
-        AGENT_IP: 10.0.0.13
-        AGENT_PORT: 7003
-    environment:
-      - AF_OWNER_NAME=Hogwarts School of Magic
-    ports:
-      - "7003:7003"
-    depends_on:
-      - "indy-pool"
-    links:
-      - "indy-pool"
-    networks:
-      agent_net:
-        ipv4_address: 10.0.0.13
 
 networks:
   agent_net:

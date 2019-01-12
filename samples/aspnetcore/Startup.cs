@@ -2,11 +2,13 @@ using System;
 using System.IO;
 using AgentFramework.AspNetCore.Configuration.Service;
 using AgentFramework.AspNetCore.Options;
-using AgentFramework.Core.Models.Wallets;
+using Jdenticon.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using WebAgent.Messages;
+using WebAgent.Utils;
 
 namespace WebAgent
 {
@@ -23,10 +25,11 @@ namespace WebAgent
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-            services.AddAgent(config =>
-            {
-                config.SetPoolOptions(new PoolOptions { GenesisFilename = Path.GetFullPath("pool_genesis.txn") });
-            });
+
+            // Register agent framework dependency services and handlers
+            services.AddAgent(c => c.SetPoolOptions(new PoolOptions { GenesisFilename = Path.GetFullPath("pool_genesis.txn") }));
+            // Register our message handler with DI
+            services.AddSingleton<PrivateMessageHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -44,12 +47,16 @@ namespace WebAgent
 
             app.UseStaticFiles();
 
-            app.UseAgent($"{Environment.GetEnvironmentVariable("ASPNETCORE_URLS")}/agent",
-                (obj) =>
+            // Add agent middleware
+            var agentBaseUrl = new Uri(Environment.GetEnvironmentVariable("ASPNETCORE_URLS"));
+            app.UseAgent<WebAgentMiddleware>($"{new Uri(agentBaseUrl, "/agent")}",
+                obj =>
                 {
-                    obj.AddOwnershipInfo(Environment.GetEnvironmentVariable("AF_OWNER_NAME"), null);
+                    obj.AddOwnershipInfo(NameGenerator.GetRandomName(), null);
                 });
 
+            // fun identicons
+            app.UseJdenticon();
             app.UseMvc(routes =>
             {
                 routes.MapRoute(

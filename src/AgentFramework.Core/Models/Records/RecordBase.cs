@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using AgentFramework.Core.Extensions;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Models.Records
