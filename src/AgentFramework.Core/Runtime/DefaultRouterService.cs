@@ -4,10 +4,12 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Routing;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Utils;
+using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 
@@ -18,12 +20,13 @@ namespace AgentFramework.Core.Runtime
     {
         private readonly IMessageSerializer _messageSerializer;
         private readonly ILogger<DefaultRouterService> _logger;
-        private readonly HttpClient _httpClient; 
+        private readonly HttpClient _httpClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AgentFramework.Core.Runtime.DefaultRouterService"/> class.
         /// </summary>
-        public DefaultRouterService(IMessageSerializer messageSerializer, ILogger<DefaultRouterService> logger, HttpClient httpClient)
+        public DefaultRouterService(IMessageSerializer messageSerializer, ILogger<DefaultRouterService> logger,
+            HttpClient httpClient)
         {
             _messageSerializer = messageSerializer;
             _logger = logger;
@@ -31,35 +34,49 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connectionRecord, string recipientKey = null)
+        public async Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connectionRecord,
+            string recipientKey = null)
         {
-            _logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0} Endpoint {1}", connectionRecord.TheirVk, connectionRecord.Endpoint.Uri);
+            _logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0} Endpoint {1}", connectionRecord.TheirVk,
+                connectionRecord.Endpoint.Uri);
 
-            byte[] wireMessage;
+            var encryptionKey = recipientKey ?? connectionRecord.TheirVk;
 
             //Create a wire message for the destination agent
-            if (string.IsNullOrEmpty(recipientKey))
-                wireMessage = await _messageSerializer.AuthPackAsync(wallet, message, connectionRecord.MyVk, connectionRecord.TheirVk);
-            else
-                wireMessage = await _messageSerializer.AuthPackAsync(wallet, message, connectionRecord.MyVk, recipientKey);
-
-            var innerMessage = Convert.ToBase64String(wireMessage);
-
-            var forwardMessage = new ForwardMessage { Message = innerMessage };
-
-            if (string.IsNullOrEmpty(recipientKey))
-                forwardMessage.To = connectionRecord.TheirVk;
-            else
-                forwardMessage.To = recipientKey;
+            var forwardMessage = new ForwardMessage
+            {
+                Message = new AgentWireMessage
+                    {
+                        To = encryptionKey,
+                        From = connectionRecord.MyVk,
+                        Message = (await Crypto.AuthCryptAsync(
+                                wallet,
+                                connectionRecord.MyVk,
+                                encryptionKey,
+                                message.ToByteArray()))
+                            .ToBase64String()
+                    }
+                    .ToByteArray()
+                    .ToBase64String(),
+                To = encryptionKey
+            };
 
             //Pack this message inside another and encrypt for the agent endpoint
-            var agentEndpointWireMessage = await _messageSerializer.AnonPackAsync(forwardMessage, connectionRecord.Endpoint.Verkey);
-            
+            var agentEndpointWireMessage =
+                new AgentWireMessage
+                    {
+                        To = connectionRecord.Endpoint.Verkey,
+                        Message = (await Crypto.AnonCryptAsync(
+                                connectionRecord.Endpoint.Verkey,
+                                forwardMessage.ToByteArray()))
+                            .ToBase64String()
+                    };
+
             var request = new HttpRequestMessage
             {
                 RequestUri = new Uri(connectionRecord.Endpoint.Uri),
                 Method = HttpMethod.Post,
-                Content = new ByteArrayContent(agentEndpointWireMessage)
+                Content = new ByteArrayContent(agentEndpointWireMessage.ToByteArray())
             };
 
             //TODO this mime type should be changed in accordance with the message format hipe emerging
@@ -72,7 +89,8 @@ namespace AgentFramework.Core.Runtime
             }
             catch (Exception e)
             {
-                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send A2A message", e);
+                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send A2A message",
+                    e);
             }
         }
     }
