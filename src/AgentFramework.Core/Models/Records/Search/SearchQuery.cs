@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AgentFramework.Core.Utils;
+using AgentFramework.Core.Extensions;
 
 namespace AgentFramework.Core.Models.Records.Search
 {

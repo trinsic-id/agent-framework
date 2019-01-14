@@ -1,8 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Models.Wallets;
-using AgentFramework.Core.Utils;
 using Hyperledger.Indy.WalletApi;
 
 namespace AgentFramework.Core.Runtime

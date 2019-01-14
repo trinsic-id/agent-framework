@@ -2,8 +2,8 @@
 using System.IO;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Runtime;
-using AgentFramework.Core.Utils;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;

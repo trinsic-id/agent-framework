@@ -7,6 +7,7 @@ using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.DidApi;
@@ -22,19 +23,16 @@ namespace AgentFramework.Core.Runtime
         protected readonly IWalletRecordService RecordService;
         protected readonly IRouterService RouterService;
         protected readonly IProvisioningService ProvisioningService;
-        protected readonly IMessageSerializer MessageSerializer;
         protected readonly ILogger<DefaultConnectionService> Logger;
 
         public DefaultConnectionService(
             IWalletRecordService recordService,
             IRouterService routerService,
             IProvisioningService provisioningService,
-            IMessageSerializer messageSerializer,
             ILogger<DefaultConnectionService> logger)
         {
             RouterService = routerService;
             ProvisioningService = provisioningService;
-            MessageSerializer = messageSerializer;
             Logger = logger;
             RecordService = recordService;
         }
