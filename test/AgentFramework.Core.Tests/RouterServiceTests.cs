@@ -32,7 +32,7 @@ namespace AgentFramework.Core.Tests
 
         private Wallet _wallet;
 
-        private readonly IRouterService _routerService;
+        private readonly IMessagingService _messagingService;
 
         private readonly ConcurrentBag<HttpRequestMessage> _messages = new ConcurrentBag<HttpRequestMessage>();
 
@@ -63,7 +63,8 @@ namespace AgentFramework.Core.Tests
             var httpClient = new HttpClient(handlerMock.Object);
             
 
-            _routerService = new DefaultRouterService(new Mock<ILogger<DefaultRouterService>>().Object, httpClient);
+            _messagingService = new DefaultMessagingService(new Mock<IConnectionService>().Object,
+                new Mock<ILogger<DefaultMessagingService>>().Object, httpClient);
         }
 
         public async Task InitializeAsync()
@@ -110,7 +111,7 @@ namespace AgentFramework.Core.Tests
                 TheirVk = their.VerKey
             };
 
-            await _routerService.SendAsync(_wallet, new ConnectionRequestMessage(), connection);
+            await _messagingService.SendAsync(_wallet, new ConnectionRequestMessage(), connection);
 
             var httpMessage = _messages.FirstOrDefault();
 

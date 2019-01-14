@@ -19,7 +19,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             builder.Services.TryAddSingleton<IPoolService, DefaultPoolService>();
             builder.Services.TryAddSingleton<IProofService, DefaultProofService>();
             builder.Services.TryAddSingleton<IProvisioningService, DefaultProvisioningService>();
-            builder.Services.TryAddSingleton<IRouterService, DefaultRouterService>();
+            builder.Services.TryAddSingleton<IMessagingService, DefaultMessagingService>();
             builder.Services.TryAddSingleton<HttpClient>();
             builder.Services.TryAddSingleton<ISchemaService, DefaultSchemaService>();
             builder.Services.TryAddSingleton<ITailsService, DefaultTailsService>();
@@ -145,19 +145,19 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         }
 
         public static AgentServicesBuilder AddExtendedRouterService<TService, TImplementation>(this AgentServicesBuilder builder)
-            where TService : class, IRouterService
-            where TImplementation : class, TService, IRouterService
+            where TService : class, IMessagingService
+            where TImplementation : class, TService, IMessagingService
         {
             builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<IRouterService>(x => x.GetService<TImplementation>());
+            builder.Services.AddSingleton<IMessagingService>(x => x.GetService<TImplementation>());
             builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 
         public static AgentServicesBuilder AddExtendedRouterService<TImplementation>(this AgentServicesBuilder builder)
-            where TImplementation : class, IRouterService
+            where TImplementation : class, IMessagingService
         {
-            builder.Services.AddSingleton<IRouterService, TImplementation>();
+            builder.Services.AddSingleton<IMessagingService, TImplementation>();
             return builder;
         }
 

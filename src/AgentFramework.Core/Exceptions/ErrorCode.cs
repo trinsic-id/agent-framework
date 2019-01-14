@@ -29,6 +29,10 @@
         /// <summary>
         /// The invalid message
         /// </summary>
-        InvalidMessage
+        InvalidMessage,
+        /// <summary>
+        /// The message unpack error
+        /// </summary>
+        MessageUnpackError
     }
 }

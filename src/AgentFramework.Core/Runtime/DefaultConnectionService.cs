@@ -25,9 +25,9 @@ namespace AgentFramework.Core.Runtime
         /// </summary>
         protected readonly IWalletRecordService RecordService;
         /// <summary>
-        /// The router service
+        /// The messaging service
         /// </summary>
-        protected readonly IRouterService RouterService;
+        protected readonly IMessagingService MessagingService;
         /// <summary>
         /// The provisioning service
         /// </summary>
@@ -46,11 +46,11 @@ namespace AgentFramework.Core.Runtime
         /// <param name="logger">The logger.</param>
         public DefaultConnectionService(
             IWalletRecordService recordService,
-            IRouterService routerService,
+            IMessagingService messagingService,
             IProvisioningService provisioningService,
             ILogger<DefaultConnectionService> logger)
         {
-            RouterService = routerService;
+            MessagingService = messagingService;
             ProvisioningService = provisioningService;
             Logger = logger;
             RecordService = recordService;
@@ -139,7 +139,7 @@ namespace AgentFramework.Core.Runtime
 
             try
             {
-                await RouterService.SendAsync(wallet, msg, connection, invitation.ConnectionKey);
+                await MessagingService.SendAsync(wallet, msg, connection, invitation.ConnectionKey);
             }
             catch (Exception e)
             {
@@ -227,7 +227,7 @@ namespace AgentFramework.Core.Runtime
 
             try
             {
-                await RouterService.SendAsync(wallet, response, connection);
+                await MessagingService.SendAsync(wallet, response, connection);
             }
             catch (Exception e)
             {
