@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Models;
@@ -13,7 +14,6 @@ using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Runtime;
-using AgentFramework.Core.Utils;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
@@ -49,7 +49,6 @@ namespace AgentFramework.Core.Tests
 
         public CredentialTests()
         {
-            var messageSerializer = new DefaultMessageSerializer();
             var recordService = new DefaultWalletRecordService();
             var ledgerService = new DefaultLedgerService();
 
@@ -83,7 +82,6 @@ namespace AgentFramework.Core.Tests
                 recordService,
                 routingMock.Object,
                 provisioningMock.Object,
-                messageSerializer,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
 
             _credentialService = new DefaultCredentialService(
@@ -91,7 +89,6 @@ namespace AgentFramework.Core.Tests
                 ledgerService,
                 _connectionService,
                 recordService,
-                messageSerializer,
                 _schemaService,
                 tailsService,
                 provisioningMock.Object,

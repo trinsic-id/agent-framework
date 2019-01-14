@@ -35,8 +35,6 @@ namespace AgentFramework.Core.Tests
 
         public ConnectionTests()
         {
-            var messageSerializer = new DefaultMessageSerializer();
-
             var routingMock = new Mock<IRouterService>();
             routingMock.Setup(x =>
                     x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
@@ -60,7 +58,6 @@ namespace AgentFramework.Core.Tests
                 new DefaultWalletRecordService(),
                 routingMock.Object,
                 _provisioningMock.Object,
-                messageSerializer,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
         }
 

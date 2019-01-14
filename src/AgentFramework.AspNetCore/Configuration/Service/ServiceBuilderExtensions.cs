@@ -16,7 +16,6 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             builder.Services.TryAddSingleton<IConnectionService, DefaultConnectionService>();
             builder.Services.TryAddSingleton<ICredentialService, DefaultCredentialService>();
             builder.Services.TryAddSingleton<ILedgerService, DefaultLedgerService>();
-            builder.Services.TryAddSingleton<IMessageSerializer, DefaultMessageSerializer>();
             builder.Services.TryAddSingleton<IPoolService, DefaultPoolService>();
             builder.Services.TryAddSingleton<IProofService, DefaultProofService>();
             builder.Services.TryAddSingleton<IProvisioningService, DefaultProvisioningService>();
@@ -91,23 +90,6 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             where TImplementation : class, ILedgerService
         {
             builder.Services.AddSingleton<ILedgerService, TImplementation>();
-            return builder;
-        }
-
-        public static AgentServicesBuilder AddExtendedMessageSerializer<TService, TImplementation>(this AgentServicesBuilder builder)
-            where TService : class, IMessageSerializer
-            where TImplementation : class, TService, IMessageSerializer
-        {
-            builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<IMessageSerializer>(x => x.GetService<TImplementation>());
-            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
-            return builder;
-        }
-
-        public static AgentServicesBuilder AddExtendedMessageSerializer<TImplementation>(this AgentServicesBuilder builder)
-            where TImplementation : class, IMessageSerializer
-        {
-            builder.Services.AddSingleton<IMessageSerializer, TImplementation>();
             return builder;
         }
 

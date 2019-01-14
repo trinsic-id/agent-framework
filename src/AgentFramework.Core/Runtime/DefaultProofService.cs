@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages.Proofs;
 using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Proofs;
@@ -23,7 +24,6 @@ namespace AgentFramework.Core.Runtime
     {
         protected readonly IRouterService RouterService;
         protected readonly IConnectionService ConnectionService;
-        protected readonly IMessageSerializer MessageSerializer;
         protected readonly IWalletRecordService RecordService;
         protected readonly IProvisioningService ProvisioningService;
         protected readonly ILedgerService LedgerService;
@@ -33,7 +33,6 @@ namespace AgentFramework.Core.Runtime
         public DefaultProofService(
             IConnectionService connectionService,
             IRouterService routerService,
-            IMessageSerializer messageSerializer,
             IWalletRecordService recordService,
             IProvisioningService provisioningService,
             ILedgerService ledgerService,
@@ -43,7 +42,6 @@ namespace AgentFramework.Core.Runtime
             TailsService = tailsService;
             ConnectionService = connectionService;
             RouterService = routerService;
-            MessageSerializer = messageSerializer;
             RecordService = recordService;
             ProvisioningService = provisioningService;
             LedgerService = ledgerService;

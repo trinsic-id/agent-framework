@@ -2,10 +2,10 @@
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Wallets;
-using AgentFramework.Core.Utils;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.WalletApi;
