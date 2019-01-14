@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Messages.Routing;
@@ -13,11 +14,13 @@ using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Runtime;
+using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace AgentFramework.Core.Tests
@@ -30,7 +33,6 @@ namespace AgentFramework.Core.Tests
         private Wallet _wallet;
 
         private readonly IRouterService _routerService;
-        private readonly IMessageSerializer _messageSerializer;
 
         private readonly ConcurrentBag<HttpRequestMessage> _messages = new ConcurrentBag<HttpRequestMessage>();
 
@@ -59,11 +61,9 @@ namespace AgentFramework.Core.Tests
 
             // use real http client with mocked handler here
             var httpClient = new HttpClient(handlerMock.Object);
+            
 
-            _messageSerializer = new DefaultMessageSerializer();
-
-            _routerService = new DefaultRouterService(_messageSerializer,
-                new Mock<ILogger<DefaultRouterService>>().Object, httpClient);
+            _routerService = new DefaultRouterService(new Mock<ILogger<DefaultRouterService>>().Object, httpClient);
         }
 
         public async Task InitializeAsync()
@@ -86,54 +86,63 @@ namespace AgentFramework.Core.Tests
             await Wallet.DeleteWalletAsync(Config, WalletCredentials);
         }
 
-        //[Fact]
-        //public async Task CanSendMessage()
-        //{
-        //    var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
-        //    var their = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
-        //    var agency = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+        [Fact]
+        public async Task CanSendMessage()
+        {
+            var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            var their = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            var agency = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
 
-        //    var connection = new ConnectionRecord
-        //    {
-        //        MyDid = my.Did,
-        //        MyVk = my.VerKey,
-        //        Alias = new ConnectionAlias
-        //        {
-        //            Name = "Test"
-        //        },
-        //        Endpoint = new AgentEndpoint
-        //        {
-        //            Uri = "https://mock.com",
-        //            Verkey = agency.VerKey
-        //        },
-        //        TheirDid = their.Did,
-        //        TheirVk = their.VerKey
-        //    };
+            var connection = new ConnectionRecord
+            {
+                MyDid = my.Did,
+                MyVk = my.VerKey,
+                Alias = new ConnectionAlias
+                {
+                    Name = "Test"
+                },
+                Endpoint = new AgentEndpoint
+                {
+                    Uri = "https://mock.com",
+                    Verkey = agency.VerKey
+                },
+                TheirDid = their.Did,
+                TheirVk = their.VerKey
+            };
 
-        //    await _routerService.SendAsync(_wallet, new ConnectionRequestMessage(), connection);
+            await _routerService.SendAsync(_wallet, new ConnectionRequestMessage(), connection);
 
-        //    var httpMessage = _messages.FirstOrDefault();
+            var httpMessage = _messages.FirstOrDefault();
 
-        //    Assert.True(httpMessage != null);
+            Assert.True(httpMessage != null);
 
-        //    Assert.True(httpMessage.Method == HttpMethod.Post);
-        //    Assert.True(httpMessage.RequestUri == new Uri("https://mock.com"));
-        //    Assert.True(httpMessage.Content.Headers.ContentType.ToString() == "application/octet-stream");
+            Assert.True(httpMessage.Method == HttpMethod.Post);
+            Assert.True(httpMessage.RequestUri == new Uri("https://mock.com"));
+            Assert.True(httpMessage.Content.Headers.ContentType.ToString() == "application/octet-stream");
 
-        //    byte[] body = await httpMessage.Content.ReadAsByteArrayAsync();
+            var body = await httpMessage.Content.ReadAsByteArrayAsync();
 
-        //    var outerMessage = await _messageSerializer.AnonUnpackAsync(body, _wallet);
+            var outerWireMessage = body.ToObject<AgentWireMessage>();
+            var innerWireMessage =
+                (await Crypto.AnonDecryptAsync(
+                    _wallet,
+                    outerWireMessage.To,
+                    outerWireMessage.Message.GetBytesFromBase64()))
+                .ToObject<ForwardMessage>()
+                .Message
+                .GetBytesFromBase64()
+                .ToObject<AgentWireMessage>();
 
-        //    var forwardMessage = outerMessage as ForwardMessage ?? 
-        //        throw new Exception("Expected inner message to be of type 'ForwardMessage'");
+            var authDecrypted = await Crypto.AuthDecryptAsync(
+                _wallet, innerWireMessage.To, innerWireMessage.Message.GetBytesFromBase64());
 
-        //    var innerMessageContents = Convert.FromBase64String(forwardMessage.Message);
+            var message = JObject.Parse(authDecrypted.MessageData.GetUTF8String());
+            
+            Assert.Equal(message["@type"].ToString(), MessageTypes.ConnectionRequest);
+            Assert.Equal(my.VerKey, authDecrypted.TheirVk);
 
-        //    (var message, _, var theirKey) =
-        //        await _messageSerializer.AuthUnpackAsync(innerMessageContents, _wallet);
-
-        //    Assert.True(message.Type == MessageTypes.ConnectionRequest);
-        //    Assert.True(their.VerKey == theirKey);
-        //}
+            var request = message.ToObject<ConnectionRequestMessage>();
+            Assert.NotNull(request);
+        }
     }
 }

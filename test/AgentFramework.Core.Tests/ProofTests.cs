@@ -49,7 +49,6 @@ namespace AgentFramework.Core.Tests
 
         public ProofTests()
         {
-            var messageSerializer = new DefaultMessageSerializer();
             var recordService = new DefaultWalletRecordService();
             var ledgerService = new DefaultLedgerService();
 
@@ -87,7 +86,6 @@ namespace AgentFramework.Core.Tests
                 recordService,
                 routingMock.Object,
                 provisioningMock.Object,
-                messageSerializer,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
 
             _credentialService = new DefaultCredentialService(
@@ -95,7 +93,6 @@ namespace AgentFramework.Core.Tests
                 ledgerService,
                 _connectionService,
                 recordService,
-                messageSerializer,
                 _schemaService,
                 tailsService,
                 provisioningMock.Object,
@@ -104,7 +101,6 @@ namespace AgentFramework.Core.Tests
             _proofService = new DefaultProofService(
                 _connectionService,
                 routingMock.Object,
-                messageSerializer,
                 recordService,
                 provisionMock.Object,
                 ledgerService,

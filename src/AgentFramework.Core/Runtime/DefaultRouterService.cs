@@ -18,17 +18,15 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultRouterService : IRouterService
     {
-        private readonly IMessageSerializer _messageSerializer;
         private readonly ILogger<DefaultRouterService> _logger;
         private readonly HttpClient _httpClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AgentFramework.Core.Runtime.DefaultRouterService"/> class.
         /// </summary>
-        public DefaultRouterService(IMessageSerializer messageSerializer, ILogger<DefaultRouterService> logger,
+        public DefaultRouterService(ILogger<DefaultRouterService> logger,
             HttpClient httpClient)
         {
-            _messageSerializer = messageSerializer;
             _logger = logger;
             _httpClient = httpClient;
         }
@@ -62,15 +60,14 @@ namespace AgentFramework.Core.Runtime
             };
 
             //Pack this message inside another and encrypt for the agent endpoint
-            var agentEndpointWireMessage =
-                new AgentWireMessage
-                    {
-                        To = connectionRecord.Endpoint.Verkey,
-                        Message = (await Crypto.AnonCryptAsync(
-                                connectionRecord.Endpoint.Verkey,
-                                forwardMessage.ToByteArray()))
-                            .ToBase64String()
-                    };
+            var agentEndpointWireMessage = new AgentWireMessage
+            {
+                To = connectionRecord.Endpoint.Verkey,
+                Message = (await Crypto.AnonCryptAsync(
+                        connectionRecord.Endpoint.Verkey,
+                        forwardMessage.ToByteArray()))
+                    .ToBase64String()
+            };
 
             var request = new HttpRequestMessage
             {

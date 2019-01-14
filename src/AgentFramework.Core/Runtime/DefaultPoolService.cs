@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Utils;
+using AgentFramework.Core.Extensions;
 using Hyperledger.Indy.PoolApi;
 
 namespace AgentFramework.Core.Runtime

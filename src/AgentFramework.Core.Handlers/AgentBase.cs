@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
@@ -12,7 +11,6 @@ using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace AgentFramework.Core.Handlers
@@ -60,22 +58,22 @@ namespace AgentFramework.Core.Handlers
         {
             var connectionService = ServiceProvider.GetService<IConnectionService>();
 
-            var outerWireMessage = body.FromJson<AgentWireMessage>();
+            var outerWireMessage = body.ToObject<AgentWireMessage>();
             var innerWireMessage =
                 (await Crypto.AnonDecryptAsync(
                     wallet,
                     outerWireMessage.To,
                     outerWireMessage.Message.GetBytesFromBase64()))
-                .FromJson<ForwardMessage>()
+                .ToObject<ForwardMessage>()
                 .Message
                 .GetBytesFromBase64()
-                .FromJson<AgentWireMessage>();
+                .ToObject<AgentWireMessage>();
 
-            var result =
-                await Crypto.AuthDecryptAsync(wallet, innerWireMessage.To, innerWireMessage.Message.GetBytesFromBase64());
+            var authDecrypted = await Crypto.AuthDecryptAsync(
+                wallet, innerWireMessage.To, innerWireMessage.Message.GetBytesFromBase64());
 
-            var jmessage = JObject.Parse(result.MessageData.GetUTF8String());
-            var messageType = jmessage["@type"].ToObject<string>();
+            var message = JObject.Parse(authDecrypted.MessageData.GetUTF8String());
+            var messageType = message["@type"].ToObject<string>();
 
             var connectionRecord = await connectionService.ResolveByMyKeyAsync(wallet, innerWireMessage.To);
 
@@ -83,7 +81,7 @@ namespace AgentFramework.Core.Handlers
                 x.SupportedMessageTypes.Any(y => y.Equals(messageType, StringComparison.OrdinalIgnoreCase)));
             if (handler != null)
             {
-                await handler.ProcessAsync(result.MessageData.GetUTF8String(),
+                await handler.ProcessAsync(authDecrypted.MessageData.GetUTF8String(),
                     new ConnectionContext {Wallet = wallet, Pool = pool, Connection = connectionRecord});
             }
             else
