@@ -106,10 +106,10 @@ namespace AgentFramework.Core.Runtime
             try
             {
                 var result =
-                (await Crypto.AuthDecryptAsync(
+                await Crypto.AuthDecryptAsync(
                     wallet,
                     wireMessage.To,
-                    wireMessage.Message.GetBytesFromBase64()));
+                    wireMessage.Message.GetBytesFromBase64());
 
                 messageData = result.MessageData;
                 theirKey = result.TheirVk;
