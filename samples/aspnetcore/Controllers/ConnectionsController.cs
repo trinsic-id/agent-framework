@@ -20,7 +20,7 @@ namespace WebAgent.Controllers
         private readonly IWalletService _walletService;
         private readonly IWalletRecordService _recordService;
         private readonly IProvisioningService _provisioningService;
-        private readonly IMessagingService _messagingService;
+        private readonly IMessageService _messageService;
         private readonly WalletOptions _walletOptions;
 
         public ConnectionsController(
@@ -28,14 +28,14 @@ namespace WebAgent.Controllers
             IWalletService walletService, 
             IWalletRecordService recordService,
             IProvisioningService provisioningService,
-            IMessagingService messagingService,
+            IMessageService messageService,
             IOptions<WalletOptions> walletOptions)
         {
             _connectionService = connectionService;
             _walletService = walletService;
             _recordService = recordService;
             _provisioningService = provisioningService;
-            _messagingService = messagingService;
+            _messageService = messageService;
             _walletOptions = walletOptions.Value;
         }
 
@@ -113,7 +113,7 @@ namespace WebAgent.Controllers
             await _recordService.AddAsync(wallet, messageRecord);
 
             // Send an agent message using the secure connection
-            await _messagingService.SendAsync(wallet, message, connection);
+            await _messageService.SendAsync(wallet, message, connection);
 
             return RedirectToAction("Details", new {id = connectionId});
         }

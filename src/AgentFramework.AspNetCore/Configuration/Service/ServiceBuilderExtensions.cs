@@ -20,7 +20,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             builder.Services.TryAddSingleton<IPoolService, DefaultPoolService>();
             builder.Services.TryAddSingleton<IProofService, DefaultProofService>();
             builder.Services.TryAddSingleton<IProvisioningService, DefaultProvisioningService>();
-            builder.Services.TryAddSingleton<IMessagingService, DefaultMessagingService>();
+            builder.Services.TryAddSingleton<IMessageService, DefaultMessageService>();
             builder.Services.TryAddSingleton<HttpClient>();
             builder.Services.TryAddSingleton<ISchemaService, DefaultSchemaService>();
             builder.Services.TryAddSingleton<ITailsService, DefaultTailsService>();
@@ -161,20 +161,20 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
-        public static AgentServicesBuilder AddExtendedMessagingService<TService, TImplementation>(this AgentServicesBuilder builder)
-            where TService : class, IMessagingService
-            where TImplementation : class, TService, IMessagingService
+        public static AgentServicesBuilder AddExtendedMessageService<TService, TImplementation>(this AgentServicesBuilder builder)
+            where TService : class, IMessageService
+            where TImplementation : class, TService, IMessageService
         {
             builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<IMessagingService>(x => x.GetService<TImplementation>());
+            builder.Services.AddSingleton<IMessageService>(x => x.GetService<TImplementation>());
             builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 
-        public static AgentServicesBuilder AddExtendedMessagingService<TImplementation>(this AgentServicesBuilder builder)
-            where TImplementation : class, IMessagingService
+        public static AgentServicesBuilder AddExtendedMessageService<TImplementation>(this AgentServicesBuilder builder)
+            where TImplementation : class, IMessageService
         {
-            builder.Services.AddSingleton<IMessagingService, TImplementation>();
+            builder.Services.AddSingleton<IMessageService, TImplementation>();
             return builder;
         }
 

@@ -24,7 +24,7 @@ namespace AgentFramework.Core.Runtime
         /// <summary>
         /// The message service
         /// </summary>
-        protected readonly IMessagingService MessagingService;
+        protected readonly IMessageService MessageService;
         /// <summary>
         /// The ledger service
         /// </summary>
@@ -66,7 +66,7 @@ namespace AgentFramework.Core.Runtime
         /// <param name="provisioningService">The provisioning service.</param>
         /// <param name="logger">The logger.</param>
         public DefaultCredentialService(
-            IMessagingService messagingService,
+            IMessageService messageService,
             ILedgerService ledgerService,
             IConnectionService connectionService,
             IWalletRecordService recordService,
@@ -75,7 +75,7 @@ namespace AgentFramework.Core.Runtime
             IProvisioningService provisioningService,
             ILogger<DefaultCredentialService> logger)
         {
-            MessagingService = messagingService;
+            MessageService = messageService;
             LedgerService = ledgerService;
             ConnectionService = connectionService;
             RecordService = recordService;
@@ -162,7 +162,7 @@ namespace AgentFramework.Core.Runtime
 
             try
             {
-                await MessagingService.SendAsync(wallet, msg, connection);
+                await MessageService.SendAsync(wallet, msg, connection);
             }
             catch (Exception e)
             {
@@ -289,7 +289,7 @@ namespace AgentFramework.Core.Runtime
 
             try
             {
-                await MessagingService.SendAsync(wallet, offer, connection);
+                await MessageService.SendAsync(wallet, offer, connection);
             }
             catch (Exception e)
             {
@@ -410,7 +410,7 @@ namespace AgentFramework.Core.Runtime
 
             try
             {
-                await MessagingService.SendAsync(wallet, msg, connection);
+                await MessageService.SendAsync(wallet, msg, connection);
             }
             catch (Exception e)
             {

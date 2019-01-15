@@ -18,18 +18,18 @@ using Newtonsoft.Json.Linq;
 namespace AgentFramework.Core.Runtime
 {
     /// <inheritdoc />
-    public class DefaultMessagingService : IMessagingService
+    public class DefaultMessageService : IMessageService
     {
         public const string AgentWireMessageMimeType = "application/ssi-agent-wire";
 
         protected readonly IConnectionService ConnectionService;
-        protected readonly ILogger<DefaultMessagingService> Logger;
+        protected readonly ILogger<DefaultMessageService> Logger;
         protected readonly HttpClient HttpClient; 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:AgentFramework.Core.Runtime.DefaultRouterService"/> class.
+        /// Initializes a new instance of the <see cref="T:AgentFramework.Core.Runtime.DefaultMessageService"/> class.
         /// </summary>
-        public DefaultMessagingService(IConnectionService connectionService, ILogger<DefaultMessagingService> logger, HttpClient httpClient)
+        public DefaultMessageService(IConnectionService connectionService, ILogger<DefaultMessageService> logger, HttpClient httpClient)
         {
             ConnectionService = connectionService;
             Logger = logger;

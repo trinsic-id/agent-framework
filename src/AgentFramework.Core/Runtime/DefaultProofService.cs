@@ -29,7 +29,7 @@ namespace AgentFramework.Core.Runtime
         /// <summary>
         /// The message service
         /// </summary>
-        protected readonly IMessagingService MessagingService;
+        protected readonly IMessageService MessageService;
         /// <summary>
         /// The connection service
         /// </summary>
@@ -67,7 +67,7 @@ namespace AgentFramework.Core.Runtime
         /// <param name="logger">The logger.</param>
         public DefaultProofService(
             IConnectionService connectionService,
-            IMessagingService messagingService,
+            IMessageService messageService,
             IWalletRecordService recordService,
             IProvisioningService provisioningService,
             ILedgerService ledgerService,
@@ -76,7 +76,7 @@ namespace AgentFramework.Core.Runtime
         {
             TailsService = tailsService;
             ConnectionService = connectionService;
-            MessagingService = messagingService;
+            MessageService = messageService;
             RecordService = recordService;
             ProvisioningService = provisioningService;
             LedgerService = ledgerService;
@@ -98,7 +98,7 @@ namespace AgentFramework.Core.Runtime
 
             try
             {
-                await MessagingService.SendAsync(wallet, msg, connection);
+                await MessageService.SendAsync(wallet, msg, connection);
             }
             catch (Exception e)
             {
@@ -122,7 +122,7 @@ namespace AgentFramework.Core.Runtime
 
             try
             {
-                await MessagingService.SendAsync(wallet, msg, connection);
+                await MessageService.SendAsync(wallet, msg, connection);
             }
             catch (Exception e)
             {
@@ -285,7 +285,7 @@ namespace AgentFramework.Core.Runtime
 
             var proof = await CreateProofAsync(wallet, pool, proofRequestId, requestedCredentials);
 
-            await MessagingService.SendAsync(wallet, proof, connection);
+            await MessageService.SendAsync(wallet, proof, connection);
         }
 
         /// <inheritdoc />

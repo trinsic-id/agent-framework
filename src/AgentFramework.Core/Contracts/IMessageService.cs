@@ -9,7 +9,7 @@ namespace AgentFramework.Core.Contracts
     /// <summary>
     /// Router service.
     /// </summary>
-    public interface IMessagingService
+    public interface IMessageService
     {
         /// <summary>
         /// Sends the agent message asynchronously.

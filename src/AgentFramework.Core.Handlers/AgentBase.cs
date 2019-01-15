@@ -52,7 +52,7 @@ namespace AgentFramework.Core.Handlers
         /// <exception cref="AgentFrameworkException">Couldn't locate a message handler for type {messageType}</exception>
         public async Task ProcessAsync(byte[] body, Wallet wallet, Pool pool = null)
         {
-            var messageService = ServiceProvider.GetService<IMessagingService>();
+            var messageService = ServiceProvider.GetService<IMessageService>();
 
             var outerMessageContext = await messageService.RecieveAsync(wallet, body);
 
