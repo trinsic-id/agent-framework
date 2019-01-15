@@ -17,7 +17,6 @@ namespace AgentFramework.Core.Contracts
         /// <returns>The record async.</returns>
         /// <param name="wallet">Wallet.</param>
         /// <param name="record">Record.</param>
-        /// <param name="id">Identifier.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
         Task AddAsync<T>(Wallet wallet, T record) where T : RecordBase, new();
 

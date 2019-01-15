@@ -69,6 +69,9 @@ namespace AgentFramework.Core.Models.Proofs
         public string Timestamp { get; set; }
     }
 
+    /// <summary>
+    /// Represents a requested proof object
+    /// </summary>
     public class RequestedProof
     {
         /// <summary>
@@ -90,6 +93,9 @@ namespace AgentFramework.Core.Models.Proofs
         public Dictionary<string, ProofAttribute> SelfAttestedAttributes { get; set; }
     }
 
+    /// <summary>
+    /// Proof attribute
+    /// </summary>
     public class ProofAttribute
     {
         /// <summary>

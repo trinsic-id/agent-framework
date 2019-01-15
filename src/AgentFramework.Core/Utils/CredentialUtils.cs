@@ -31,6 +31,11 @@ namespace AgentFramework.Core.Utils
             return result.ToJson();
         }
 
+        /// <summary>
+        /// Gets the attributes.
+        /// </summary>
+        /// <param name="jsonAttributeValues">The json attribute values.</param>
+        /// <returns></returns>
         public static Dictionary<string, string> GetAttributes(string jsonAttributeValues)
         {
             if (string.IsNullOrEmpty(jsonAttributeValues))

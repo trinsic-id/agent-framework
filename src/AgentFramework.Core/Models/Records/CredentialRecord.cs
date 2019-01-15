@@ -172,10 +172,25 @@ namespace AgentFramework.Core.Models.Records
     /// </summary>
     public enum CredentialState
     {
+        /// <summary>
+        /// The offered
+        /// </summary>
         Offered = 0,
+        /// <summary>
+        /// The requested
+        /// </summary>
         Requested,
+        /// <summary>
+        /// The issued
+        /// </summary>
         Issued,
+        /// <summary>
+        /// The rejected
+        /// </summary>
         Rejected,
+        /// <summary>
+        /// The revoked
+        /// </summary>
         Revoked
     }
 
@@ -184,9 +199,21 @@ namespace AgentFramework.Core.Models.Records
     /// </summary>
     public enum CredentialTrigger
     {
+        /// <summary>
+        /// The request
+        /// </summary>
         Request,
+        /// <summary>
+        /// The issue
+        /// </summary>
         Issue,
+        /// <summary>
+        /// The reject
+        /// </summary>
         Reject,
+        /// <summary>
+        /// The revoke
+        /// </summary>
         Revoke
     }
 }
