@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
@@ -12,7 +11,6 @@ using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace AgentFramework.Core.Handlers
@@ -58,36 +56,38 @@ namespace AgentFramework.Core.Handlers
         /// <exception cref="AgentFrameworkException">Couldn't locate a message handler for type {messageType}</exception>
         public async Task ProcessAsync(byte[] body, Wallet wallet, Pool pool = null)
         {
-            var messageSerializer = ServiceProvider.GetService<IMessageSerializer>();
             var connectionService = ServiceProvider.GetService<IConnectionService>();
 
-            var outerMessage =
-                await messageSerializer.AnonUnpackAsync(body, wallet);
+            var outerWireMessage = body.ToObject<AgentWireMessage>();
+            var innerWireMessage =
+                (await Crypto.AnonDecryptAsync(
+                    wallet,
+                    outerWireMessage.To,
+                    outerWireMessage.Message.GetBytesFromBase64()))
+                .ToObject<ForwardMessage>()
+                .Message
+                .GetBytesFromBase64()
+                .ToObject<AgentWireMessage>();
 
-            var forwardMessage = outerMessage as ForwardMessage ?? throw new Exception("Expected inner message to be of type 'ForwardMessage'");
+            var authDecrypted = await Crypto.AuthDecryptAsync(
+                wallet, innerWireMessage.To, innerWireMessage.Message.GetBytesFromBase64());
 
-            var innerMessageContents = Convert.FromBase64String(forwardMessage.Message);
+            var message = JObject.Parse(authDecrypted.MessageData.GetUTF8String());
+            var messageType = message["@type"].ToObject<string>();
 
-            var wireMessageJson = Encoding.UTF8.GetString(innerMessageContents);
-            var wireMessage = JsonConvert.DeserializeObject<AgentWireMessage>(wireMessageJson);
-
-            var result = await Crypto.AuthDecryptAsync(wallet, wireMessage.To, Convert.FromBase64String(wireMessage.Message));
-            var messageData = Encoding.UTF8.GetString(result.MessageData);
-            
-            var jmessage = JObject.Parse(messageData);
-            var messageType = jmessage["@type"].ToObject<string>();
-
-            var connectionRecord = await connectionService.ResolveByMyKeyAsync(wallet, wireMessage.To);
+            var connectionRecord = await connectionService.ResolveByMyKeyAsync(wallet, innerWireMessage.To);
 
             var handler = Handlers.FirstOrDefault(x =>
                 x.SupportedMessageTypes.Any(y => y.Equals(messageType, StringComparison.OrdinalIgnoreCase)));
             if (handler != null)
             {
-                await handler.ProcessAsync(messageData, new ConnectionContext { Wallet = wallet, Pool = pool, Connection = connectionRecord});
+                await handler.ProcessAsync(authDecrypted.MessageData.GetUTF8String(),
+                    new ConnectionContext {Wallet = wallet, Pool = pool, Connection = connectionRecord});
             }
             else
             {
-                throw new AgentFrameworkException(ErrorCode.InvalidMessage, $"Couldn't locate a message handler for type {messageType}");
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage,
+                    $"Couldn't locate a message handler for type {messageType}");
             }
         }
     }

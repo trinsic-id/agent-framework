@@ -70,7 +70,6 @@ namespace AgentFramework.Core.Runtime
             ILedgerService ledgerService,
             IConnectionService connectionService,
             IWalletRecordService recordService,
-            IMessageSerializer messageSerializer,
             ISchemaService schemaService,
             ITailsService tailsService,
             IProvisioningService provisioningService,
@@ -80,7 +79,6 @@ namespace AgentFramework.Core.Runtime
             LedgerService = ledgerService;
             ConnectionService = connectionService;
             RecordService = recordService;
-            MessageSerializer = messageSerializer;
             SchemaService = schemaService;
             TailsService = tailsService;
             ProvisioningService = provisioningService;

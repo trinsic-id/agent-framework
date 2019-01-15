@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.BlobStorageApi;
 using Hyperledger.Indy.PoolApi;

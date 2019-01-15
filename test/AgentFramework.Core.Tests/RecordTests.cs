@@ -6,7 +6,6 @@ using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Runtime;
 using Hyperledger.Indy.WalletApi;
-using Moq;
 using Xunit;
 
 namespace AgentFramework.Core.Tests

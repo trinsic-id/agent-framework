@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AgentFramework.Core.Extensions;
 using Hyperledger.Indy.AnonCredsApi;
 using Newtonsoft.Json.Linq;
 
