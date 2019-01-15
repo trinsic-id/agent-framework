@@ -4,14 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
-using AgentFramework.Core.Extensions;
-using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Routing;
-using Hyperledger.Indy.CryptoApi;
+using AgentFramework.Core.Models;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Linq;
 
 namespace AgentFramework.Core.Handlers
 {
@@ -56,38 +53,35 @@ namespace AgentFramework.Core.Handlers
         /// <exception cref="AgentFrameworkException">Couldn't locate a message handler for type {messageType}</exception>
         public async Task ProcessAsync(byte[] body, Wallet wallet, Pool pool = null)
         {
-            var connectionService = ServiceProvider.GetService<IConnectionService>();
+            var messageService = ServiceProvider.GetService<IMessageService>();
 
-            var outerWireMessage = body.ToObject<AgentWireMessage>();
-            var innerWireMessage =
-                (await Crypto.AnonDecryptAsync(
-                    wallet,
-                    outerWireMessage.To,
-                    outerWireMessage.Message.GetBytesFromBase64()))
-                .ToObject<ForwardMessage>()
-                .Message
-                .GetBytesFromBase64()
-                .ToObject<AgentWireMessage>();
+            var agentContext = new AgentContext {Wallet = wallet, Pool = pool};
 
-            var authDecrypted = await Crypto.AuthDecryptAsync(
-                wallet, innerWireMessage.To, innerWireMessage.Message.GetBytesFromBase64());
+            var outerMessageContext = await messageService.RecieveAsync(agentContext, body);
 
-            var message = JObject.Parse(authDecrypted.MessageData.GetUTF8String());
-            var messageType = message["@type"].ToObject<string>();
+            ForwardMessage forwardMessage;
+            try
+            {
+                forwardMessage = outerMessageContext.GetMessage<ForwardMessage>();
+            }
+            catch (Exception)
+            {
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Expected outer message of type forward message");
+            }
 
-            var connectionRecord = await connectionService.ResolveByMyKeyAsync(wallet, innerWireMessage.To);
-
+            var innerMessageContents = Convert.FromBase64String(forwardMessage.Message);
+            var innerMessageContext = await messageService.RecieveAsync(agentContext, innerMessageContents);
+            
             var handler = Handlers.FirstOrDefault(x =>
-                x.SupportedMessageTypes.Any(y => y.Equals(messageType, StringComparison.OrdinalIgnoreCase)));
+                x.SupportedMessageTypes.Any(y => y.Equals(innerMessageContext.MessageType, StringComparison.OrdinalIgnoreCase)));
             if (handler != null)
             {
-                await handler.ProcessAsync(authDecrypted.MessageData.GetUTF8String(),
-                    new ConnectionContext {Wallet = wallet, Pool = pool, Connection = connectionRecord});
+                await handler.ProcessAsync(innerMessageContext);
             }
             else
             {
                 throw new AgentFrameworkException(ErrorCode.InvalidMessage,
-                    $"Couldn't locate a message handler for type {messageType}");
+                    $"Couldn't locate a message handler for type {innerMessageContext.MessageType}");
             }
         }
     }

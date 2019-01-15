@@ -4,20 +4,20 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
+using AgentFramework.Core.Models.Messaging;
 using AgentFramework.Core.Utils;
-using Newtonsoft.Json.Linq;
 
-namespace AgentFramework.Core.Handlers.Default
+namespace AgentFramework.Core.Handlers
 {
-    public class ConnectionHandler : IMessageHandler
+    public class DefaultConnectionHandler : IMessageHandler
     {
         private readonly IConnectionService _connectionService;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConnectionHandler"/> class.
+        /// Initializes a new instance of the <see cref="DefaultConnectionHandler"/> class.
         /// </summary>
         /// <param name="connectionService">The connection service.</param>
-        public ConnectionHandler(IConnectionService connectionService)
+        public DefaultConnectionHandler(IConnectionService connectionService)
         {
             _connectionService = connectionService;
         }
@@ -38,35 +38,31 @@ namespace AgentFramework.Core.Handlers.Default
         /// <summary>
         /// Processes the agent message
         /// </summary>
-        /// <param name="agentMessage">The agent message.</param>
-        /// <param name="context">The context.</param>
+        /// <param name="agentMessageContext">The agent message agentContext.</param>
         /// <returns></returns>
         /// <exception cref="AgentFrameworkException">Unsupported message type {message.Type}</exception>
-        public async Task ProcessAsync(string agentMessage, ConnectionContext context)
+        public async Task ProcessAsync(MessageContext agentMessageContext)
         {
-            var item = JObject.Parse(agentMessage);
-            var messageType = item["@type"].ToObject<string>();
-
-            switch (messageType)
+            switch (agentMessageContext.MessageType)
             {
                 case MessageTypes.ConnectionInvitation:
-                    var invitation = item.ToObject<ConnectionInvitationMessage>();
-                    await _connectionService.AcceptInvitationAsync(context.Wallet, invitation);
+                    var invitation = agentMessageContext.GetMessage<ConnectionInvitationMessage>();
+                    await _connectionService.AcceptInvitationAsync(agentMessageContext.AgentContext.Wallet, invitation);
                     return;
                 case MessageTypes.ConnectionRequest:
-                    var request = item.ToObject<ConnectionRequestMessage>();
+                    var request = agentMessageContext.GetMessage<ConnectionRequestMessage>();
                     var connectionId =
-                        await _connectionService.ProcessRequestAsync(context.Wallet, request, context.Connection);
-                    if (context.Connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
-                        await _connectionService.AcceptRequestAsync(context.Wallet, connectionId);
+                        await _connectionService.ProcessRequestAsync(agentMessageContext.AgentContext.Wallet, request, agentMessageContext.Connection);
+                    if (agentMessageContext.Connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
+                        await _connectionService.AcceptRequestAsync(agentMessageContext.AgentContext.Wallet, connectionId);
                     return;
                 case MessageTypes.ConnectionResponse:
-                    var response = item.ToObject<ConnectionResponseMessage>();
-                    await _connectionService.ProcessResponseAsync(context.Wallet, response, context.Connection);
+                    var response = agentMessageContext.GetMessage<ConnectionResponseMessage>();
+                    await _connectionService.ProcessResponseAsync(agentMessageContext.AgentContext.Wallet, response, agentMessageContext.Connection);
                     return;
                 default:
                     throw new AgentFrameworkException(ErrorCode.InvalidMessage,
-                        $"Unsupported message type {messageType}");
+                        $"Unsupported message type {agentMessageContext.MessageType}");
             }
         }
     }

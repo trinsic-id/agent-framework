@@ -27,7 +27,7 @@ namespace WebAgent.Controllers
             IConnectionService connectionService, 
             IWalletService walletService, 
             IWalletRecordService recordService,
-            IProvisioningService provisioningService, 
+            IProvisioningService provisioningService,
             IRouterService routerService,
             IOptions<WalletOptions> walletOptions)
         {

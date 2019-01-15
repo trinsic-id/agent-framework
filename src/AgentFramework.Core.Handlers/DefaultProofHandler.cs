@@ -4,15 +4,16 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Proofs;
-using Newtonsoft.Json.Linq;
+using AgentFramework.Core.Models;
+using AgentFramework.Core.Models.Messaging;
 
-namespace AgentFramework.Core.Handlers.Default
+namespace AgentFramework.Core.Handlers
 {
-    public class ProofHandler : IMessageHandler
+    public class DefaultProofHandler : IMessageHandler
     {
         private readonly IProofService _proofService;
 
-        public ProofHandler(IProofService proofService)
+        public DefaultProofHandler(IProofService proofService)
         {
             _proofService = proofService;
         }
@@ -32,29 +33,25 @@ namespace AgentFramework.Core.Handlers.Default
         /// <summary>
         /// Processes the agent message
         /// </summary>
-        /// <param name="agentMessage">The agent message.</param>
-        /// <param name="context">The context.</param>
+        /// <param name="agentMessageContext">The agent message agentContext.</param>
         /// <returns></returns>
         /// <exception cref="AgentFrameworkException">Unsupported message type {messageType}</exception>
-        public async Task ProcessAsync(string agentMessage, ConnectionContext context)
+        public async Task ProcessAsync(MessageContext agentMessageContext)
         {
-            var item = JObject.Parse(agentMessage);
-            var messageType = item["@type"].ToObject<string>();
-
-            switch (messageType)
+            switch (agentMessageContext.MessageType)
             {
                 case MessageTypes.ProofRequest:
-                    var request = item.ToObject<ProofRequestMessage>();
-                    await _proofService.ProcessProofRequestAsync(context.Wallet, request, context.Connection);
+                    var request = agentMessageContext.GetMessage<ProofRequestMessage>();
+                    await _proofService.ProcessProofRequestAsync(agentMessageContext.AgentContext.Wallet, request, agentMessageContext.Connection);
                     break;
 
                 case MessageTypes.DisclosedProof:
-                    var proof = item.ToObject<ProofMessage>();
-                    await _proofService.ProcessProofAsync(context.Wallet, proof, context.Connection);
+                    var proof = agentMessageContext.GetMessage<ProofMessage>();
+                    await _proofService.ProcessProofAsync(agentMessageContext.AgentContext.Wallet, proof, agentMessageContext.Connection);
                     break;
                 default:
                     throw new AgentFrameworkException(ErrorCode.InvalidMessage,
-                        $"Unsupported message type {messageType}");
+                        $"Unsupported message type {agentMessageContext.MessageType}");
             }
         }
     }
