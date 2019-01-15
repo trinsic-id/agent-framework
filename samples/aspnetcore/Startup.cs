@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using AgentFramework.AspNetCore.Configuration.Service;
 using AgentFramework.AspNetCore.Options;
-using AgentFramework.Core.Handlers;
 using Jdenticon.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -28,10 +27,9 @@ namespace WebAgent
             services.AddMvc();
 
             // Register agent framework dependency services and handlers
-            services.AddAgentFramework(c => c.SetPoolOptions(new PoolOptions { GenesisFilename = Path.GetFullPath("pool_genesis.txn") })
-                                             .OverrideDefaultMessageHandlers()
-                                             .AddMessageHandler<PrivateMessageHandler>()
-                                             .AddMessageHandler<DefaultConnectionHandler>());
+            services.AddAgent(c => c.SetPoolOptions(new PoolOptions { GenesisFilename = Path.GetFullPath("pool_genesis.txn") }));
+            // Register our message handler with DI
+            services.AddSingleton<PrivateMessageHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,7 +49,7 @@ namespace WebAgent
 
             // Add agent middleware
             var agentBaseUrl = new Uri(Environment.GetEnvironmentVariable("ASPNETCORE_URLS"));
-            app.UseAgentFramework($"{new Uri(agentBaseUrl, "/agent")}",
+            app.UseAgent<WebAgentMiddleware>($"{new Uri(agentBaseUrl, "/agent")}",
                 obj =>
                 {
                     obj.AddOwnershipInfo(NameGenerator.GetRandomName(), null);

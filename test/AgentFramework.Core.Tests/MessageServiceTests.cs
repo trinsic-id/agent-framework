@@ -171,7 +171,7 @@ namespace AgentFramework.Core.Tests
                 }
                 .ToByteArray();
 
-            var context = await _messagingService.RecieveAsync(_wallet, message);
+            var context = await _messagingService.RecieveAsync(new AgentContext { Wallet = _wallet}, message);
 
             Assert.True(context.MessageType == MessageTypes.ConnectionRequest);
             Assert.True(context.MessageData.Length != 0);
@@ -196,7 +196,7 @@ namespace AgentFramework.Core.Tests
                 }
                 .ToByteArray();
 
-            var context = await _messagingService.RecieveAsync(_wallet, message);
+            var context = await _messagingService.RecieveAsync(new AgentContext { Wallet = _wallet }, message);
 
             Assert.True(context.MessageType == MessageTypes.ConnectionRequest);
             Assert.True(context.MessageData.Length != 0);
@@ -231,7 +231,7 @@ namespace AgentFramework.Core.Tests
                 }
                 .ToByteArray();
 
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _messagingService.RecieveAsync(_wallet, message));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _messagingService.RecieveAsync(new AgentContext { Wallet = _wallet }, message));
             Assert.True(ex.ErrorCode == ErrorCode.MessageUnpackError);
 
             if (dummyWallet != null) await dummyWallet.CloseAsync();
