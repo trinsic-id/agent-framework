@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages.Routing;
+using AgentFramework.Core.Models;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.DependencyInjection;
@@ -54,7 +55,9 @@ namespace AgentFramework.Core.Handlers
         {
             var messageService = ServiceProvider.GetService<IMessageService>();
 
-            var outerMessageContext = await messageService.RecieveAsync(wallet, body);
+            var agentContext = new AgentContext {Wallet = wallet, Pool = pool};
+
+            var outerMessageContext = await messageService.RecieveAsync(agentContext, body);
 
             ForwardMessage forwardMessage;
             try
@@ -67,13 +70,13 @@ namespace AgentFramework.Core.Handlers
             }
 
             var innerMessageContents = Convert.FromBase64String(forwardMessage.Message);
-            var innerMessageContext = await messageService.RecieveAsync(wallet, innerMessageContents);
+            var innerMessageContext = await messageService.RecieveAsync(agentContext, innerMessageContents);
             
             var handler = Handlers.FirstOrDefault(x =>
                 x.SupportedMessageTypes.Any(y => y.Equals(innerMessageContext.MessageType, StringComparison.OrdinalIgnoreCase)));
             if (handler != null)
             {
-                await handler.ProcessAsync(innerMessageContext, new ConnectionContext { Wallet = wallet, Pool = pool, Connection = innerMessageContext.Connection});
+                await handler.ProcessAsync(innerMessageContext);
             }
             else
             {

@@ -7,6 +7,7 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Routing;
+using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Messaging;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Utils;
@@ -95,7 +96,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<MessageContext> RecieveAsync(Wallet wallet, byte[] rawMessage)
+        public virtual async Task<MessageContext> RecieveAsync(AgentContext agentContext, byte[] rawMessage)
         {
             string theirKey = null, _;
 
@@ -107,7 +108,7 @@ namespace AgentFramework.Core.Runtime
             {
                 var result =
                 await Crypto.AuthDecryptAsync(
-                    wallet,
+                    agentContext.Wallet,
                     wireMessage.To,
                     wireMessage.Message.GetBytesFromBase64());
 
@@ -119,7 +120,7 @@ namespace AgentFramework.Core.Runtime
                 try
                 {
                     messageData = (await Crypto.AnonDecryptAsync(
-                        wallet,
+                        agentContext.Wallet,
                         wireMessage.To,
                         wireMessage.Message.GetBytesFromBase64()));
                 }
@@ -131,10 +132,10 @@ namespace AgentFramework.Core.Runtime
 
             if (!string.IsNullOrEmpty(theirKey))
             {
-                return new MessageContext(messageData, await ConnectionService.ResolveByMyKeyAsync(wallet, theirKey));
+                return new MessageContext(messageData, agentContext, await ConnectionService.ResolveByMyKeyAsync(agentContext.Wallet, theirKey));
             }
 
-            return new MessageContext(messageData);
+            return new MessageContext(messageData, agentContext);
         }
     }
 }

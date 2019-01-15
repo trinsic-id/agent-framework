@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AgentFramework.Core.Messages;
+using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Messaging;
 using AgentFramework.Core.Models.Records;
 using Hyperledger.Indy.WalletApi;
@@ -24,9 +25,9 @@ namespace AgentFramework.Core.Contracts
         /// <summary>
         /// Recieves an agent message asynchronously constructing a context object.
         /// </summary>
-        /// <param name="wallet">The wallet.</param>
+        /// <param name="agentContext">The agent context.</param>
         /// <param name="message">The message.</param>
         /// <returns>The message context asynchronously.</returns>
-        Task<MessageContext> RecieveAsync(Wallet wallet, byte[] message);
+        Task<MessageContext> RecieveAsync(AgentContext agentContext, byte[] message);
     }
 }

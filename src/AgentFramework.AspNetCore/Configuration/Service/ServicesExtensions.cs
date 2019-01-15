@@ -23,35 +23,31 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// </summary>
         /// <param name="services">The services.</param>
         /// <param name="agentConfiguration">The agent configuration.</param>
-        /// <param name="serviceConfiguration">The service resolution configuration</param>
-        public static void AddAgent(this IServiceCollection services,
-            Action<AgentConfiguration> agentConfiguration = null, Action<AgentServicesBuilder> serviceConfiguration = null)
+        public static void AddAgentFramework(this IServiceCollection services,
+            Action<AgentConfigurationBuilder> agentConfiguration = null)
         {
             RegisterCoreServices(services);
 
-            var serviceBuilder = new AgentServicesBuilder(services);
-            serviceConfiguration?.Invoke(serviceBuilder);
+            var serviceBuilder = new AgentConfigurationBuilder(services);
+            agentConfiguration?.Invoke(serviceBuilder);
 
-            serviceBuilder.AddCoreServices();
+            serviceBuilder.AddDefaultServices();
 
             if (serviceBuilder.RegisterCoreMessageHandlers)
-                serviceBuilder.AddCoreMessageHandlers();
+                serviceBuilder.AddDefaultMessageHandlers();
 
             services = serviceBuilder.Services;
 
-            var defaultConfiguration = new AgentConfiguration();
-            agentConfiguration?.Invoke(defaultConfiguration);
-
             services.Configure<WalletOptions>(obj =>
             {
-                obj.WalletConfiguration = defaultConfiguration.WalletOptions.WalletConfiguration;
-                obj.WalletCredentials = defaultConfiguration.WalletOptions.WalletCredentials;
+                obj.WalletConfiguration = serviceBuilder.WalletOptions.WalletConfiguration;
+                obj.WalletCredentials = serviceBuilder.WalletOptions.WalletCredentials;
             });
 
             services.Configure<PoolOptions>(obj =>
             {
-                obj.PoolName = defaultConfiguration.PoolOptions.PoolName;
-                obj.GenesisFilename = defaultConfiguration.PoolOptions.GenesisFilename;
+                obj.PoolName = serviceBuilder.PoolOptions.PoolName;
+                obj.GenesisFilename = serviceBuilder.PoolOptions.GenesisFilename;
             });
         }
 
@@ -61,8 +57,8 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="app">App.</param>
         /// <param name="endpointUri">The endpointUri.</param>
         /// <param name="agentOptions">Options.</param>
-        public static void UseAgent(this IApplicationBuilder app, string endpointUri,
-            Action<AgentBuilder> agentOptions = null) => UseAgent<AgentMiddleware>(app, endpointUri, agentOptions);
+        public static void UseAgentFramework(this IApplicationBuilder app, string endpointUri,
+            Action<AgentBuilder> agentOptions = null) => UseAgentFramework<AgentMiddleware>(app, endpointUri, agentOptions);
 
         /// <summary>
         /// Allows agent configuration by specifying a custom middleware
@@ -70,7 +66,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="app">App.</param>
         /// <param name="endpointUri">The endpointUri.</param>
         /// <param name="agentOptions">Options.</param>
-        public static void UseAgent<T>(this IApplicationBuilder app, string endpointUri,
+        public static void UseAgentFramework<T>(this IApplicationBuilder app, string endpointUri,
             Action<AgentBuilder> agentOptions = null)
         {
             if (string.IsNullOrWhiteSpace(endpointUri)) throw new ArgumentNullException(nameof(endpointUri));

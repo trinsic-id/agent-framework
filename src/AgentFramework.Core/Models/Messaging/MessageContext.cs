@@ -10,15 +10,17 @@ namespace AgentFramework.Core.Models.Messaging
     /// </summary>
     public class MessageContext
     {
-        public MessageContext(byte[] messageData, ConnectionRecord connection)
+        public MessageContext(byte[] messageData, AgentContext agentContext, ConnectionRecord connection)
         {
             MessageData = messageData;
+            AgentContext = agentContext;
             Connection = connection;
         }
 
-        public MessageContext(byte[] messageData)
+        public MessageContext(byte[] messageData, AgentContext agentContext)
         {
             MessageData = messageData;
+            AgentContext = agentContext;
         }
 
         /// <summary>
@@ -36,12 +38,17 @@ namespace AgentFramework.Core.Models.Messaging
         /// </summary>
         /// <typeparam name="T">The generic type the message will be cast to.</typeparam>
         /// <returns>The agent message.</returns>
-        public T GetMessage<T>() where T : IAgentMessage => MessageData.GetUTF8String().ToObject<T>();
+        public T GetMessage<T>() where T : IAgentMessage => MessageData.ToObject<T>();
 
         /// <summary>
         /// The associated connection to the agent message.
         /// </summary>
         public ConnectionRecord Connection { get; }
+
+        /// <summary>
+        /// The associated agent context to the message.
+        /// </summary>
+        public AgentContext AgentContext { get; set; }
 
         //TODO here is where the ThreadContext will live
     }
