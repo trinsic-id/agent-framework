@@ -59,7 +59,7 @@ namespace AgentFramework.Core.Tests
                 .Returns(
                     Task.FromResult<ProvisioningRecord>(new ProvisioningRecord() {MasterSecretId = MasterSecretId}));
 
-            var routingMock = new Mock<IMessagingService>();
+            var routingMock = new Mock<IMessageService>();
             routingMock.Setup(x =>
                     x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
                 .Callback((Wallet _, IAgentMessage content, ConnectionRecord __, string ___) =>

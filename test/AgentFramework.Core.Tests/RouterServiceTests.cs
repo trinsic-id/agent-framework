@@ -32,7 +32,7 @@ namespace AgentFramework.Core.Tests
 
         private Wallet _wallet;
 
-        private readonly IMessagingService _messagingService;
+        private readonly IMessageService _messagingService;
 
         private readonly ConcurrentBag<HttpRequestMessage> _messages = new ConcurrentBag<HttpRequestMessage>();
 
@@ -63,8 +63,8 @@ namespace AgentFramework.Core.Tests
             var httpClient = new HttpClient(handlerMock.Object);
             
 
-            _messagingService = new DefaultMessagingService(new Mock<IConnectionService>().Object,
-                new Mock<ILogger<DefaultMessagingService>>().Object, httpClient);
+            _messagingService = new DefaultMessageService(new Mock<IConnectionService>().Object,
+                new Mock<ILogger<DefaultMessageService>>().Object, httpClient);
         }
 
         public async Task InitializeAsync()
