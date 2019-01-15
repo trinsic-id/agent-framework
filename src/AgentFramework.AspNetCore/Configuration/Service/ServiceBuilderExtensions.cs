@@ -161,7 +161,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
-        public static AgentServicesBuilder AddExtendedRouterService<TService, TImplementation>(this AgentServicesBuilder builder)
+        public static AgentServicesBuilder AddExtendedMessagingService<TService, TImplementation>(this AgentServicesBuilder builder)
             where TService : class, IMessagingService
             where TImplementation : class, TService, IMessagingService
         {
@@ -171,7 +171,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
-        public static AgentServicesBuilder AddExtendedRouterService<TImplementation>(this AgentServicesBuilder builder)
+        public static AgentServicesBuilder AddExtendedMessagingService<TImplementation>(this AgentServicesBuilder builder)
             where TImplementation : class, IMessagingService
         {
             builder.Services.AddSingleton<IMessagingService, TImplementation>();
