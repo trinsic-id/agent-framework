@@ -1,4 +1,6 @@
-# Agent Framework - .NET Core library for Sovrin agents
+# Agent Framework
+
+## .NET Core library for building Sovrin agents
 
 [![Build Status](https://dev.azure.com/streetcred/Agent%20Framework/_apis/build/status/Agent%20Framework%20-%20Build?branchName=master)](https://dev.azure.com/streetcred/Agent%20Framework/_build/latest?definitionId=10?branchName=master)
 [![Build Status](https://travis-ci.com/streetcred-id/agent-framework.svg?branch=master)](https://travis-ci.com/streetcred-id/agent-framework)
@@ -8,7 +10,7 @@ Agent Framework is a .NET Core library for building Sovrin interoperable agent s
 It is an abstraction on top of Indy SDK that provides a set of API's for managing agent workflows.
 The framework runs .NET Standard (2.0+), including ASP.NET Core and Xamarin.
 
-## Documentation
+### Documentation
 
 - [Installation and configuration](https://agent-framework.readthedocs.io/en/latest/installation.html)
 - [Agent Workflows](https://agent-framework.readthedocs.io/en/latest/quickstart.html)
@@ -17,7 +19,7 @@ The framework runs .NET Standard (2.0+), including ASP.NET Core and Xamarin.
 - [Hosting agents in docker containers](https://agent-framework.readthedocs.io/en/latest/docker.html)
 - [Samples and demos](https://agent-framework.readthedocs.io/en/latest/samples.html)
 
-## A very quick demo
+### A very quick demo
 
 With [Docker](https://www.docker.com) installed, run
 

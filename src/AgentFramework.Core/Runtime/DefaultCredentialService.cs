@@ -21,15 +21,50 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultCredentialService : ICredentialService
     {
+        /// <summary>
+        /// The router service
+        /// </summary>
         protected readonly IRouterService RouterService;
+        /// <summary>
+        /// The ledger service
+        /// </summary>
         protected readonly ILedgerService LedgerService;
+        /// <summary>
+        /// The connection service
+        /// </summary>
         protected readonly IConnectionService ConnectionService;
+        /// <summary>
+        /// The record service
+        /// </summary>
         protected readonly IWalletRecordService RecordService;
+        /// <summary>
+        /// The schema service
+        /// </summary>
         protected readonly ISchemaService SchemaService;
+        /// <summary>
+        /// The tails service
+        /// </summary>
         protected readonly ITailsService TailsService;
+        /// <summary>
+        /// The provisioning service
+        /// </summary>
         protected readonly IProvisioningService ProvisioningService;
+        /// <summary>
+        /// The logger
+        /// </summary>
         protected readonly ILogger<DefaultCredentialService> Logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DefaultCredentialService"/> class.
+        /// </summary>
+        /// <param name="routerService">The router service.</param>
+        /// <param name="ledgerService">The ledger service.</param>
+        /// <param name="connectionService">The connection service.</param>
+        /// <param name="recordService">The record service.</param>
+        /// <param name="schemaService">The schema service.</param>
+        /// <param name="tailsService">The tails service.</param>
+        /// <param name="provisioningService">The provisioning service.</param>
+        /// <param name="logger">The logger.</param>
         public DefaultCredentialService(
             IRouterService routerService,
             ILedgerService ledgerService,

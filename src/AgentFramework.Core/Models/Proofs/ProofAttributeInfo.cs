@@ -55,7 +55,9 @@ namespace AgentFramework.Core.Models.Proofs
         /// <summary>
         /// Gets or sets the non revoked.
         /// </summary>
-        /// <value>The non revoked.</value>
+        /// <value>
+        /// The non revoked.
+        /// </value>
         [JsonProperty("non_revoked", NullValueHandling = NullValueHandling.Ignore)]
         public RevocationInterval NonRevoked { get; set; }
     }

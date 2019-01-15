@@ -6,6 +6,7 @@
     /// </summary>
     public static class TagConstants
     {
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public const string Nonce = "nonce";
 
         public const string Did = "did";
@@ -25,5 +26,7 @@
         public const string Holder = "holder";
 
         public const string Requestor = "requestor";
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+
     }
 }

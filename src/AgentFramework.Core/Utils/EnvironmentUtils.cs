@@ -27,6 +27,11 @@ namespace AgentFramework.Core.Utils
             return Path.Combine(GetUserPath(), ".indy_client");
         }
 
+        /// <summary>
+        /// Gets the indy home path.
+        /// </summary>
+        /// <param name="paths">The paths.</param>
+        /// <returns></returns>
         public static string GetIndyHomePath(params string[] paths)
         {
             var pathParts = new List<string>(paths);
