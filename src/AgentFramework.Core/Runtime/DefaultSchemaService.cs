@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -21,6 +21,13 @@ namespace AgentFramework.Core.Runtime
         protected readonly ILedgerService LedgerService;
         protected readonly ITailsService TailsService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DefaultSchemaService"/> class.
+        /// </summary>
+        /// <param name="provisioningService">Provisioning service.</param>
+        /// <param name="recordService">Record service.</param>
+        /// <param name="ledgerService">Ledger service.</param>
+        /// <param name="tailsService">Tails service.</param>
         public DefaultSchemaService(
             IProvisioningService provisioningService,
             IWalletRecordService recordService,
@@ -173,7 +180,7 @@ namespace AgentFramework.Core.Runtime
 
         /// <inheritdoc />
         public virtual async Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
-            bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri)
+            bool supportsRevocation, int maxCredentialCount)
         {
             var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
             if (provisioning?.IssuerDid == null)
@@ -183,7 +190,7 @@ namespace AgentFramework.Core.Runtime
             }
 
             return await CreateCredentialDefinitionAsync(pool, wallet, schemaId, provisioning.IssuerDid,
-                supportsRevocation, maxCredentialCount, tailsBaseUri);
+                supportsRevocation, maxCredentialCount, new Uri(provisioning.TailsBaseUri));
         }
 
         /// TODO this should return a definition object

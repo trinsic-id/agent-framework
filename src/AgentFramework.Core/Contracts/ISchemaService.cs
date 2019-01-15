@@ -64,10 +64,9 @@ namespace AgentFramework.Core.Contracts
         /// <param name="schemaId">The schema identifier.</param>
         /// <param name="supportsRevocation">if set to <c>true</c> [supports revocation].</param>
         /// <param name="maxCredentialCount">The maximum credential count.</param>
-        /// <param name="tailsBaseUri">The tails base URI.</param>
         /// <returns></returns>
         Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
-            bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri);
+            bool supportsRevocation, int maxCredentialCount);
 
         /// <summary>
         /// Gets the schemas asynchronous.
