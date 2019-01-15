@@ -76,7 +76,7 @@ namespace AgentFramework.Core.Extensions
                              SearchQuery.Equal(TagConstants.ConnectionKey, myKey), 1)).FirstOrDefault();
             
             if (record == null)
-                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Connection Record not found");
+                throw new AgentFrameworkException(ErrorCode.RecordNotFound, $"Connection Record not found for key {myKey}");
 
             return record;
         }

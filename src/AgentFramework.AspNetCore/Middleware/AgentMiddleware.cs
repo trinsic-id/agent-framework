@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
-using AgentFramework.Core.Handlers.Default;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -15,23 +14,18 @@ namespace AgentFramework.AspNetCore.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly IWalletService _walletService;
-        private readonly IPoolService _poolService;
-        private readonly PoolOptions _poolOptions;
         private readonly WalletOptions _walletOptions;
 
         public AgentMiddleware(RequestDelegate next,
             IWalletService walletService,
-            IPoolService poolService,
             IServiceProvider serviceProvider,
-            IOptions<WalletOptions> walletOptions,
-            IOptions<PoolOptions> poolOptions)
+            IOptions<WalletOptions> walletOptions)
             : base(serviceProvider)
         {
             _next = next;
             _walletService = walletService;
-            _poolService = poolService;
-            _poolOptions = poolOptions.Value;
             _walletOptions = walletOptions.Value;
+            Handlers = ServiceProvider.GetServices<IMessageHandler>();
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -51,17 +45,11 @@ namespace AgentFramework.AspNetCore.Middleware
                 body,
                 await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
                     _walletOptions.WalletCredentials));
-                //await _poolService.GetPoolAsync(_poolOptions.PoolName, _poolOptions.ProtocolVersion));
 
             context.Response.StatusCode = 200;
             await context.Response.WriteAsync(string.Empty);
         }
 
-        public override IEnumerable<IMessageHandler> Handlers => new IMessageHandler[]
-        {
-            ServiceProvider.GetService<ConnectionHandler>(),
-            ServiceProvider.GetService<CredentialHandler>(),
-            ServiceProvider.GetService<ProofHandler>()
-        };
+        public override IEnumerable<IMessageHandler> Handlers { get; }
     }
 }

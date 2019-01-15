@@ -35,7 +35,7 @@ namespace AgentFramework.Core.Tests
 
         public ConnectionTests()
         {
-            var routingMock = new Mock<IRouterService>();
+            var routingMock = new Mock<IMessageService>();
             routingMock.Setup(x =>
                     x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
                 .Callback((Wallet _, IAgentMessage content, ConnectionRecord __, string ___) =>
