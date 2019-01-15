@@ -94,6 +94,8 @@ namespace WebAgent.Controllers
         [HttpPost]
         public async Task<IActionResult> SendMessage(string connectionId, string text)
         {
+            if (string.IsNullOrEmpty(text)) return RedirectToAction("Details", new { id = connectionId });
+
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
 
             var messageRecord = new PrivateMessageRecord
@@ -114,6 +116,12 @@ namespace WebAgent.Controllers
             await _routerService.SendAsync(wallet, message, connection);
 
             return RedirectToAction("Details", new {id = connectionId});
+        }
+
+        [HttpPost]
+        public IActionResult LaunchApp(LaunchAppViewModel model)
+        {
+            return Redirect($"{model.UriSchema}{Uri.EscapeDataString(model.InvitationDetails)}");
         }
 
         /// <summary>

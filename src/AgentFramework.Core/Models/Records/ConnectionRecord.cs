@@ -14,16 +14,28 @@ namespace AgentFramework.Core.Models.Records
     {
         private ConnectionState _state;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ConnectionRecord"/> class.
+        /// </summary>
         public ConnectionRecord()
         {
             State = ConnectionState.Invited;
         }
 
+        /// <summary>
+        /// Creates a shallow copy of the current <see cref="ConnectionRecord"/>
+        /// </summary>
+        /// <returns></returns>
         public ConnectionRecord ShallowCopy()
         {
             return (ConnectionRecord)this.MemberwiseClone();
         }
 
+
+        /// <summary>
+        /// Creates a deep copy of the current <see cref="ConnectionRecord"/>
+        /// </summary>
+        /// <returns></returns>
         public ConnectionRecord DeepCopy()
         {
             ConnectionRecord copy = (ConnectionRecord)this.MemberwiseClone();
@@ -140,8 +152,17 @@ namespace AgentFramework.Core.Models.Records
     [JsonConverter(typeof(StringEnumConverter))]
     public enum ConnectionState
     {
+        /// <summary>
+        /// The invited
+        /// </summary>
         Invited = 0,
+        /// <summary>
+        /// The negotiating
+        /// </summary>
         Negotiating,
+        /// <summary>
+        /// The connected
+        /// </summary>
         Connected
     }
 
@@ -150,8 +171,17 @@ namespace AgentFramework.Core.Models.Records
     /// </summary>
     public enum ConnectionTrigger
     {
+        /// <summary>
+        /// The invitation accept
+        /// </summary>
         InvitationAccept,
+        /// <summary>
+        /// The request
+        /// </summary>
         Request,
+        /// <summary>
+        /// The response
+        /// </summary>
         Response
     }
 }

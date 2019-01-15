@@ -20,11 +20,30 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultConnectionService : IConnectionService
     {
+        /// <summary>
+        /// The record service
+        /// </summary>
         protected readonly IWalletRecordService RecordService;
+        /// <summary>
+        /// The router service
+        /// </summary>
         protected readonly IRouterService RouterService;
+        /// <summary>
+        /// The provisioning service
+        /// </summary>
         protected readonly IProvisioningService ProvisioningService;
+        /// <summary>
+        /// The logger
+        /// </summary>
         protected readonly ILogger<DefaultConnectionService> Logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DefaultConnectionService"/> class.
+        /// </summary>
+        /// <param name="recordService">The record service.</param>
+        /// <param name="routerService">The router service.</param>
+        /// <param name="provisioningService">The provisioning service.</param>
+        /// <param name="logger">The logger.</param>
         public DefaultConnectionService(
             IWalletRecordService recordService,
             IRouterService routerService,

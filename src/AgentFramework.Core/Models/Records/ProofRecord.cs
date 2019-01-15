@@ -100,8 +100,17 @@ namespace AgentFramework.Core.Models.Records
     /// </summary>
     public enum ProofState
     {
+        /// <summary>
+        /// The requested
+        /// </summary>
         Requested = 0,
+        /// <summary>
+        /// The accepted
+        /// </summary>
         Accepted = 1,
+        /// <summary>
+        /// The rejected
+        /// </summary>
         Rejected = 2
     }
 
@@ -110,8 +119,17 @@ namespace AgentFramework.Core.Models.Records
     /// </summary>
     public enum ProofTrigger
     {
+        /// <summary>
+        /// The request
+        /// </summary>
         Request,
+        /// <summary>
+        /// The accept
+        /// </summary>
         Accept,
+        /// <summary>
+        /// The reject
+        /// </summary>
         Reject
     }
 }

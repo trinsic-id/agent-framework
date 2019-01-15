@@ -3,7 +3,7 @@
 
 <div class="row mt-2">
     <div class="col-md-auto">
-        <div class="card text-center">
+        <div class="card text-center mb-2">
             <div class="card-body">
                 <img style="width: 100px; height: 100px" src="@Url.Identicon(Model.Connection.Alias.Name, size: 200)" class="rounded-circle border border-dark" alt="@Model.Connection.Alias.Name">
                 <h5 class="card-title mt-2">@Model.Connection.Alias.Name</h5>
@@ -22,20 +22,26 @@
                 Conversation
             </div>
             <div class="card-body ">
-                @foreach (var message in Model.Messages.OrderBy(x => x.CreatedAtUtc))
+                @if (!Model.Messages.Any())
                 {
-                    if (message.Direction == MessageDirection.Incoming)
+                    <small class="text-muted">No messages</small>
+                }
+                else
+                {
+                    foreach (var message in Model.Messages.OrderBy(x => x.CreatedAtUtc))
                     {
+                        if (message.Direction == MessageDirection.Incoming)
+                        {
                         <div class="d-flex flex-row">
                             <div class="p-2 mb-2 mr-5 bg-primary text-white rounded">@message.Text</div></div>
-                    }
-                    else
-                    {
+                        }
+                        else
+                        {
                         <div class="d-flex flex-row-reverse">
                             <div class="p-2 mb-2 ml-5 bg-secondary text-white rounded">@message.Text</div></div>
+                        }
                     }
                 }
-                
             </div>
             <div class="card-footer">
                 <form class="input-group mb-3" asp-controller="Connections" asp-action="SendMessage">
