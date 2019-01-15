@@ -20,7 +20,6 @@ namespace AgentFramework.AspNetCore.Configuration
 
         internal Uri TailsBaseUri;
 
-        private readonly IWalletService _walletService;
         private readonly IPoolService _poolService;
         private readonly IProvisioningService _provisioningService;
         private readonly WalletOptions _walletOptions;
@@ -28,13 +27,11 @@ namespace AgentFramework.AspNetCore.Configuration
         private bool _createIssuer;
 
         public AgentBuilder(
-            IWalletService walletService,
             IPoolService poolService,
             IProvisioningService provisioningService,
             IOptions<WalletOptions> walletOptions,
             IOptions<PoolOptions> poolOptions)
         {
-            _walletService = walletService;
             _poolService = poolService;
             _provisioningService = provisioningService;
             _walletOptions = walletOptions.Value;

@@ -15,6 +15,8 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             Services = services ?? throw new ArgumentNullException(nameof(services));
         }
 
+        public bool RegisterCoreMessageHandlers { get; internal set; } = true;
+
         /// <summary>
         /// Services collection 
         /// </summary>

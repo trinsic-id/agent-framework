@@ -10,15 +10,15 @@ using Newtonsoft.Json.Linq;
 
 namespace AgentFramework.Core.Handlers.Default
 {
-    public class ConnectionHandler : IMessageHandler
+    public class DefaultConnectionHandler : IMessageHandler
     {
         private readonly IConnectionService _connectionService;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConnectionHandler"/> class.
+        /// Initializes a new instance of the <see cref="DefaultConnectionHandler"/> class.
         /// </summary>
         /// <param name="connectionService">The connection service.</param>
-        public ConnectionHandler(IConnectionService connectionService)
+        public DefaultConnectionHandler(IConnectionService connectionService)
         {
             _connectionService = connectionService;
         }

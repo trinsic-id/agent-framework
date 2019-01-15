@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
 using AgentFramework.AspNetCore.Runtime;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Handlers.Default;
 using AgentFramework.Core.Runtime;
 using Microsoft.Extensions.Caching.Memory;
@@ -11,7 +12,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
 {
     public static class ServiceBuilderExtensions
     {
-        public static AgentServicesBuilder AddCoreServices(this AgentServicesBuilder builder)
+        internal static AgentServicesBuilder AddCoreServices(this AgentServicesBuilder builder)
         {
             builder.Services.TryAddSingleton<IConnectionService, DefaultConnectionService>();
             builder.Services.TryAddSingleton<ICredentialService, DefaultCredentialService>();
@@ -25,11 +26,27 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             builder.Services.TryAddSingleton<ITailsService, DefaultTailsService>();
             builder.Services.TryAddSingleton<IWalletRecordService, DefaultWalletRecordService>();
             builder.Services.TryAddSingleton<IWalletService, DefaultWalletService>();
+            return builder;
+        }
 
-            builder.Services.TryAddSingleton<ConnectionHandler>();
-            builder.Services.TryAddSingleton<CredentialHandler>();
-            builder.Services.TryAddSingleton<ProofHandler>();
+        internal static AgentServicesBuilder AddCoreMessageHandlers(this AgentServicesBuilder builder)
+        {
+            builder.Services.TryAddSingleton<IMessageHandler, DefaultConnectionHandler>();
+            builder.Services.TryAddSingleton<IMessageHandler, DefaultCredentialHandler>();
+            builder.Services.TryAddSingleton<IMessageHandler, DefaultProofHandler>();
+            return builder;
+        }
 
+        public static AgentServicesBuilder AddMessageHandler<TMessageHandler>(this AgentServicesBuilder builder) where TMessageHandler : class,
+            IMessageHandler
+        {
+            builder.Services.TryAddSingleton<IMessageHandler, TMessageHandler>();
+            return builder;
+        }
+
+        public static AgentServicesBuilder OverrideCoreMessageHandlers(this AgentServicesBuilder builder)
+        {
+            builder.RegisterCoreMessageHandlers = false;
             return builder;
         }
 

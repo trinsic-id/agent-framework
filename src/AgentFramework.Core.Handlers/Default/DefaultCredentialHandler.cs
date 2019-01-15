@@ -9,11 +9,11 @@ using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Handlers.Default
 {
-    public class CredentialHandler : IMessageHandler
+    public class DefaultCredentialHandler : IMessageHandler
     {
         private readonly ICredentialService _credentialService;
 
-        public CredentialHandler(ICredentialService credentialService)
+        public DefaultCredentialHandler(ICredentialService credentialService)
         {
             _credentialService = credentialService;
         }

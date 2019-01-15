@@ -43,6 +43,6 @@ namespace AgentFramework.Core.Models.Messaging
         /// </summary>
         public ConnectionRecord Connection { get; }
 
-        //TODO here is where the ThreadContext would live
+        //TODO here is where the ThreadContext will live
     }
 }

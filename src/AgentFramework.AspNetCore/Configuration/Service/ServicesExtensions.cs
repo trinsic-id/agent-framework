@@ -31,7 +31,11 @@ namespace AgentFramework.AspNetCore.Configuration.Service
 
             var serviceBuilder = new AgentServicesBuilder(services);
             serviceConfiguration?.Invoke(serviceBuilder);
+
             serviceBuilder.AddCoreServices();
+
+            if (serviceBuilder.RegisterCoreMessageHandlers)
+                serviceBuilder.AddCoreMessageHandlers();
 
             services = serviceBuilder.Services;
 

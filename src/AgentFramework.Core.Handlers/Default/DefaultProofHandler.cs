@@ -9,11 +9,11 @@ using Newtonsoft.Json.Linq;
 
 namespace AgentFramework.Core.Handlers.Default
 {
-    public class ProofHandler : IMessageHandler
+    public class DefaultProofHandler : IMessageHandler
     {
         private readonly IProofService _proofService;
 
-        public ProofHandler(IProofService proofService)
+        public DefaultProofHandler(IProofService proofService)
         {
             _proofService = proofService;
         }
