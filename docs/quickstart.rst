@@ -204,14 +204,58 @@ Established connections will have the ``State`` property set to ``Connected``.
 Credential issuance
 ===================
 
+An issuer may use the ``ICredentialService`` to issue new credentials. A credential issuance starts with a credential offer.
+
+.. code-block:: csharp
+
+    var offerConfig = new OfferConfiguration()
+    {
+        // the id of the connection record to which this offer will be sent
+        ConnectionId = connectionId, 
+        CredentialDefinitionId = definitionId
+    };
+    
+    // Send an offer to the holder using the established connection channel
+    var credentialRecordId = await credentialService.SendOfferAsync(issuerWallet, offerConfig);
+
+When credential offer is sent, new ``CredentialRecord`` will be created and it's state set to ``Offered``. You can list all credential records using
+
+.. code-block:: csharp
+
+    var credentials = await credentialService.ListAsync();
+
 Issuing credential
 ------------------
+
+.. code-block:: csharp
+
+    var values = new Dictionary<string, string>
+    {
+        {"FirstName", "Jane"},
+        {"LastName", "Doe"},
+        {"Email", "no@spam"}
+    };
+
+    // Issuer accepts the credential requests and issues a credential
+    await credentialService.IssueCredentialAsync(pool, issuerWallet, credentialRecordId, values);
+
+An issuer can issue a credential only if the credential record state is ``Requested``. This means that the holder has accepted the offer 
+and sent back a credential request message.
 
 Storing issued credential
 -------------------------
 
+If using the default handlers, once a credential has been issued and received by the holder's agent, it will be automatically stored and available in the wallet.
+
 Revocation
 ----------
+
+If the credential definition supports revocation (can only be set when creating the definition), an issuer may decide to revoke a credential.
+
+.. code-block:: csharp
+
+    // Revokes a credential, updates the tails file and sends the delta to the ledger
+    await credentialService.RevokeCredentialAsync(pool, wallet, credentialRecordId)
 
 Proof verification
 ==================
