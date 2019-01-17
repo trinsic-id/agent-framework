@@ -97,6 +97,15 @@ namespace AgentFramework.Core.Contracts
         Task<string> SendOfferAsync(Wallet wallet, OfferConfiguration config);
 
         /// <summary>
+        /// Sends a <see cref="CredentialOfferMessage" /> to the specified connection
+        /// </summary>
+        /// <returns>The offer async.</returns>
+        /// <param name="wallet">Wallet.</param>
+        /// <param name="connectionId">Connection identifier.</param>
+        /// <param name="definitionId">Definition identifier.</param>
+        Task<string> SendOfferAsync(Wallet wallet, string connectionId, string definitionId);
+
+        /// <summary>
         /// Processes the credential request and stores in the designated wallet.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
@@ -115,6 +124,16 @@ namespace AgentFramework.Core.Contracts
         /// <param name="credentialId">The credential identifier.</param>
         /// <returns></returns>
         Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId);
+
+        /// <summary>
+        /// Creates and sends a credential with the given credential identifier
+        /// </summary>
+        /// <returns>The credential async.</returns>
+        /// <param name="pool">Pool.</param>
+        /// <param name="wallet">Wallet.</param>
+        /// <param name="credentialId">Credential identifier.</param>
+        /// <param name="values">Values.</param>
+        Task IssueCredentialAsync(Pool pool, Wallet wallet, string credentialId, Dictionary<string, string> values = null);
 
         /// <summary>
         /// Creates and sends a credential with the given credential identifier. 
@@ -147,5 +166,14 @@ namespace AgentFramework.Core.Contracts
         /// <param name="credentialId">Identifier of the credential to be revoked.</param>
         /// <param name="issuerDid">The DID of the issuer who issued the credential and owns the definitions</param>
         Task RevokeCredentialAsync(Pool pool, Wallet wallet, string credentialId, string issuerDid);
+
+        /// <summary>
+        /// Revokes an issued credentials and writes the updated revocation state to the ledger
+        /// </summary>
+        /// <returns>The credential async.</returns>
+        /// <param name="pool">Pool.</param>
+        /// <param name="wallet">Wallet.</param>
+        /// <param name="credentialId">Credential identifier.</param>
+        Task RevokeCredentialAsync(Pool pool, Wallet wallet, string credentialId);
     }
 }

@@ -301,6 +301,23 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
+        public virtual async Task<string> SendOfferAsync(Wallet wallet, string connectionId, string definitionId)
+        {
+            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+            if (provisioning.IssuerDid == null)
+            {
+                throw new AgentFrameworkException(ErrorCode.InvalidProvisioning, "This agent is not provisioned as issuer.");
+            }
+
+            return await SendOfferAsync(wallet, new OfferConfiguration
+            {
+                ConnectionId = connectionId,
+                CredentialDefinitionId = definitionId,
+                IssuerDid = provisioning.IssuerDid
+            });
+        }
+
+        /// <inheritdoc />
         public virtual async Task<string> ProcessCredentialRequestAsync(Wallet wallet, CredentialRequestMessage credentialRequest, ConnectionRecord connection)
         {
             Logger.LogInformation(LoggingEvents.StoreCredentialRequest, "Type {0},", credentialRequest.Type);
@@ -349,6 +366,12 @@ namespace AgentFramework.Core.Runtime
         public virtual Task IssueCredentialAsync(Pool pool, Wallet wallet, string issuerDid, string credentialId)
         {
             return IssueCredentialAsync(pool, wallet, issuerDid, credentialId, null);
+        }
+
+        /// <inheritdoc />
+        public virtual Task IssueCredentialAsync(Pool pool, Wallet wallet, string credentialId, Dictionary<string, string> values)
+        {
+            return IssueCredentialAsync(pool, wallet, credentialId, values);
         }
 
         /// <inheritdoc />
@@ -449,6 +472,18 @@ namespace AgentFramework.Core.Runtime
 
             // Update local credential record
             await RecordService.UpdateAsync(wallet, credential);
+        }
+
+        /// <inheritdoc />
+        public virtual async Task RevokeCredentialAsync(Pool pool, Wallet wallet, string credentialId)
+        {
+            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+            if (provisioning.IssuerDid == null)
+            {
+                throw new AgentFrameworkException(ErrorCode.InvalidProvisioning, "This agent is not provisioned as issuer.");
+            }
+
+            await RevokeCredentialAsync(pool, wallet, credentialId, provisioning.IssuerDid);
         }
     }
 }

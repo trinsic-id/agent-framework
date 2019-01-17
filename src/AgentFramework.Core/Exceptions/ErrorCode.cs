@@ -33,6 +33,10 @@
         /// <summary>
         /// The message unpack error
         /// </summary>
-        MessageUnpackError
+        MessageUnpackError,
+        /// <summary>
+        /// Invalid provisioning.
+        /// </summary>
+        InvalidProvisioning
     }
 }
