@@ -28,6 +28,6 @@ namespace AgentFramework.Core.Contracts
         /// <param name="agentContext">The agent context.</param>
         /// <param name="message">The message.</param>
         /// <returns>The message context asynchronously.</returns>
-        Task<MessageContext> RecieveAsync(AgentContext agentContext, byte[] message);
+        Task<(byte[], string)> RecieveAsync(AgentContext agentContext, byte[] message);
     }
 }
