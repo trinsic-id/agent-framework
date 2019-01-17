@@ -33,6 +33,11 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             builder.Services.TryAddSingleton<IMessageHandler, DefaultConnectionHandler>();
             builder.Services.TryAddSingleton<IMessageHandler, DefaultCredentialHandler>();
             builder.Services.TryAddSingleton<IMessageHandler, DefaultProofHandler>();
+
+            builder.Services.TryAddSingleton<DefaultConnectionHandler>();
+            builder.Services.TryAddSingleton<DefaultCredentialHandler>();
+            builder.Services.TryAddSingleton<DefaultProofHandler>();
+
             return builder;
         }
 
