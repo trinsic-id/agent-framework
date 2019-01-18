@@ -2,6 +2,9 @@
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using System.Threading.Tasks;
+using AgentFramework.Core.Models;
+using AgentFramework.Core.Models.Messaging;
+using AgentFramework.Core.Models.Records;
 
 namespace WebAgent.Messages
 {
@@ -14,14 +17,14 @@ namespace WebAgent.Messages
             _recordService = recordService;
         }
 
-        protected override Task ProcessAsync(PrivateMessage message, ConnectionContext context)
+        protected override Task ProcessAsync(PrivateMessage message, AgentContext context, ConnectionRecord connection)
         {
-            Console.WriteLine($"Processing message by {context.Connection.Id}");
+            Console.WriteLine($"Processing message by {connection.Id}");
 
             return _recordService.AddAsync(context.Wallet, new PrivateMessageRecord
             {
                 Id = Guid.NewGuid().ToString(),
-                ConnectionId = context.Connection.Id,
+                ConnectionId = connection.Id,
                 Text = message.Text,
                 Direction = MessageDirection.Incoming
             });

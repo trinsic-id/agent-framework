@@ -20,7 +20,7 @@ namespace WebAgent.Controllers
         private readonly IWalletService _walletService;
         private readonly IWalletRecordService _recordService;
         private readonly IProvisioningService _provisioningService;
-        private readonly IRouterService _routerService;
+        private readonly IMessageService _routerService;
         private readonly WalletOptions _walletOptions;
 
         public ConnectionsController(
@@ -28,7 +28,7 @@ namespace WebAgent.Controllers
             IWalletService walletService, 
             IWalletRecordService recordService,
             IProvisioningService provisioningService,
-            IRouterService routerService,
+            IMessageService routerService,
             IOptions<WalletOptions> walletOptions)
         {
             _connectionService = connectionService;

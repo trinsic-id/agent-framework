@@ -27,7 +27,7 @@ namespace WebAgent
             services.AddMvc();
 
             // Register agent framework dependency services and handlers
-            services.AddAgent(c => c.SetPoolOptions(new PoolOptions { GenesisFilename = Path.GetFullPath("pool_genesis.txn") }));
+            services.AddAgentFramework(c => c.SetPoolOptions(new PoolOptions { GenesisFilename = Path.GetFullPath("pool_genesis.txn") }));
             // Register our message handler with DI
             services.AddSingleton<PrivateMessageHandler>();
         }
@@ -49,7 +49,7 @@ namespace WebAgent
 
             // Add agent middleware
             var agentBaseUrl = new Uri(Environment.GetEnvironmentVariable("ASPNETCORE_URLS"));
-            app.UseAgent<WebAgentMiddleware>($"{new Uri(agentBaseUrl, "/agent")}",
+            app.UseAgentFramework<WebAgentMiddleware>($"{new Uri(agentBaseUrl, "/agent")}",
                 obj =>
                 {
                     obj.AddOwnershipInfo(NameGenerator.GetRandomName(), null);
