@@ -117,7 +117,7 @@ namespace AgentFramework.Core.Runtime
             {
                 var agent = await Did.CreateAndStoreMyDidAsync(wallet, new {seed = configuration.AgentSeed}.ToJson());
                 endpoint.Did = agent.Did;
-                endpoint.Uri = agent.VerKey;
+                endpoint.Verkey = agent.VerKey;
             }
             else if (configuration.AgentDid != null && configuration.AgentVerkey != null)
             {
