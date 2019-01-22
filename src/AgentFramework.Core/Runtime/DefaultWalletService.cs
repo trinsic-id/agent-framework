@@ -10,6 +10,9 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultWalletService : IWalletService
     {
+        /// <summary>
+        /// Dictionary of open wallets
+        /// </summary>
         protected static readonly ConcurrentDictionary<string, Wallet> Wallets =
             new ConcurrentDictionary<string, Wallet>();
 
@@ -40,13 +43,13 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public virtual async Task DeleteWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
         {
-            Wallets.TryRemove(configuration.Id, out var wallet);
+            if (Wallets.TryRemove(configuration.Id, out var wallet))
+            {
+                if (wallet.IsOpen)
+                    await wallet.CloseAsync();
 
-            if (wallet.IsOpen)
-                await wallet.CloseAsync();
-
-            wallet.Dispose();
-
+                wallet.Dispose();
+            }
             await Wallet.DeleteWalletAsync(configuration.ToJson(), credentials.ToJson());
         }
     }
