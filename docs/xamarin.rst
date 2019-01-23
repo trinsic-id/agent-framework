@@ -202,4 +202,4 @@ Install the Nuget packages for Indy SDK and/or Agent Framework and build your so
 If you run into any errors or need help setting up, please open an issue in this repo.
 
 Finally, check the `Xamarin Sample
-<https://github.com/streetcred-id/agent-framework/tree/master/samples/xamarin>`_ we have included for a fully configured project.
+<https://github.com/streetcred-id/agent-framework/tree/master/samples/xamarin-forms>`_ we have included for a fully configured project.
