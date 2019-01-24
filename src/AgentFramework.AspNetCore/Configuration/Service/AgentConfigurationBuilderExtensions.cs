@@ -30,9 +30,9 @@ namespace AgentFramework.AspNetCore.Configuration.Service
 
         internal static AgentConfigurationBuilder AddDefaultMessageHandlers(this AgentConfigurationBuilder builder)
         {
-            builder.Services.TryAddSingleton<IMessageHandler, DefaultConnectionHandler>();
-            builder.Services.TryAddSingleton<IMessageHandler, DefaultCredentialHandler>();
-            builder.Services.TryAddSingleton<IMessageHandler, DefaultProofHandler>();
+            builder.Services.AddSingleton<IMessageHandler, DefaultConnectionHandler>();
+            builder.Services.AddSingleton<IMessageHandler, DefaultCredentialHandler>();
+            builder.Services.AddSingleton<IMessageHandler, DefaultProofHandler>();
 
             builder.Services.TryAddSingleton<DefaultConnectionHandler>();
             builder.Services.TryAddSingleton<DefaultCredentialHandler>();
@@ -44,7 +44,8 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         public static AgentConfigurationBuilder AddMessageHandler<TMessageHandler>(this AgentConfigurationBuilder builder) where TMessageHandler : class,
             IMessageHandler
         {
-            builder.Services.TryAddSingleton<IMessageHandler, TMessageHandler>();
+            builder.Services.AddSingleton<IMessageHandler, TMessageHandler>();
+            builder.Services.TryAddSingleton<TMessageHandler>();
             return builder;
         }
 
