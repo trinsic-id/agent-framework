@@ -2,10 +2,9 @@ FROM streetcred/dotnet-indy:1.6.7
 WORKDIR /app
 
 COPY . .
-RUN dotnet restore "test/AgentFramework.Core.Tests/AgentFramework.Core.Tests.csproj"
+RUN dotnet restore "AgentFramework.sln"
 
 COPY docker/docker_pool_genesis.txn test/AgentFramework.Core.Tests/pool_genesis.txn
+COPY docker/docker_pool_genesis.txn test/AgentFramework.AspNetCore.Tests/pool_genesis.txn
 
-WORKDIR /app/test/AgentFramework.Core.Tests
-
-ENTRYPOINT ["dotnet", "test", "--verbosity", "normal"]
+ENTRYPOINT ["dotnet", "test", "--verbosity", "normal", "--no-restore"]
