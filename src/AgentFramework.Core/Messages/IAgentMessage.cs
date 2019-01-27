@@ -8,6 +8,15 @@ namespace AgentFramework.Core.Messages
     public interface IAgentMessage
     {
         /// <summary>
+        /// Gets or sets the message id.
+        /// </summary>
+        /// <value>
+        /// The message id.
+        /// </value>
+        [JsonProperty("@id")]
+        string Id { get; set; }
+
+        /// <summary>
         /// Gets or sets the type.
         /// </summary>
         /// <value>
