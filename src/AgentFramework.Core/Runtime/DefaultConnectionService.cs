@@ -102,6 +102,18 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
+        public async Task RevokeInvitation(Wallet wallet, string invitationId)
+        {
+            var connection = await GetAsync(wallet, invitationId);
+
+            if (connection.State != ConnectionState.Invited)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                    $"Connection state was invalid. Expected '{ConnectionState.Invited}', found '{connection.State}'");
+
+            await RecordService.DeleteAsync<ConnectionRecord>(wallet, invitationId);
+        }
+
+        /// <inheritdoc />
         public virtual async Task<string> AcceptInvitationAsync(Wallet wallet, ConnectionInvitationMessage invitation)
         {
             Logger.LogInformation(LoggingEvents.AcceptInvitation, "Key {0}, Endpoint {1}",

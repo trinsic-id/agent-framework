@@ -217,6 +217,65 @@ namespace AgentFramework.Core.Tests
         }
 
         [Fact]
+        public async Task RevokeInvitationThrowsConnectionNotFound()
+        {
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.RevokeInvitation(_issuerWallet, "bad-connection-id"));
+            Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
+        }
+
+        [Fact]
+        public async Task RevokeInvitationThrowsConnectionInvalidState()
+        {
+            var connectionId = Guid.NewGuid().ToString();
+
+            await _connectionService.CreateInvitationAsync(_issuerWallet,
+                new InviteConfiguration { ConnectionId = connectionId, AutoAcceptConnection = false });
+
+            //Process a connection request
+            var connectionRecord = await _connectionService.GetAsync(_issuerWallet, connectionId);
+
+            await _connectionService.ProcessRequestAsync(_issuerWallet, new ConnectionRequestMessage
+            {
+                Did = "EYS94e95kf6LXF49eARL76",
+                Verkey = "~LGkX716up2KAimNfz11HRr",
+                Endpoint = new AgentEndpoint
+                {
+                    Did = "EYS94e95kf6LXF49eARL76",
+                    Verkey = "~LGkX716up2KAimNfz11HRr"
+                },
+                Type = MessageTypes.ConnectionRequest
+            }, connectionRecord);
+
+            //Accept the connection request
+            await _connectionService.AcceptRequestAsync(_issuerWallet, connectionId);
+
+            //Now try and revoke invitation
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.RevokeInvitation(_issuerWallet, connectionId));
+
+            Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
+        }
+
+        [Fact]
+        public async Task CanRevokeInvitation()
+        {
+            var connectionId = Guid.NewGuid().ToString();
+
+            await _connectionService.CreateInvitationAsync(_issuerWallet,
+                new InviteConfiguration() { ConnectionId = connectionId });
+
+            var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
+
+            Assert.False(connection.MultiPartyInvitation);
+            Assert.Equal(ConnectionState.Invited, connection.State);
+            Assert.Equal(connectionId, connection.Id);
+
+            await _connectionService.RevokeInvitation(_issuerWallet, connectionId);
+
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.AcceptRequestAsync(_issuerWallet, connectionId));
+            Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
+        }
+
+        [Fact]
         public async Task CanEstablishConnectionAsync()
         {
             var (connectionIssuer, connectionHolder) = await Scenarios.EstablishConnectionAsync(
