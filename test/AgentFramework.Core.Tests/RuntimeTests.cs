@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
+﻿using System.Net.Http;
 using AgentFramework.Core.Contracts;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;

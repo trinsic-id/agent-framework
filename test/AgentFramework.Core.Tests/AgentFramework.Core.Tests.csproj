@@ -4,6 +4,10 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <AssemblyName>AgentFramework.Core.Tests</AssemblyName>
+
+    <RootNamespace>AgentFramework.Core.Tests</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
@@ -31,6 +35,8 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\AgentFramework.AspNetCore\AgentFramework.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\AgentFramework.Core.Handlers\AgentFramework.Core.Handlers.csproj" />
     <ProjectReference Include="..\..\src\AgentFramework.Core\AgentFramework.Core.csproj" />
   </ItemGroup>
 </Project>
