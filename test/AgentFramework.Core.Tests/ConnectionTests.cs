@@ -219,7 +219,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task RevokeInvitationThrowsConnectionNotFound()
         {
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.RevokeInvitation(_issuerWallet, "bad-connection-id"));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.RevokeInvitationAsync(_issuerWallet, "bad-connection-id"));
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }
 
@@ -250,7 +250,7 @@ namespace AgentFramework.Core.Tests
             await _connectionService.AcceptRequestAsync(_issuerWallet, connectionId);
 
             //Now try and revoke invitation
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.RevokeInvitation(_issuerWallet, connectionId));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.RevokeInvitationAsync(_issuerWallet, connectionId));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
@@ -269,7 +269,7 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(ConnectionState.Invited, connection.State);
             Assert.Equal(connectionId, connection.Id);
 
-            await _connectionService.RevokeInvitation(_issuerWallet, connectionId);
+            await _connectionService.RevokeInvitationAsync(_issuerWallet, connectionId);
 
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.AcceptRequestAsync(_issuerWallet, connectionId));
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
