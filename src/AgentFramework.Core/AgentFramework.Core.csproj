@@ -24,6 +24,8 @@
     <PackageReference Include="Stateless" Version="4.2.1" />
     <PackageReference Include="Hyperledger.Indy.Sdk" Version="1.8.0" />
     <PackageReference Include="Multiformats.Base" Version="2.0.1" />
+    <PackageReference Include="System.Reactive" Version="4.1.2" />
+    <PackageReference Include="System.Reactive.Linq" Version="4.1.2" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Runtime.Serialization" />
