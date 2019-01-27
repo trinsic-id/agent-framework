@@ -14,6 +14,12 @@ namespace AgentFramework.Core.Models.Connections
         public string ConnectionId { get; set; }
 
         /// <summary>
+        /// Used to generated an invitation that multiple parties
+        /// can use to connect.
+        /// </summary>
+        public bool MultiPartyInvitation { get; set; }
+
+        /// <summary>
         /// Alias object for marking the invite subject
         /// with an alias for giving the inviter greater context. 
         /// </summary>

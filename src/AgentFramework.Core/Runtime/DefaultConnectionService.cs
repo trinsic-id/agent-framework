@@ -41,7 +41,7 @@ namespace AgentFramework.Core.Runtime
         /// Initializes a new instance of the <see cref="DefaultConnectionService"/> class.
         /// </summary>
         /// <param name="recordService">The record service.</param>
-        /// <param name="routerService">The router service.</param>
+        /// <param name="messageService">The message service.</param>
         /// <param name="provisioningService">The provisioning service.</param>
         /// <param name="logger">The logger.</param>
         public DefaultConnectionService(
@@ -76,9 +76,14 @@ namespace AgentFramework.Core.Runtime
             if (config.AutoAcceptConnection)
                 connection.SetTag(TagConstants.AutoAcceptConnection, "true");
 
-            connection.Alias = config.TheirAlias;
-            if (!string.IsNullOrEmpty(config.TheirAlias.Name))
-                connection.SetTag(TagConstants.Alias, config.TheirAlias.Name);
+            connection.MultiPartyInvitation = config.MultiPartyInvitation;
+
+            if (!config.MultiPartyInvitation)
+            {
+                connection.Alias = config.TheirAlias;
+                if (!string.IsNullOrEmpty(config.TheirAlias.Name))
+                    connection.SetTag(TagConstants.Alias, config.TheirAlias.Name);
+            }
 
             foreach (var tag in config.Tags)
                 connection.SetTag(tag.Key, tag.Value);
@@ -171,10 +176,19 @@ namespace AgentFramework.Core.Runtime
                 ImageUrl = request.ImageUrl
             };
 
-            await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
-            await RecordService.UpdateAsync(wallet, connection);
-            
-            return connection.Id;
+            if (!connection.MultiPartyInvitation)
+            {
+                await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
+                await RecordService.UpdateAsync(wallet, connection);
+                return connection.Id;
+            }
+
+            var newConnection = connection.DeepCopy();
+            newConnection.Id = Guid.NewGuid().ToString();
+            newConnection.MultiPartyInvitation = false;
+            await newConnection.TriggerAsync(ConnectionTrigger.InvitationAccept);
+            await RecordService.AddAsync(wallet, newConnection);
+            return newConnection.Id;
         }
 
         /// <inheritdoc />
