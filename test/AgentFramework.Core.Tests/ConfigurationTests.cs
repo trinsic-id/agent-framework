@@ -11,7 +11,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace AgentFramework.AspNetCore.Tests
+namespace AgentFramework.Core.Tests
 {
     public class ConfigurationTests
     {
@@ -44,8 +44,6 @@ namespace AgentFramework.AspNetCore.Tests
 
             Assert.NotNull(container.Resolve<HttpClient>());
             
-            //TODO learn how to resolve multiple
-
             Assert.NotNull(container.Resolve<DefaultConnectionHandler>());
             Assert.NotNull(container.Resolve<DefaultCredentialHandler>());
             Assert.NotNull(container.Resolve<DefaultProofHandler>());

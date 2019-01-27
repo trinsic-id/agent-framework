@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Models.Messaging;
 
-namespace AgentFramework.AspNetCore.Tests
+namespace AgentFramework.Core.Tests
 {
     public class MockMessageHandler : IMessageHandler
     {

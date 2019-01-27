@@ -7,7 +7,7 @@ using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using Hyperledger.Indy.WalletApi;
 
-namespace AgentFramework.AspNetCore.Tests
+namespace AgentFramework.Core.Tests
 {
     public class MockExtendedConnectionService : IConnectionService
     {
