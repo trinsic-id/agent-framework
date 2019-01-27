@@ -318,9 +318,6 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(connectionIssuerTwo.TheirDid, connectionHolderTwo.MyDid);
 
             Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
-            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
-
-            Assert.Equal(connectionIssuerTwo.Endpoint.Uri, MockEndpointUri);
             Assert.Equal(connectionIssuerTwo.Endpoint.Uri, MockEndpointUri);
         }
 
