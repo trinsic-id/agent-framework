@@ -102,7 +102,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task RevokeInvitation(Wallet wallet, string invitationId)
+        public async Task RevokeInvitationAsync(Wallet wallet, string invitationId)
         {
             var connection = await GetAsync(wallet, invitationId);
 
@@ -197,7 +197,6 @@ namespace AgentFramework.Core.Runtime
 
             var newConnection = connection.DeepCopy();
             newConnection.Id = Guid.NewGuid().ToString();
-            newConnection.MultiPartyInvitation = false;
             await newConnection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await RecordService.AddAsync(wallet, newConnection);
             return newConnection.Id;

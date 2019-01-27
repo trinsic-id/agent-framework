@@ -59,7 +59,7 @@ namespace AgentFramework.Core.Runtime
         /// Initializes a new instance of the <see cref="DefaultProofService"/> class.
         /// </summary>
         /// <param name="connectionService">The connection service.</param>
-        /// <param name="routerService">The router service.</param>
+        /// <param name="messageService">The message service.</param>
         /// <param name="recordService">The record service.</param>
         /// <param name="provisioningService">The provisioning service.</param>
         /// <param name="ledgerService">The ledger service.</param>

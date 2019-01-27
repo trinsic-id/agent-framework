@@ -49,7 +49,7 @@ namespace AgentFramework.Core.Contracts
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
         /// <returns>The async.</returns>
-        Task RevokeInvitation(Wallet wallet, string invitationId);
+        Task RevokeInvitationAsync(Wallet wallet, string invitationId);
 
         /// <summary>
         /// Accepts the connection invitation async.
