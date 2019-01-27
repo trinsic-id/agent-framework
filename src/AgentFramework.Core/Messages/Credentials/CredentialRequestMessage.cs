@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Messages.Credentials
 {
@@ -7,15 +8,14 @@ namespace AgentFramework.Core.Messages.Credentials
     /// </summary>
     public class CredentialRequestMessage : IAgentMessage
     {
-        /// <summary>
-        /// Gets or sets the type.
-        /// </summary>
-        /// <value>
-        /// The type.
-        /// </value>
+        /// <inheritdoc />
+        [JsonProperty("@id")]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+
+        /// <inheritdoc />
         [JsonProperty("@type")]
         public string Type { get; set; } = MessageTypes.CredentialRequest;
-
+        
         /// <summary>
         /// Gets or sets the offer json.
         /// </summary>

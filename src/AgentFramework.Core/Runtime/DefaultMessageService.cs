@@ -42,6 +42,12 @@ namespace AgentFramework.Core.Runtime
             Logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0} Endpoint {1}", connectionRecord.TheirVk,
                 connectionRecord.Endpoint.Uri);
 
+            if (string.IsNullOrEmpty(message.Id))
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "@id field on message must be populated");
+
+            if (string.IsNullOrEmpty(message.Type))
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "@type field on message must be populated");
+
             var encryptionKey = recipientKey
                                 ?? connectionRecord.TheirVk
                                 ?? throw new AgentFrameworkException(
