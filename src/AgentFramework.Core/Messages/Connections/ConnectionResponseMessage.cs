@@ -1,4 +1,5 @@
-﻿using AgentFramework.Core.Models;
+﻿using System;
+using AgentFramework.Core.Models;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Messages.Connections
@@ -8,6 +9,14 @@ namespace AgentFramework.Core.Messages.Connections
     /// </summary>
     public class ConnectionResponseMessage : IAgentMessage
     {
+        /// <inheritdoc />
+        [JsonProperty("@id")]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+
+        /// <inheritdoc />
+        [JsonProperty("@type")]
+        public string Type { get; set; } = MessageTypes.ConnectionResponse;
+
         /// <summary>
         /// Gets or sets the did.
         /// </summary>
@@ -34,14 +43,5 @@ namespace AgentFramework.Core.Messages.Connections
         /// </value>
         [JsonProperty("endpoint")]
         public AgentEndpoint Endpoint { get; set; }
-
-        /// <summary>
-        /// Gets or sets the type.
-        /// </summary>
-        /// <value>
-        /// The type.
-        /// </value>
-        [JsonProperty("@type")]
-        public string Type { get; set; } = MessageTypes.ConnectionResponse;
     }
 }

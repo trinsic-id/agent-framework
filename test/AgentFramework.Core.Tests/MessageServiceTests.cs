@@ -28,6 +28,13 @@ using Xunit;
 
 namespace AgentFramework.Core.Tests
 {
+    public class MockAgentMessage : IAgentMessage
+    {
+        public string Id { get; set; }
+
+        public string Type { get; set; }
+    }
+
     public class MessageServiceTests : IAsyncLifetime
     {
         private string Config = "{\"id\":\"" + Guid.NewGuid() + "\"}";
@@ -239,6 +246,46 @@ namespace AgentFramework.Core.Tests
 
             if (dummyWallet != null) await dummyWallet.CloseAsync();
             await Wallet.DeleteWalletAsync(dummyConfig, WalletCredentials);
+        }
+
+        [Fact]
+        public async Task SendAsyncThrowsInvalidMessageNoId()
+        {
+            var connection = new ConnectionRecord
+            {
+                Alias = new ConnectionAlias
+                {
+                    Name = "Test"
+                },
+                Endpoint = new AgentEndpoint
+                {
+                    Uri = "https://mock.com"
+                },
+            };
+
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
+                await _messagingService.SendAsync(_wallet, new MockAgentMessage(), connection));
+            Assert.True(ex.ErrorCode == ErrorCode.InvalidMessage);
+        }
+
+        [Fact]
+        public async Task SendAsyncThrowsInvalidMessageNoType()
+        {
+            var connection = new ConnectionRecord
+            {
+                Alias = new ConnectionAlias
+                {
+                    Name = "Test"
+                },
+                Endpoint = new AgentEndpoint
+                {
+                    Uri = "https://mock.com"
+                },
+            };
+
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
+                await _messagingService.SendAsync(_wallet, new MockAgentMessage { Id = Guid.NewGuid().ToString() }, connection));
+            Assert.True(ex.ErrorCode == ErrorCode.InvalidMessage);
         }
 
         [Fact]
