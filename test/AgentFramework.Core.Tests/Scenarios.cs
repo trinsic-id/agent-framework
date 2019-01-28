@@ -99,7 +99,7 @@ namespace AgentFramework.Core.Tests
             ISchemaService schemaService, ICredentialService credentialService,
             IProducerConsumerCollection<IAgentMessage> messages,
             ConnectionRecord issuerConnection, ConnectionRecord holderConnection, Wallet issuerWallet, Wallet holderWallet,
-            Pool pool, string proverMasterSecretId, bool revocable)
+            Pool pool, string proverMasterSecretId, bool revocable, OfferConfiguration offerConfiguration = null)
         {
             // Create an issuer DID/VK. Can also be created during provisioning
             var issuer = await Did.CreateAndStoreMyDidAsync(issuerWallet,
@@ -108,15 +108,14 @@ namespace AgentFramework.Core.Tests
             // Creata a schema and credential definition for this issuer
             (string definitionId, _) = await CreateDummySchemaAndNonRevokableCredDef(pool, issuerWallet, schemaService, issuer.Did, new[] { "first_name", "last_name" });
             
-            var offerConfig = new OfferConfiguration()
+            var offerConfig = offerConfiguration ?? new OfferConfiguration
             {
-                ConnectionId = issuerConnection.Id,
                 IssuerDid = issuer.Did,
                 CredentialDefinitionId = definitionId
             };
             
             // Send an offer to the holder using the established connection channel
-            await credentialService.SendOfferAsync(issuerWallet, offerConfig);
+            await credentialService.SendOfferAsync(issuerWallet, issuerConnection.Id, offerConfig);
 
             // Holder retrives message from their cloud agent
             var credentialOffer = FindContentMessage<CredentialOfferMessage>(messages);

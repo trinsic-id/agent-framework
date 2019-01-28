@@ -133,6 +133,17 @@ namespace AgentFramework.Core.Models.Records
             set => Set(value);
         }
 
+        /// <summary>
+        /// Gets or sets whether the credential offer is multi-party.
+        /// </summary>
+        /// <value>Indicates if the offer is multi-party.</value>
+        [JsonIgnore]
+        public bool MultiPartyOffer
+        {
+            get => GetBool();
+            set => Set(value);
+        }
+
         #region State Machine Implementation
         /// <summary>
         /// Gets or sets the state.

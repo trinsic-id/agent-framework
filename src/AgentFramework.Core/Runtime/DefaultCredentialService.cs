@@ -231,16 +231,19 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<(CredentialOfferMessage,string)> CreateOfferAsync(Wallet wallet, OfferConfiguration config)
+        public virtual async Task<(CredentialOfferMessage,string)> CreateOfferAsync(Wallet wallet, OfferConfiguration config, string connectionId = null)
         {
             Logger.LogInformation(LoggingEvents.CreateCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
-                config.CredentialDefinitionId, config.ConnectionId, config.IssuerDid);
+                config.CredentialDefinitionId, config.IssuerDid);
 
-            var connection = await ConnectionService.GetAsync(wallet, config.ConnectionId);
+            if (!config.MultiPartyOffer && !string.IsNullOrEmpty(connectionId))
+            {
+                var connection = await ConnectionService.GetAsync(wallet, connectionId);
 
-            if (connection.State != ConnectionState.Connected)
-                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
-                    $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
+                if (connection.State != ConnectionState.Connected)
+                    throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                        $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
+            }
 
             var offerJson = await AnonCreds.IssuerCreateCredentialOfferAsync(wallet, config.CredentialDefinitionId);
             var nonce = JObject.Parse(offerJson)["nonce"].ToObject<string>();
@@ -251,10 +254,14 @@ namespace AgentFramework.Core.Runtime
                 Id = Guid.NewGuid().ToString(),
                 CredentialDefinitionId = config.CredentialDefinitionId,
                 OfferJson = offerJson,
+                MultiPartyOffer = config.MultiPartyOffer,
                 ValuesJson = CredentialUtils.FormatCredentialValues(config.CredentialAttributeValues),
                 State = CredentialState.Offered,
-                ConnectionId = connection.Id,
             };
+
+            if (!config.MultiPartyOffer)
+                credentialRecord.ConnectionId = connectionId;
+
             credentialRecord.SetTag(TagConstants.Nonce, nonce);
             credentialRecord.SetTag(TagConstants.Role, TagConstants.Issuer);
 
@@ -274,12 +281,24 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> SendOfferAsync(Wallet wallet, OfferConfiguration config)
+        public async Task RevokeCredentialOfferAsync(Wallet wallet, string offerId)
+        {
+            var credentialRecord = await GetAsync(wallet, offerId);
+
+            if (credentialRecord.State != CredentialState.Offered)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                    $"Credential state was invalid. Expected '{CredentialState.Offered}', found '{credentialRecord.State}'");
+
+            await RecordService.DeleteAsync<ConnectionRecord>(wallet, offerId);
+        }
+
+        /// <inheritdoc />
+        public virtual async Task<string> SendOfferAsync(Wallet wallet, string connectionId, OfferConfiguration config)
         {
             Logger.LogInformation(LoggingEvents.SendCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
-                config.CredentialDefinitionId, config.ConnectionId, config.IssuerDid);
+                config.CredentialDefinitionId, connectionId, config.IssuerDid);
 
-            var connection = await ConnectionService.GetAsync(wallet, config.ConnectionId);
+            var connection = await ConnectionService.GetAsync(wallet, connectionId);
 
             if (connection.State != ConnectionState.Connected)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
@@ -324,12 +343,20 @@ namespace AgentFramework.Core.Runtime
                     credential.ValuesJson = credentialRequest.CredentialValuesJson;
 
             credential.RequestJson = credentialRequest.CredentialRequestJson;
+            credential.ConnectionId = connection.Id;
 
+            if (!credential.MultiPartyOffer)
+            {
+                await credential.TriggerAsync(CredentialTrigger.Request);
+                await RecordService.UpdateAsync(wallet, credential);
+                return credential.Id;
+            }
+
+            var newCredential = credential.DeepCopy();
+            newCredential.Id = Guid.NewGuid().ToString();
             await credential.TriggerAsync(CredentialTrigger.Request);
-
-            await RecordService.UpdateAsync(wallet, credential);
-            
-            return credential.Id;
+            await RecordService.AddAsync(wallet, newCredential);
+            return newCredential.Id;
         }
 
         /// <inheritdoc />

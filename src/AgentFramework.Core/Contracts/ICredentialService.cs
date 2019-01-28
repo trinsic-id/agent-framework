@@ -81,20 +81,33 @@ namespace AgentFramework.Core.Contracts
         /// Create a new credential offer.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
-        /// <param name="config">A configuration object used to configure the resulting offers presentation</param>
+        /// <param name="config">A configuration object used to configure the resulting offers presentation.</param>
+        /// <param name="connectionId">The connection id.</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <returns>The offer message and the identifer. </returns>
-        Task<(CredentialOfferMessage, string)> CreateOfferAsync(Wallet wallet, OfferConfiguration config);
+        Task<(CredentialOfferMessage, string)> CreateOfferAsync(Wallet wallet, OfferConfiguration config,
+            string connectionId = null);
+
+        /// <summary>
+        /// Revokes a credential offer.
+        /// </summary>
+        /// <param name="wallet">Wallet.</param>
+        /// <param name="offerId">Id of the credential offer.</param>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
+        /// <returns></returns>
+        Task RevokeCredentialOfferAsync(Wallet wallet, string offerId);
 
         /// <summary>
         /// Sends the offer asynchronous.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
+        /// <param name="connectionId">The connection id.</param>
         /// <param name="config">A configuration object used to configure the resulting offers presentation</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
         /// <returns>The offer identifier.</returns>
-        Task<string> SendOfferAsync(Wallet wallet, OfferConfiguration config);
+        Task<string> SendOfferAsync(Wallet wallet, string connectionId, OfferConfiguration config);
 
         /// <summary>
         /// Processes the credential request and stores in the designated wallet.
