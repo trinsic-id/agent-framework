@@ -19,9 +19,10 @@ namespace AgentFramework.Core.Models.Credentials
         public string IssuerDid { get; set; }
 
         /// <summary>
-        /// ConnectionId for the party to who the offer is for.
+        /// Used to generate a credential offer that multiple parties
+        /// can use to form a credential request.
         /// </summary>
-        public string ConnectionId { get; set; }
+        public bool MultiPartyOffer { get; set; }
 
         /// <summary>
         /// [Optional] For setting the credential values at the offer stage.
