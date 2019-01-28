@@ -26,6 +26,11 @@ namespace AgentFramework.Core.Tests
             throw new System.NotImplementedException();
         }
 
+        public Task RevokeInvitationAsync(Wallet wallet, string invitationId)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public Task<string> AcceptInvitationAsync(Wallet wallet, ConnectionInvitationMessage offer)
         {
             throw new System.NotImplementedException();

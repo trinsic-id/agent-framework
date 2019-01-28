@@ -20,6 +20,7 @@ namespace AgentFramework.Core.Tests
     {
         private readonly string _issuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}"; 
         private readonly string _holderConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
+        private readonly string _holderConfigTwo = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
         private const string MockEndpointUri = "http://mock";
         
@@ -27,6 +28,7 @@ namespace AgentFramework.Core.Tests
 
         private Wallet _issuerWallet;
         private Wallet _holderWallet;
+        private Wallet _holderWalletTwo;
 
         private readonly IConnectionService _connectionService;
 
@@ -81,8 +83,18 @@ namespace AgentFramework.Core.Tests
                 // OK
             }
 
+            try
+            {
+                await Wallet.CreateWalletAsync(_holderConfigTwo, Credentials);
+            }
+            catch (WalletExistsException)
+            {
+                // OK
+            }
+
             _issuerWallet = await Wallet.OpenWalletAsync(_issuerConfig, Credentials);
             _holderWallet = await Wallet.OpenWalletAsync(_holderConfig, Credentials);
+            _holderWalletTwo = await Wallet.OpenWalletAsync(_holderConfigTwo, Credentials);
         }
 
         [Fact]
@@ -90,11 +102,27 @@ namespace AgentFramework.Core.Tests
         {
             var connectionId = Guid.NewGuid().ToString();
 
-            var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet,
+            await _connectionService.CreateInvitationAsync(_issuerWallet,
                 new InviteConfiguration() {ConnectionId = connectionId});
 
             var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
 
+            Assert.False(connection.MultiPartyInvitation);
+            Assert.Equal(ConnectionState.Invited, connection.State);
+            Assert.Equal(connectionId, connection.Id);
+        }
+
+        [Fact]
+        public async Task CanCreateMultiPartyInvitationAsync()
+        {
+            var connectionId = Guid.NewGuid().ToString();
+
+            await _connectionService.CreateInvitationAsync(_issuerWallet,
+                new InviteConfiguration() { ConnectionId = connectionId, MultiPartyInvitation = true });
+
+            var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
+
+            Assert.True(connection.MultiPartyInvitation);
             Assert.Equal(ConnectionState.Invited, connection.State);
             Assert.Equal(connectionId, connection.Id);
         }
@@ -156,7 +184,6 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task AcceptRequestThrowsExceptionUnableToSendA2AMessage()
         {
-            
             var connectionId = Guid.NewGuid().ToString();
             
             await _connectionService.CreateInvitationAsync(_issuerWallet,
@@ -190,6 +217,65 @@ namespace AgentFramework.Core.Tests
         }
 
         [Fact]
+        public async Task RevokeInvitationThrowsConnectionNotFound()
+        {
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.RevokeInvitationAsync(_issuerWallet, "bad-connection-id"));
+            Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
+        }
+
+        [Fact]
+        public async Task RevokeInvitationThrowsConnectionInvalidState()
+        {
+            var connectionId = Guid.NewGuid().ToString();
+
+            await _connectionService.CreateInvitationAsync(_issuerWallet,
+                new InviteConfiguration { ConnectionId = connectionId, AutoAcceptConnection = false });
+
+            //Process a connection request
+            var connectionRecord = await _connectionService.GetAsync(_issuerWallet, connectionId);
+
+            await _connectionService.ProcessRequestAsync(_issuerWallet, new ConnectionRequestMessage
+            {
+                Did = "EYS94e95kf6LXF49eARL76",
+                Verkey = "~LGkX716up2KAimNfz11HRr",
+                Endpoint = new AgentEndpoint
+                {
+                    Did = "EYS94e95kf6LXF49eARL76",
+                    Verkey = "~LGkX716up2KAimNfz11HRr"
+                },
+                Type = MessageTypes.ConnectionRequest
+            }, connectionRecord);
+
+            //Accept the connection request
+            await _connectionService.AcceptRequestAsync(_issuerWallet, connectionId);
+
+            //Now try and revoke invitation
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.RevokeInvitationAsync(_issuerWallet, connectionId));
+
+            Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
+        }
+
+        [Fact]
+        public async Task CanRevokeInvitation()
+        {
+            var connectionId = Guid.NewGuid().ToString();
+
+            await _connectionService.CreateInvitationAsync(_issuerWallet,
+                new InviteConfiguration() { ConnectionId = connectionId });
+
+            var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
+
+            Assert.False(connection.MultiPartyInvitation);
+            Assert.Equal(ConnectionState.Invited, connection.State);
+            Assert.Equal(connectionId, connection.Id);
+
+            await _connectionService.RevokeInvitationAsync(_issuerWallet, connectionId);
+
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.AcceptRequestAsync(_issuerWallet, connectionId));
+            Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
+        }
+
+        [Fact]
         public async Task CanEstablishConnectionAsync()
         {
             var (connectionIssuer, connectionHolder) = await Scenarios.EstablishConnectionAsync(
@@ -204,14 +290,46 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
             Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
         }
-         
+
+        [Fact]
+        public async Task CanEstablishConnectionsWithMultiPartyInvitationAsync()
+        {
+            var connectionId = Guid.NewGuid().ToString();
+
+            var invite = await _connectionService.CreateInvitationAsync(_issuerWallet,
+                new InviteConfiguration() { ConnectionId = connectionId, MultiPartyInvitation = true });
+
+            var (connectionIssuer, connectionHolderOne) = await Scenarios.EstablishConnectionAsync(
+                _connectionService, _messages, _issuerWallet, _holderWallet, invite, connectionId);
+
+            var (connectionIssuerTwo, connectionHolderTwo) = await Scenarios.EstablishConnectionAsync(
+                _connectionService, _messages, _issuerWallet, _holderWalletTwo, invite, connectionId);
+
+            Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
+            Assert.Equal(ConnectionState.Connected, connectionHolderOne.State);
+
+            Assert.Equal(ConnectionState.Connected, connectionIssuerTwo.State);
+            Assert.Equal(ConnectionState.Connected, connectionHolderTwo.State);
+
+            Assert.Equal(connectionIssuer.MyDid, connectionHolderOne.TheirDid);
+            Assert.Equal(connectionIssuer.TheirDid, connectionHolderOne.MyDid);
+
+            Assert.Equal(connectionIssuerTwo.MyDid, connectionHolderTwo.TheirDid);
+            Assert.Equal(connectionIssuerTwo.TheirDid, connectionHolderTwo.MyDid);
+
+            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
+            Assert.Equal(connectionIssuerTwo.Endpoint.Uri, MockEndpointUri);
+        }
+
         public async Task DisposeAsync()
         {
             if (_issuerWallet != null) await _issuerWallet.CloseAsync();
             if (_holderWallet != null) await _holderWallet.CloseAsync();
+            if (_holderWalletTwo != null) await _holderWalletTwo.CloseAsync();
 
             await Wallet.DeleteWalletAsync(_issuerConfig, Credentials);
             await Wallet.DeleteWalletAsync(_holderConfig, Credentials);
+            await Wallet.DeleteWalletAsync(_holderConfigTwo, Credentials);
         }
     }
 }

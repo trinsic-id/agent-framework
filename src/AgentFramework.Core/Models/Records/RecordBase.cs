@@ -215,5 +215,15 @@ namespace AgentFramework.Core.Models.Records
 
             return new DateTime(Convert.ToInt64(strVal));
         }
+
+        protected bool GetBool(bool encrypted = true, [CallerMemberName] string name = "")
+        {
+            var strVal = Get(encrypted, name);
+
+            if (strVal == null)
+                return false;
+
+            return Convert.ToBoolean(strVal);
+        }
     }
 }
