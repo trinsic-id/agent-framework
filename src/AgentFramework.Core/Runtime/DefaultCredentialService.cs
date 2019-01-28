@@ -57,7 +57,7 @@ namespace AgentFramework.Core.Runtime
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultCredentialService"/> class.
         /// </summary>
-        /// <param name="routerService">The router service.</param>
+        /// <param name="messageService">The message service.</param>
         /// <param name="ledgerService">The ledger service.</param>
         /// <param name="connectionService">The connection service.</param>
         /// <param name="recordService">The record service.</param>

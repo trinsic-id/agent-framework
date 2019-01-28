@@ -25,7 +25,9 @@ namespace AgentFramework.Core.Tests
             IConnectionService connectionService,
             IProducerConsumerCollection<IAgentMessage> _messages,
             Wallet firstWallet,
-            Wallet secondWallet)
+            Wallet secondWallet,
+            ConnectionInvitationMessage invite = null,
+            string inviteeconnectionId = null)
         {
             // Create invitation by the issuer
             var issuerConnectionId = Guid.NewGuid().ToString();
@@ -46,13 +48,16 @@ namespace AgentFramework.Core.Tests
             };
 
             // Issuer creates an invitation
-            var invitation = await connectionService.CreateInvitationAsync(firstWallet, inviteConfig);
+            var invitation = invite ?? await connectionService.CreateInvitationAsync(firstWallet, inviteConfig);
 
-            var connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
-
+            var connectionIssuer = await connectionService.GetAsync(firstWallet, inviteeconnectionId ?? inviteConfig.ConnectionId);
             Assert.Equal(ConnectionState.Invited, connectionIssuer.State);
-            Assert.True(invitation.Name == inviteConfig.MyAlias.Name &&
-                        invitation.ImageUrl == inviteConfig.MyAlias.ImageUrl);
+
+            if (invite == null)
+            { 
+                Assert.True(invitation.Name == inviteConfig.MyAlias.Name &&
+                            invitation.ImageUrl == inviteConfig.MyAlias.ImageUrl);
+            }
 
             // Holder accepts invitation and sends a message request
             var holderConnectionId = await connectionService.AcceptInvitationAsync(secondWallet, invitation);
@@ -65,7 +70,7 @@ namespace AgentFramework.Core.Tests
             Assert.NotNull(issuerMessage);
 
             // Issuer processes the connection request by storing it and accepting it if auto connection flow is enabled
-            await connectionService.ProcessRequestAsync(firstWallet, issuerMessage, connectionIssuer);
+            issuerConnectionId = await connectionService.ProcessRequestAsync(firstWallet, issuerMessage, connectionIssuer);
             
             connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
             Assert.Equal(ConnectionState.Negotiating, connectionIssuer.State);

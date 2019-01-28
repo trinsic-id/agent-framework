@@ -95,6 +95,17 @@ namespace AgentFramework.Core.Models.Records
         }
 
         /// <summary>
+        /// Gets or sets whether the invitation is multi-party.
+        /// </summary>
+        /// <value>Indicates if the property is multi-party.</value>
+        [JsonIgnore]
+        public bool MultiPartyInvitation
+        {
+            get => GetBool();
+            set => Set(value);
+        }
+
+        /// <summary>
         /// Gets or sets the alias associated to the connection.
         /// </summary>
         /// <value>The connection alias.</value>

@@ -50,7 +50,21 @@ namespace AgentFramework.Core.Extensions
         public static Task<List<ConnectionRecord>> ListInvitedConnectionsAsync(
             this IConnectionService connectionService, Wallet wallet, int count = 100)
             => connectionService.ListAsync(wallet,
-                SearchQuery.Equal(nameof(ConnectionRecord.State), ConnectionState.Invited.ToString("G")), count);
+                SearchQuery.And(SearchQuery.Equal(nameof(ConnectionRecord.State), ConnectionState.Invited.ToString("G")),
+                                SearchQuery.Equal(nameof(ConnectionRecord.MultiPartyInvitation), false.ToString())), count);
+
+        /// <summary>
+        /// Retrieves a list of <see cref="ConnectionRecord"/> that are multi-party invitations.
+        /// </summary>
+        /// <returns>The invited connections async.</returns>
+        /// <param name="connectionService">Connection service.</param>
+        /// <param name="wallet">Wallet.</param>
+        /// <param name="count">Count.</param>
+        public static Task<List<ConnectionRecord>> ListMultiPartyInvitationsAsync(
+            this IConnectionService connectionService, Wallet wallet, int count = 100)
+            => connectionService.ListAsync(wallet,
+                SearchQuery.And(SearchQuery.Equal(nameof(ConnectionRecord.State), ConnectionState.Invited.ToString("G")),
+                    SearchQuery.Equal(nameof(ConnectionRecord.MultiPartyInvitation), true.ToString())), count);
 
         /// <summary>
         /// Retrieves a <see cref="ConnectionRecord"/> by key.

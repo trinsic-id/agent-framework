@@ -38,8 +38,18 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="wallet">Wallet.</param>
         /// <param name="config">An optional configuration object used to configure the resulting invitations presentation</param>
-        /// <returns></returns>
+        /// <returns>The async.</returns>
         Task<ConnectionInvitationMessage> CreateInvitationAsync(Wallet wallet, InviteConfiguration config = null);
+
+        /// <summary>
+        /// Revokes an invitation.
+        /// </summary>
+        /// <param name="wallet">Wallet.</param>
+        /// <param name="invitationId">Id of the invitation.</param>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
+        /// <returns>The async.</returns>
+        Task RevokeInvitationAsync(Wallet wallet, string invitationId);
 
         /// <summary>
         /// Accepts the connection invitation async.
