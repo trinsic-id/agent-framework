@@ -176,7 +176,7 @@ namespace AgentFramework.Core.Tests
                 new[] { "test-attr" });
 
             (var offer, var id) = await _credentialService.CreateOfferAsync(_issuerWallet,
-                new OfferConfiguration { CredentialDefinitionId = result.Item1 });
+                new OfferConfiguration { CredentialDefinitionId = result.Item1, MultiPartyOffer = true });
 
             var credentialRecord = await _credentialService.GetAsync(_issuerWallet, id);
 

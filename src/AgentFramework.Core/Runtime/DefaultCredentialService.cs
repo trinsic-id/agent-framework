@@ -343,6 +343,7 @@ namespace AgentFramework.Core.Runtime
                     credential.ValuesJson = credentialRequest.CredentialValuesJson;
 
             credential.RequestJson = credentialRequest.CredentialRequestJson;
+            credential.ConnectionId = connection.Id;
 
             if (!credential.MultiPartyOffer)
             {
