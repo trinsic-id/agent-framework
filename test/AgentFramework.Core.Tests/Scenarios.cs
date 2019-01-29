@@ -76,7 +76,8 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(ConnectionState.Negotiating, connectionIssuer.State);
 
             // Issuer accepts the connection request
-            await connectionService.AcceptRequestAsync(firstWallet, issuerConnectionId);
+            var response = await connectionService.AcceptRequestAsync(firstWallet, issuerConnectionId);
+            _messages.TryAdd(response);
 
             connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
             Assert.Equal(ConnectionState.Connected, connectionIssuer.State);

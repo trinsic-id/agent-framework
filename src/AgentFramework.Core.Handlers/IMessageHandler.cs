@@ -1,8 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AgentFramework.Core.Messages;
-using AgentFramework.Core.Models;
-using AgentFramework.Core.Models.Messaging;
 
 namespace AgentFramework.Core.Handlers
 {
@@ -22,9 +19,9 @@ namespace AgentFramework.Core.Handlers
         /// <summary>
         /// Processes the agent message
         /// </summary>
-        /// <param name="agentMessageContext">The agent message agentContext.</param>
+        /// <param name="messagePayload">The agent message agentContext.</param>
         /// <param name="agentContext">The agentContext.</param>
         /// <returns></returns>
-        Task ProcessAsync(MessageContext agentMessageContext);
+        Task ProcessAsync(MessagePayload messagePayload, AgentContext agentContext);
     }
 }

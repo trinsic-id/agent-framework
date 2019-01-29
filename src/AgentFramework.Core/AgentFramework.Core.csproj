@@ -23,4 +23,7 @@
   <ItemGroup>
     <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\Messaging\" />
+  </ItemGroup>
 </Project>

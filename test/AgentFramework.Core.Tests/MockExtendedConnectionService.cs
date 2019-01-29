@@ -41,7 +41,7 @@ namespace AgentFramework.Core.Tests
             throw new System.NotImplementedException();
         }
 
-        public Task AcceptRequestAsync(Wallet wallet, string connectionId)
+        public Task<ConnectionResponseMessage> AcceptRequestAsync(Wallet wallet, string connectionId)
         {
             throw new System.NotImplementedException();
         }

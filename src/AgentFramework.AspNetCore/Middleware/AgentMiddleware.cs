@@ -25,7 +25,6 @@ namespace AgentFramework.AspNetCore.Middleware
             _next = next;
             _walletService = walletService;
             _walletOptions = walletOptions.Value;
-            Handlers = ServiceProvider.GetServices<IMessageHandler>();
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -41,15 +40,14 @@ namespace AgentFramework.AspNetCore.Middleware
             var body = new byte[(int) context.Request.ContentLength];
             await context.Request.Body.ReadAsync(body, 0, body.Length);
 
-            await ProcessAsync(
-                body,
-                await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
-                    _walletOptions.WalletCredentials));
+            var wallet = await _walletService.GetWalletAsync(
+                _walletOptions.WalletConfiguration,
+                _walletOptions.WalletCredentials);
+
+            await ProcessAsync(body, wallet);
 
             context.Response.StatusCode = 200;
             await context.Response.WriteAsync(string.Empty);
         }
-
-        public override IEnumerable<IMessageHandler> Handlers { get; }
     }
 }

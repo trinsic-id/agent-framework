@@ -79,7 +79,7 @@ namespace AgentFramework.Core.Contracts
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
         /// <returns>The response async.</returns>
-        Task AcceptRequestAsync(Wallet wallet, string connectionId);
+        Task<ConnectionResponseMessage> AcceptRequestAsync(Wallet wallet, string connectionId);
 
         /// <summary>
         /// Processes the connection response for a given connection async.

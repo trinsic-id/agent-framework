@@ -224,7 +224,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task AcceptRequestAsync(Wallet wallet, string connectionId)
+        public virtual async Task<ConnectionResponseMessage> AcceptRequestAsync(Wallet wallet, string connectionId)
         {
             Logger.LogInformation(LoggingEvents.AcceptConnectionRequest, "ConnectionId {0}", connectionId);
 
@@ -243,22 +243,12 @@ namespace AgentFramework.Core.Runtime
 
             // Send back response message
             var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
-            var response = new ConnectionResponseMessage
+            return new ConnectionResponseMessage
             {
                 Did = connection.MyDid,
                 Endpoint = provisioning.Endpoint,
                 Verkey = connection.MyVk
             };
-
-            try
-            {
-                await MessageService.SendAsync(wallet, response, connection);
-            }
-            catch (Exception e)
-            {
-                await RecordService.UpdateAsync(wallet, connectionCopy);
-                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send connection response message", e);
-            }
         }
 
         /// <inheritdoc />

@@ -33,9 +33,6 @@ namespace AgentFramework.AspNetCore.Configuration.Service
 
             serviceBuilder.AddDefaultServices();
 
-            if (serviceBuilder.RegisterCoreMessageHandlers)
-                serviceBuilder.AddDefaultMessageHandlers();
-
             services = serviceBuilder.Services;
 
             services.Configure<WalletOptions>(obj =>

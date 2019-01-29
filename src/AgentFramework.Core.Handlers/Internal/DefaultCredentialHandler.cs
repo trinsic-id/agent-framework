@@ -4,12 +4,10 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Credentials;
-using AgentFramework.Core.Models;
-using AgentFramework.Core.Models.Messaging;
 
-namespace AgentFramework.Core.Handlers
+namespace AgentFramework.Core.Handlers.Internal
 {
-    public class DefaultCredentialHandler : IMessageHandler
+    internal class DefaultCredentialHandler : IMessageHandler
     {
         private readonly ICredentialService _credentialService;
 
@@ -34,33 +32,34 @@ namespace AgentFramework.Core.Handlers
         /// <summary>
         /// Processes the agent message
         /// </summary>
-        /// <param name="agentMessageContext">The agent message.</param>
+        /// <param name="messagePayload">The agent message.</param>
+        /// <param name="agentContext"></param>
         /// <returns></returns>
         /// <exception cref="AgentFrameworkException">Unsupported message type {messageType}</exception>
-        public async Task ProcessAsync(MessageContext agentMessageContext)
+        public async Task ProcessAsync(MessagePayload messagePayload, AgentContext agentContext)
         {
-            switch (agentMessageContext.MessageType)
+            switch (messagePayload.GetMessageType())
             {
                 case MessageTypes.CredentialOffer:
-                    var offer = agentMessageContext.GetMessage<CredentialOfferMessage>();
+                    var offer = messagePayload.GetMessage<CredentialOfferMessage>();
                     var credentialId =
-                        await _credentialService.ProcessOfferAsync(agentMessageContext.AgentContext.Wallet, offer, agentMessageContext.Connection);
-                    await _credentialService.AcceptOfferAsync(agentMessageContext.AgentContext.Wallet, agentMessageContext.AgentContext.Pool, credentialId);
+                        await _credentialService.ProcessOfferAsync(agentContext.Wallet, offer, agentContext.Connection);
+                    await _credentialService.AcceptOfferAsync(agentContext.Wallet, agentContext.Pool, credentialId);
                     return;
 
                 case MessageTypes.CredentialRequest:
-                    var request = agentMessageContext.GetMessage<CredentialRequestMessage>();
-                    await _credentialService.ProcessCredentialRequestAsync(agentMessageContext.AgentContext.Wallet, request, agentMessageContext.Connection);
+                    var request = messagePayload.GetMessage<CredentialRequestMessage>();
+                    await _credentialService.ProcessCredentialRequestAsync(agentContext.Wallet, request, agentContext.Connection);
                     return;
 
                 case MessageTypes.Credential:
-                    var credential = agentMessageContext.GetMessage<CredentialMessage>();
-                    await _credentialService.ProcessCredentialAsync(agentMessageContext.AgentContext.Pool, agentMessageContext.AgentContext.Wallet, credential,
-                        agentMessageContext.Connection);
+                    var credential = messagePayload.GetMessage<CredentialMessage>();
+                    await _credentialService.ProcessCredentialAsync(agentContext.Pool, agentContext.Wallet, credential,
+                        agentContext.Connection);
                     return;
                 default:
                     throw new AgentFrameworkException(ErrorCode.InvalidMessage,
-                        $"Unsupported message type {agentMessageContext.MessageType}");
+                        $"Unsupported message type {messagePayload.GetMessageType()}");
             }
         }
     }

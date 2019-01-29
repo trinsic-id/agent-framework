@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.Core.Handlers;
-using AgentFramework.Core.Models.Messaging;
+using AgentFramework.Core.Models;
 
 namespace AgentFramework.Core.Tests
 {
@@ -10,7 +10,7 @@ namespace AgentFramework.Core.Tests
     {
         public IEnumerable<string> SupportedMessageTypes { get; }
 
-        public Task ProcessAsync(MessageContext agentMessageContext)
+        public Task ProcessAsync(MessagePayload messagePayload, AgentContext agentContext)
         {
             throw new NotImplementedException();
         }

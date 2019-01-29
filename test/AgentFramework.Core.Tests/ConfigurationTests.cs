@@ -43,10 +43,6 @@ namespace AgentFramework.Core.Tests
             Assert.NotNull(container.Resolve<IWalletService>());
 
             Assert.NotNull(container.Resolve<HttpClient>());
-            
-            Assert.NotNull(container.Resolve<DefaultConnectionHandler>());
-            Assert.NotNull(container.Resolve<DefaultCredentialHandler>());
-            Assert.NotNull(container.Resolve<DefaultProofHandler>());
         }
 
         [Fact]
@@ -87,9 +83,9 @@ namespace AgentFramework.Core.Tests
             var container = builder.Build();
 
             Assert.Throws<ComponentNotRegisteredException>(() => container.Resolve<IMessageHandler>());
-            Assert.Throws<ComponentNotRegisteredException>(() => container.Resolve<DefaultConnectionHandler>());
-            Assert.Throws<ComponentNotRegisteredException>(() => container.Resolve<DefaultCredentialHandler>());
-            Assert.Throws<ComponentNotRegisteredException>(() => container.Resolve<DefaultProofHandler>());
+            //Assert.Throws<ComponentNotRegisteredException>(() => container.Resolve<DefaultConnectionHandler>());
+            //Assert.Throws<ComponentNotRegisteredException>(() => container.Resolve<DefaultCredentialHandler>());
+            //Assert.Throws<ComponentNotRegisteredException>(() => container.Resolve<DefaultProofHandler>());
         }
 
         [Fact]
