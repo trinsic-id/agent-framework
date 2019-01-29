@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +17,7 @@ using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Utils;
 using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.WalletApi;
@@ -157,6 +158,90 @@ namespace AgentFramework.Core.Tests
 
             var request = message.ToObject<ConnectionRequestMessage>();
             Assert.NotNull(request);
+        }
+
+        // [Fact]
+        public async Task PackAnon()
+        {
+
+            var message = new ConnectionInvitationMessage() {ConnectionKey = "123"}.ToByteArray();
+
+            var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            
+            var packed = await CryptoUtils.PackAsync(_wallet, anotherMy.VerKey, null, message);
+
+            Assert.NotNull(packed);
+        }
+
+        // [Fact]
+        public async Task PackAuth()
+        {
+
+            var message = new ConnectionInvitationMessage() {ConnectionKey = "123"}.ToByteArray();
+
+            var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            
+            var packed = await CryptoUtils.PackAsync(_wallet, anotherMy.VerKey, my.VerKey, message);
+
+            Assert.NotNull(packed);
+        }
+
+        // [Fact]
+        public async Task PackAndUnpackAnon()
+        {
+
+            var message = new ConnectionInvitationMessage() {ConnectionKey = "123"};
+
+            var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            
+            var packed = await CryptoUtils.PackAsync(_wallet, anotherMy.VerKey, null, message);
+            var unpack = await CryptoUtils.UnpackAsync(_wallet, packed);
+
+            Assert.NotNull(unpack);
+            Assert.Null(unpack.SenderVerkey);
+            Assert.NotNull(unpack.RecipientVerkey);
+            Assert.Equal(unpack.RecipientVerkey, anotherMy.VerKey);
+        }
+
+        // [Fact]
+        public async Task PackAndUnpackAuth()
+        {
+
+            var message = new ConnectionInvitationMessage() {ConnectionKey = "123"}.ToByteArray();
+
+            var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            
+            var packed = await CryptoUtils.PackAsync(_wallet, anotherMy.VerKey, my.VerKey, message);
+            var unpack = await CryptoUtils.UnpackAsync(_wallet, packed);
+
+            var jObject = JObject.Parse(unpack.Message);
+
+            Assert.NotNull(unpack);
+            Assert.NotNull(unpack.SenderVerkey);
+            Assert.NotNull(unpack.RecipientVerkey);
+            Assert.Equal(unpack.RecipientVerkey, anotherMy.VerKey);
+            Assert.Equal(unpack.SenderVerkey, my.VerKey);
+            Assert.Equal(MessageTypes.ConnectionInvitation, jObject["@type"].ToObject<string>());
+        }
+
+        // [Fact]
+        public async Task UnpackToCustomType()
+        {
+
+            var message = new ConnectionInvitationMessage() {ConnectionKey = "123"};
+
+            var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+
+            var packed = await CryptoUtils.PackAsync(_wallet, anotherMy.VerKey, null, message);
+            var unpack = await CryptoUtils.UnpackAsync<ConnectionInvitationMessage>(_wallet, packed);
+
+            Assert.NotNull(unpack);
+            Assert.Equal("123", unpack.ConnectionKey);
         }
 
         /*
