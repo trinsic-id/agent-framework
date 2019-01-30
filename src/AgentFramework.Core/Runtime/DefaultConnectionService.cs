@@ -57,7 +57,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<ConnectionInvitationMessage> CreateInvitationAsync(IAgentContext agentContext,
+        public virtual async Task<CreateInvitationResult> CreateInvitationAsync(IAgentContext agentContext,
             InviteConfiguration config = null)
         {
             var connectionId = !string.IsNullOrEmpty(config?.ConnectionId)
@@ -70,7 +70,7 @@ namespace AgentFramework.Core.Runtime
 
             var connectionKey = await Crypto.CreateKeyAsync(agentContext.Wallet, "{}");
 
-            var connection = new ConnectionRecord { Id = connectionId };
+            var connection = new ConnectionRecord {Id = connectionId};
             connection.SetTag(TagConstants.ConnectionKey, connectionKey);
 
             if (config.AutoAcceptConnection)
@@ -92,12 +92,16 @@ namespace AgentFramework.Core.Runtime
 
             await RecordService.AddAsync(agentContext.Wallet, connection);
 
-            return new ConnectionInvitationMessage
+            return new CreateInvitationResult
             {
-                Endpoint = provisioning.Endpoint,
-                ConnectionKey = connectionKey,
-                Name = config.MyAlias.Name ?? provisioning.Owner.Name,
-                ImageUrl = config.MyAlias.ImageUrl ?? provisioning.Owner.ImageUrl
+                Invitation = new ConnectionInvitationMessage
+                {
+                    Endpoint = provisioning.Endpoint,
+                    ConnectionKey = connectionKey,
+                    Name = config.MyAlias.Name ?? provisioning.Owner.Name,
+                    ImageUrl = config.MyAlias.ImageUrl ?? provisioning.Owner.ImageUrl
+                },
+                Connection = connection
             };
         }
 

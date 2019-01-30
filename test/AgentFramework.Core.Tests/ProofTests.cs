@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Proofs;
 using AgentFramework.Core.Models;
@@ -33,9 +34,9 @@ namespace AgentFramework.Core.Tests
         private const string MasterSecretId = "DefaultMasterSecret";
 
         private Pool _pool;
-        private Wallet _issuerWallet;
-        private Wallet _holderWallet;
-        private Wallet _requestorWallet;
+        private IAgentContext _issuerWallet;
+        private IAgentContext _holderWallet;
+        private IAgentContext _requestorWallet;
 
         private readonly IConnectionService _connectionService;
         private readonly ICredentialService _credentialService;
@@ -112,6 +113,16 @@ namespace AgentFramework.Core.Tests
         {
             try
             {
+                await _poolService.CreatePoolAsync(_poolName, Path.GetFullPath("pool_genesis.txn"));
+            }
+            catch (PoolLedgerConfigExistsException)
+            {
+                // OK
+            }
+            _pool = await _poolService.GetPoolAsync(_poolName, 2);
+
+            try
+            {
                 await Wallet.CreateWalletAsync(IssuerConfig, WalletCredentials);
             }
             catch (WalletExistsException)
@@ -136,21 +147,24 @@ namespace AgentFramework.Core.Tests
             {
                 // OK
             }
-            
-            _issuerWallet = await Wallet.OpenWalletAsync(IssuerConfig, WalletCredentials);
-            _holderWallet = await Wallet.OpenWalletAsync(HolderConfig, WalletCredentials);
-            _requestorWallet = await Wallet.OpenWalletAsync(RequestorConfig, WalletCredentials);
 
-            try
+            _issuerWallet = new AgentContext
             {
-                await _poolService.CreatePoolAsync(_poolName, Path.GetFullPath("pool_genesis.txn"));
-            }
-            catch (PoolLedgerConfigExistsException)
+                Wallet = await Wallet.OpenWalletAsync(IssuerConfig, WalletCredentials),
+                Pool = _pool
+            };
+            _holderWallet = new AgentContext
             {
-                // OK
-            }
+                Wallet = await Wallet.OpenWalletAsync(HolderConfig, WalletCredentials),
+                Pool = _pool
+            };
+            _requestorWallet = new AgentContext
+            {
+                Wallet = await Wallet.OpenWalletAsync(RequestorConfig, WalletCredentials),
+                Pool = _pool
+            };
 
-            _pool = await _poolService.GetPoolAsync(_poolName, 2);
+
         }
 
         [Fact]
@@ -193,8 +207,9 @@ namespace AgentFramework.Core.Tests
                 var proofRequest = FindContentMessage<ProofRequestMessage>();
                 Assert.NotNull(proofRequest);
 
+                _holderWallet.Connection = holderConnection;
                 //Holder stores the proof request
-                var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest, holderConnection);
+                var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest);
                 var holderProofRecord = await _proofService.GetAsync(_holderWallet, holderProofRequestId);
                 var holderProofObject =
                     JsonConvert.DeserializeObject<ProofRequest>(holderProofRecord.RequestJson);
@@ -230,19 +245,20 @@ namespace AgentFramework.Core.Tests
                 }
 
                 //Holder accepts the proof request and sends a proof
-                await _proofService.AcceptProofRequestAsync(_holderWallet, _pool, holderProofRequestId,
-                    requestedCredentials);
+                var proofMessage = await _proofService.AcceptProofRequestAsync(_holderWallet, holderProofRequestId, requestedCredentials);
+                _messages.Add(proofMessage);
             }
 
             //Requestor retrives proof message from their cloud agent
             var proof = FindContentMessage<ProofMessage>();
             Assert.NotNull(proof);
 
+            _requestorWallet.Connection = requestorConnection;
             //Requestor stores proof
-            var requestorProofId = await _proofService.ProcessProofAsync(_requestorWallet, proof, requestorConnection);
+            var requestorProofId = await _proofService.ProcessProofAsync(_requestorWallet, proof);
 
             //Requestor verifies proof
-            var requestorVerifyResult = await _proofService.VerifyProofAsync(_requestorWallet, _pool, requestorProofId);
+            var requestorVerifyResult = await _proofService.VerifyProofAsync(_requestorWallet, requestorProofId);
 
             ////Verify the proof is valid
             Assert.True(requestorVerifyResult);
@@ -356,11 +372,12 @@ namespace AgentFramework.Core.Tests
             var (issuerConnection, _) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _issuerWallet, _holderWallet);
 
+            _issuerWallet.Connection = issuerConnection;
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
                 await _proofService.ProcessProofAsync(_issuerWallet, new ProofMessage
                 {
                     RequestNonce = "123"
-                }, issuerConnection));
+                }));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }
@@ -405,8 +422,9 @@ namespace AgentFramework.Core.Tests
                 var proofRequest = FindContentMessage<ProofRequestMessage>();
                 Assert.NotNull(proofRequest);
 
+                _holderWallet.Connection = holderConnection;
                 //Holder stores the proof request
-                var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest, holderConnection);
+                var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest);
                 var holderProofRecord = await _proofService.GetAsync(_holderWallet, holderProofRequestId);
                 var holderProofObject =
                     JsonConvert.DeserializeObject<ProofRequest>(holderProofRecord.RequestJson);
@@ -442,18 +460,20 @@ namespace AgentFramework.Core.Tests
                 }
 
                 //Holder accepts the proof request and sends a proof
-                await _proofService.AcceptProofRequestAsync(_holderWallet, _pool, holderProofRequestId,
+                var proofMessage = await _proofService.AcceptProofRequestAsync(_holderWallet, holderProofRequestId,
                     requestedCredentials);
+                _messages.Add(proofMessage);
             }
 
             //Requestor retrives proof message from their cloud agent
             var proof = FindContentMessage<ProofMessage>();
             Assert.NotNull(proof);
 
+            _requestorWallet.Connection = requestorConnection;
             //Requestor stores proof
-            await _proofService.ProcessProofAsync(_requestorWallet, proof, requestorConnection);
+            await _proofService.ProcessProofAsync(_requestorWallet, proof);
 
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.ProcessProofAsync(_requestorWallet, proof, requestorConnection));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.ProcessProofAsync(_requestorWallet, proof));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
@@ -461,7 +481,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task AcceptProofRequestCredentialNotFound()
         {
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.AcceptProofRequestAsync(_issuerWallet, _pool, "bad-proof-id", null));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.AcceptProofRequestAsync(_issuerWallet, "bad-proof-id", null));
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }
 
@@ -504,8 +524,9 @@ namespace AgentFramework.Core.Tests
             var proofRequest = FindContentMessage<ProofRequestMessage>();
             Assert.NotNull(proofRequest);
 
+            _holderWallet.Connection = holderConnection;
             //Holder stores the proof request
-            var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest, holderConnection);
+            var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest);
             var holderProofRecord = await _proofService.GetAsync(_holderWallet, holderProofRequestId);
             var holderProofObject =
                 JsonConvert.DeserializeObject<ProofRequest>(holderProofRecord.RequestJson);
@@ -541,9 +562,8 @@ namespace AgentFramework.Core.Tests
             }
 
             //Holder accepts the proof request and sends a proof
-            await _proofService.AcceptProofRequestAsync(_holderWallet, _pool, holderProofRequestId,
-                requestedCredentials);
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.AcceptProofRequestAsync(_holderWallet, _pool, holderProofRequestId,
+            await _proofService.AcceptProofRequestAsync(_holderWallet, holderProofRequestId, requestedCredentials);
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.AcceptProofRequestAsync(_holderWallet, holderProofRequestId,
                 requestedCredentials));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
@@ -594,8 +614,9 @@ namespace AgentFramework.Core.Tests
             var proofRequest = FindContentMessage<ProofRequestMessage>();
             Assert.NotNull(proofRequest);
 
+            _holderWallet.Connection = holderConnection;
             //Holder stores the proof request
-            var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest, holderConnection);
+            var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest);
 
             //Holder accepts the proof request and sends a proof
             await _proofService.RejectProofRequestAsync(_holderWallet, holderProofRequestId);
@@ -609,9 +630,9 @@ namespace AgentFramework.Core.Tests
 
         public async Task DisposeAsync()
         {
-            if (_issuerWallet != null) await _issuerWallet.CloseAsync();
-            if (_holderWallet != null) await _holderWallet.CloseAsync();
-            if (_requestorWallet != null) await _requestorWallet.CloseAsync();
+            if (_issuerWallet != null) await _issuerWallet.Wallet.CloseAsync();
+            if (_holderWallet != null) await _holderWallet.Wallet.CloseAsync();
+            if (_requestorWallet != null) await _requestorWallet.Wallet.CloseAsync();
             if (_pool != null) await _pool.CloseAsync();
 
             await Wallet.DeleteWalletAsync(IssuerConfig, WalletCredentials);

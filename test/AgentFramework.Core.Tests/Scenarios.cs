@@ -24,17 +24,17 @@ namespace AgentFramework.Core.Tests
         internal static async Task<(ConnectionRecord firstParty, ConnectionRecord secondParty)> EstablishConnectionAsync(
             IConnectionService connectionService,
             IProducerConsumerCollection<IAgentMessage> _messages,
-            Wallet firstWallet,
-            Wallet secondWallet,
-            ConnectionInvitationMessage invite = null,
+            IAgentContext firstContext,
+            IAgentContext secondContext,
+            CreateInvitationResult initialInvitationResult = null,
             string inviteeconnectionId = null)
         {
             // Create invitation by the issuer
-            var issuerConnectionId = Guid.NewGuid().ToString();
+            var connectionSecondId = Guid.NewGuid().ToString();
 
             var inviteConfig = new InviteConfiguration()
             {
-                ConnectionId = issuerConnectionId,
+                ConnectionId = connectionSecondId,
                 MyAlias = new ConnectionAlias()
                 {
                     Name = "Issuer",
@@ -48,66 +48,71 @@ namespace AgentFramework.Core.Tests
             };
 
             // Issuer creates an invitation
-            var invitation = invite ?? await connectionService.CreateInvitationAsync(firstWallet, inviteConfig);
+            var invitationResult = initialInvitationResult ?? await connectionService.CreateInvitationAsync(firstContext, inviteConfig);
 
-            var connectionIssuer = await connectionService.GetAsync(firstWallet, inviteeconnectionId ?? inviteConfig.ConnectionId);
-            Assert.Equal(ConnectionState.Invited, connectionIssuer.State);
+            var connectionFirst = await connectionService.GetAsync(firstContext, inviteeconnectionId ?? inviteConfig.ConnectionId);
+            Assert.Equal(ConnectionState.Invited, connectionFirst.State);
+            firstContext.Connection = connectionFirst;
 
-            if (invite == null)
+            if (initialInvitationResult == null)
             { 
-                Assert.True(invitation.Name == inviteConfig.MyAlias.Name &&
-                            invitation.ImageUrl == inviteConfig.MyAlias.ImageUrl);
+                Assert.True(invitationResult.Invitation.Name == inviteConfig.MyAlias.Name &&
+                            invitationResult.Invitation.ImageUrl == inviteConfig.MyAlias.ImageUrl);
             }
 
             // Holder accepts invitation and sends a message request
-            var holderConnectionId = await connectionService.AcceptInvitationAsync(secondWallet, invitation);
-            var connectionHolder = await connectionService.GetAsync(secondWallet, holderConnectionId);
+            var acceptInvitationResult = await connectionService.AcceptInvitationAsync(secondContext, invitationResult.Invitation);
+            var connectionSecond = secondContext.Connection = acceptInvitationResult.Connection;
 
-            Assert.Equal(ConnectionState.Negotiating, connectionHolder.State);
+            _messages.TryAdd(acceptInvitationResult.Request);
+
+            Assert.Equal(ConnectionState.Negotiating, connectionSecond.State);
 
             // Issuer processes incoming message
             var issuerMessage = _messages.OfType<ConnectionRequestMessage>().FirstOrDefault();
             Assert.NotNull(issuerMessage);
 
             // Issuer processes the connection request by storing it and accepting it if auto connection flow is enabled
-            issuerConnectionId = await connectionService.ProcessRequestAsync(firstWallet, issuerMessage, connectionIssuer);
+            connectionSecondId = await connectionService.ProcessRequestAsync(firstContext, issuerMessage);
             
-            connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
-            Assert.Equal(ConnectionState.Negotiating, connectionIssuer.State);
+            firstContext.Connection = connectionFirst = await connectionService.GetAsync(firstContext, connectionSecondId);
+            Assert.Equal(ConnectionState.Negotiating, connectionFirst.State);
 
             // Issuer accepts the connection request
-            var response = await connectionService.AcceptRequestAsync(firstWallet, issuerConnectionId);
+            var response = await connectionService.AcceptRequestAsync(firstContext, connectionSecondId);
             _messages.TryAdd(response);
 
-            connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
-            Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
+            firstContext.Connection = connectionFirst = await connectionService.GetAsync(firstContext, connectionSecondId);
+            Assert.Equal(ConnectionState.Connected, connectionFirst.State);
 
             // Holder processes incoming message
             var holderMessage = _messages.OfType<ConnectionResponseMessage>().FirstOrDefault();
             Assert.NotNull(holderMessage);
 
             // Holder processes the response message by accepting it
-            await connectionService.ProcessResponseAsync(secondWallet, holderMessage, connectionHolder);
+            await connectionService.ProcessResponseAsync(secondContext, holderMessage);
 
             // Retrieve updated connection state for both issuer and holder
-            connectionIssuer = await connectionService.GetAsync(firstWallet, issuerConnectionId);
-            connectionHolder = await connectionService.GetAsync(secondWallet, holderConnectionId);
+            connectionFirst = await connectionService.GetAsync(firstContext, connectionFirst.Id);
+            connectionSecond = await connectionService.GetAsync(secondContext, connectionSecond.Id);
             
-            return (connectionIssuer, connectionHolder);
+            return (connectionFirst, connectionSecond);
         }
         
         internal static async Task<(CredentialRecord issuerCredential, CredentialRecord holderCredential)> IssueCredentialAsync(
             ISchemaService schemaService, ICredentialService credentialService,
             IProducerConsumerCollection<IAgentMessage> messages,
-            ConnectionRecord issuerConnection, ConnectionRecord holderConnection, Wallet issuerWallet, Wallet holderWallet,
+            ConnectionRecord issuerConnection, ConnectionRecord holderConnection, 
+            IAgentContext issuerContext, 
+            IAgentContext holderContext,
             Pool pool, string proverMasterSecretId, bool revocable, OfferConfiguration offerConfiguration = null)
         {
             // Create an issuer DID/VK. Can also be created during provisioning
-            var issuer = await Did.CreateAndStoreMyDidAsync(issuerWallet,
+            var issuer = await Did.CreateAndStoreMyDidAsync(issuerContext.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
             // Creata a schema and credential definition for this issuer
-            (string definitionId, _) = await CreateDummySchemaAndNonRevokableCredDef(pool, issuerWallet, schemaService, issuer.Did, new[] { "first_name", "last_name" });
+            (string definitionId, _) = await CreateDummySchemaAndNonRevokableCredDef(issuerContext, schemaService, issuer.Did, new[] { "first_name", "last_name" });
             
             var offerConfig = offerConfiguration ?? new OfferConfiguration
             {
@@ -116,20 +121,20 @@ namespace AgentFramework.Core.Tests
             };
             
             // Send an offer to the holder using the established connection channel
-            await credentialService.SendOfferAsync(issuerWallet, issuerConnection.Id, offerConfig);
+            await credentialService.SendOfferAsync(issuerContext, issuerConnection.Id, offerConfig);
 
             // Holder retrives message from their cloud agent
             var credentialOffer = FindContentMessage<CredentialOfferMessage>(messages);
 
             // Holder processes the credential offer by storing it
             var holderCredentialId =
-                await credentialService.ProcessOfferAsync(holderWallet, credentialOffer, holderConnection);
+                await credentialService.ProcessOfferAsync(holderContext, credentialOffer, holderConnection);
 
             // Holder creates master secret. Will also be created during wallet agent provisioning
-            await AnonCreds.ProverCreateMasterSecretAsync(holderWallet, proverMasterSecretId);
+            await AnonCreds.ProverCreateMasterSecretAsync(holderContext.Wallet, proverMasterSecretId);
 
             // Holder accepts the credential offer and sends a credential request
-            await credentialService.AcceptOfferAsync(holderWallet, pool, holderCredentialId,
+            await credentialService.AcceptOfferAsync(holderContext, holderCredentialId,
                 new Dictionary<string, string>
                 {
                     {"first_name", "Jane"},
@@ -142,31 +147,31 @@ namespace AgentFramework.Core.Tests
 
             // Issuer processes the credential request by storing it
             var issuerCredentialId =
-                await credentialService.ProcessCredentialRequestAsync(issuerWallet, credentialRequest, issuerConnection);
+                await credentialService.ProcessCredentialRequestAsync(issuerContext, credentialRequest, issuerConnection);
 
             // Issuer accepts the credential requests and issues a credential
-            await credentialService.IssueCredentialAsync(pool, issuerWallet, issuer.Did, issuerCredentialId);
+            await credentialService.IssueCredentialAsync(issuerContext, issuer.Did, issuerCredentialId);
 
             // Holder retrieves the credential from their cloud agent
             var credential = FindContentMessage<CredentialMessage>(messages);
             Assert.NotNull(credential);
 
             // Holder processes the credential by storing it in their wallet
-            await credentialService.ProcessCredentialAsync(pool, holderWallet, credential, holderConnection);
+            await credentialService.ProcessCredentialAsync(holderContext, credential, holderConnection);
 
             // Verify states of both credential records are set to 'Issued'
-            var issuerCredential = await credentialService.GetAsync(issuerWallet, issuerCredentialId);
-            var holderCredential = await credentialService.GetAsync(holderWallet, holderCredentialId);
+            var issuerCredential = await credentialService.GetAsync(issuerContext, issuerCredentialId);
+            var holderCredential = await credentialService.GetAsync(holderContext, holderCredentialId);
 
             return (issuerCredential, holderCredential);
         }
 
-        internal static async Task<(string,string)> CreateDummySchemaAndNonRevokableCredDef(Pool pool, Wallet wallet, ISchemaService schemaService, string issuerDid, string[] attributeValues)
+        internal static async Task<(string,string)> CreateDummySchemaAndNonRevokableCredDef(IAgentContext context, ISchemaService schemaService, string issuerDid, string[] attributeValues)
         {
             // Creata a schema and credential definition for this issuer
-            var schemaId = await schemaService.CreateSchemaAsync(pool, wallet, issuerDid,
+            var schemaId = await schemaService.CreateSchemaAsync(context.Pool, context.Wallet, issuerDid,
                 $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", attributeValues);
-            return (await schemaService.CreateCredentialDefinitionAsync(pool, wallet, schemaId, issuerDid, false, 100, new Uri("http://mock/tails")), schemaId);
+            return (await schemaService.CreateCredentialDefinitionAsync(context.Pool, context.Wallet, schemaId, issuerDid, false, 100, new Uri("http://mock/tails")), schemaId);
         }
 
         private static T FindContentMessage<T>(IEnumerable<IAgentMessage> collection)

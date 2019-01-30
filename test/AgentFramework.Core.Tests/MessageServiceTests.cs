@@ -74,7 +74,7 @@ namespace AgentFramework.Core.Tests
             var httpClient = new HttpClient(handlerMock.Object);
 
             var mockConnectionService = new Mock<IConnectionService>();
-            mockConnectionService.Setup(_ => _.ListAsync(It.IsAny<Wallet>(), It.IsAny<ISearchQuery>(), It.IsAny<int>()))
+            mockConnectionService.Setup(_ => _.ListAsync(It.IsAny<IAgentContext>(), It.IsAny<ISearchQuery>(), It.IsAny<int>()))
                 .Returns(Task.FromResult(new List<ConnectionRecord> {new ConnectionRecord()}));
 
             _messagingService =

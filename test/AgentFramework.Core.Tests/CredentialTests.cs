@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Models;
@@ -33,8 +34,8 @@ namespace AgentFramework.Core.Tests
         private const string MockEndpointUri = "http://mock";
         private const string MasterSecretId = "DefaultMasterSecret";
         
-        private Wallet _issuerWallet;
-        private Wallet _holderWallet;
+        private IAgentContext _issuerWallet;
+        private IAgentContext _holderWallet;
 
         private Pool _pool;
 
@@ -99,6 +100,17 @@ namespace AgentFramework.Core.Tests
         {
             try
             {
+                await _poolService.CreatePoolAsync(_poolName, Path.GetFullPath("pool_genesis.txn"));
+            }
+            catch (PoolLedgerConfigExistsException)
+            {
+                // OK
+            }
+
+            _pool = await _poolService.GetPoolAsync(_poolName, 2);
+
+            try
+            {
                 await Wallet.CreateWalletAsync(_issuerConfig, Credentials);
             }
             catch (WalletExistsException)
@@ -115,18 +127,16 @@ namespace AgentFramework.Core.Tests
                 // OK
             }
 
-            _issuerWallet = await Wallet.OpenWalletAsync(_issuerConfig, Credentials);
-            _holderWallet = await Wallet.OpenWalletAsync(_holderConfig, Credentials);
-
-            try
+            _issuerWallet = new AgentContext
             {
-                await _poolService.CreatePoolAsync(_poolName, Path.GetFullPath("pool_genesis.txn"));
-            }
-            catch (PoolLedgerConfigExistsException)
+                Wallet = await Wallet.OpenWalletAsync(_issuerConfig, Credentials), 
+                Pool = _pool
+            };
+            _holderWallet = new AgentContext
             {
-                // OK
-            }
-            _pool = await _poolService.GetPoolAsync(_poolName, 2);
+                Wallet = await Wallet.OpenWalletAsync(_holderConfig, Credentials), 
+                Pool = _pool
+            };
         }
 
         /// <summary>
@@ -151,13 +161,13 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CanCreateCredentialOffer()
         {
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
+            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
-            var result = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_pool, _issuerWallet, _schemaService, issuer.Did,
+            var result = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
                 new[] {"test-attr"});
 
-            (var offer, var id) = await _credentialService.CreateOfferAsync(_issuerWallet,
+            var (offer, id) = await _credentialService.CreateOfferAsync(_issuerWallet,
                 new OfferConfiguration { CredentialDefinitionId = result.Item1 });
 
             var credentialRecord = await _credentialService.GetAsync(_issuerWallet, id);
@@ -169,10 +179,10 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CanCreateMultiPartyCredentialOffer()
         {
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
+            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
-            var result = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_pool, _issuerWallet, _schemaService, issuer.Did,
+            var result = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
                 new[] { "test-attr" });
 
             (var offer, var id) = await _credentialService.CreateOfferAsync(_issuerWallet,
@@ -199,11 +209,11 @@ namespace AgentFramework.Core.Tests
                 _connectionService, _messages, _issuerWallet, _holderWallet);
 
             // Create an issuer DID/VK. Can also be created during provisioning
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
+            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
             // Creata a schema and credential definition for this issuer
-            (var definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_pool, _issuerWallet, _schemaService, issuer.Did,
+            (var definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
                 new[] { "dummy_attr" });
 
             var offerConfig = new OfferConfiguration()
@@ -223,10 +233,10 @@ namespace AgentFramework.Core.Tests
                 await _credentialService.ProcessOfferAsync(_holderWallet, credentialOffer, holderConnection);
 
             // Holder creates master secret. Will also be created during wallet agent provisioning
-            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet, MasterSecretId);
+            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
 
             // Holder accepts the credential offer and sends a credential request
-            await _credentialService.AcceptOfferAsync(_holderWallet, _pool, holderCredentialId,
+            await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
                 new Dictionary<string, string>
                 {
                     {"dummy_attr", "dummyVal"}
@@ -288,10 +298,10 @@ namespace AgentFramework.Core.Tests
             var (issuerConnection, _) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _issuerWallet, _holderWallet);
             
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
+            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
-            (var credId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_pool, _issuerWallet, _schemaService, issuer.Did,
+            (var credId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
                 new[] { "dummy_attr" });
 
             _routeMessage = false;
@@ -334,11 +344,11 @@ namespace AgentFramework.Core.Tests
                 _connectionService, _messages, _issuerWallet, _holderWallet);
 
             // Create an issuer DID/VK. Can also be created during provisioning
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
+            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
             // Creata a schema and credential definition for this issuer
-            (var definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_pool, _issuerWallet, _schemaService, issuer.Did,
+            (var definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
                 new[] { "dummy_attr" });
 
             var offerConfig = new OfferConfiguration()
@@ -358,10 +368,10 @@ namespace AgentFramework.Core.Tests
                 await _credentialService.ProcessOfferAsync(_holderWallet, credentialOffer, holderConnection);
 
             // Holder creates master secret. Will also be created during wallet agent provisioning
-            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet, MasterSecretId);
+            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
 
             // Holder accepts the credential offer and sends a credential request
-            await _credentialService.AcceptOfferAsync(_holderWallet, _pool, holderCredentialId,
+            await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
                 new Dictionary<string, string>
                 {
                     {"dummy_attr", "dummyVal"}
@@ -386,10 +396,10 @@ namespace AgentFramework.Core.Tests
         public async Task IssueCredentialThrowsExceptionCredentialNotFound()
         {
             // Create an issuer DID/VK. Can also be created during provisioning
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
+            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
             
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.IssueCredentialAsync(_pool, _issuerWallet, issuer.Did, "bad-credential-id"));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.IssueCredentialAsync(_issuerWallet, issuer.Did, "bad-credential-id"));
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }
 
@@ -401,11 +411,11 @@ namespace AgentFramework.Core.Tests
                 _connectionService, _messages, _issuerWallet, _holderWallet);
 
             // Create an issuer DID/VK. Can also be created during provisioning
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
+            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
             // Creata a schema and credential definition for this issuer
-            (var definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_pool, _issuerWallet, _schemaService, issuer.Did,
+            (var definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
                 new[] { "dummy_attr" });
 
             var offerConfig = new OfferConfiguration()
@@ -425,10 +435,10 @@ namespace AgentFramework.Core.Tests
                 await _credentialService.ProcessOfferAsync(_holderWallet, credentialOffer, holderConnection);
 
             // Holder creates master secret. Will also be created during wallet agent provisioning
-            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet, MasterSecretId);
+            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
 
             // Holder accepts the credential offer and sends a credential request
-            await _credentialService.AcceptOfferAsync(_holderWallet, _pool, holderCredentialId,
+            await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
                 new Dictionary<string, string>
                 {
                     {"dummy_attr", "dummyVal"}
@@ -443,10 +453,10 @@ namespace AgentFramework.Core.Tests
                 await _credentialService.ProcessCredentialRequestAsync(_issuerWallet, credentialRequest, issuerConnection);
 
             // Issuer accepts the credential requests and issues a credential
-            await _credentialService.IssueCredentialAsync(_pool, _issuerWallet, issuer.Did, issuerCredentialId);
+            await _credentialService.IssueCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId);
 
             //Try issue the credential again
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.IssueCredentialAsync(_pool, _issuerWallet, issuer.Did, issuerCredentialId));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.IssueCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId));
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
 
@@ -458,11 +468,11 @@ namespace AgentFramework.Core.Tests
                 _connectionService, _messages, _issuerWallet, _holderWallet);
 
             // Create an issuer DID/VK. Can also be created during provisioning
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
+            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
             // Creata a schema and credential definition for this issuer
-            (var definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_pool, _issuerWallet, _schemaService, issuer.Did,
+            (var definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
                 new[] { "dummy_attr" });
 
             var offerConfig = new OfferConfiguration()
@@ -482,10 +492,10 @@ namespace AgentFramework.Core.Tests
                 await _credentialService.ProcessOfferAsync(_holderWallet, credentialOffer, holderConnection);
 
             // Holder creates master secret. Will also be created during wallet agent provisioning
-            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet, MasterSecretId);
+            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
 
             // Holder accepts the credential offer and sends a credential request
-            await _credentialService.AcceptOfferAsync(_holderWallet, _pool, holderCredentialId,
+            await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
                 new Dictionary<string, string>
                 {
                     {"dummy_attr", "dummyVal"}
@@ -502,7 +512,7 @@ namespace AgentFramework.Core.Tests
             //Try issue the credential with a credential service that has a bad routing service
 
             _routeMessage = false;
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.IssueCredentialAsync(_pool, _issuerWallet, issuer.Did, issuerCredentialId));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.IssueCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId));
             Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionError);
             _routeMessage = true;
         }
@@ -522,11 +532,11 @@ namespace AgentFramework.Core.Tests
                 _connectionService, _messages, _issuerWallet, _holderWallet);
 
             // Create an issuer DID/VK. Can also be created during provisioning
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
+            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
             // Creata a schema and credential definition for this issuer
-            (var definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_pool, _issuerWallet, _schemaService, issuer.Did,
+            (var definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
                 new[] { "dummy_attr" });
 
             var offerConfig = new OfferConfiguration()
@@ -559,8 +569,8 @@ namespace AgentFramework.Core.Tests
 
         public async Task DisposeAsync()
         {
-            if (_issuerWallet != null) await _issuerWallet.CloseAsync();
-            if (_holderWallet != null) await _holderWallet.CloseAsync();
+            if (_issuerWallet != null) await _issuerWallet.Wallet.CloseAsync();
+            if (_holderWallet != null) await _holderWallet.Wallet.CloseAsync();
             if (_pool != null) await _pool.CloseAsync();
 
             await Wallet.DeleteWalletAsync(_issuerConfig, Credentials);

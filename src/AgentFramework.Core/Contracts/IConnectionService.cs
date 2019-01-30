@@ -39,7 +39,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="agentContext">Agent Context.</param>
         /// <param name="config">An optional configuration object used to configure the resulting invitations presentation</param>
         /// <returns>The async.</returns>
-        Task<ConnectionInvitationMessage> CreateInvitationAsync(IAgentContext agentContext, InviteConfiguration config = null);
+        Task<CreateInvitationResult> CreateInvitationAsync(IAgentContext agentContext, InviteConfiguration config = null);
 
         /// <summary>
         /// Revokes an invitation.
