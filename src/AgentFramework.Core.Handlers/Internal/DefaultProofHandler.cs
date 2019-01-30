@@ -35,7 +35,7 @@ namespace AgentFramework.Core.Handlers.Internal
         /// <param name="agentContext"></param>
         /// <returns></returns>
         /// <exception cref="AgentFrameworkException">Unsupported message type {messageType}</exception>
-        public async Task ProcessAsync(MessagePayload messagePayload, AgentContext agentContext)
+        public async Task ProcessAsync(MessagePayload messagePayload, IAgentContext agentContext)
         {
             switch (messagePayload.GetMessageType())
             {

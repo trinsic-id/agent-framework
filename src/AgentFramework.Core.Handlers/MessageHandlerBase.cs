@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Messages;
 
 namespace AgentFramework.Core.Handlers
@@ -29,12 +30,12 @@ namespace AgentFramework.Core.Handlers
         /// Processes the incoming <see cref="IAgentMessage"/>
         /// </summary>
         /// <param name="message">The message.</param>
-        /// <param name="context">The message context.</param>
+        /// <param name="agentContext">The message agentContext.</param>
         /// <returns></returns>
-        protected abstract Task ProcessAsync(T message, AgentContext context);
+        protected abstract Task ProcessAsync(T message, IAgentContext agentContext);
 
         /// <inheritdoc />
-        public Task ProcessAsync(MessagePayload messagePayload, AgentContext agentContext) =>
+        public Task ProcessAsync(MessagePayload messagePayload, IAgentContext agentContext) =>
             ProcessAsync(messagePayload.GetMessage<T>(), agentContext);
     }
 }

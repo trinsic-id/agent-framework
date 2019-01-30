@@ -31,6 +31,7 @@ namespace AgentFramework.Core.Handlers
         protected void AddConnectionHandler()
         {
             _handlers.Add(new DefaultConnectionHandler(Provider.GetService<IConnectionService>()));
+            _handlers.Add(new OutgoingMessageHandler());
             _handlers.Add(new HttpOutgoingMessageHandler(Provider.GetService<HttpClientHandler>()));
         }
         protected void AddCredentialHandler()
@@ -63,9 +64,9 @@ namespace AgentFramework.Core.Handlers
             EnsureConfigured();
 
             var agentContext = new AgentContext {Wallet = wallet, Pool = pool};
-            agentContext.AddMessage(new MessagePayload(body, true));
+            agentContext.AddNext(new MessagePayload(body, true));
 
-            while (agentContext.TryGetMessage(out var message))
+            while (agentContext.TryGetNext(out var message))
             {
                 MessagePayload messagePayload;
                 if (message.Packed)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using AgentFramework.Core.Contracts;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AgentFramework.Core.Handlers
@@ -22,6 +23,6 @@ namespace AgentFramework.Core.Handlers
         /// <param name="messagePayload">The agent message agentContext.</param>
         /// <param name="agentContext">The agentContext.</param>
         /// <returns></returns>
-        Task ProcessAsync(MessagePayload messagePayload, AgentContext agentContext);
+        Task ProcessAsync(MessagePayload messagePayload, IAgentContext agentContext);
     }
 }

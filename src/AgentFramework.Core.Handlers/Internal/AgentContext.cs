@@ -5,7 +5,7 @@ using AgentFramework.Core.Models.Records;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 
-namespace AgentFramework.Core.Handlers
+namespace AgentFramework.Core.Handlers.Internal
 {
     /// <summary>
     /// Agent context that represents the context of a current agent.
@@ -30,16 +30,14 @@ namespace AgentFramework.Core.Handlers
         /// </value>
         public Pool Pool { get; set; }
 
-
         public Dictionary<string, string> State { get; set; } = new Dictionary<string, string>();
-
 
         /// <summary>Gets or sets the connection.</summary>
         /// <value>The connection.</value>
         public ConnectionRecord Connection { get; set; }
 
-        internal void AddMessage(MessagePayload message) => _queue.Enqueue(message);
+        internal void AddNext(MessagePayload message) => _queue.Enqueue(message);
 
-        internal bool TryGetMessage(out MessagePayload message) => _queue.TryDequeue(out message);
+        internal bool TryGetNext(out MessagePayload message) => _queue.TryDequeue(out message);
     }
 }

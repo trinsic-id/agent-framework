@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages.Routing;
 using AgentFramework.Core.Utils;
@@ -18,18 +19,18 @@ namespace AgentFramework.Core.Handlers.Internal
         }
         public const string AgentWireMessageMimeType = "application/ssi-agent-wire";
 
-        protected override async Task ProcessAsync(HttpOutgoingMessage message, AgentContext context)
+        protected override async Task ProcessAsync(HttpOutgoingMessage message, IAgentContext agentContext)
         {
             var inner = await CryptoUtils.PackAsync(
-                context.Wallet, context.Connection.TheirVk, context.Connection.MyVk, message.Message.ToByteArray());
+                agentContext.Wallet, agentContext.Connection.TheirVk, agentContext.Connection.MyVk, message.Message.ToByteArray());
 
             var forward = await CryptoUtils.PackAsync(
-                context.Wallet, context.Connection.Endpoint.Verkey, null,
-                new ForwardMessage {Message = inner.GetUTF8String(), To = context.Connection.TheirVk});
+                agentContext.Wallet, agentContext.Connection.Endpoint.Verkey, null,
+                new ForwardMessage {Message = inner.GetUTF8String(), To = agentContext.Connection.TheirVk});
 
             var request = new HttpRequestMessage
             {
-                RequestUri = new Uri(context.Connection.Endpoint.Uri),
+                RequestUri = new Uri(agentContext.Connection.Endpoint.Uri),
                 Method = HttpMethod.Post,
                 Content = new ByteArrayContent(forward)
             };

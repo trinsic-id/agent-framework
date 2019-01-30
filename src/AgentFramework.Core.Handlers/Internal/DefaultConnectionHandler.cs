@@ -41,7 +41,7 @@ namespace AgentFramework.Core.Handlers.Internal
         /// <param name="agentContext"></param>
         /// <returns></returns>
         /// <exception cref="AgentFrameworkException">Unsupported message type {message.Type}</exception>
-        public async Task ProcessAsync(MessagePayload messagePayload, AgentContext agentContext)
+        public async Task ProcessAsync(MessagePayload messagePayload, IAgentContext agentContext)
         {
             switch (messagePayload.GetMessageType())
             {
@@ -59,7 +59,8 @@ namespace AgentFramework.Core.Handlers.Internal
                     if (agentContext.Connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
                     {
                         // Add a response message to be processed by the handler pipeline
-                        agentContext.AddMessage(new HttpOutgoingMessage
+                        if (agentContext is AgentContext context) 
+                            context.AddNext(new HttpOutgoingMessage
                             {
                                 Message = await _connectionService.AcceptRequestAsync(agentContext.Wallet, connectionId)
                             }

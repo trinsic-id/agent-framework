@@ -14,12 +14,13 @@ namespace AgentFramework.Core.Handlers.Internal
             _connectionService = connectionService;
         }
 
-        protected override async Task ProcessAsync(ForwardMessage message, AgentContext context)
+        protected override async Task ProcessAsync(ForwardMessage message, IAgentContext agentContext)
         {
-            var connectionRecord = await _connectionService.ResolveByMyKeyAsync(context.Wallet, message.To);
-            context.Connection = connectionRecord;
+            var connectionRecord = await _connectionService.ResolveByMyKeyAsync(agentContext.Wallet, message.To);
+            agentContext.Connection = connectionRecord;
 
-            context.AddMessage(new MessagePayload(message.Message, true));
+            if (agentContext is AgentContext context) 
+                context.AddNext(new MessagePayload(message.Message, true));
         }
     }
 }
