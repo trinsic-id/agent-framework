@@ -5,6 +5,7 @@ using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
+using AgentFramework.Core.Runtime;
 
 namespace AgentFramework.Core.Contracts
 {
@@ -57,7 +58,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="offer">Offer.</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
         /// <returns>Connection identifier unique for this connection.</returns>
-        Task<ConnectionRequestMessage> AcceptInvitationAsync(IAgentContext agentContext, ConnectionInvitationMessage offer);
+        Task<AcceptInvitationResult> AcceptInvitationAsync(IAgentContext agentContext, ConnectionInvitationMessage offer);
 
         /// <summary>
         /// Process the connection request for a given connection async.

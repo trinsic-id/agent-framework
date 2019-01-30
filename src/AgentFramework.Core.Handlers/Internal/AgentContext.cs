@@ -10,7 +10,7 @@ namespace AgentFramework.Core.Handlers.Internal
     /// <summary>
     /// Agent context that represents the context of a current agent.
     /// </summary>
-    internal class AgentContext : IAgentContext
+    public class AgentContext : IAgentContext
     {
         private readonly ConcurrentQueue<MessagePayload> _queue = new ConcurrentQueue<MessagePayload>();
 
@@ -36,7 +36,7 @@ namespace AgentFramework.Core.Handlers.Internal
         /// <value>The connection.</value>
         public ConnectionRecord Connection { get; set; }
 
-        internal void AddNext(MessagePayload message) => _queue.Enqueue(message);
+        public void AddNext(MessagePayload message) => _queue.Enqueue(message);
 
         internal bool TryGetNext(out MessagePayload message) => _queue.TryDequeue(out message);
     }

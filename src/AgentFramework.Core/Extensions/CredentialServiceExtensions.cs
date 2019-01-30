@@ -22,8 +22,8 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
         public static Task<List<CredentialRecord>> ListOffersAsync(this ICredentialService credentialService,
-            Wallet wallet, int count = 100)
-            => credentialService.ListAsync(wallet,
+            IAgentContext context, int count = 100)
+            => credentialService.ListAsync(context,
                SearchQuery.Equal(nameof(CredentialRecord.State), CredentialState.Offered.ToString("G")), count);
 
         /// <summary>
@@ -34,8 +34,8 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
         public static Task<List<CredentialRecord>> ListRequestsAsync(this ICredentialService credentialService,
-            Wallet wallet, int count = 100)
-            => credentialService.ListAsync(wallet,
+            IAgentContext context, int count = 100)
+            => credentialService.ListAsync(context,
                 SearchQuery.Equal(nameof(CredentialRecord.State), CredentialState.Requested.ToString("G")), count);
 
         /// <summary>
@@ -46,8 +46,8 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
         public static Task<List<CredentialRecord>> ListIssuedCredentialsAsync(this ICredentialService credentialService,
-            Wallet wallet, int count = 100)
-            => credentialService.ListAsync(wallet,
+            IAgentContext context, int count = 100)
+            => credentialService.ListAsync(context,
                 SearchQuery.Equal(nameof(CredentialRecord.State), CredentialState.Issued.ToString("G")), count);
 
         /// <summary>
@@ -58,8 +58,8 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
         public static Task<List<CredentialRecord>> ListRevokedCredentialsAsync(
-            this ICredentialService credentialService, Wallet wallet, int count = 100)
-            => credentialService.ListAsync(wallet,
+            this ICredentialService credentialService, IAgentContext context, int count = 100)
+            => credentialService.ListAsync(context,
                 SearchQuery.Equal(nameof(CredentialRecord.State), CredentialState.Revoked.ToString("G")), count);
 
         /// <summary>
@@ -71,8 +71,8 @@ namespace Streetcred.Sdk.Contracts
         /// <param name="wallet">Wallet.</param>
         /// <param name="count">Count.</param>
         public static Task<List<CredentialRecord>> ListRejectedCredentialsAsync(
-            this ICredentialService credentialService, Wallet wallet, int count = 100)
-            => credentialService.ListAsync(wallet,
+            this ICredentialService credentialService, IAgentContext context, int count = 100)
+            => credentialService.ListAsync(context,
                 SearchQuery.Equal(nameof(CredentialRecord.State), CredentialState.Rejected.ToString("G")), count);
     }
 }

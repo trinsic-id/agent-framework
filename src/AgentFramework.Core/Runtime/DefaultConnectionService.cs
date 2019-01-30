@@ -114,7 +114,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<ConnectionRequestMessage> AcceptInvitationAsync(IAgentContext agentContext, ConnectionInvitationMessage invitation)
+        public virtual async Task<AcceptInvitationResult> AcceptInvitationAsync(IAgentContext agentContext, ConnectionInvitationMessage invitation)
         {
             Logger.LogInformation(LoggingEvents.AcceptInvitation, "Key {0}, Endpoint {1}",
                 invitation.ConnectionKey, invitation.Endpoint.Uri);
@@ -145,13 +145,17 @@ namespace AgentFramework.Core.Runtime
             await RecordService.AddAsync(agentContext.Wallet, connection);
 
             var provisioning = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
-            return new ConnectionRequestMessage
+            return new AcceptInvitationResult
             {
-                Did = my.Did,
-                Verkey = my.VerKey,
-                Endpoint = provisioning.Endpoint,
-                Name = provisioning.Owner?.Name,
-                ImageUrl = provisioning.Owner?.ImageUrl
+                Request = new ConnectionRequestMessage
+                {
+                    Did = my.Did,
+                    Verkey = my.VerKey,
+                    Endpoint = provisioning.Endpoint,
+                    Name = provisioning.Owner?.Name,
+                    ImageUrl = provisioning.Owner?.ImageUrl
+                },
+                Connection = connection
             };
         }
 

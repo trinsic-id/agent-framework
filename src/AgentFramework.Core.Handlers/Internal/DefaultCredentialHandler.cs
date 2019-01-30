@@ -42,20 +42,21 @@ namespace AgentFramework.Core.Handlers.Internal
             {
                 case MessageTypes.CredentialOffer:
                     var offer = messagePayload.GetMessage<CredentialOfferMessage>();
-                    var credentialId =
-                        await _credentialService.ProcessOfferAsync(agentContext.Wallet, offer, agentContext.Connection);
-                    await _credentialService.AcceptOfferAsync(agentContext.Wallet, agentContext.Pool, credentialId);
+                    var credentialId = await _credentialService.ProcessOfferAsync(
+                        agentContext, offer, agentContext.Connection);
+                    await _credentialService.AcceptOfferAsync(agentContext, credentialId);
                     return;
 
                 case MessageTypes.CredentialRequest:
                     var request = messagePayload.GetMessage<CredentialRequestMessage>();
-                    await _credentialService.ProcessCredentialRequestAsync(agentContext.Wallet, request, agentContext.Connection);
+                    await _credentialService.ProcessCredentialRequestAsync(
+                        agentContext, request, agentContext.Connection);
                     return;
 
                 case MessageTypes.Credential:
                     var credential = messagePayload.GetMessage<CredentialMessage>();
-                    await _credentialService.ProcessCredentialAsync(agentContext.Pool, agentContext.Wallet, credential,
-                        agentContext.Connection);
+                    await _credentialService.ProcessCredentialAsync(
+                        agentContext, credential, agentContext.Connection);
                     return;
                 default:
                     throw new AgentFrameworkException(ErrorCode.InvalidMessage,
