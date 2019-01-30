@@ -20,9 +20,9 @@ namespace AgentFramework.Core.Handlers
         /// <summary>
         /// Processes the agent message
         /// </summary>
-        /// <param name="messagePayload">The agent message agentContext.</param>
-        /// <param name="agentContext">The agentContext.</param>
+        /// <param name="agentContext">The agent context.</param>
+        /// <param name="messagePayload">The agent message context.</param>
         /// <returns></returns>
-        Task ProcessAsync(MessagePayload messagePayload, IAgentContext agentContext);
+        Task ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload);
     }
 }

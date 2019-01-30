@@ -84,7 +84,7 @@ namespace AgentFramework.Core.Handlers
                             type => type.Equals(messagePayload.GetMessageType(), StringComparison.OrdinalIgnoreCase)))
                     is IMessageHandler messageHandler)
                 {
-                    await messageHandler.ProcessAsync(messagePayload, agentContext);
+                    await messageHandler.ProcessAsync(agentContext, messagePayload);
                 }
                 else
                 {

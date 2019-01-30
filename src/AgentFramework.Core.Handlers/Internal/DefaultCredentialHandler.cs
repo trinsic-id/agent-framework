@@ -32,11 +32,11 @@ namespace AgentFramework.Core.Handlers.Internal
         /// <summary>
         /// Processes the agent message
         /// </summary>
-        /// <param name="messagePayload">The agent message.</param>
         /// <param name="agentContext"></param>
+        /// <param name="messagePayload">The agent message.</param>
         /// <returns></returns>
         /// <exception cref="AgentFrameworkException">Unsupported message type {messageType}</exception>
-        public async Task ProcessAsync(MessagePayload messagePayload, IAgentContext agentContext)
+        public async Task ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload)
         {
             switch (messagePayload.GetMessageType())
             {
