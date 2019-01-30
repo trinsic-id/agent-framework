@@ -1,4 +1,5 @@
-﻿using AgentFramework.Core.Exceptions;
+﻿using System;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using Newtonsoft.Json.Linq;
@@ -17,13 +18,13 @@ namespace AgentFramework.Core.Handlers
         {
             Packed = packed;
             Payload = message;
-            _messageJson = JObject.Parse(Payload.GetUTF8String());
+            if (!Packed) _messageJson = JObject.Parse(Payload.GetUTF8String());
         }
 
         public MessagePayload(string message, bool packed)
         {
             Packed = packed;
-            Payload = message.ToByteArray();
+            Payload = message.GetUTF8Bytes();
             _messageJson = JObject.Parse(message);
         }
 
@@ -44,7 +45,7 @@ namespace AgentFramework.Core.Handlers
         public string GetMessageType() =>
             Packed
                 ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
-                : _messageJson[@"type"].ToObject<string>();
+                : _messageJson["@type"].Value<string>();
 
         /// <summary>
         /// Gets the message cast to the expect message type.

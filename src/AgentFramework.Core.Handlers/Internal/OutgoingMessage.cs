@@ -12,6 +12,6 @@ namespace AgentFramework.Core.Handlers.Internal
 
         [JsonProperty("@type")] public string Type { get; set; } = "did:test:123;/spec/internal/outgoing";
 
-        public IAgentMessage Message { get; set; }
+        public string Message { get; set; }
     }
 }

@@ -5,6 +5,9 @@ using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Extensions
 {
+    /// <summary>
+    /// Formatting extensions
+    /// </summary>
     public static class FormattingExtensions
     {
         /// <summary>
@@ -23,7 +26,6 @@ namespace AgentFramework.Core.Extensions
         /// <summary>
         /// Deserializes a JSON string to object
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <returns>The json.</returns>
         /// <param name="value">Value.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
@@ -36,11 +38,14 @@ namespace AgentFramework.Core.Extensions
         public static byte[] GetUTF8Bytes(this string value) => Encoding.UTF8.GetBytes(value);
 
         /// <summary>
-        /// Serializes an object to byte array using UTF8 byte order
+        /// Serializes an object to byte array using UTF8 byte order of the JSON graph
         /// </summary>
         /// <returns>The byte array.</returns>
         /// <param name="value">Value.</param>
-        public static byte[] ToByteArray(this object value) => GetUTF8Bytes(ToJson(value));
+        public static byte[] ToByteArray<T>(this T value) =>
+            (value is string)
+                ? throw new Exception("Use GetUTF8Bytes() extension for string types")
+                : GetUTF8Bytes(ToJson(value));
 
         /// <summary>Converts the specified string, which encodes binary data as base-64 digits,
         /// to an equivalent 8-bit unsigned integer array.</summary>

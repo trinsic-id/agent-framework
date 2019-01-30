@@ -32,7 +32,8 @@ namespace AgentFramework.Core.Handlers
         {
             _handlers.Add(new DefaultConnectionHandler(Provider.GetService<IConnectionService>()));
             _handlers.Add(new OutgoingMessageHandler());
-            _handlers.Add(new HttpOutgoingMessageHandler(Provider.GetService<HttpClientHandler>()));
+            _handlers.Add(new HttpOutgoingMessageHandler(Provider.GetService<HttpClientHandler>()
+                                                         ?? new HttpClientHandler()));
         }
         protected void AddCredentialHandler()
         {
@@ -71,7 +72,7 @@ namespace AgentFramework.Core.Handlers
                 MessagePayload messagePayload;
                 if (message.Packed)
                 {
-                    var unpacked = await CryptoUtils.UnpackAsync(wallet, message.Payload);
+                    var unpacked = await CryptoUtils.UnpackAsync(agentContext.Wallet, message.Payload);
                     messagePayload = new MessagePayload(unpacked.Message, false);
                 }
                 else

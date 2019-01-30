@@ -22,7 +22,7 @@ namespace AgentFramework.Core.Handlers.Internal
         protected override async Task ProcessAsync(HttpOutgoingMessage message, IAgentContext agentContext)
         {
             var inner = await CryptoUtils.PackAsync(
-                agentContext.Wallet, agentContext.Connection.TheirVk, agentContext.Connection.MyVk, message.Message.ToByteArray());
+                agentContext.Wallet, agentContext.Connection.TheirVk, agentContext.Connection.MyVk, message.Message.GetUTF8Bytes());
 
             var forward = await CryptoUtils.PackAsync(
                 agentContext.Wallet, agentContext.Connection.Endpoint.Verkey, null,

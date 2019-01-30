@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Utils;
@@ -57,13 +58,15 @@ namespace AgentFramework.Core.Handlers.Internal
                     if (agentContext.Connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
                     {
                         // Add a response message to be processed by the handler pipeline
-                        if (agentContext is AgentContext context) 
-                            context.AddNext(new HttpOutgoingMessage
-                            {
-                                Message = await _connectionService.AcceptRequestAsync(agentContext, connectionId)
-                            }
-                            .AsMessagePayload());
+                        if (agentContext is AgentContext context)
+                            context.AddNext(new OutgoingMessage
+                                {
+                                    Message = (await _connectionService.AcceptRequestAsync(agentContext, connectionId))
+                                        .ToJson()
+                                }
+                                .AsMessagePayload());
                     }
+
                     return;
 
                 case MessageTypes.ConnectionResponse:
