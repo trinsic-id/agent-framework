@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
@@ -15,9 +16,17 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultProvisioningService : IProvisioningService
     {
+        /// <summary>The record service</summary>
+        // ReSharper disable InconsistentNaming
         protected readonly IWalletRecordService RecordService;
-        protected readonly IWalletService WalletService;
 
+        /// <summary>The wallet service</summary>
+        protected readonly IWalletService WalletService; 
+        // ReSharper restore InconsistentNaming
+
+        /// <summary>Initializes a new instance of the <see cref="DefaultProvisioningService"/> class.</summary>
+        /// <param name="walletRecord">The wallet record.</param>
+        /// <param name="walletService">The wallet service.</param>
         public DefaultProvisioningService(
             IWalletRecordService walletRecord, 
             IWalletService walletService)
@@ -143,6 +152,11 @@ namespace AgentFramework.Core.Runtime
                     ImageUrl = configuration.OwnerImageUrl
                 }
             };
+
+            // Populate initial tags if any passed
+            if (configuration.Tags != null && configuration.Tags.Any())
+                foreach (var item in configuration.Tags)
+                    record.Tags.Add(item.Key, item.Value);
 
             // Create issuer
             if (configuration.CreateIssuer)

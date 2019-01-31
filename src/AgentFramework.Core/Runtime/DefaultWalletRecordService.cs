@@ -17,6 +17,7 @@ namespace AgentFramework.Core.Runtime
     {
         private readonly JsonSerializerSettings _jsonSettings;
 
+        /// <summary>Initializes a new instance of the <see cref="DefaultWalletRecordService"/> class.</summary>
         public DefaultWalletRecordService()
         {
             _jsonSettings = new JsonSerializerSettings

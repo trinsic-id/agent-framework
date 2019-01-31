@@ -74,7 +74,7 @@ namespace AgentFramework.Core.Tests
             var httpClient = new HttpClient(handlerMock.Object);
 
             var mockConnectionService = new Mock<IConnectionService>();
-            mockConnectionService.Setup(_ => _.ListAsync(It.IsAny<Wallet>(), It.IsAny<ISearchQuery>(), It.IsAny<int>()))
+            mockConnectionService.Setup(_ => _.ListAsync(It.IsAny<IAgentContext>(), It.IsAny<ISearchQuery>(), It.IsAny<int>()))
                 .Returns(Task.FromResult(new List<ConnectionRecord> {new ConnectionRecord()}));
 
             _messagingService =
@@ -102,65 +102,6 @@ namespace AgentFramework.Core.Tests
         }
 
         [Fact]
-        public async Task CanSendMessage()
-        {
-            var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
-            var their = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
-            var agency = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
-
-            var connection = new ConnectionRecord
-            {
-                MyDid = my.Did,
-                MyVk = my.VerKey,
-                Alias = new ConnectionAlias
-                {
-                    Name = "Test"
-                },
-                Endpoint = new AgentEndpoint
-                {
-                    Uri = "https://mock.com",
-                    Verkey = agency.VerKey
-                },
-                TheirDid = their.Did,
-                TheirVk = their.VerKey
-            };
-
-            await _messagingService.SendAsync(_wallet, new ConnectionRequestMessage(), connection);
-
-            var httpMessage = _messages.FirstOrDefault();
-
-            Assert.True(httpMessage != null);
-
-            Assert.True(httpMessage.Method == HttpMethod.Post);
-            Assert.True(httpMessage.RequestUri == new Uri("https://mock.com"));
-            Assert.True(httpMessage.Content.Headers.ContentType.ToString() ==
-                        DefaultMessageService.AgentWireMessageMimeType);
-
-            var body = await httpMessage.Content.ReadAsByteArrayAsync();
-
-            var outerWireMessage = body.ToObject<AgentWireMessage>();
-            var innerWireMessage =
-                (await Crypto.AnonDecryptAsync(
-                    _wallet,
-                    outerWireMessage.To,
-                    outerWireMessage.Message.GetBytesFromBase64()))
-                .ToObject<ForwardMessage>()
-                .Message
-                .ToObject<AgentWireMessage>();
-
-            var authDecrypted = await Crypto.AuthDecryptAsync(
-                _wallet, innerWireMessage.To, innerWireMessage.Message.GetBytesFromBase64());
-
-            var message = JObject.Parse(authDecrypted.MessageData.GetUTF8String());
-
-            Assert.Equal(message["@type"].ToString(), MessageTypes.ConnectionRequest);
-            Assert.Equal(my.VerKey, authDecrypted.TheirVk);
-
-            var request = message.ToObject<ConnectionRequestMessage>();
-            Assert.NotNull(request);
-        }
-
-        // [Fact]
         public async Task PackAnon()
         {
 
@@ -174,7 +115,7 @@ namespace AgentFramework.Core.Tests
             Assert.NotNull(packed);
         }
 
-        // [Fact]
+        [Fact]
         public async Task PackAuth()
         {
 
@@ -188,7 +129,7 @@ namespace AgentFramework.Core.Tests
             Assert.NotNull(packed);
         }
 
-        // [Fact]
+        [Fact]
         public async Task PackAndUnpackAnon()
         {
 
@@ -206,7 +147,7 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(unpack.RecipientVerkey, anotherMy.VerKey);
         }
 
-        // [Fact]
+        [Fact]
         public async Task PackAndUnpackAuth()
         {
 
@@ -228,7 +169,7 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(MessageTypes.ConnectionInvitation, jObject["@type"].ToObject<string>());
         }
 
-        // [Fact]
+        [Fact]
         public async Task UnpackToCustomType()
         {
 
@@ -242,95 +183,6 @@ namespace AgentFramework.Core.Tests
 
             Assert.NotNull(unpack);
             Assert.Equal("123", unpack.ConnectionKey);
-        }
-
-        /*
-        [Fact]
-        public async Task CanRecieveAuthCryptMessage()
-        {
-            var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
-            var their = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
-
-            var message = new AgentWireMessage
-            {
-                To = their.VerKey,
-                From = my.VerKey,
-                Message = (await Crypto.AuthCryptAsync(
-                            _wallet,
-                            my.VerKey,
-                            their.VerKey,
-                            new ConnectionRequestMessage().ToByteArray()))
-                        .ToBase64String()
-            }
-                .ToByteArray();
-
-            var context = await _messagingService.RecieveAsync(new AgentContext { Wallet = _wallet }, message);
-
-            Assert.True(context.MessageType == MessageTypes.ConnectionRequest);
-            Assert.True(context.MessageData.Length != 0);
-            Assert.NotNull(context.Connection);
-            Assert.NotNull(context.GetMessage<ConnectionRequestMessage>());
-        }
-
-        [Fact]
-        public async Task CanRecieveAnonCryptMessage()
-        {
-            var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
-            var their = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
-
-            var message = new AgentWireMessage
-            {
-                To = their.VerKey,
-                From = my.VerKey,
-                Message = (await Crypto.AnonCryptAsync(
-                            their.VerKey,
-                            new ConnectionRequestMessage().ToByteArray()))
-                        .ToBase64String()
-            }
-                .ToByteArray();
-
-            var context = await _messagingService.RecieveAsync(new AgentContext { Wallet = _wallet }, message);
-
-            Assert.True(context.MessageType == MessageTypes.ConnectionRequest);
-            Assert.True(context.MessageData.Length != 0);
-            Assert.NotNull(context.GetMessage<ConnectionRequestMessage>());
-        }
-        */
-
-        [Fact]
-        public async Task RecieveThrowsCannotUnpackException()
-        {
-            var dummyConfig = "{\"id\":\"" + Guid.NewGuid() + "\"}";
-            try
-            {
-                await Wallet.CreateWalletAsync(dummyConfig, WalletCredentials);
-            }
-            catch (WalletExistsException)
-            {
-                // OK
-            }
-
-            var dummyWallet = await Wallet.OpenWalletAsync(dummyConfig, WalletCredentials);
-            var my = await Did.CreateAndStoreMyDidAsync(dummyWallet, "{}");
-            var their = await Did.CreateAndStoreMyDidAsync(dummyWallet, "{}");
-
-            var message = new AgentWireMessage
-                {
-                    To = their.VerKey,
-                    From = my.VerKey,
-                    Message = (await Crypto.AnonCryptAsync(
-                            their.VerKey,
-                            new ConnectionRequestMessage().ToByteArray()))
-                        .ToBase64String()
-                }
-                .ToByteArray();
-
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
-                await _messagingService.RecieveAsync(new AgentContext {Wallet = _wallet}, message));
-            Assert.True(ex.ErrorCode == ErrorCode.MessageUnpackError);
-
-            if (dummyWallet != null) await dummyWallet.CloseAsync();
-            await Wallet.DeleteWalletAsync(dummyConfig, WalletCredentials);
         }
 
         [Fact]
@@ -371,40 +223,6 @@ namespace AgentFramework.Core.Tests
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
                 await _messagingService.SendAsync(_wallet, new MockAgentMessage { Id = Guid.NewGuid().ToString() }, connection));
             Assert.True(ex.ErrorCode == ErrorCode.InvalidMessage);
-        }
-
-        [Fact]
-        public async Task RoundTripMessage()
-        {
-            var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
-            var their = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
-            var agency = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
-
-            var connection = new ConnectionRecord
-            {
-                MyVk = my.VerKey,
-                Endpoint = new AgentEndpoint
-                {
-                    Uri = "https://mock.com",
-                    Verkey = agency.VerKey
-                },
-                TheirVk = their.VerKey
-            };
-
-            await _messagingService.SendAsync(_wallet, new ConnectionRequestMessage {Did = "123"}, connection);
-
-            var httpMessage = _messages.First();
-            var body = await httpMessage.Content.ReadAsByteArrayAsync();
-
-            var (messageData, key) = await _messagingService.RecieveAsync(new AgentContext {Wallet = _wallet}, body);
-            var message = JObject.Parse(messageData.GetUTF8String());
-
-            Assert.Equal(message["@type"].ToString(), MessageTypes.ConnectionRequest);
-            Assert.Equal(their.VerKey, key);
-
-            var request = message.ToObject<ConnectionRequestMessage>();
-            Assert.NotNull(request);
-            Assert.Equal("123", request.Did);
         }
     }
 }

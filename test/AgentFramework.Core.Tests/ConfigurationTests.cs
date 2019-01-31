@@ -5,7 +5,6 @@ using AgentFramework.AspNetCore.Runtime;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using Autofac;
-using Autofac.Core.Registration;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,10 +42,6 @@ namespace AgentFramework.Core.Tests
             Assert.NotNull(container.Resolve<IWalletService>());
 
             Assert.NotNull(container.Resolve<HttpClient>());
-            
-            Assert.NotNull(container.Resolve<DefaultConnectionHandler>());
-            Assert.NotNull(container.Resolve<DefaultCredentialHandler>());
-            Assert.NotNull(container.Resolve<DefaultProofHandler>());
         }
 
         [Fact]
@@ -68,28 +63,6 @@ namespace AgentFramework.Core.Tests
             var result = container.Resolve<IConnectionService>();
 
             Assert.True(result.GetType() == typeof(MockExtendedConnectionService));
-        }
-
-        [Fact]
-        public void AddAgentframeworkWithOverrideHandlers()
-        {
-            IServiceCollection services = new ServiceCollection();
-
-            services.AddLogging();
-            services.AddAgentFramework(_ => _.OverrideDefaultMessageHandlers());
-
-            // Initialize Autofac
-            var builder = new ContainerBuilder();
-
-            builder.Populate(services);
-
-            // Build the final container
-            var container = builder.Build();
-
-            Assert.Throws<ComponentNotRegisteredException>(() => container.Resolve<IMessageHandler>());
-            Assert.Throws<ComponentNotRegisteredException>(() => container.Resolve<DefaultConnectionHandler>());
-            Assert.Throws<ComponentNotRegisteredException>(() => container.Resolve<DefaultCredentialHandler>());
-            Assert.Throws<ComponentNotRegisteredException>(() => container.Resolve<DefaultProofHandler>());
         }
 
         [Fact]

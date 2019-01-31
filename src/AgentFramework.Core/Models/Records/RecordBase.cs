@@ -45,8 +45,10 @@ namespace AgentFramework.Core.Models.Records
         [JsonIgnore]
         public abstract string TypeName { get; }
 
+        /// <summary>Gets or sets the tags.</summary>
+        /// <value>The tags.</value>
         [JsonIgnore]
-        internal Dictionary<string, string> Tags { get; } = new Dictionary<string, string>();
+        protected internal Dictionary<string, string> Tags { get; set; } = new Dictionary<string, string>();
 
         /// <summary>
         /// Gets the attribute.
@@ -206,6 +208,10 @@ namespace AgentFramework.Core.Models.Records
             return null;
         }
 
+        /// <summary>Gets the date time.</summary>
+        /// <param name="encrypted">if set to <c>true</c> [encrypted].</param>
+        /// <param name="name">The name.</param>
+        /// <returns></returns>
         protected DateTime? GetDateTime(bool encrypted = true, [CallerMemberName] string name = "")
         {
             var strVal = Get(encrypted, name);
@@ -216,6 +222,10 @@ namespace AgentFramework.Core.Models.Records
             return new DateTime(Convert.ToInt64(strVal));
         }
 
+        /// <summary>Gets the bool.</summary>
+        /// <param name="encrypted">if set to <c>true</c> [encrypted].</param>
+        /// <param name="name">The name.</param>
+        /// <returns></returns>
         protected bool GetBool(bool encrypted = true, [CallerMemberName] string name = "")
         {
             var strVal = Get(encrypted, name);
