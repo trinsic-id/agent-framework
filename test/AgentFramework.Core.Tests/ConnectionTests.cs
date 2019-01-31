@@ -128,21 +128,6 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(connectionId, connection.Id);
         }
 
-        //[Fact]
-        //public async Task AcceptInviteThrowsExceptionUnableToSendA2AMessage()
-        //{
-        //    var connectionId = Guid.NewGuid().ToString();
-
-        //    var invitation = await _connectionService.CreateInvitationAsync(_issuerWallet,
-        //        new InviteConfiguration() { ConnectionId = connectionId });
-
-        //    _routeMessage = false;
-        //    var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.AcceptInvitationAsync(_holderWallet, invitation.Invitation));
-        //    _routeMessage = true;
-
-        //    Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionError);
-        //}
-
         [Fact]
         public async Task AcceptRequestThrowsExceptionConnectionNotFound()
         {
@@ -181,41 +166,6 @@ namespace AgentFramework.Core.Tests
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
-
-        //[Fact]
-        //public async Task AcceptRequestThrowsExceptionUnableToSendA2AMessage()
-        //{
-        //    var connectionId = Guid.NewGuid().ToString();
-            
-        //    await _connectionService.CreateInvitationAsync(_issuerWallet,
-        //        new InviteConfiguration() { ConnectionId = connectionId, AutoAcceptConnection = false });
-
-        //    //Process a connection request
-        //    var connectionRecord = await _connectionService.GetAsync(_issuerWallet, connectionId);
-        //    _issuerWallet.Connection = connectionRecord;
-        //    await _connectionService.ProcessRequestAsync(_issuerWallet, new ConnectionRequestMessage
-        //    {
-        //        Did = "EYS94e95kf6LXF49eARL76",
-        //        Verkey = "~LGkX716up2KAimNfz11HRr",
-        //        Endpoint = new AgentEndpoint
-        //        {
-        //            Did = "EYS94e95kf6LXF49eARL76",
-        //            Verkey = "~LGkX716up2KAimNfz11HRr"
-        //        },
-        //        Type = MessageTypes.ConnectionRequest
-        //    });
-            
-        //    //Now try and accept it again
-        //    _routeMessage = false;
-        //    var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.AcceptRequestAsync(_issuerWallet, connectionId));
-        //    _routeMessage = true;
-
-        //    Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionError);
-        //    //Process a connection request
-        //    var connectionRecordRefetched = await _connectionService.GetAsync(_issuerWallet, connectionId);
-
-        //    Assert.True(connectionRecordRefetched.State == ConnectionState.Negotiating);
-        //}
 
         [Fact]
         public async Task RevokeInvitationThrowsConnectionNotFound()

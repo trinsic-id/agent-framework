@@ -95,8 +95,7 @@ namespace AgentFramework.Core.Handlers
 
                 if (_handlers.Where(handler => handler != null).FirstOrDefault(
                         handler => handler.SupportedMessageTypes.Any(
-                            type => type.Equals(messagePayload.GetMessageType(), StringComparison.OrdinalIgnoreCase)))
-                    is IMessageHandler messageHandler)
+                            type => type.Equals(messagePayload.GetMessageType(), StringComparison.OrdinalIgnoreCase))) is IMessageHandler messageHandler)
                 {
                     await messageHandler.ProcessAsync(agentContext, messagePayload);
                 }
