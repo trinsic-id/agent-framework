@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages.Routing;
 using AgentFramework.Core.Utils;
 
@@ -21,12 +20,9 @@ namespace AgentFramework.Core.Handlers.Internal
 
         protected override async Task ProcessAsync(HttpOutgoingMessage message, IAgentContext agentContext)
         {
-            var inner = await CryptoUtils.PackAsync(
-                agentContext.Wallet, agentContext.Connection.TheirVk, agentContext.Connection.MyVk, message.Message.GetUTF8Bytes());
-
             var forward = await CryptoUtils.PackAsync(
                 agentContext.Wallet, agentContext.Connection.Endpoint.Verkey, null,
-                new ForwardMessage {Message = inner.GetUTF8String(), To = agentContext.Connection.TheirVk});
+                new ForwardMessage {Message = message.Message, To = agentContext.Connection.TheirVk});
 
             var request = new HttpRequestMessage
             {

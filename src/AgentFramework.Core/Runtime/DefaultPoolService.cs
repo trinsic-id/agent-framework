@@ -9,6 +9,7 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultPoolService : IPoolService
     {
+        /// <summary>Collection of active pool handles.</summary>
         protected static readonly ConcurrentDictionary<string, Pool> Pools =
             new ConcurrentDictionary<string, Pool>();
 

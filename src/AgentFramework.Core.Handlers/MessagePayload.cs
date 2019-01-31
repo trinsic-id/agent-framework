@@ -11,9 +11,16 @@ namespace AgentFramework.Core.Handlers
     /// </summary>
     public class MessagePayload
     {
+        /// <summary>Gets a value indicating whether this <see cref="MessagePayload"/> is packed.</summary>
+        /// <value>
+        ///   <c>true</c> if packed; otherwise, <c>false</c>.</value>
         public bool Packed { get; }
-        private JObject _messageJson;
-        
+
+        private readonly JObject _messageJson;
+
+        /// <summary>Initializes a new instance of the <see cref="MessagePayload"/> class.</summary>
+        /// <param name="message">The message.</param>
+        /// <param name="packed">if set to <c>true</c> [packed].</param>
         public MessagePayload(byte[] message, bool packed)
         {
             Packed = packed;
@@ -21,17 +28,16 @@ namespace AgentFramework.Core.Handlers
             if (!Packed) _messageJson = JObject.Parse(Payload.GetUTF8String());
         }
 
-        public MessagePayload(string message, bool packed)
+        /// <inheritdoc />
+        public MessagePayload(string message, bool packed) : this(message.GetUTF8Bytes(), packed)
         {
-            Packed = packed;
-            Payload = message.GetUTF8Bytes();
-            _messageJson = JObject.Parse(message);
         }
 
+        /// <inheritdoc />
+        /// <param name="message">The message.</param>
         public MessagePayload(IAgentMessage message)
         : this(message.ToJson(), false)
         {
-
         }
 
         /// <summary>

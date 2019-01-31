@@ -20,13 +20,5 @@ namespace AgentFramework.Core.Contracts
         /// <param name="recipientKey">The recipients verkey to encrypt the message for.</param>
         /// <returns>The response async.</returns>
         Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connection, string recipientKey = null);
-
-        /// <summary>
-        /// Recieves an agent message asynchronously constructing a context object.
-        /// </summary>
-        /// <param name="agentContext">The agent context.</param>
-        /// <param name="message">The message.</param>
-        /// <returns>The message context asynchronously.</returns>
-        //Task<(byte[], string)> RecieveAsync(AgentContext agentContext, byte[] message);
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Models.Records;
@@ -14,28 +15,22 @@ namespace AgentFramework.Core.Handlers.Internal
     {
         private readonly ConcurrentQueue<MessagePayload> _queue = new ConcurrentQueue<MessagePayload>();
 
-        /// <summary>
-        /// Gets or sets the wallet.
-        /// </summary>
-        /// <value>
-        /// The wallet.
-        /// </value>
+        /// <inheritdoc />
         public Wallet Wallet { get; set; }
 
-        /// <summary>
-        /// Gets or sets the pool.
-        /// </summary>
-        /// <value>
-        /// The pool.
-        /// </value>
+        /// <inheritdoc />
         public Pool Pool { get; set; }
 
+        /// <inheritdoc />
         public Dictionary<string, string> State { get; set; } = new Dictionary<string, string>();
 
-        /// <summary>Gets or sets the connection.</summary>
-        /// <value>The connection.</value>
+        /// <inheritdoc />
         public ConnectionRecord Connection { get; set; }
 
+        /// <summary>
+        /// Adds a message to the current processing queue
+        /// </summary>
+        /// <param name="message"></param>
         public void AddNext(MessagePayload message) => _queue.Enqueue(message);
 
         internal bool TryGetNext(out MessagePayload message) => _queue.TryDequeue(out message);

@@ -13,19 +13,24 @@ namespace AgentFramework.Core.Models.Records
     {
         private CredentialState _state;
 
+        /// <summary>Initializes a new instance of the <see cref="CredentialRecord"/> class.</summary>
         public CredentialRecord()
         {
             State = CredentialState.Offered;
         }
 
+        /// <summary>Creates a shallow copy.</summary>
+        /// <returns></returns>
         public CredentialRecord ShallowCopy()
         {
-            return (CredentialRecord)this.MemberwiseClone();
+            return (CredentialRecord)MemberwiseClone();
         }
 
+        /// <summary>Creates a deep copy.</summary>
+        /// <returns></returns>
         public CredentialRecord DeepCopy()
         {
-            CredentialRecord copy = (CredentialRecord)this.MemberwiseClone();
+            CredentialRecord copy = (CredentialRecord)MemberwiseClone();
             return copy;
         }
 

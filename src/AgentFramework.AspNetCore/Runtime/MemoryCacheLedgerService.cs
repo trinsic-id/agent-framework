@@ -9,7 +9,7 @@ namespace AgentFramework.AspNetCore.Runtime
 {
     /// <inheritdoc />
     /// <summary>
-    /// An implementation of <see cref="T:Streetcred.Sdk.Runtime.DefaultLedgerService" /> that uses <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache" />
+    /// An implementation of <see cref="DefaultLedgerService" /> that uses <see cref="IMemoryCache" />
     /// to store cached objects
     /// </summary>
     public class MemoryCacheLedgerService : DefaultLedgerService
@@ -17,6 +17,9 @@ namespace AgentFramework.AspNetCore.Runtime
         private readonly IMemoryCache _memoryCache;
         private readonly MemoryCacheEntryOptions _options;
 
+        /// <summary>Initializes a new instance of the <see cref="MemoryCacheLedgerService"/> class.</summary>
+        /// <param name="memoryCache">The memory cache.</param>
+        /// <param name="options">The options.</param>
         public MemoryCacheLedgerService(IMemoryCache memoryCache, MemoryCacheEntryOptions options = null)
         {
             _memoryCache = memoryCache;
@@ -30,7 +33,6 @@ namespace AgentFramework.AspNetCore.Runtime
         /// </summary>
         /// <returns>The schema async.</returns>
         /// <param name="pool">Pool.</param>
-        /// <param name="submitterDid">Submitter did.</param>
         /// <param name="schemaId">Schema identifier.</param>
         public override async Task<ParseResponseResult> LookupSchemaAsync(Pool pool, string schemaId)
         {
@@ -51,7 +53,6 @@ namespace AgentFramework.AspNetCore.Runtime
         /// </summary>
         /// <returns>The definition async.</returns>
         /// <param name="pool">Pool.</param>
-        /// <param name="submitterDid">Submitter did.</param>
         /// <param name="definitionId">Definition identifier.</param>
         public override async Task<ParseResponseResult> LookupDefinitionAsync(Pool pool, string definitionId)
         {
@@ -73,7 +74,6 @@ namespace AgentFramework.AspNetCore.Runtime
         /// </summary>
         /// <returns>The definition async.</returns>
         /// <param name="pool">Pool.</param>
-        /// <param name="submitterDid">Submitter did.</param>
         /// <param name="ledgerType">Ledger Type.</param>
         /// <param name="sequenceId">Sequence identifier.</param>
         public override async Task<string> LookupTransactionAsync(Pool pool, string ledgerType, int sequenceId)

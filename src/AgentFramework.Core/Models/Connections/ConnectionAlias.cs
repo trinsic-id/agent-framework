@@ -7,12 +7,15 @@
     /// </summary>
     public class ConnectionAlias
     {
+        /// <summary>Initializes a new instance of the <see cref="ConnectionAlias"/> class.</summary>
+        /// <param name="copy">The copy.</param>
         public ConnectionAlias(ConnectionAlias copy)
         {
             Name = copy.Name;
             ImageUrl = copy.ImageUrl;
         }
 
+        /// <summary>Initializes a new instance of the <see cref="ConnectionAlias"/> class.</summary>
         public ConnectionAlias() { }
 
         /// <summary>

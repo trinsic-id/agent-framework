@@ -19,6 +19,9 @@ namespace AgentFramework.Core.Handlers
     public abstract class AgentBase
     {
         private readonly IList<IMessageHandler> _handlers;
+
+        /// <summary>Gets the provider.</summary>
+        /// <value>The provider.</value>
         protected IServiceProvider Provider { get; }
 
         /// <summary>Initializes a new instance of the <see cref="AgentBase"/> class.</summary>
@@ -28,6 +31,7 @@ namespace AgentFramework.Core.Handlers
             _handlers = new List<IMessageHandler>();
         }
 
+        /// <summary>Adds a handler for supporting default connection flow.</summary>
         protected void AddConnectionHandler()
         {
             _handlers.Add(new DefaultConnectionHandler(Provider.GetService<IConnectionService>()));
@@ -35,24 +39,33 @@ namespace AgentFramework.Core.Handlers
             _handlers.Add(new HttpOutgoingMessageHandler(Provider.GetService<HttpClientHandler>()
                                                          ?? new HttpClientHandler()));
         }
+        /// <summary>Adds a handler for supporting default credential flow.</summary>
         protected void AddCredentialHandler()
         {
             _handlers.Add(new DefaultCredentialHandler(Provider.GetService<ICredentialService>()));
         }
+        /// <summary>Adds the handler for supporting default proof flow.</summary>
         protected void AddProofHandler()
         {
             _handlers.Add(new DefaultProofHandler(Provider.GetService<IProofService>()));
         }
+        /// <summary>Adds a default forwarding handler.</summary>
         protected void AddForwardHandler()
         {
             _handlers.Add(new DefaultForwardHandler(Provider.GetService<IConnectionService>()));
         }
 
+        /// <summary>Adds a custom the handler using dependency injection.</summary>
+        /// <typeparam name="T"></typeparam>
         protected void AddHandler<T>() where T : IMessageHandler => _handlers.Add(Provider.GetService<T>());
+
+        /// <summary>Adds an instance of a custom handler.</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="instance">The instance.</param>
         protected void AddHandler<T>(T instance) where T : IMessageHandler => _handlers.Add(instance);
 
         /// <summary>
-        /// Processes the asynchronous.
+        /// Invoke the handler pipeline and process the passed message.
         /// </summary>
         /// <param name="body">The body.</param>
         /// <param name="wallet">The wallet.</param>
@@ -105,8 +118,6 @@ namespace AgentFramework.Core.Handlers
         protected virtual void ConfigureHandlers()
         {
             AddConnectionHandler();
-            //AddCredentialHandler();
-            //AddProofHandler();
             AddForwardHandler();
         }
     }

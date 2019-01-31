@@ -10,13 +10,20 @@ using Microsoft.Extensions.Options;
 
 namespace AgentFramework.AspNetCore.Middleware
 {
+    /// <summary>An agent middleware</summary>
     public class AgentMiddleware : AgentBase
     {
         private readonly RequestDelegate _next;
         private readonly IWalletService _walletService;
         private readonly WalletOptions _walletOptions;
 
-        public AgentMiddleware(RequestDelegate next,
+        /// <summary>Initializes a new instance of the <see cref="AgentMiddleware"/> class.</summary>
+        /// <param name="next">The next.</param>
+        /// <param name="walletService">The wallet service.</param>
+        /// <param name="serviceProvider">The service provider.</param>
+        /// <param name="walletOptions">The wallet options.</param>
+        public AgentMiddleware(
+            RequestDelegate next,
             IWalletService walletService,
             IServiceProvider serviceProvider,
             IOptions<WalletOptions> walletOptions)
@@ -27,6 +34,10 @@ namespace AgentFramework.AspNetCore.Middleware
             _walletOptions = walletOptions.Value;
         }
 
+        /// <summary>Called by the ASPNET Core runtime</summary>
+        /// <param name="context">The context.</param>
+        /// <returns></returns>
+        /// <exception cref="Exception">Empty content length</exception>
         public async Task InvokeAsync(HttpContext context)
         {
             if (!context.Request.Method.Equals("POST", StringComparison.OrdinalIgnoreCase))

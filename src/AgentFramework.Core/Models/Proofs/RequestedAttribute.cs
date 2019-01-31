@@ -23,10 +23,8 @@ namespace AgentFramework.Core.Models.Proofs
         [JsonProperty("timestamp", NullValueHandling = NullValueHandling.Ignore)]
         public long? Timestamp { get; set; }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether this
-        ////// <see cref="RequestedAttribute"/> is revealed.    /// </summary>
-        /// <value><c>true</c> if revealed; otherwise, <c>false</c>.</value>
+        /// <summary>Gets or sets a value indicating if this attribute is revealed.</summary>
+        /// <value>The revealed.</value>
         [JsonProperty("revealed", NullValueHandling = NullValueHandling.Ignore)]
         public bool? Revealed { get; set; }
 

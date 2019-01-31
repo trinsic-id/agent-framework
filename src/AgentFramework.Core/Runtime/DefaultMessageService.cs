@@ -9,23 +9,27 @@ using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Routing;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Utils;
-using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 
 namespace AgentFramework.Core.Runtime
 {
     /// <inheritdoc />
     public class DefaultMessageService : IMessageService
     {
+        /// <summary>The agent wire message MIME type</summary>
         public const string AgentWireMessageMimeType = "application/ssi-agent-wire";
 
+        /// <summary>The logger</summary>
+        // ReSharper disable InconsistentNaming
         protected readonly ILogger<DefaultMessageService> Logger;
+
+        /// <summary>The HTTP client</summary>
         protected readonly HttpClient HttpClient;
+        // ReSharper restore InconsistentNaming
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:AgentFramework.Core.Runtime.DefaultMessageService"/> class.
+        /// Initializes a new instance of the <see cref="DefaultMessageService"/> class.
         /// </summary>
         public DefaultMessageService(ILogger<DefaultMessageService> logger, HttpClient httpClient)
         {
@@ -77,34 +81,5 @@ namespace AgentFramework.Core.Runtime
                     ErrorCode.A2AMessageTransmissionError, "Failed to send A2A message", e);
             }
         }
-
-        /// <inheritdoc />
-        //public virtual async Task<(byte[], string)> RecieveAsync(AgentContext agentContext, byte[] rawMessage)
-        //{
-        //    try
-        //    {
-        //        var wireMessage = rawMessage.ToObject<AgentWireMessage>();
-
-        //        var forwardMessage = (await Crypto.AnonDecryptAsync(
-        //                agentContext.Wallet,
-        //                wireMessage.To,
-        //                wireMessage.Message.GetBytesFromBase64()))
-        //            .ToObject<ForwardMessage>();
-
-        //        var innerWireMessage = forwardMessage.Message.ToObject<AgentWireMessage>();
-
-        //        var authDecrypt = await Crypto.AuthDecryptAsync(
-        //            agentContext.Wallet,
-        //            innerWireMessage.To,
-        //            innerWireMessage.Message.GetBytesFromBase64());
-
-        //        return (authDecrypt.MessageData, forwardMessage.To);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        throw new AgentFrameworkException(
-        //            ErrorCode.MessageUnpackError, "Failed to unpack message", e);
-        //    }
-        //}
     }
 }
