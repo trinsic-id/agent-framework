@@ -118,6 +118,12 @@ namespace AgentFramework.AspNetCore.Configuration
             {
                 // Wallet already provisioned
             }
+            catch (WalletStorageException)
+            {
+                // Aggregate exception thrown when using custom wallets
+
+                // TODO: TM: add support to Indy SDK to expose exception types
+            }
         }
     }
 }

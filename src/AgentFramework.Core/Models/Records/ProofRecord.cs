@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Stateless;
@@ -13,19 +14,26 @@ namespace AgentFramework.Core.Models.Records
     {
         private ProofState _state;
 
+        /// <summary>Initializes a new instance of the <see cref="ProofRecord"/> class.</summary>
         public ProofRecord()
         {
             State = ProofState.Requested;
         }
 
+        /// <summary>Creates a shallow copy of the current <see cref="ProofRecord"/> object.</summary>
+        /// <returns></returns>
         public ProofRecord ShallowCopy()
         {
-            return (ProofRecord)this.MemberwiseClone();
+            return (ProofRecord)MemberwiseClone();
         }
 
+        /// <summary>Creates a deep copy of the current <see cref="ProofRecord"/> object.</summary>
+        /// <returns></returns>
         public ProofRecord DeepCopy()
         {
-            return (ProofRecord)this.MemberwiseClone();
+            var proof = (ProofRecord)MemberwiseClone();
+            proof.Tags = new Dictionary<string, string>(Tags);
+            return proof;
         }
 
         /// <summary>

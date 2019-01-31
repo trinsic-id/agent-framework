@@ -84,70 +84,70 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task SendProofRequestAsync(Wallet wallet, string connectionId, ProofRequest proofRequest)
+        public virtual async Task SendProofRequestAsync(IAgentContext agentContext, string connectionId, ProofRequest proofRequest)
         {
             Logger.LogInformation(LoggingEvents.SendProofRequest, "ConnectionId {0}", connectionId);
 
-            var connection = await ConnectionService.GetAsync(wallet, connectionId);
+            var connection = await ConnectionService.GetAsync(agentContext, connectionId);
 
             if (connection.State != ConnectionState.Connected)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
 
-            var (msg, id) = await CreateProofRequestAsync(wallet, connectionId, proofRequest);
+            var (msg, id) = await CreateProofRequestAsync(agentContext, connectionId, proofRequest);
 
             try
             {
-                await MessageService.SendAsync(wallet, msg, connection);
+                await MessageService.SendAsync(agentContext.Wallet, msg, connection);
             }
             catch (Exception e)
             {
-                await RecordService.DeleteAsync<ProofRecord>(wallet, id);
+                await RecordService.DeleteAsync<ProofRecord>(agentContext.Wallet, id);
                 throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send proof request message", e);
             }
         }
 
         /// <inheritdoc />
-        public virtual async Task SendProofRequestAsync(Wallet wallet, string connectionId, string proofRequestJson)
+        public virtual async Task SendProofRequestAsync(IAgentContext agentContext, string connectionId, string proofRequestJson)
         {
             Logger.LogInformation(LoggingEvents.SendProofRequest, "ConnectionId {0}", connectionId);
 
-            var connection = await ConnectionService.GetAsync(wallet, connectionId);
+            var connection = await ConnectionService.GetAsync(agentContext, connectionId);
 
             if (connection.State != ConnectionState.Connected)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
 
-            (var msg, var id) = await CreateProofRequestAsync(wallet, connectionId, proofRequestJson);
+            (var msg, var id) = await CreateProofRequestAsync(agentContext, connectionId, proofRequestJson);
 
             try
             {
-                await MessageService.SendAsync(wallet, msg, connection);
+                await MessageService.SendAsync(agentContext.Wallet, msg, connection);
             }
             catch (Exception e)
             {
-                await RecordService.DeleteAsync<ProofRecord>(wallet, id);
+                await RecordService.DeleteAsync<ProofRecord>(agentContext.Wallet, id);
                 throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send proof request message", e);
             }
         }
 
         /// <inheritdoc />
-        public virtual async Task<(ProofRequestMessage, string)> CreateProofRequestAsync(Wallet wallet, string connectionId,
+        public virtual async Task<(ProofRequestMessage, string)> CreateProofRequestAsync(IAgentContext agentContext, string connectionId,
             ProofRequest proofRequest)
         {
             if (string.IsNullOrWhiteSpace(proofRequest.Nonce))
                 throw new ArgumentNullException(nameof(proofRequest.Nonce), "Nonce must be set.");
 
-            return await CreateProofRequestAsync(wallet, connectionId, proofRequest.ToJson());
+            return await CreateProofRequestAsync(agentContext, connectionId, proofRequest.ToJson());
         }
 
         /// <inheritdoc />
-        public virtual async Task<(ProofRequestMessage, string)> CreateProofRequestAsync(Wallet wallet, string connectionId,
+        public virtual async Task<(ProofRequestMessage, string)> CreateProofRequestAsync(IAgentContext agentContext, string connectionId,
             string proofRequestJson)
         {
             Logger.LogInformation(LoggingEvents.CreateProofRequest, "ConnectionId {0}", connectionId);
 
-            var connection = await ConnectionService.GetAsync(wallet, connectionId);
+            var connection = await ConnectionService.GetAsync(agentContext, connectionId);
 
             if (connection.State != ConnectionState.Connected)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
@@ -164,24 +164,23 @@ namespace AgentFramework.Core.Runtime
             proofRecord.SetTag(TagConstants.Nonce, proofJobj["nonce"].ToObject<string>());
             proofRecord.SetTag(TagConstants.Role, TagConstants.Requestor);
 
-            await RecordService.AddAsync(wallet, proofRecord);
+            await RecordService.AddAsync(agentContext.Wallet, proofRecord);
 
             return (new ProofRequestMessage { ProofRequestJson = proofRequestJson }, proofRecord.Id);
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessProofAsync(Wallet wallet, ProofMessage proof, ConnectionRecord connection)
+        public virtual async Task<string> ProcessProofAsync(IAgentContext agentContext, ProofMessage proof)
         {
             var proofJson = proof.ProofJson;
 
             var proofRecordSearch =
-                await RecordService.SearchAsync<ProofRecord>(wallet,
+                await RecordService.SearchAsync<ProofRecord>(agentContext.Wallet,
                     SearchQuery.Equal(TagConstants.Nonce, proof.RequestNonce), null, 1);
 
             var proofRecord = proofRecordSearch.FirstOrDefault() ??
                               throw new AgentFrameworkException(ErrorCode.RecordNotFound,
                                   "Proof record not found");
-
 
             if (proofRecord.State != ProofState.Requested)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
@@ -189,13 +188,13 @@ namespace AgentFramework.Core.Runtime
 
             proofRecord.ProofJson = proofJson;
             await proofRecord.TriggerAsync(ProofTrigger.Accept);
-            await RecordService.UpdateAsync(wallet, proofRecord);
+            await RecordService.UpdateAsync(agentContext.Wallet, proofRecord);
 
             return proofRecord.Id;
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessProofRequestAsync(Wallet wallet, ProofRequestMessage proofRequest, ConnectionRecord connection)
+        public virtual async Task<string> ProcessProofRequestAsync(IAgentContext agentContext, ProofRequestMessage proofRequest)
         {
             var requestJson = proofRequest.ProofRequestJson;
 
@@ -207,58 +206,58 @@ namespace AgentFramework.Core.Runtime
             {
                 Id = Guid.NewGuid().ToString(),
                 RequestJson = requestJson,
-                ConnectionId = connection.Id,
+                ConnectionId = agentContext.Connection.Id,
                 State = ProofState.Requested
             };
             proofRecord.SetTag(TagConstants.Nonce, nonce);
             proofRecord.SetTag(TagConstants.Role, TagConstants.Holder);
 
-            await RecordService.AddAsync(wallet, proofRecord);
+            await RecordService.AddAsync(agentContext.Wallet, proofRecord);
 
             return proofRecord.Id;
         }
 
         /// <inheritdoc />
-        public virtual async Task<ProofMessage> CreateProofAsync(Wallet wallet, Pool pool, string proofRequestId,
+        public virtual async Task<ProofMessage> CreateProofAsync(IAgentContext agentContext, string proofRequestId,
             RequestedCredentials requestedCredentials)
         {
-            var record = await GetAsync(wallet, proofRequestId);
+            var record = await GetAsync(agentContext, proofRequestId);
 
             if (record.State != ProofState.Requested)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Proof state was invalid. Expected '{ProofState.Requested}', found '{record.State}'");
 
-            var provisioningRecord = await ProvisioningService.GetProvisioningAsync(wallet);
+            var provisioningRecord = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
 
             var credentialObjects = new List<CredentialInfo>();
             foreach (var credId in requestedCredentials.GetCredentialIdentifiers())
             {
                 credentialObjects.Add(
                     JsonConvert.DeserializeObject<CredentialInfo>(
-                        await AnonCreds.ProverGetCredentialAsync(wallet, credId)));
+                        await AnonCreds.ProverGetCredentialAsync(agentContext.Wallet, credId)));
             }
 
-            var schemas = await BuildSchemasAsync(pool,
+            var schemas = await BuildSchemasAsync(agentContext.Pool,
                 credentialObjects
                     .Select(x => x.SchemaId)
                     .Distinct());
 
-            var definitions = await BuildCredentialDefinitionsAsync(pool,
+            var definitions = await BuildCredentialDefinitionsAsync(agentContext.Pool,
                 credentialObjects
                     .Select(x => x.CredentialDefinitionId)
                     .Distinct());
 
-            var revocationStates = await BuildRevocationStatesAsync(pool,
+            var revocationStates = await BuildRevocationStatesAsync(agentContext.Pool,
                 credentialObjects,
                 requestedCredentials);
 
-            var proofJson = await AnonCreds.ProverCreateProofAsync(wallet, record.RequestJson,
+            var proofJson = await AnonCreds.ProverCreateProofAsync(agentContext.Wallet, record.RequestJson,
                 requestedCredentials.ToJson(), provisioningRecord.MasterSecretId, schemas, definitions,
                 revocationStates);
 
             record.ProofJson = proofJson;
             await record.TriggerAsync(ProofTrigger.Accept);
-            await RecordService.UpdateAsync(wallet, record);
+            await RecordService.UpdateAsync(agentContext.Wallet, record);
 
             return new ProofMessage
             {
@@ -268,43 +267,41 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task AcceptProofRequestAsync(Wallet wallet, Pool pool, string proofRequestId,
+        public virtual async Task<ProofMessage> AcceptProofRequestAsync(IAgentContext agentContext, string proofRequestId,
             RequestedCredentials requestedCredentials)
         {
-            var request = await GetAsync(wallet, proofRequestId);
+            var request = await GetAsync(agentContext, proofRequestId);
 
             if (request.State != ProofState.Requested)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Proof record state was invalid. Expected '{ProofState.Requested}', found '{request.State}'");
 
-            var connection = await ConnectionService.GetAsync(wallet, request.ConnectionId);
+            var connection = await ConnectionService.GetAsync(agentContext, request.ConnectionId);
 
             if (connection.State != ConnectionState.Connected)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
 
-            var proof = await CreateProofAsync(wallet, pool, proofRequestId, requestedCredentials);
-
-            await MessageService.SendAsync(wallet, proof, connection);
+            return await CreateProofAsync(agentContext, proofRequestId, requestedCredentials);
         }
 
         /// <inheritdoc />
-        public virtual async Task RejectProofRequestAsync(Wallet wallet, string proofRequestId)
+        public virtual async Task RejectProofRequestAsync(IAgentContext agentContext, string proofRequestId)
         {
-            var request = await GetAsync(wallet, proofRequestId);
+            var request = await GetAsync(agentContext, proofRequestId);
 
             if (request.State != ProofState.Requested)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Proof record state was invalid. Expected '{ProofState.Requested}', found '{request.State}'");
 
             await request.TriggerAsync(ProofTrigger.Reject);
-            await RecordService.UpdateAsync(wallet, request);
+            await RecordService.UpdateAsync(agentContext.Wallet, request);
         }
 
         /// <inheritdoc />
-        public virtual async Task<bool> VerifyProofAsync(Wallet wallet, Pool pool, string proofRecId)
+        public virtual async Task<bool> VerifyProofAsync(IAgentContext agentContext, string proofRecId)
         {
-            var proofRecord = await GetAsync(wallet, proofRecId);
+            var proofRecord = await GetAsync(agentContext, proofRecId);
 
             if (proofRecord.State != ProofState.Accepted)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
@@ -312,25 +309,25 @@ namespace AgentFramework.Core.Runtime
 
             var proofObject = JsonConvert.DeserializeObject<Proof>(proofRecord.ProofJson);
 
-            var schemas = await BuildSchemasAsync(pool,
+            var schemas = await BuildSchemasAsync(agentContext.Pool,
                 proofObject.Identifiers
                     .Select(x => x.SchemaId)
                     .Where(x => x != null)
                     .Distinct());
 
-            var definitions = await BuildCredentialDefinitionsAsync(pool,
+            var definitions = await BuildCredentialDefinitionsAsync(agentContext.Pool,
                 proofObject.Identifiers
                     .Select(x => x.CredentialDefintionId)
                     .Where(x => x != null)
                     .Distinct());
 
-            var revocationDefinitions = await BuildRevocationRegistryDefinitionsAsync(pool,
+            var revocationDefinitions = await BuildRevocationRegistryDefinitionsAsync(agentContext.Pool,
                 proofObject.Identifiers
                     .Select(x => x.RevocationRegistryId)
                     .Where(x => x != null)
                     .Distinct());
 
-            var revocationRegistries = await BuildRevocationRegistryDetlasAsync(pool,
+            var revocationRegistries = await BuildRevocationRegistryDetlasAsync(agentContext.Pool,
                 proofObject.Identifiers
                     .Where(x => x.RevocationRegistryId != null));
 
@@ -339,15 +336,15 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual Task<List<ProofRecord>> ListAsync(Wallet wallet, ISearchQuery query = null, int count = 100) =>
-            RecordService.SearchAsync<ProofRecord>(wallet, query, null, count);
+        public virtual Task<List<ProofRecord>> ListAsync(IAgentContext agentContext, ISearchQuery query = null, int count = 100) =>
+            RecordService.SearchAsync<ProofRecord>(agentContext.Wallet, query, null, count);
 
         /// <inheritdoc />
-        public virtual async Task<ProofRecord> GetAsync(Wallet wallet, string proofRecId)
+        public virtual async Task<ProofRecord> GetAsync(IAgentContext agentContext, string proofRecId)
         {
             Logger.LogInformation(LoggingEvents.GetProofRecord, "ConnectionId {0}", proofRecId);
 
-            var record = await RecordService.GetAsync<ProofRecord>(wallet, proofRecId);
+            var record = await RecordService.GetAsync<ProofRecord>(agentContext.Wallet, proofRecId);
 
             if (record == null)
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Proof record not found");
@@ -356,11 +353,11 @@ namespace AgentFramework.Core.Runtime
         }
         
         /// <inheritdoc />
-        public virtual async Task<List<Credential>> ListCredentialsForProofRequestAsync(Wallet wallet,
+        public virtual async Task<List<Credential>> ListCredentialsForProofRequestAsync(IAgentContext agentContext,
             ProofRequest proofRequest, string attributeReferent)
         {
             using (var search =
-                await AnonCreds.ProverSearchCredentialsForProofRequestAsync(wallet, proofRequest.ToJson()))
+                await AnonCreds.ProverSearchCredentialsForProofRequestAsync(agentContext.Wallet, proofRequest.ToJson()))
             {
                 var searchResult = await search.NextAsync(attributeReferent, 100);
                 return JsonConvert.DeserializeObject<List<Credential>>(searchResult);

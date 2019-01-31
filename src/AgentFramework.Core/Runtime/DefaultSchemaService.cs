@@ -16,10 +16,16 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultSchemaService : ISchemaService
     {
+        /// <summary>The provisioning service</summary>
+        // ReSharper disable InconsistentNaming
         protected readonly IProvisioningService ProvisioningService;
+        /// <summary>The record service</summary>
         protected readonly IWalletRecordService RecordService;
+        /// <summary>The ledger service</summary>
         protected readonly ILedgerService LedgerService;
-        protected readonly ITailsService TailsService;
+        /// <summary>The tails service</summary>
+        protected readonly ITailsService TailsService;   
+        // ReSharper restore InconsistentNaming
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultSchemaService"/> class.

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AgentFramework.Core.Models.Connections;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -28,7 +29,7 @@ namespace AgentFramework.Core.Models.Records
         /// <returns></returns>
         public ConnectionRecord ShallowCopy()
         {
-            return (ConnectionRecord)this.MemberwiseClone();
+            return (ConnectionRecord)MemberwiseClone();
         }
 
 
@@ -38,9 +39,10 @@ namespace AgentFramework.Core.Models.Records
         /// <returns></returns>
         public ConnectionRecord DeepCopy()
         {
-            ConnectionRecord copy = (ConnectionRecord)this.MemberwiseClone();
+            var copy = (ConnectionRecord)MemberwiseClone();
             copy.Alias = new ConnectionAlias(Alias);
             copy.Endpoint = new AgentEndpoint(Endpoint);
+            copy.Tags = new Dictionary<string, string>(Tags);
             return copy;
         }
 

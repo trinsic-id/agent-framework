@@ -21,11 +21,11 @@ namespace AgentFramework.Core.Extensions
         /// </summary>
         /// <returns>The negotiating connections async.</returns>
         /// <param name="connectionService">Connection service.</param>
-        /// <param name="wallet">Wallet.</param>
+        /// <param name="agentContext">Agent Context.</param>
         /// <param name="count">Count.</param>
         public static Task<List<ConnectionRecord>> ListNegotiatingConnectionsAsync(
-            this IConnectionService connectionService, Wallet wallet, int count = 100)
-            => connectionService.ListAsync(wallet,
+            this IConnectionService connectionService, IAgentContext agentContext, int count = 100)
+            => connectionService.ListAsync(agentContext,
                 SearchQuery.Equal(nameof(ConnectionRecord.State), ConnectionState.Negotiating.ToString("G")), count);
 
         /// <summary>
@@ -33,11 +33,11 @@ namespace AgentFramework.Core.Extensions
         /// </summary>
         /// <returns>The connected connections async.</returns>
         /// <param name="connectionService">Connection service.</param>
-        /// <param name="wallet">Wallet.</param>
+        /// <param name="agentContext">Agent Context.</param>
         /// <param name="count">Count.</param>
         public static Task<List<ConnectionRecord>> ListConnectedConnectionsAsync(
-            this IConnectionService connectionService, Wallet wallet, int count = 100)
-            => connectionService.ListAsync(wallet,
+            this IConnectionService connectionService, IAgentContext agentContext, int count = 100)
+            => connectionService.ListAsync(agentContext,
                 SearchQuery.Equal(nameof(ConnectionRecord.State), ConnectionState.Connected.ToString("G")), count);
 
         /// <summary>
@@ -45,11 +45,11 @@ namespace AgentFramework.Core.Extensions
         /// </summary>
         /// <returns>The invited connections async.</returns>
         /// <param name="connectionService">Connection service.</param>
-        /// <param name="wallet">Wallet.</param>
+        /// <param name="agentContext">Agent Context.</param>
         /// <param name="count">Count.</param>
         public static Task<List<ConnectionRecord>> ListInvitedConnectionsAsync(
-            this IConnectionService connectionService, Wallet wallet, int count = 100)
-            => connectionService.ListAsync(wallet,
+            this IConnectionService connectionService, IAgentContext agentContext, int count = 100)
+            => connectionService.ListAsync(agentContext,
                 SearchQuery.And(SearchQuery.Equal(nameof(ConnectionRecord.State), ConnectionState.Invited.ToString("G")),
                                 SearchQuery.Equal(nameof(ConnectionRecord.MultiPartyInvitation), false.ToString())), count);
 
@@ -58,11 +58,11 @@ namespace AgentFramework.Core.Extensions
         /// </summary>
         /// <returns>The invited connections async.</returns>
         /// <param name="connectionService">Connection service.</param>
-        /// <param name="wallet">Wallet.</param>
+        /// <param name="agentContext">Agent Context.</param>
         /// <param name="count">Count.</param>
         public static Task<List<ConnectionRecord>> ListMultiPartyInvitationsAsync(
-            this IConnectionService connectionService, Wallet wallet, int count = 100)
-            => connectionService.ListAsync(wallet,
+            this IConnectionService connectionService, IAgentContext agentContext, int count = 100)
+            => connectionService.ListAsync(agentContext,
                 SearchQuery.And(SearchQuery.Equal(nameof(ConnectionRecord.State), ConnectionState.Invited.ToString("G")),
                     SearchQuery.Equal(nameof(ConnectionRecord.MultiPartyInvitation), true.ToString())), count);
 
@@ -71,22 +71,22 @@ namespace AgentFramework.Core.Extensions
         /// </summary>
         /// <returns>The connection record.</returns>
         /// <param name="connectionService">Connection service.</param>
-        /// <param name="wallet">My wallet.</param>
+        /// <param name="agentContext">Agent Context.</param>
         /// <param name="myKey">My key.</param>
         /// <exception cref="ArgumentNullException"/>
         /// <exception cref="AgentFrameworkException">Throw with error code 'RecordNotFound' if a connection record for the key was not found</exception>
         public static async Task<ConnectionRecord> ResolveByMyKeyAsync(
-            this IConnectionService connectionService, Wallet wallet, string myKey)
+            this IConnectionService connectionService, IAgentContext agentContext, string myKey)
         {
             if (string.IsNullOrEmpty(myKey))
                 throw new ArgumentNullException(nameof(myKey));
 
-            if (wallet == null)
-                throw new ArgumentNullException(nameof(wallet));
+            if (agentContext == null)
+                throw new ArgumentNullException(nameof(agentContext));
 
-            var record = (await connectionService.ListAsync(wallet,
+            var record = (await connectionService.ListAsync(agentContext,
                              SearchQuery.Equal(nameof(ConnectionRecord.MyVk), myKey), 1)).FirstOrDefault()
-                         ?? (await connectionService.ListAsync(wallet,
+                         ?? (await connectionService.ListAsync(agentContext,
                              SearchQuery.Equal(TagConstants.ConnectionKey, myKey), 1)).FirstOrDefault();
             
             if (record == null)

@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Messages;
-using AgentFramework.Core.Models;
-using AgentFramework.Core.Models.Messaging;
-using AgentFramework.Core.Models.Records;
-using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Handlers
 {
     /// <summary>
-    /// A base class for implementing single message type handlers.
+    /// A convenience base class for implementing strong type handlers
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <seealso cref="AgentFramework.Core.Handlers.IMessageHandler" />
@@ -35,13 +30,12 @@ namespace AgentFramework.Core.Handlers
         /// Processes the incoming <see cref="IAgentMessage"/>
         /// </summary>
         /// <param name="message">The message.</param>
-        /// <param name="context">The message context.</param>
-        /// <param name="connection">The associated connection.</param>
+        /// <param name="agentContext">The message agentContext.</param>
         /// <returns></returns>
-        protected abstract Task ProcessAsync(T message, AgentContext context, ConnectionRecord connection);
+        protected abstract Task ProcessAsync(T message, IAgentContext agentContext);
 
         /// <inheritdoc />
-        public Task ProcessAsync(MessageContext messageContext) =>
-            ProcessAsync(messageContext.GetMessage<T>(), messageContext.AgentContext, messageContext.Connection);
+        public Task ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload) =>
+            ProcessAsync(messagePayload.GetMessage<T>(), agentContext);
     }
 }

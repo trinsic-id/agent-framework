@@ -16,12 +16,20 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultTailsService : ITailsService
     {
+        /// <summary>The BLOB readers</summary>
         protected static readonly ConcurrentDictionary<string, BlobStorageReader> BlobReaders =
             new ConcurrentDictionary<string, BlobStorageReader>();
 
+        /// <summary>The ledger service</summary>
+        // ReSharper disable InconsistentNaming
         protected readonly ILedgerService LedgerService;
-        protected readonly HttpClient HttpClient;
 
+        /// <summary>The HTTP client</summary>
+        protected readonly HttpClient HttpClient;
+        // ReSharper restore InconsistentNaming
+
+        /// <summary>Initializes a new instance of the <see cref="DefaultTailsService"/> class.</summary>
+        /// <param name="ledgerService">The ledger service.</param>
         public DefaultTailsService(ILedgerService ledgerService)
         {
             LedgerService = ledgerService;

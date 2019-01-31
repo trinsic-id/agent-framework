@@ -1,5 +1,6 @@
 ﻿namespace AgentFramework.Core.Exceptions
 {
+    /// <summary>An error code that identifies the type of exception</summary>
     public enum ErrorCode
     {
         /// <summary>

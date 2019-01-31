@@ -7,11 +7,11 @@ namespace AgentFramework.Core.Models
     /// </summary>
     public class AgentEndpoint
     {
-        [JsonProperty]
+        [JsonProperty("did")]
         private string _did;
-        [JsonProperty]
+        [JsonProperty("verkey")]
         private string _verkey;
-        [JsonProperty]
+        [JsonProperty("uri")]
         private string _uri;
 
         /// <summary>

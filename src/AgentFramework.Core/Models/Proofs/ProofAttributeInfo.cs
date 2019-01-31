@@ -5,19 +5,26 @@ using Newtonsoft.Json.Converters;
 
 namespace AgentFramework.Core.Models.Proofs
 {
+    /// <summary>Attribute filter</summary>
     [JsonConverter(typeof(StringEnumConverter))]
     public enum AttributeFilter
     {
+        /// <summary>The schema identifier</summary>
         [EnumMember(Value = "schema_id")]
         SchemaId,
+        /// <summary>The schema issuer did</summary>
         [EnumMember(Value = "schema_issuer_did")]
         SchemaIssuerDid,
+        /// <summary>The schema name</summary>
         [EnumMember(Value = "schema_name")]
         SchemaName,
+        /// <summary>The schema version</summary>
         [EnumMember(Value = "schema_version")]
         SchemaVersion,
+        /// <summary>The issuer did</summary>
         [EnumMember(Value = "issuer_did")]
         IssuerDid,
+        /// <summary>The credential definition identifier</summary>
         [EnumMember(Value = "cred_def_id")]
         CredentialDefinitionId
     }
@@ -36,8 +43,7 @@ namespace AgentFramework.Core.Models.Proofs
 
         /// <summary>
         /// Gets or sets the restrictions.
-        /// </summary>
-        /// <example>
+        /// <code>
         /// filter_json: filter for credentials
         ///    {
         ///        "schema_id": string, (Optional)
@@ -47,13 +53,14 @@ namespace AgentFramework.Core.Models.Proofs
         ///        "issuer_did": string, (Optional)
         ///        "cred_def_id": string, (Optional)
         ///    }
-        /// </example>
+        /// </code>
+        /// </summary>
         /// <value>The restrictions.</value>
         [JsonProperty("restrictions", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<AttributeFilter, string> Restrictions { get; set; }
 
         /// <summary>
-        /// Gets or sets the non revoked.
+        /// Gets or sets the non revoked interval.
         /// </summary>
         /// <value>
         /// The non revoked.
