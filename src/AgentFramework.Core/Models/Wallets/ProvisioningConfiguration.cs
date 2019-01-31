@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace AgentFramework.Core.Models.Wallets
 {
@@ -94,5 +95,13 @@ namespace AgentFramework.Core.Models.Wallets
         /// The wallet credentials.
         /// </value>
         public WalletCredentials WalletCredentials { get; set; }
+
+        /// <summary>
+        /// Initial set of tags to populate the provisioning record
+        /// </summary>
+        /// <value>
+        /// The tags.
+        /// </value>
+        public Dictionary<string, string> Tags { get; set; }
     }
 }

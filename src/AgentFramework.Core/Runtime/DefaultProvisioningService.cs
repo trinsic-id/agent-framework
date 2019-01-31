@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
@@ -143,6 +144,11 @@ namespace AgentFramework.Core.Runtime
                     ImageUrl = configuration.OwnerImageUrl
                 }
             };
+
+            // Populate initial tags if any passed
+            if (configuration.Tags != null && configuration.Tags.Any())
+                foreach (var item in configuration.Tags)
+                    record.Tags.Add(item.Key, item.Value);
 
             // Create issuer
             if (configuration.CreateIssuer)
