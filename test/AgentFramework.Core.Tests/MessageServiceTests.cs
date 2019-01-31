@@ -184,7 +184,6 @@ namespace AgentFramework.Core.Tests
             Assert.NotNull(unpack);
             Assert.Equal("123", unpack.ConnectionKey);
         }
-        
 
         [Fact]
         public async Task SendAsyncThrowsInvalidMessageNoId()
