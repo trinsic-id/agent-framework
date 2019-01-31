@@ -295,16 +295,14 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CanEstablishConnectionsWithMultiPartyInvitationAsync()
         {
-            var connectionId = Guid.NewGuid().ToString();
-
             var invite = await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new InviteConfiguration() { ConnectionId = connectionId, MultiPartyInvitation = true });
+                new InviteConfiguration { MultiPartyInvitation = true });
 
             var (connectionIssuer, connectionHolderOne) = await Scenarios.EstablishConnectionAsync(
-                _connectionService, _messages, _issuerWallet, _holderWallet, invite, connectionId);
+                _connectionService, _messages, _issuerWallet, _holderWallet, invite, invite.Connection.Id);
 
             var (connectionIssuerTwo, connectionHolderTwo) = await Scenarios.EstablishConnectionAsync(
-                _connectionService, _messages, _issuerWallet, _holderWalletTwo, invite, connectionId);
+                _connectionService, _messages, _issuerWallet, _holderWalletTwo, invite, invite.Connection.Id);
 
             Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
             Assert.Equal(ConnectionState.Connected, connectionHolderOne.State);
