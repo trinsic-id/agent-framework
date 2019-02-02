@@ -38,35 +38,32 @@ namespace AgentFramework.Core.Contracts
         /// <returns></returns>
         Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string name, string version, string[] attributeNames);
 
-        /// <summary>
-        /// Creates the credential definition and registers it on the ledger.
-        /// </summary>
+        /// <summary>Creates the credential definition and registers it on the ledger.</summary>
         /// <param name="pool">The pool.</param>
         /// <param name="wallet">The wallet.</param>
         /// <param name="schemaId">The schema identifier.</param>
         /// <param name="issuerDid">The issuer did.</param>
+        /// <param name="tag">The tag.</param>
         /// <param name="supportsRevocation">if set to <c>true</c> [supports revocation].</param>
         /// <param name="maxCredentialCount">Maximum number of credentials supported by this definition.
-        /// This parameter is only used if <paramref name="supportsRevocation"/> is <c>true</c>.</param>
+        /// This parameter is only used if <paramref name="supportsRevocation" /> is <c>true</c>.</param>
         /// <param name="tailsBaseUri">The public URI of the tails file for the revocation definition.
-        /// his parameter is only used if <paramref name="supportsRevocation"/> is <c>true</c>.
-        /// </param>
+        /// his parameter is only used if <paramref name="supportsRevocation" /> is <c>true</c>.</param>
         /// <returns>The credential definition identifier of the stored definition record.
         /// This identifier can be used for ledger definition lookup.</returns>
         Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId, string issuerDid,
-            bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri);
+            string tag, bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri);
 
-        /// <summary>
-        /// Creates the credential definition and registers it on the ledger.
-        /// </summary>
+        /// <summary>Creates the credential definition and registers it on the ledger.</summary>
         /// <param name="pool">The pool.</param>
         /// <param name="wallet">The wallet.</param>
         /// <param name="schemaId">The schema identifier.</param>
+        /// <param name="tag">The tag.</param>
         /// <param name="supportsRevocation">if set to <c>true</c> [supports revocation].</param>
         /// <param name="maxCredentialCount">The maximum credential count.</param>
         /// <returns></returns>
         Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
-            bool supportsRevocation, int maxCredentialCount);
+            string tag, bool supportsRevocation, int maxCredentialCount);
 
         /// <summary>
         /// Gets the schemas asynchronous.

@@ -171,7 +171,7 @@ namespace AgentFramework.Core.Tests
             // Creata a schema and credential definition for this issuer
             var schemaId = await schemaService.CreateSchemaAsync(context.Pool, context.Wallet, issuerDid,
                 $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", attributeValues);
-            return (await schemaService.CreateCredentialDefinitionAsync(context.Pool, context.Wallet, schemaId, issuerDid, false, 100, new Uri("http://mock/tails")), schemaId);
+            return (await schemaService.CreateCredentialDefinitionAsync(context.Pool, context.Wallet, schemaId, "Tag", issuerDid, false, 100, new Uri("http://mock/tails")), schemaId);
         }
 
         private static T FindContentMessage<T>(IEnumerable<IAgentMessage> collection)

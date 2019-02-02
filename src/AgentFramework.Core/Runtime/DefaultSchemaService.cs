@@ -135,13 +135,13 @@ namespace AgentFramework.Core.Runtime
 
         /// <inheritdoc />
         public virtual async Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
-            string issuerDid, bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri)
+            string issuerDid, string tag, bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri)
         {
             var definitionRecord = new DefinitionRecord();
             var schema = await LedgerService.LookupSchemaAsync(pool, schemaId);
 
             var credentialDefinition = await AnonCreds.IssuerCreateAndStoreCredentialDefAsync(wallet, issuerDid,
-                schema.ObjectJson, "Tag", null, new { support_revocation = supportsRevocation }.ToJson());
+                schema.ObjectJson, tag, null, new { support_revocation = supportsRevocation }.ToJson());
 
             await LedgerService.RegisterCredentialDefinitionAsync(wallet, pool, issuerDid,
                 credentialDefinition.CredDefJson);
@@ -152,6 +152,7 @@ namespace AgentFramework.Core.Runtime
 
             if (supportsRevocation)
             {
+                definitionRecord.MaxCredentialCount = maxCredentialCount;
                 var tailsHandle = await TailsService.CreateTailsAsync();
 
                 var revRegDefConfig =
@@ -186,7 +187,7 @@ namespace AgentFramework.Core.Runtime
 
         /// <inheritdoc />
         public virtual async Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
-            bool supportsRevocation, int maxCredentialCount)
+            string tag, bool supportsRevocation, int maxCredentialCount)
         {
             var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
             if (provisioning?.IssuerDid == null)
@@ -195,7 +196,7 @@ namespace AgentFramework.Core.Runtime
                     "This wallet is not provisioned with issuer");
             }
 
-            return await CreateCredentialDefinitionAsync(pool, wallet, schemaId, provisioning.IssuerDid,
+            return await CreateCredentialDefinitionAsync(pool, wallet, schemaId, provisioning.IssuerDid, tag,
                 supportsRevocation, maxCredentialCount, new Uri(provisioning.TailsBaseUri));
         }
 

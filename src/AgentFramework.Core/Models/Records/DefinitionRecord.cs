@@ -47,5 +47,9 @@ namespace AgentFramework.Core.Models.Records
         /// </summary>
         /// <returns>The type name.</returns>
         public override string TypeName => "AF.CredentialDefinition";
+
+        /// <summary>Gets or sets the maximum credential count.</summary>
+        /// <value>The maximum credential count.</value>
+        public int MaxCredentialCount { get; set; }
     }
 }
