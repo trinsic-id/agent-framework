@@ -84,7 +84,7 @@ namespace AgentFramework.Core.Tests
             var schemaId = await _schemaService.CreateSchemaAsync(_pool, _issuerWallet, issuer.Did, schemaName, schemaVersion,
                 schemaAttrNames);
 
-            var credId = await _schemaService.CreateCredentialDefinitionAsync(_pool, _issuerWallet, schemaId, issuer.Did, false, 100, new Uri("http://mock/tails"));
+            var credId = await _schemaService.CreateCredentialDefinitionAsync(_pool, _issuerWallet, schemaId, issuer.Did, "Tag", false, 100, new Uri("http://mock/tails"));
 
             var credDef =
                 await _schemaService.LookupCredentialDefinitionAsync(_pool, credId);

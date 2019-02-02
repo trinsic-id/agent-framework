@@ -41,6 +41,8 @@ namespace AgentFramework.Core.Runtime
             var req = await Ledger.BuildGetSchemaRequestAsync(null, schemaId);
             var res = await Ledger.SubmitRequestAsync(pool, req);
 
+            EnsureSuccessResponse(res);
+
             return await Ledger.ParseGetSchemaResponseAsync(res);
         }
 
