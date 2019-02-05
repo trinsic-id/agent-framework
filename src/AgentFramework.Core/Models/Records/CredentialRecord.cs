@@ -186,6 +186,7 @@ namespace AgentFramework.Core.Models.Records
     /// <summary>
     /// Enumeration of possible credential states
     /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum CredentialState
     {
         /// <summary>
