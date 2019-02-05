@@ -11,7 +11,7 @@ namespace AgentFramework.Core.Models.Events
     public class ServiceMessageProcessingEvent
     {
         /// <summary>
-        /// Id of the message.
+        /// Id of the effected record in persited state, if applicable.
         /// </summary>
         public string RecordId { get; set; }
 
