@@ -29,7 +29,7 @@ namespace WebAgent
             // Register agent framework dependency services and handlers
             services.AddAgentFramework(c => c.SetPoolOptions(new PoolOptions { GenesisFilename = Path.GetFullPath("pool_genesis.txn") }));
             // Register our message handler with DI
-            services.AddSingleton<PrivateMessageHandler>();
+            services.AddSingleton<BasicMessageHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -15,6 +15,6 @@ namespace WebAgent.Models
     {
         public ConnectionRecord Connection { get; set; }
 
-        public IEnumerable<PrivateMessageRecord> Messages { get; set; }
+        public IEnumerable<BasicMessageRecord> Messages { get; set; }
     }
 }

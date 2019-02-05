@@ -84,8 +84,8 @@ namespace WebAgent.Controllers
             var model = new ConnectionDetailsViewModel
             {
                 Connection = await _connectionService.GetAsync(wallet, id),
-                Messages = await _recordService.SearchAsync<PrivateMessageRecord>(wallet,
-                    SearchQuery.Equal(nameof(PrivateMessageRecord.ConnectionId), id), null, 10)
+                Messages = await _recordService.SearchAsync<BasicMessageRecord>(wallet,
+                    SearchQuery.Equal(nameof(BasicMessageRecord.ConnectionId), id), null, 10)
             };
 
             return View(model);
@@ -98,15 +98,16 @@ namespace WebAgent.Controllers
 
             var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
 
-            var messageRecord = new PrivateMessageRecord
+            var messageRecord = new BasicMessageRecord
             {
                 Id = Guid.NewGuid().ToString(),
                 Direction = MessageDirection.Outgoing,
                 Text = text,
+                SentTime = DateTime.UtcNow,
                 ConnectionId = connectionId
             };
 
-            var message = new PrivateMessage {Text = text};
+            var message = new BasicMessage {Content = text};
             var connection = await _connectionService.GetAsync(wallet, connectionId);
 
             // Save the outgoing message to the local wallet for chat history purposes

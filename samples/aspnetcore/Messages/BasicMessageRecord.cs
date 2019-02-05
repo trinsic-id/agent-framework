@@ -1,4 +1,5 @@
-﻿using AgentFramework.Core.Models.Records;
+﻿using System;
+using AgentFramework.Core.Models.Records;
 using Newtonsoft.Json;
 
 namespace WebAgent.Messages
@@ -7,9 +8,9 @@ namespace WebAgent.Messages
     /// Represents a private message record in the user's wallet
     /// </summary>
     /// <seealso cref="AgentFramework.Core.Models.Records.RecordBase" />
-    public class PrivateMessageRecord : RecordBase
+    public class BasicMessageRecord : RecordBase
     {
-        public override string TypeName => "WebAgent.PrivateMessage";
+        public override string TypeName => "WebAgent.BasicMessage";
 
         [JsonIgnore]
         public string ConnectionId
@@ -17,6 +18,8 @@ namespace WebAgent.Messages
             get => Get();
             set => Set(value);
         }
+
+        public DateTime SentTime { get; set; }
 
         public MessageDirection Direction { get; set; }
 
