@@ -70,8 +70,8 @@ namespace AgentFramework.Core.Contracts
         /// <param name="connection">The connection.</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
-        /// <returns>The response async.</returns>
-        Task ProcessCredentialAsync(IAgentContext agentContext, CredentialMessage credential, ConnectionRecord connection);
+        /// <returns>The identifier for the credential record.</returns>
+        Task<string> ProcessCredentialAsync(IAgentContext agentContext, CredentialMessage credential, ConnectionRecord connection);
 
         /// <summary>
         /// Create a new credential offer.

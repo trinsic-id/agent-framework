@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
@@ -11,6 +12,7 @@ using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Proofs;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
+using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Proofs;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Runtime;
@@ -38,6 +40,7 @@ namespace AgentFramework.Core.Tests
         private IAgentContext _holderWallet;
         private IAgentContext _requestorWallet;
 
+        private readonly IEventAggregator _eventAggregator;
         private readonly IConnectionService _connectionService;
         private readonly ICredentialService _credentialService;
         private readonly IProofService _proofService;
@@ -53,6 +56,7 @@ namespace AgentFramework.Core.Tests
             var recordService = new DefaultWalletRecordService();
             var ledgerService = new DefaultLedgerService();
 
+            _eventAggregator = new EventAggregator();
             _poolService = new DefaultPoolService();
 
             var provisionMock = new Mock<IProvisioningService>();
@@ -84,12 +88,14 @@ namespace AgentFramework.Core.Tests
             _schemaService = new DefaultSchemaService(provisioningMock.Object, recordService, ledgerService, tailsService);
 
             _connectionService = new DefaultConnectionService(
+                _eventAggregator,
                 recordService,
                 routingMock.Object,
                 provisioningMock.Object,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
 
             _credentialService = new DefaultCredentialService(
+                _eventAggregator,
                 routingMock.Object,
                 ledgerService,
                 _connectionService,
@@ -100,6 +106,7 @@ namespace AgentFramework.Core.Tests
                 new Mock<ILogger<DefaultCredentialService>>().Object);
 
             _proofService = new DefaultProofService(
+                _eventAggregator,
                 _connectionService,
                 routingMock.Object,
                 recordService,
@@ -169,7 +176,16 @@ namespace AgentFramework.Core.Tests
 
         [Fact]
         public async Task CredentialProofDemo()
-        { 
+        {
+            int events = 0;
+            _eventAggregator.GetEventByType<ServiceMessageProcessingEvent>()
+                .Where(_ => (_.Message.Type == MessageTypes.ProofRequest ||
+                             _.Message.Type == MessageTypes.DisclosedProof))
+                .Subscribe(_ =>
+                {
+                    events++;
+                });
+
             //Setup a connection and issue the credentials to the holder
             var (issuerConnection, holderConnection) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _issuerWallet, _holderWallet);
@@ -262,6 +278,8 @@ namespace AgentFramework.Core.Tests
 
             ////Verify the proof is valid
             Assert.True(requestorVerifyResult);
+
+            Assert.True(events == 2);
 
             ////Get the proof from both parties wallets
             //var requestorProof = await _proofService.GetProof(_requestorWallet, requestorProofId);

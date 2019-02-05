@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
@@ -8,6 +9,7 @@ using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
+using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Runtime;
 using Hyperledger.Indy.WalletApi;
@@ -31,6 +33,7 @@ namespace AgentFramework.Core.Tests
         private IAgentContext _holderWallet;
         private IAgentContext _holderWalletTwo;
 
+        private readonly IEventAggregator _eventAggregator;
         private readonly IConnectionService _connectionService;
 
         private bool _routeMessage = true;
@@ -38,6 +41,8 @@ namespace AgentFramework.Core.Tests
 
         public ConnectionTests()
         {
+            _eventAggregator = new EventAggregator();
+
             var routingMock = new Mock<IMessageService>();
             routingMock.Setup(x =>
                     x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
@@ -58,6 +63,7 @@ namespace AgentFramework.Core.Tests
                 }));
 
             _connectionService = new DefaultConnectionService(
+                _eventAggregator,
                 new DefaultWalletRecordService(),
                 routingMock.Object,
                 _provisioningMock.Object,
@@ -229,8 +235,20 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CanEstablishConnectionAsync()
         {
+            int events = 0;
+            _eventAggregator.GetEventByType<ServiceMessageProcessingEvent>()
+                .Where(_ => (_.Message.Type == MessageTypes.ConnectionRequest ||
+                             _.Message.Type == MessageTypes.ConnectionResponse))
+                .Subscribe(_ =>
+                {
+                    events++;
+                });
+
+
             var (connectionIssuer, connectionHolder) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _issuerWallet, _holderWallet);
+
+            Assert.True(events == 2);
 
             Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
             Assert.Equal(ConnectionState.Connected, connectionHolder.State);

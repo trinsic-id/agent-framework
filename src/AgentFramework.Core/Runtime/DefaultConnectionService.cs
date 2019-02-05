@@ -8,6 +8,7 @@ using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.DidApi;
@@ -20,6 +21,10 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultConnectionService : IConnectionService
     {
+        /// <summary>
+        /// The event aggregator.
+        /// </summary>
+        protected readonly IEventAggregator EventAggregator;
         /// <summary>
         /// The record service
         /// </summary>
@@ -40,16 +45,19 @@ namespace AgentFramework.Core.Runtime
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultConnectionService"/> class.
         /// </summary>
+        /// <param name="eventAggregator">The event aggregator.</param>
         /// <param name="recordService">The record service.</param>
         /// <param name="messageService">The message service.</param>
         /// <param name="provisioningService">The provisioning service.</param>
         /// <param name="logger">The logger.</param>
         public DefaultConnectionService(
+            IEventAggregator eventAggregator,
             IWalletRecordService recordService,
             IMessageService messageService,
             IProvisioningService provisioningService,
             ILogger<DefaultConnectionService> logger)
         {
+            EventAggregator = eventAggregator;
             MessageService = messageService;
             ProvisioningService = provisioningService;
             Logger = logger;
@@ -188,6 +196,13 @@ namespace AgentFramework.Core.Runtime
             {
                 await agentContext.Connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
                 await RecordService.UpdateAsync(agentContext.Wallet, agentContext.Connection);
+
+                EventAggregator.Publish(new ServiceMessageProcessingEvent
+                {
+                    RecordId = agentContext.Connection.Id,
+                    Message = request,
+                });
+
                 return agentContext.Connection.Id;
             }
 
@@ -195,11 +210,18 @@ namespace AgentFramework.Core.Runtime
             newConnection.Id = Guid.NewGuid().ToString();
             await newConnection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await RecordService.AddAsync(agentContext.Wallet, newConnection);
+
+            EventAggregator.Publish(new ServiceMessageProcessingEvent
+            {
+                RecordId = newConnection.Id,
+                Message = request,
+            });
+
             return newConnection.Id;
         }
 
         /// <inheritdoc />
-        public async Task ProcessResponseAsync(IAgentContext agentContext, ConnectionResponseMessage response)
+        public async Task<string> ProcessResponseAsync(IAgentContext agentContext, ConnectionResponseMessage response)
         {
             Logger.LogInformation(LoggingEvents.AcceptConnectionResponse, "To {1}", agentContext.Connection.MyDid);
             
@@ -217,6 +239,14 @@ namespace AgentFramework.Core.Runtime
 
             await agentContext.Connection.TriggerAsync(ConnectionTrigger.Response);
             await RecordService.UpdateAsync(agentContext.Wallet, agentContext.Connection);
+
+            EventAggregator.Publish(new ServiceMessageProcessingEvent
+            {
+                RecordId = agentContext.Connection.Id,
+                Message = response,
+            });
+
+            return agentContext.Connection.Id;
         }
 
         /// <inheritdoc />

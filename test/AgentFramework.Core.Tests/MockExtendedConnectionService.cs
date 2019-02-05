@@ -46,12 +46,12 @@ namespace AgentFramework.Core.Tests
             throw new System.NotImplementedException();
         }
 
-        public Task ProcessResponseAsync(IAgentContext agentContext, ConnectionResponseMessage response)
+        public Task<bool> DeleteAsync(IAgentContext agentContext, string connectionId)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<bool> DeleteAsync(IAgentContext agentContext, string connectionId)
+        Task<string> IConnectionService.ProcessResponseAsync(IAgentContext agentContext, ConnectionResponseMessage response)
         {
             throw new System.NotImplementedException();
         }

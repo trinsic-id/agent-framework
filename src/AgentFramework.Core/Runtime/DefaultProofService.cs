@@ -7,6 +7,7 @@ using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages.Proofs;
 using AgentFramework.Core.Models.Credentials;
+using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Proofs;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
@@ -26,6 +27,10 @@ namespace AgentFramework.Core.Runtime
     /// <seealso cref="AgentFramework.Core.Contracts.IProofService" />
     public class DefaultProofService : IProofService
     {
+        /// <summary>
+        /// The event aggregator
+        /// </summary>
+        protected readonly IEventAggregator EventAggregator;
         /// <summary>
         /// The message service
         /// </summary>
@@ -58,6 +63,7 @@ namespace AgentFramework.Core.Runtime
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultProofService"/> class.
         /// </summary>
+        /// <param name="eventAggregator">The event aggregator.</param>
         /// <param name="connectionService">The connection service.</param>
         /// <param name="messageService">The message service.</param>
         /// <param name="recordService">The record service.</param>
@@ -66,6 +72,7 @@ namespace AgentFramework.Core.Runtime
         /// <param name="tailsService">The tails service.</param>
         /// <param name="logger">The logger.</param>
         public DefaultProofService(
+            IEventAggregator eventAggregator,
             IConnectionService connectionService,
             IMessageService messageService,
             IWalletRecordService recordService,
@@ -74,6 +81,7 @@ namespace AgentFramework.Core.Runtime
             ITailsService tailsService,
             ILogger<DefaultProofService> logger)
         {
+            EventAggregator = eventAggregator;
             TailsService = tailsService;
             ConnectionService = connectionService;
             MessageService = messageService;
@@ -190,6 +198,12 @@ namespace AgentFramework.Core.Runtime
             await proofRecord.TriggerAsync(ProofTrigger.Accept);
             await RecordService.UpdateAsync(agentContext.Wallet, proofRecord);
 
+            EventAggregator.Publish(new ServiceMessageProcessingEvent
+            {
+                RecordId = proofRecord.Id,
+                Message = proof,
+            });
+
             return proofRecord.Id;
         }
 
@@ -213,6 +227,12 @@ namespace AgentFramework.Core.Runtime
             proofRecord.SetTag(TagConstants.Role, TagConstants.Holder);
 
             await RecordService.AddAsync(agentContext.Wallet, proofRecord);
+
+            EventAggregator.Publish(new ServiceMessageProcessingEvent
+            {
+                RecordId = proofRecord.Id,
+                Message = proofRequest,
+            });
 
             return proofRecord.Id;
         }

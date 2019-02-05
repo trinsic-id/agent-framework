@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
@@ -13,6 +14,7 @@ using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Credentials;
+using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Runtime;
 using Hyperledger.Indy.AnonCredsApi;
@@ -39,6 +41,7 @@ namespace AgentFramework.Core.Tests
 
         private Pool _pool;
 
+        private readonly IEventAggregator _eventAggregator;
         private readonly IConnectionService _connectionService;
         private readonly ICredentialService _credentialService;
 
@@ -53,6 +56,7 @@ namespace AgentFramework.Core.Tests
             var recordService = new DefaultWalletRecordService();
             var ledgerService = new DefaultLedgerService();
 
+            _eventAggregator = new EventAggregator();
             _poolService = new DefaultPoolService();
 
             var routingMock = new Mock<IMessageService>();
@@ -80,12 +84,14 @@ namespace AgentFramework.Core.Tests
             _schemaService = new DefaultSchemaService(provisioningMock.Object, recordService, ledgerService, tailsService);
 
             _connectionService = new DefaultConnectionService(
+                _eventAggregator,
                 recordService,
                 routingMock.Object,
                 provisioningMock.Object,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
 
             _credentialService = new DefaultCredentialService(
+                _eventAggregator,
                 routingMock.Object,
                 ledgerService,
                 _connectionService,
@@ -146,6 +152,16 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CanIssueCredential()
         {
+            int events = 0;
+            _eventAggregator.GetEventByType<ServiceMessageProcessingEvent>()
+                .Where(_ => (_.Message.Type == MessageTypes.CredentialOffer ||
+                             _.Message.Type == MessageTypes.CredentialRequest ||
+                             _.Message.Type == MessageTypes.Credential))
+                .Subscribe(_ =>
+                {
+                    events++;
+                });
+
             // Setup secure connection between issuer and holder
             var (issuerConnection, holderConnection) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _issuerWallet, _holderWallet);
@@ -153,6 +169,8 @@ namespace AgentFramework.Core.Tests
             var (issuerCredential, holderCredential) = await Scenarios.IssueCredentialAsync(
                 _schemaService, _credentialService, _messages, issuerConnection,
                 holderConnection, _issuerWallet, _holderWallet, _pool, MasterSecretId, false);
+
+            Assert.True(events == 3);
 
             Assert.Equal(issuerCredential.State, holderCredential.State);
             Assert.Equal(CredentialState.Issued, issuerCredential.State);
