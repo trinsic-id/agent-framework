@@ -11,14 +11,16 @@
         /// <returns>The type name.</returns>
         public override string TypeName => "AF.SchemaRecord";
 
-        /// <summary>
-        /// Gets or sets the schema content as a json string.
-        /// </summary>
-        /// <value>The schema as a json string.</value>
-        public string SchemaJson
-        {
-            get => Get();
-            set => Set(value);
-        }
+        /// <summary>Gets or sets the name.</summary>
+        /// <value>The name.</value>
+        public string Name { get; set; }
+
+        /// <summary>Gets or sets the version.</summary>
+        /// <value>The version.</value>
+        public string Version { get; set; }
+
+        /// <summary>Gets or sets the attribute names.</summary>
+        /// <value>The attribute names.</value>
+        public string[] AttributeNames { get; set; }
     }
 }
