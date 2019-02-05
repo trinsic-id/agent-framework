@@ -154,9 +154,9 @@ namespace AgentFramework.Core.Tests
         {
             int events = 0;
             _eventAggregator.GetEventByType<ServiceMessageProcessingEvent>()
-                .Where(_ => (_.Message.Type == MessageTypes.CredentialOffer ||
-                             _.Message.Type == MessageTypes.CredentialRequest ||
-                             _.Message.Type == MessageTypes.Credential))
+                .Where(_ => (_.MessageType == MessageTypes.CredentialOffer ||
+                             _.MessageType == MessageTypes.CredentialRequest ||
+                             _.MessageType == MessageTypes.Credential))
                 .Subscribe(_ =>
                 {
                     events++;

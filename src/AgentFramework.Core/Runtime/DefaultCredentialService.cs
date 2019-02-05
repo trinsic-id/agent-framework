@@ -135,7 +135,7 @@ namespace AgentFramework.Core.Runtime
             EventAggregator.Publish(new ServiceMessageProcessingEvent
             {
                 RecordId = credentialRecord.Id,
-                Message = credentialOffer,
+                MessageType = credentialOffer.Type,
             });
 
             return credentialRecord.Id;
@@ -246,7 +246,7 @@ namespace AgentFramework.Core.Runtime
             EventAggregator.Publish(new ServiceMessageProcessingEvent
             {
                 RecordId = credentialRecord.Id,
-                Message = credential,
+                MessageType = credential.Type,
             });
 
             return credentialRecord.Id;
@@ -375,7 +375,7 @@ namespace AgentFramework.Core.Runtime
                 EventAggregator.Publish(new ServiceMessageProcessingEvent
                 {
                     RecordId = credential.Id,
-                    Message = credentialRequest,
+                    MessageType = credentialRequest.Type,
                 });
 
                 return credential.Id;
@@ -389,7 +389,7 @@ namespace AgentFramework.Core.Runtime
             EventAggregator.Publish(new ServiceMessageProcessingEvent
             {
                 RecordId = newCredential.Id,
-                Message = credentialRequest,
+                MessageType = credentialRequest.Type,
             });
 
             return newCredential.Id;

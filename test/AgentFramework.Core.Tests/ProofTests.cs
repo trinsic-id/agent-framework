@@ -179,8 +179,8 @@ namespace AgentFramework.Core.Tests
         {
             int events = 0;
             _eventAggregator.GetEventByType<ServiceMessageProcessingEvent>()
-                .Where(_ => (_.Message.Type == MessageTypes.ProofRequest ||
-                             _.Message.Type == MessageTypes.DisclosedProof))
+                .Where(_ => (_.MessageType == MessageTypes.ProofRequest ||
+                             _.MessageType == MessageTypes.DisclosedProof))
                 .Subscribe(_ =>
                 {
                     events++;

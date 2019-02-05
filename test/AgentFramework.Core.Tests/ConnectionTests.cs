@@ -237,8 +237,8 @@ namespace AgentFramework.Core.Tests
         {
             int events = 0;
             _eventAggregator.GetEventByType<ServiceMessageProcessingEvent>()
-                .Where(_ => (_.Message.Type == MessageTypes.ConnectionRequest ||
-                             _.Message.Type == MessageTypes.ConnectionResponse))
+                .Where(_ => (_.MessageType == MessageTypes.ConnectionRequest ||
+                             _.MessageType == MessageTypes.ConnectionResponse))
                 .Subscribe(_ =>
                 {
                     events++;

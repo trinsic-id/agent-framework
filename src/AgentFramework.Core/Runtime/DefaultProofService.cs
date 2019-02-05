@@ -201,7 +201,7 @@ namespace AgentFramework.Core.Runtime
             EventAggregator.Publish(new ServiceMessageProcessingEvent
             {
                 RecordId = proofRecord.Id,
-                Message = proof,
+                MessageType = proof.Type,
             });
 
             return proofRecord.Id;
@@ -231,7 +231,7 @@ namespace AgentFramework.Core.Runtime
             EventAggregator.Publish(new ServiceMessageProcessingEvent
             {
                 RecordId = proofRecord.Id,
-                Message = proofRequest,
+                MessageType = proofRequest.Type,
             });
 
             return proofRecord.Id;

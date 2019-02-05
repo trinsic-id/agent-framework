@@ -16,8 +16,8 @@ namespace AgentFramework.Core.Models.Events
         public string RecordId { get; set; }
 
         /// <summary>
-        /// Agent Message.
+        /// Agent Message Type.
         /// </summary>
-        public IAgentMessage Message { get; set; }
+        public string MessageType { get; set; }
     }
 }

@@ -200,7 +200,7 @@ namespace AgentFramework.Core.Runtime
                 EventAggregator.Publish(new ServiceMessageProcessingEvent
                 {
                     RecordId = agentContext.Connection.Id,
-                    Message = request,
+                    MessageType = request.Type,
                 });
 
                 return agentContext.Connection.Id;
@@ -214,7 +214,7 @@ namespace AgentFramework.Core.Runtime
             EventAggregator.Publish(new ServiceMessageProcessingEvent
             {
                 RecordId = newConnection.Id,
-                Message = request,
+                MessageType = request.Type,
             });
 
             return newConnection.Id;
@@ -243,7 +243,7 @@ namespace AgentFramework.Core.Runtime
             EventAggregator.Publish(new ServiceMessageProcessingEvent
             {
                 RecordId = agentContext.Connection.Id,
-                Message = response,
+                MessageType = response.Type,
             });
 
             return agentContext.Connection.Id;
