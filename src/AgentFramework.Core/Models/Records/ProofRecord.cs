@@ -106,6 +106,7 @@ namespace AgentFramework.Core.Models.Records
     /// <summary>
     /// Enumeration of possible proof states
     /// </summary>
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum ProofState
     {
         /// <summary>

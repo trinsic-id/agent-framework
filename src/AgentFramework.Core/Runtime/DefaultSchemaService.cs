@@ -52,7 +52,13 @@ namespace AgentFramework.Core.Runtime
         {
             var schema = await AnonCreds.IssuerCreateSchemaAsync(issuerDid, name, version, attributeNames.ToJson());
 
-            var schemaRecord = new SchemaRecord {Id = schema.SchemaId};
+            var schemaRecord = new SchemaRecord
+            {
+                Id = schema.SchemaId, 
+                Name = name, 
+                Version = version, 
+                AttributeNames = attributeNames
+            };
 
             await LedgerService.RegisterSchemaAsync(pool, wallet, issuerDid, schema.SchemaJson);
             await RecordService.AddAsync(wallet, schemaRecord);
