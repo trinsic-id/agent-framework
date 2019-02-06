@@ -6,6 +6,7 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Models.Credentials;
+using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Utils;
@@ -21,6 +22,10 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultCredentialService : ICredentialService
     {
+        /// <summary>
+        /// The event aggregator.
+        /// </summary>
+        protected readonly IEventAggregator EventAggregator;
         /// <summary>
         /// The message service
         /// </summary>
@@ -57,6 +62,7 @@ namespace AgentFramework.Core.Runtime
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultCredentialService"/> class.
         /// </summary>
+        /// <param name="eventAggregator">The event aggregator.</param>
         /// <param name="messageService">The message service.</param>
         /// <param name="ledgerService">The ledger service.</param>
         /// <param name="connectionService">The connection service.</param>
@@ -66,6 +72,7 @@ namespace AgentFramework.Core.Runtime
         /// <param name="provisioningService">The provisioning service.</param>
         /// <param name="logger">The logger.</param>
         public DefaultCredentialService(
+            IEventAggregator eventAggregator,
             IMessageService messageService,
             ILedgerService ledgerService,
             IConnectionService connectionService,
@@ -75,6 +82,7 @@ namespace AgentFramework.Core.Runtime
             IProvisioningService provisioningService,
             ILogger<DefaultCredentialService> logger)
         {
+            EventAggregator = eventAggregator;
             MessageService = messageService;
             LedgerService = ledgerService;
             ConnectionService = connectionService;
@@ -123,6 +131,12 @@ namespace AgentFramework.Core.Runtime
             credentialRecord.SetTag(TagConstants.Nonce, nonce);
 
             await RecordService.AddAsync(agentContext.Wallet, credentialRecord);
+
+            EventAggregator.Publish(new ServiceMessageProcessingEvent
+            {
+                RecordId = credentialRecord.Id,
+                MessageType = credentialOffer.Type,
+            });
 
             return credentialRecord.Id;
         }
@@ -185,7 +199,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task ProcessCredentialAsync(IAgentContext agentContext, CredentialMessage credential, ConnectionRecord connection)
+        public virtual async Task<string> ProcessCredentialAsync(IAgentContext agentContext, CredentialMessage credential, ConnectionRecord connection)
         {
             var offer = JObject.Parse(credential.CredentialJson);
             var definitionId = offer["cred_def_id"].ToObject<string>();
@@ -228,6 +242,14 @@ namespace AgentFramework.Core.Runtime
             credentialRecord.CredentialId = credentialId;
             await credentialRecord.TriggerAsync(CredentialTrigger.Issue);
             await RecordService.UpdateAsync(agentContext.Wallet, credentialRecord);
+
+            EventAggregator.Publish(new ServiceMessageProcessingEvent
+            {
+                RecordId = credentialRecord.Id,
+                MessageType = credential.Type,
+            });
+
+            return credentialRecord.Id;
         }
 
         /// <inheritdoc />
@@ -349,6 +371,13 @@ namespace AgentFramework.Core.Runtime
             {
                 await credential.TriggerAsync(CredentialTrigger.Request);
                 await RecordService.UpdateAsync(agentContext.Wallet, credential);
+
+                EventAggregator.Publish(new ServiceMessageProcessingEvent
+                {
+                    RecordId = credential.Id,
+                    MessageType = credentialRequest.Type,
+                });
+
                 return credential.Id;
             }
 
@@ -356,6 +385,13 @@ namespace AgentFramework.Core.Runtime
             newCredential.Id = Guid.NewGuid().ToString();
             await credential.TriggerAsync(CredentialTrigger.Request);
             await RecordService.AddAsync(agentContext.Wallet, newCredential);
+
+            EventAggregator.Publish(new ServiceMessageProcessingEvent
+            {
+                RecordId = newCredential.Id,
+                MessageType = credentialRequest.Type,
+            });
+
             return newCredential.Id;
         }
 
