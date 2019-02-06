@@ -13,6 +13,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
     {
         internal static AgentConfigurationBuilder AddDefaultServices(this AgentConfigurationBuilder builder)
         {
+            builder.Services.TryAddSingleton<IEventAggregator, EventAggregator>();
             builder.Services.TryAddSingleton<IConnectionService, DefaultConnectionService>();
             builder.Services.TryAddSingleton<ICredentialService, DefaultCredentialService>();
             builder.Services.TryAddSingleton<ILedgerService, DefaultLedgerService>();

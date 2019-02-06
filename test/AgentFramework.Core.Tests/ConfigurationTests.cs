@@ -30,6 +30,7 @@ namespace AgentFramework.Core.Tests
             // Build the final container
             var container = builder.Build();
 
+            Assert.NotNull(container.Resolve<IEventAggregator>());
             Assert.NotNull(container.Resolve<IConnectionService>());
             Assert.NotNull(container.Resolve<ICredentialService>());
             Assert.NotNull(container.Resolve<IProofService>());
