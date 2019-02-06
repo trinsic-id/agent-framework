@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records.Search;
@@ -42,29 +43,42 @@ namespace WebAgent.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
+            var context = new AgentContext
+            {
+                Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
+                    _walletOptions.WalletCredentials)
+            };
+
             return View(new ConnectionsViewModel
             {
-                Connections = await _connectionService.ListAsync(wallet)
+                Connections = await _connectionService.ListAsync(context)
             });
         }
 
         [HttpGet]
         public async Task<IActionResult> CreateInvitation()
         {
-            var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
-            var provisioning = await _provisioningService.GetProvisioningAsync(wallet);
+            var context = new AgentContext
+            {
+                Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
+                    _walletOptions.WalletCredentials)
+            };
 
-            var invitation = await _connectionService.CreateInvitationAsync(wallet, new InviteConfiguration { AutoAcceptConnection = true });
-            ViewData["Invitation"] = EncodeInvitation(invitation);
+            var invitation = await _connectionService.CreateInvitationAsync(context, new InviteConfiguration { AutoAcceptConnection = true });
+            ViewData["Invitation"] = EncodeInvitation(invitation.Invitation);
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> AcceptInvitation(AcceptConnectionViewModel model)
         {
-            var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
-            var _ = await _connectionService.AcceptInvitationAsync(wallet, DecodeInvitation(model.InvitationDetails));
+            var context = new AgentContext
+            {
+                Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
+                    _walletOptions.WalletCredentials)
+            };
+
+            var _ = await _connectionService.AcceptInvitationAsync(context, DecodeInvitation(model.InvitationDetails));
 
             return RedirectToAction("Index");
         }
@@ -80,11 +94,16 @@ namespace WebAgent.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(string id)
         {
-            var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
+            var context = new AgentContext
+            {
+                Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
+                    _walletOptions.WalletCredentials)
+            };
+
             var model = new ConnectionDetailsViewModel
             {
-                Connection = await _connectionService.GetAsync(wallet, id),
-                Messages = await _recordService.SearchAsync<BasicMessageRecord>(wallet,
+                Connection = await _connectionService.GetAsync(context, id),
+                Messages = await _recordService.SearchAsync<BasicMessageRecord>(context.Wallet,
                     SearchQuery.Equal(nameof(BasicMessageRecord.ConnectionId), id), null, 10)
             };
 
@@ -96,7 +115,11 @@ namespace WebAgent.Controllers
         {
             if (string.IsNullOrEmpty(text)) return RedirectToAction("Details", new { id = connectionId });
 
-            var wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration, _walletOptions.WalletCredentials);
+            var context = new AgentContext
+            {
+                Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
+                    _walletOptions.WalletCredentials)
+            };
 
             var messageRecord = new BasicMessageRecord
             {
@@ -108,13 +131,13 @@ namespace WebAgent.Controllers
             };
 
             var message = new BasicMessage {Content = text};
-            var connection = await _connectionService.GetAsync(wallet, connectionId);
+            var connection = await _connectionService.GetAsync(context, connectionId);
 
             // Save the outgoing message to the local wallet for chat history purposes
-            await _recordService.AddAsync(wallet, messageRecord);
+            await _recordService.AddAsync(context.Wallet, messageRecord);
 
             // Send an agent message using the secure connection
-            await _routerService.SendAsync(wallet, message, connection);
+            await _routerService.SendAsync(context.Wallet, message, connection);
 
             return RedirectToAction("Details", new {id = connectionId});
         }
