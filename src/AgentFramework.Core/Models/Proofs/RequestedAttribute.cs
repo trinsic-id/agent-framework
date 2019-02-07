@@ -28,5 +28,11 @@ namespace AgentFramework.Core.Models.Proofs
         [JsonProperty("revealed", NullValueHandling = NullValueHandling.Ignore)]
         public bool? Revealed { get; set; }
 
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"CredentialId={CredentialId}, " +
+            $"Timestamp={Timestamp}, " +
+            $"Revealed={Revealed}";
     }
 }

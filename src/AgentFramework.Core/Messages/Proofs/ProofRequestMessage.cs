@@ -23,5 +23,12 @@ namespace AgentFramework.Core.Messages.Proofs
         /// The proof json.
         /// </value>
         public string ProofRequestJson { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Id={Id}, " +
+            $"Type={Type}, " +
+            $"ProofRequestJson={(ProofRequestJson?.Length > 0 ? "[hidden]" : null)}";
     }
 }

@@ -23,5 +23,12 @@ namespace AgentFramework.Core.Messages.Credentials
         /// The offer json.
         /// </value>
         public string OfferJson { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Id={Id}, " +
+            $"Type={Type}, " +
+            $"OfferJson={(OfferJson?.Length > 0 ? "[hidden]" : null)}";
     }
 }

@@ -15,6 +15,11 @@ namespace AgentFramework.Core.Models.Wallets
             /// <value>The path.</value>
             [JsonProperty("path")]
             public string Path { get; set; }
+
+            /// <inheritdoc />
+            public override string ToString() =>
+                $"{GetType().Name}: " +
+                $"Path={Path}";
         }
     }
 }

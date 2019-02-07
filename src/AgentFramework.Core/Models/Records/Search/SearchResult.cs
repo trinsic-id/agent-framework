@@ -14,5 +14,10 @@ namespace AgentFramework.Core.Models.Records.Search
         /// <value>The resulting records.</value>
         [JsonProperty("records")]
         public List<SearchItem> Records { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Records={string.Join(",", Records)}";
     }
 }

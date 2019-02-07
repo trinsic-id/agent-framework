@@ -20,5 +20,11 @@ namespace AgentFramework.Core.Models.Proofs
         /// <value>To.</value>
         [JsonProperty("to")]
         public uint To { get; set; }
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"From={From}, " +
+            $"To={To}";
     }
 }

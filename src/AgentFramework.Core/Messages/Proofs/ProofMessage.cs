@@ -31,5 +31,13 @@ namespace AgentFramework.Core.Messages.Proofs
         /// The request nonce.
         /// </value>
         public string RequestNonce { get; set; }
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Id={Id}, " +
+            $"Type={Type}, " +
+            $"ProofJson={(ProofJson?.Length > 0 ? "[hidden]" : null)}, " +
+            $"RequestNonce={RequestNonce}";
     }
 }

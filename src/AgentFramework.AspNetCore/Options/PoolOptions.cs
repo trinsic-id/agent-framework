@@ -36,5 +36,12 @@
             get;
             set;
         } = 2;
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"PoolName={PoolName}, " +
+            $"GenesisFilename={GenesisFilename}, " +
+            $"ProtocolVersion={ProtocolVersion}";
     }
 }

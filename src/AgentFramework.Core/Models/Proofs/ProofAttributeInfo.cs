@@ -67,5 +67,12 @@ namespace AgentFramework.Core.Models.Proofs
         /// </value>
         [JsonProperty("non_revoked", NullValueHandling = NullValueHandling.Ignore)]
         public RevocationInterval NonRevoked { get; set; }
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Name={Name}, " +
+            $"Restrictions={string.Join(",", Restrictions)}, " +
+            $"NonRevoked={NonRevoked}";
     }
 }

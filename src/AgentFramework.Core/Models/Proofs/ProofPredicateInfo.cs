@@ -18,5 +18,11 @@ namespace AgentFramework.Core.Models.Proofs
         /// <value>The predicate value.</value>
         [JsonProperty("p_value")]
         public string PredicateValue { get; set; }
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"PredicateType={PredicateType}, " +
+            $"PredicateValue={PredicateValue}";
     }
 }

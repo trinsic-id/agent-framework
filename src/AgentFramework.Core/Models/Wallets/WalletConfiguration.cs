@@ -27,5 +27,12 @@ namespace AgentFramework.Core.Models.Wallets
         /// <value>The storage configuration.</value>
         [JsonProperty("storage_config", NullValueHandling = NullValueHandling.Ignore)]
         public WalletStorageConfiguration StorageConfiguration { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Id={Id}, " +
+            $"StorageType={StorageType}, " +
+            $"StorageConfiguration={StorageConfiguration}";
     }
 }

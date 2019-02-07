@@ -25,6 +25,12 @@ namespace AgentFramework.Core.Models.Proofs
         /// </value>
         [JsonProperty("requested_proof")]
         public RequestedProof RequestedProof { get; set; }
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Identifiers={string.Join(",", Identifiers)}, " +
+            $"RequestedProof={RequestedProof}";
     }
 
     /// <summary>
@@ -67,6 +73,14 @@ namespace AgentFramework.Core.Models.Proofs
         /// </value>
         [JsonProperty("timestamp")]
         public string Timestamp { get; set; }
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"SchemaId={SchemaId}, " +
+            $"CredentialDefintionId={CredentialDefintionId}, " +
+            $"RevocationRegistryId={RevocationRegistryId}, " +
+            $"Timestamp={Timestamp}";
     }
 
     /// <summary>
@@ -91,6 +105,12 @@ namespace AgentFramework.Core.Models.Proofs
         /// </value>
         [JsonProperty("self_attested_attrs")]
         public Dictionary<string, ProofAttribute> SelfAttestedAttributes { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"RevealedAttributes={string.Join(",", RevealedAttributes)}, " +
+            $"SelfAttestedAttributes={string.Join(",", SelfAttestedAttributes)}";
     }
 
     /// <summary>
@@ -124,5 +144,11 @@ namespace AgentFramework.Core.Models.Proofs
         /// </value>
         [JsonProperty("encoded")]
         public string Encoded { get; set; }
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Raw={(Raw?.Length > 0 ? "[hidden]" : null)}, " +
+            $"Encoded={(Encoded?.Length > 0 ? "[hidden]" : null)}";
     }
 }

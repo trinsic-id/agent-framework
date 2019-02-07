@@ -35,5 +35,14 @@ namespace AgentFramework.Core.Models.Credentials
         /// Controls the tags that are persisted against the offer record.
         /// </summary>
         public Dictionary<string, string> Tags { get; set; }
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"CredentialDefinitionId={CredentialDefinitionId}, " +
+            $"IssuerDid={IssuerDid}, " +
+            $"MultiPartyOffer={MultiPartyOffer}, " +
+            $"CredentialAttributeValues={string.Join(",", CredentialAttributeValues)}, " +
+            $"Tags={string.Join(",", Tags)}";
     }
 }

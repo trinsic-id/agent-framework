@@ -21,5 +21,11 @@ namespace AgentFramework.Core.Models.Credentials
         /// <value>The non revocation interval.</value>
         [JsonProperty("interval")]
         public RevocationInterval NonRevocationInterval { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"CredentialInfo={CredentialInfo}, " +
+            $"NonRevocationInterval={NonRevocationInterval}";
     }
 }

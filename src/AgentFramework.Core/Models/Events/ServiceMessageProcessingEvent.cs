@@ -19,5 +19,11 @@ namespace AgentFramework.Core.Models.Events
         /// Agent Message Type.
         /// </summary>
         public string MessageType { get; set; }
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"RecordId={RecordId}, " +
+            $"MessageType={MessageType}";
     }
 }
