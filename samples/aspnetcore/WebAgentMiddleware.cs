@@ -4,8 +4,11 @@ using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using WebAgent.Messages;
+using WebAgent.Protocols;
+using WebAgent.Protocols.BasicMessage;
 
-namespace WebAgent.Messages
+namespace WebAgent
 {
     public class WebAgentMiddleware : AgentMiddleware
     {
@@ -17,6 +20,7 @@ namespace WebAgent.Messages
             : base(next, walletService, serviceProvider, walletOptions)
         {
             AddHandler<BasicMessageHandler>();
+            AddHandler<TrustPingMessageHandler>();
         }
     }
 }

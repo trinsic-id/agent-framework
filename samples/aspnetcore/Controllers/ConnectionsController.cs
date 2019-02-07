@@ -1,22 +1,28 @@
 ﻿using System;
+using System.Reactive.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models.Connections;
+using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records.Search;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using WebAgent.Messages;
 using WebAgent.Models;
+using WebAgent.Protocols;
+using WebAgent.Protocols.BasicMessage;
 
 namespace WebAgent.Controllers
 {
     public class ConnectionsController : Controller
     {
+        private readonly IEventAggregator _eventAggregator;
         private readonly IConnectionService _connectionService;
         private readonly IWalletService _walletService;
         private readonly IWalletRecordService _recordService;
@@ -25,6 +31,7 @@ namespace WebAgent.Controllers
         private readonly WalletOptions _walletOptions;
 
         public ConnectionsController(
+            IEventAggregator eventAggregator,
             IConnectionService connectionService, 
             IWalletService walletService, 
             IWalletRecordService recordService,
@@ -32,6 +39,7 @@ namespace WebAgent.Controllers
             IMessageService routerService,
             IOptions<WalletOptions> walletOptions)
         {
+            _eventAggregator = eventAggregator;
             _connectionService = connectionService;
             _walletService = walletService;
             _recordService = recordService;
@@ -89,6 +97,52 @@ namespace WebAgent.Controllers
             ViewData["InvitationDetails"] = model.InvitationDetails;
 
             return View(DecodeInvitation(model.InvitationDetails));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendTrustPing(string connectionId)
+        {
+            var context = new AgentContext
+            {
+                Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
+                    _walletOptions.WalletCredentials)
+            };
+
+            var connection = await _connectionService.GetAsync(context, connectionId);
+
+            var message = new TrustPingMessage
+            {
+                ResponseRequested = true,
+                Comment = "Hello"
+            };
+
+            bool responseRecieved = false;
+
+            _eventAggregator.GetEventByType<ServiceMessageProcessingEvent>()
+                .Where(_ => _.MessageType == CustomMessageTypes.TrustPingResponseMessageType)
+                .Subscribe(_ =>
+                {
+                    responseRecieved = true;
+                });
+
+            await _routerService.SendAsync(context.Wallet, message, connection);
+
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(15000);
+
+            try
+            {
+                await Task.Factory.StartNew(() =>
+                {
+                    while (!responseRecieved) { }
+                    return true;
+                }, cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                return BadRequest();
+            }
+            return Ok();
         }
 
         [HttpGet]

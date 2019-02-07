@@ -7,7 +7,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using WebAgent.Messages;
+using WebAgent.Protocols;
+using WebAgent.Protocols.BasicMessage;
 using WebAgent.Utils;
 
 namespace WebAgent

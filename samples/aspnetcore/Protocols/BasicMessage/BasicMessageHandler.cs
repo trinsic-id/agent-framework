@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
-using System.Threading.Tasks;
 
-namespace WebAgent.Messages
+namespace WebAgent.Protocols.BasicMessage
 {
     public class BasicMessageHandler : MessageHandlerBase<BasicMessage>
     {

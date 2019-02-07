@@ -2,7 +2,7 @@
 using AgentFramework.Core.Models.Records;
 using Newtonsoft.Json;
 
-namespace WebAgent.Messages
+namespace WebAgent.Protocols.BasicMessage
 {
     /// <summary>
     /// Represents a private message record in the user's wallet
