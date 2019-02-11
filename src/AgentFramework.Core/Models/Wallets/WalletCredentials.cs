@@ -36,5 +36,13 @@ namespace AgentFramework.Core.Models.Wallets
         /// <value>The storage credentials.</value>
         [JsonProperty("storage_credentials", NullValueHandling = NullValueHandling.Ignore)]
         public object StorageCredentials { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Key={(Key?.Length > 0 ? "[hidden]" : null)}, " +
+            $"NewKey={(NewKey?.Length > 0 ? "[hidden]" : null)}, " +
+            $"KeyDerivationMethod={KeyDerivationMethod}, " +
+            $"StorageCredentials={(StorageCredentials != null ? "[hidden]" : null)}";
     }
 }

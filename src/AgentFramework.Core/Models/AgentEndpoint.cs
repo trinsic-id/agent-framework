@@ -78,5 +78,12 @@ namespace AgentFramework.Core.Models
             get => _uri;
             internal set => _uri = value;
         }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Did={Did}, " +
+            $"Verkey={(Verkey?.Length > 0 ? "[hidden]" : null)}, " +
+            $"Uri={Uri}";
     }
 }

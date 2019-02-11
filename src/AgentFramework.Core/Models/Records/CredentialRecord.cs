@@ -181,6 +181,22 @@ namespace AgentFramework.Core.Models.Records
         }
 
         #endregion
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"State={State}, " +
+            $"ConnectionId={ConnectionId}, " +
+            $"CredentialId={CredentialId}, " +
+            $"SchemaId={SchemaId}, " +
+            $"CredentialDefinitionId={CredentialDefinitionId}, " +
+            $"CredentialRevocationId={CredentialRevocationId}, " +
+            $"MultiPartyOffer={MultiPartyOffer}, " +
+            $"RequestJson={(RequestJson?.Length > 0 ? "[hidden]" : null)}, " +
+            $"ValuesJson={(ValuesJson?.Length > 0 ? "[hidden]" : null)}, " +
+            $"OfferJson={(OfferJson?.Length > 0 ? "[hidden]" : null)}, " +
+            $"CredentialRequestMetadataJson={(CredentialRequestMetadataJson?.Length > 0 ? "[hidden]" : null)}, " +
+            base.ToString(); 
     }
 
     /// <summary>

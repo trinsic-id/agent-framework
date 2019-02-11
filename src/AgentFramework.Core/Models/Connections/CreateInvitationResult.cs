@@ -14,5 +14,11 @@ namespace AgentFramework.Core.Models.Connections
         /// <summary>Gets or sets the connection.</summary>
         /// <value>The connection.</value>
         public ConnectionRecord Connection { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Invitation={Invitation}, " +
+            $"Connection={Connection}";
     }
 }

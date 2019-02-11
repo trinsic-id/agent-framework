@@ -103,5 +103,20 @@ namespace AgentFramework.Core.Models.Wallets
         /// The tags.
         /// </value>
         public Dictionary<string, string> Tags { get; set; }
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"OwnerName={OwnerName}, " +
+            $"OwnerImageUrl={OwnerImageUrl}, " +
+            $"AgentSeed={(AgentSeed?.Length > 0 ? "[hidden]" : null)}, " +
+            $"AgentDid={AgentDid}, " +
+            $"AgentVerkey={(AgentVerkey?.Length > 0 ? "[hidden]" : null)}, " +
+            $"EndpointUri={EndpointUri}, " +
+            $"IssuerSeed={(IssuerSeed?.Length > 0 ? "[hidden]" : null)}, " +
+            $"CreateIssuer={CreateIssuer}, " +
+            $"TailsBaseUri={TailsBaseUri}, " +
+            $"WalletConfiguration={WalletConfiguration}, " +
+            $"WalletCredentials={WalletCredentials}";
     }
 }

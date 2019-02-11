@@ -20,5 +20,11 @@
         /// The agent owners image url.
         /// </value>
         public string ImageUrl { get; set; }
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Name={Name}, " +
+            $"ImageUrl={ImageUrl}";
     }
 }

@@ -33,5 +33,11 @@
         /// The image url of the alias for the connection.
         /// </value>
         public string ImageUrl { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Name={Name}, " +
+            $"ImageUrl={ImageUrl}";
     }
 }

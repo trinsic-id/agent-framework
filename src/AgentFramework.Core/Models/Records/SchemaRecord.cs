@@ -22,5 +22,13 @@
         /// <summary>Gets or sets the attribute names.</summary>
         /// <value>The attribute names.</value>
         public string[] AttributeNames { get; set; }
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Name={Name}, " +
+            $"Version={Version}, " +
+            $"AttributeNames={string.Join(",", AttributeNames)}, " +
+            base.ToString();
     }
 }

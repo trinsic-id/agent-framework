@@ -101,6 +101,15 @@ namespace AgentFramework.Core.Models.Records
             return state;
         }
         #endregion
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"State={State}, " +
+            $"ConnectionId={ConnectionId}, " +
+            $"RequestJson={(RequestJson?.Length > 0 ? "[hidden]" : null)}, " +
+            $"ProofJson={(ProofJson?.Length > 0 ? "[hidden]" : null)}, " +
+            base.ToString(); 
     }
 
     /// <summary>
