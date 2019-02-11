@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using AgentFramework.Core.Models;
 using Newtonsoft.Json;
 
@@ -16,15 +17,6 @@ namespace AgentFramework.Core.Messages.Connections
         /// <inheritdoc />
         [JsonProperty("@type")]
         public string Type { get; set; } = MessageTypes.ConnectionInvitation;
-
-        /// <summary>
-        /// Gets or sets the endpoint.
-        /// </summary>
-        /// <value>
-        /// The endpoint.
-        /// </value>
-        [JsonProperty("endpoint")]
-        public AgentEndpoint Endpoint { get; set; }
 
         /// <summary>
         /// Gets or sets the name.
@@ -52,7 +44,25 @@ namespace AgentFramework.Core.Messages.Connections
         /// </value>
         [JsonProperty("connectionKey")]
         public string ConnectionKey { get; set; }
-        
+
+        /// <summary>
+        /// Gets or sets the service endpoint.
+        /// </summary>
+        /// <value>
+        /// The service endpoint.
+        /// </value>
+        [JsonProperty("serviceEndpoint")]
+        public string ServiceEndpoint { get; set; }
+
+        /// <summary>
+        /// Gets or sets the routing keys.
+        /// </summary>
+        /// <value>
+        /// The routing keys.
+        /// </value>
+        [JsonProperty("routing_keys")]
+        public IList<string> RoutingKeys { get; set; }
+
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +
