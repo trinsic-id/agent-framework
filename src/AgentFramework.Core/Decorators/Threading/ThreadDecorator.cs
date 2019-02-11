@@ -30,6 +30,6 @@ namespace AgentFramework.Core.Decorators.Threading
         /// Received orders.
         /// </summary>
         [JsonProperty("received_orders")]
-        public Dictionary<string, int> RecievedOrders { get; set; }
+        public Dictionary<string, int> RecievedOrders { get; set; } = new Dictionary<string, int>();
     }
 }
