@@ -37,6 +37,11 @@ namespace AgentFramework.Core.Decorators.Threading
             try
             {
                 previousMessageThreadContext = message.InboundMessage.GetDecorator<ThreadDecorator>(DecoratorIdentifier);
+            }
+            catch (AgentFrameworkException) { }
+
+            try
+            {
                 previousMessageId = message.InboundMessage.GetMessageId();
             }
             catch (AgentFrameworkException) { }
