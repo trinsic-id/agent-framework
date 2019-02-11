@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Runtime;
 using Autofac;
@@ -18,7 +19,6 @@ namespace AFMobileSample
         public App()
         {
             InitializeComponent();
-
             RegisterContainer();
 
             MainPage = new MainPage();
@@ -34,6 +34,7 @@ namespace AFMobileSample
 
             builder.RegisterAssemblyTypes(typeof(IConnectionService).Assembly)
                 .AsImplementedInterfaces();
+            builder.RegisterType<HttpClient>().AsSelf();
 
             builder.Populate(services);
 

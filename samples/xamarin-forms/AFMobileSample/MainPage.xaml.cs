@@ -1,5 +1,9 @@
 ﻿using System;
+using System.ComponentModel;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Models.Wallets;
 using Autofac;
 using Hyperledger.Indy.DidApi;
@@ -12,40 +16,54 @@ namespace AFMobileSample
     {
         private readonly IWalletService _walletService = App.Container.Resolve<IWalletService>();
         private readonly IConnectionService _connectionService = App.Container.Resolve<IConnectionService>();
+        private readonly IProvisioningService _provisioningService = App.Container.Resolve<IProvisioningService>();
 
         private WalletConfiguration _config = new WalletConfiguration { Id = "MyWallet" };
         private WalletCredentials _creds = new WalletCredentials { Key = "SecretKey" };
-        private Wallet _wallet;
+
+        private string _agentKey;
+        public string AgentKey { get => _agentKey; set { _agentKey = value; OnPropertyChanged(); } }
 
         public MainPage()
         {
             InitializeComponent();
         }
 
-        async void OnCreateClicked(object sender, EventArgs e)
+        async void OnProvision(object sender, EventArgs e)
         {
-            ProgressIndicator.IsRunning = true;
-            CreateButton.IsEnabled = false;
+            IsBusy = true;
 
             try
             {
-                await _walletService.CreateWalletAsync(_config, _creds);
+                var configuration = new ProvisioningConfiguration
+                {
+                    WalletCredentials = _creds,
+                    WalletConfiguration = _config,
+                    EndpointUri = new Uri("http://example.com/agent")
+                };
+
+                await _provisioningService.ProvisionAgentAsync(configuration);
             }
-            catch (WalletExistsException)
+            catch (Exception ex)
+            when ((ex is AgentFrameworkException) || (ex is WalletExistsException))
             {
-                //
+                await DisplayAlert("Error", "An agent has already been provisioned.", "OK");
             }
 
-            _wallet = _wallet ?? await _walletService.GetWalletAsync(_config, _creds);
-            var did = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            var wallet = await _walletService.GetWalletAsync(_config, _creds);
+            var provisioningDetails = await _provisioningService.GetProvisioningAsync(wallet);
 
-            Device.BeginInvokeOnMainThread(() =>
-            {
-                DidLabel.Text = $"Identity created -> Did: {did.Did}";
+            AgentKey = provisioningDetails.Endpoint.Verkey;
 
-                ProgressIndicator.IsRunning = false;
-                CreateButton.IsEnabled = true;
-            });
+            IsBusy = false;
+        }
+
+        async void OnMakeInvitation(object sender, EventArgs e)
+        {
+            var wallet = await _walletService.GetWalletAsync(_config, _creds);
+            var invitation = await _connectionService.CreateInvitationAsync(new AgentContext { Wallet = wallet });
+
+            InvitationDetails.Text = invitation.Invitation.ToJson();
         }
     }
 }
