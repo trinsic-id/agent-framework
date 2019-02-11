@@ -30,5 +30,12 @@
         /// </summary>
         /// <returns>The type name.</returns>
         public override string TypeName => "AF.RevocationRegistryRecord";
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"CredentialDefinitionId={CredentialDefinitionId}, " +
+            $"TailsFile={TailsFile}, " +
+            base.ToString();
     }
 }

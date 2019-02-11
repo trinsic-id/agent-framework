@@ -4,6 +4,7 @@ using AgentFramework.Core.Models.Connections;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Stateless;
+using Stateless.Graph;
 
 namespace AgentFramework.Core.Models.Records
 {
@@ -157,6 +158,19 @@ namespace AgentFramework.Core.Models.Records
         }
 
         #endregion
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"State={State}, " +
+            $"MyDid={MyDid}, " +
+            $"MyVk={(MyVk?.Length > 0 ? "[hidden]" : null)}, " +
+            $"TheirDid={TheirDid}, " +
+            $"TheirVk={(TheirVk?.Length > 0 ? "[hidden]" : null)}, " +
+            $"MultiPartyInvitation={MultiPartyInvitation}, " +
+            $"Alias={Alias}, " +
+            $"Endpoint={Endpoint}, " +
+            base.ToString();  
     }
 
     /// <summary>

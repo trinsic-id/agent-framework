@@ -39,5 +39,14 @@ namespace AgentFramework.Core.Messages.Credentials
         /// The credential values json.
         /// </value>
         public string CredentialValuesJson { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Id={Id}, " +
+            $"Type={Type}, " +
+            $"OfferJson={(OfferJson?.Length > 0 ? "[hidden]" : null)}, " +
+            $"CredentialRequestJson={(CredentialRequestJson?.Length > 0 ? "[hidden]" : null)}, " +
+            $"CredentialValuesJson={(CredentialValuesJson?.Length > 0 ? "[hidden]" : null)}";
     }
 }

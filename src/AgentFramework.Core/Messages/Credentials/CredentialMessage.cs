@@ -31,5 +31,13 @@ namespace AgentFramework.Core.Messages.Credentials
         /// The revocation registry identifier.
         /// </value>
         public string RevocationRegistryId { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Id={Id}, " +
+            $"Type={Type}, " +
+            $"CredentialJson={(CredentialJson?.Length > 0 ? "[hidden]" : null)}, " +
+            $"RevocationRegistryId={RevocationRegistryId}";
     }
 }

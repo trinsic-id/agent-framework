@@ -35,5 +35,13 @@ namespace AgentFramework.Core.Models.Records.Search
         /// <value>The records.</value>
         [JsonProperty("tags")]
         public Dictionary<string, string> Tags { get; set; }
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Id={Id}, " +
+            $"Type={Type}, " +
+            $"Value={Value}, " +
+            $"Tags={string.Join(",", Tags)}";
     }
 }

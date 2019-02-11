@@ -61,5 +61,16 @@ namespace AgentFramework.Core.Messages.Connections
         /// </value>
         [JsonProperty("name")]
         public string Name { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Id={Id}, " +
+            $"Type={Type}, " +
+            $"Did={Did}, " +
+            $"Verkey={(Verkey?.Length > 0 ? "[hidden]" : null)}, " +
+            $"Name={Name}, " +
+            $"ImageUrl={ImageUrl}, " +
+            $"Endpoint={Endpoint}";
     }
 }

@@ -46,5 +46,14 @@ namespace AgentFramework.Core.Models.Records.Search
         /// <value><c>true</c> if retrieve tags; otherwise, <c>false</c>.</value>
         [JsonProperty("retrieveTags")]
         public bool RetrieveTags { get; set; } = true;
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"RetrieveRecords={RetrieveRecords}, " +
+            $"RetrieveTotalCount={RetrieveTotalCount}, " +
+            $"RetrieveType={RetrieveType}, " +
+            $"RetrieveValue={RetrieveValue}, " +
+            $"RetrieveTags={RetrieveTags}";
     }
 }

@@ -41,5 +41,15 @@ namespace AgentFramework.Core.Models.Connections
         /// Controls the tags that are persisted against the invite/connection record.
         /// </summary>
         public Dictionary<string, string> Tags { get; set; } = new Dictionary<string, string>();
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"ConnectionId={ConnectionId}, " +
+            $"MultiPartyInvitation={MultiPartyInvitation}, " +
+            $"TheirAlias={TheirAlias}, " +
+            $"MyAlias={MyAlias}, " +
+            $"AutoAcceptConnection={AutoAcceptConnection}, " +
+            $"Tags={string.Join(",", Tags)}";
     }
 }

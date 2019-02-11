@@ -27,5 +27,11 @@ namespace AgentFramework.AspNetCore.Options
             get;
             set;
         }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"WalletConfiguration={WalletConfiguration}, " +
+            $"WalletCredentials={WalletCredentials}";
     }
 }

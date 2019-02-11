@@ -45,5 +45,13 @@ namespace AgentFramework.Core.Models.Proofs
             credIds.AddRange(RequestedPredicates.Values.Select(x => x.CredentialId));
             return credIds.Distinct();
         }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"RequestedAttributes={string.Join(",", RequestedAttributes)}, " +
+            $"SelfAttestedAttributes={string.Join(",", SelfAttestedAttributes)}, " +
+            $"RequestedPredicates={string.Join(",", RequestedPredicates)}, " +
+            $"CredentialIdentifiers={string.Join(",", GetCredentialIdentifiers())}";
     }
 }

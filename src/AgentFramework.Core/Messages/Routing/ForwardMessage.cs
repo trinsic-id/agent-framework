@@ -33,5 +33,13 @@ namespace AgentFramework.Core.Messages.Routing
         /// </value>
         [JsonProperty("msg")]
         public string Message { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Id={Id}, " +
+            $"Type={Type}, " +
+            $"To={To}, " +
+            $"Message={(Message?.Length > 0 ? "[hidden]" : null)}";
     }
 }

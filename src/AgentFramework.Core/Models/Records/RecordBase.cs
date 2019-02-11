@@ -235,5 +235,13 @@ namespace AgentFramework.Core.Models.Records
 
             return Convert.ToBoolean(strVal);
         }
+
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"Id={Id}, " +
+            $"TypeName={TypeName}, " +
+            $"CreatedAtUtc={CreatedAtUtc}, " +
+            $"UpdatedAtUtc={UpdatedAtUtc}";
     }
 }

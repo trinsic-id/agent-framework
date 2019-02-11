@@ -51,5 +51,14 @@ namespace AgentFramework.Core.Models.Records
         /// <summary>Gets or sets the maximum credential count.</summary>
         /// <value>The maximum credential count.</value>
         public int MaxCredentialCount { get; set; }
+        
+        /// <inheritdoc />
+        public override string ToString() =>
+            $"{GetType().Name}: " +
+            $"SchemaId={SchemaId}, " +
+            $"SupportsRevocation={SupportsRevocation}, " +
+            $"RequireApproval={RequireApproval}, " +
+            $"MaxCredentialCount={MaxCredentialCount}, " +
+            base.ToString(); 
     }
 }
