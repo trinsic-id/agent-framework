@@ -1,6 +1,7 @@
 ﻿using AgentFramework.Core.Contracts;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AgentFramework.Core.Messages;
 
 namespace AgentFramework.Core.Handlers
 {

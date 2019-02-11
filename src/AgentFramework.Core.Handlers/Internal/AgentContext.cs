@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Messages;
 using AgentFramework.Core.Models.Records;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;

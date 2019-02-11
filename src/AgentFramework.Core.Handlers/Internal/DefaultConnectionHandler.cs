@@ -59,12 +59,11 @@ namespace AgentFramework.Core.Handlers.Internal
                     {
                         // Add a response message to be processed by the handler pipeline
                         if (agentContext is AgentContext context)
-                            context.AddNext(new OutgoingMessage
+                            context.AddNext(new OutgoingMessage 
                                 {
-                                    Message = (await _connectionService.AcceptRequestAsync(agentContext, connectionId))
-                                        .ToJson()
-                                }
-                                .AsMessagePayload());
+                                    OutboundMessage = new MessagePayload((await _connectionService.AcceptRequestAsync(agentContext, connectionId))),
+                                    InboundMessage = messagePayload
+                                }.AsMessagePayload());
                     }
 
                     return;

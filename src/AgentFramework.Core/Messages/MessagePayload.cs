@@ -1,10 +1,8 @@
-﻿using System;
-using AgentFramework.Core.Exceptions;
+﻿using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
-using AgentFramework.Core.Messages;
 using Newtonsoft.Json.Linq;
 
-namespace AgentFramework.Core.Handlers
+namespace AgentFramework.Core.Messages
 {
     /// <summary>
     /// A message context object that surrounds an agent message
@@ -46,6 +44,14 @@ namespace AgentFramework.Core.Handlers
         internal byte[] Payload { get; }
 
         /// <summary>
+        /// The message id of the current message.
+        /// </summary>
+        public string GetMessageId() =>
+            Packed
+                ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
+                : _messageJson["@id"].Value<string>();
+
+        /// <summary>
         /// The message type of the current message.
         /// </summary>
         public string GetMessageType() =>
@@ -70,10 +76,23 @@ namespace AgentFramework.Core.Handlers
         /// <param name="name">The name.</param>
         /// <returns></returns>
         /// <exception cref="AgentFrameworkException">Cannot deserialize packed message.</exception>
-        public T GetDecorator<T>(string name) where T : IAgentMessage =>
+        public T GetDecorator<T>(string name) where T : class =>
             Packed
                 ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
                 : _messageJson[$"~{name}"].ToObject<T>();
 
+        /// <summary>
+        /// Adds the decorator.
+        /// </summary>
+        /// <param name="decorator">The decorator.</param>
+        /// <param name="name">The decorator name.</param>
+        /// <exception cref="AgentFrameworkException">Cannot add a decorator to a packed message.</exception>
+        public void AddDecorator<T>(T decorator, string name) where T : class
+        {
+            if (Packed)
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot add a decorator to a packed message");
+
+            _messageJson.Add($"~{name}", decorator.ToJson());
+        }
     }
 }

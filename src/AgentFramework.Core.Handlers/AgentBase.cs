@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Decorators;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers.Internal;
@@ -40,7 +41,7 @@ namespace AgentFramework.Core.Handlers
         protected void AddConnectionHandler()
         {
             _handlers.Add(new DefaultConnectionHandler(Provider.GetService<IConnectionService>()));
-            _handlers.Add(new OutgoingMessageHandler());
+            _handlers.Add(new OutgoingMessageHandler(Provider.GetServices<IOutgoingMessageDecoratorHandler>()));
             _handlers.Add(new HttpOutgoingMessageHandler(Provider.GetService<HttpClientHandler>()
                                                          ?? new HttpClientHandler()));
         }
