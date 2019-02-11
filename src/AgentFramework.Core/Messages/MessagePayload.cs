@@ -1,5 +1,7 @@
-﻿using AgentFramework.Core.Exceptions;
+﻿using System;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace AgentFramework.Core.Messages
@@ -75,11 +77,20 @@ namespace AgentFramework.Core.Messages
         /// <typeparam name="T"></typeparam>
         /// <param name="name">The name.</param>
         /// <returns></returns>
-        /// <exception cref="AgentFrameworkException">Cannot deserialize packed message.</exception>
-        public T GetDecorator<T>(string name) where T : class =>
-            Packed
-                ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
-                : _messageJson[$"~{name}"].ToObject<T>();
+        /// <exception cref="AgentFrameworkException">ErrorCode.InvalidMessage Cannot deserialize packed message or unable to find decorator on message.</exception>
+        public T GetDecorator<T>(string name) where T : class
+        {
+            if (Packed)
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.");
+            try
+            {
+                return _messageJson[$"~{name}"].ToObject<T>();
+            }
+            catch (Exception e)
+            {
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Failed to extract decorator from message", e);
+            }
+        }
 
         /// <summary>
         /// Adds the decorator.
@@ -92,7 +103,7 @@ namespace AgentFramework.Core.Messages
             if (Packed)
                 throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot add a decorator to a packed message");
 
-            _messageJson.Add($"~{name}", decorator.ToJson());
+            _messageJson.Add($"~{name}", JsonConvert.DeserializeObject<JToken>(decorator.ToJson()));
         }
     }
 }

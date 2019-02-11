@@ -8,6 +8,7 @@ using AgentFramework.Core.Decorators;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers.Internal;
+using AgentFramework.Core.Messages;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
