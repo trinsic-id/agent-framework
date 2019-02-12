@@ -206,12 +206,15 @@ namespace AgentFramework.Core.Runtime
             var schemaId = offer["schema_id"].ToObject<string>();
             var revRegId = offer["rev_reg_id"]?.ToObject<string>();
 
+            // TODO: Replace this with thread lookup
+            // Currently, this is unable to process multiple offers and requests reliably
             var credentialSearch =
                 await RecordService.SearchAsync<CredentialRecord>(agentContext.Wallet,
                 SearchQuery.And(
                     SearchQuery.Equal(nameof(CredentialRecord.SchemaId), schemaId),
                     SearchQuery.Equal(nameof(CredentialRecord.CredentialDefinitionId), definitionId),
-                    SearchQuery.Equal(nameof(CredentialRecord.ConnectionId), connection.Id)
+                    SearchQuery.Equal(nameof(CredentialRecord.ConnectionId), connection.Id),
+                    SearchQuery.Equal(nameof(CredentialRecord.State), CredentialState.Requested.ToString("G"))
                 ), null, 1);
 
             if (credentialSearch.Count == 0)
