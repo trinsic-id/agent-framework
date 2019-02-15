@@ -15,7 +15,7 @@ services:
   web-agent-1:
     build:
       context: .
-      dockerfile: docker/web-agent.dockerfile
+      dockerfile: docker/web-agent-local-prj.dockerfile
     environment:
       - ASPNETCORE_URLS=http://10.0.0.11:7000
     ports:
@@ -31,7 +31,7 @@ services:
   web-agent-2:
     build:
       context: .
-      dockerfile: docker/web-agent.dockerfile
+      dockerfile: docker/web-agent-local-prj.dockerfile
     environment:
       - ASPNETCORE_URLS=http://10.0.0.12:8000
     ports:

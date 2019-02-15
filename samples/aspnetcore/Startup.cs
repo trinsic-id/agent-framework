@@ -7,8 +7,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using WebAgent.Protocols;
-using WebAgent.Protocols.BasicMessage;
 using WebAgent.Utils;
 
 namespace WebAgent
@@ -29,8 +27,6 @@ namespace WebAgent
 
             // Register agent framework dependency services and handlers
             services.AddAgentFramework(c => c.SetPoolOptions(new PoolOptions { GenesisFilename = Path.GetFullPath("pool_genesis.txn") }));
-            // Register our message handler with DI
-            services.AddSingleton<BasicMessageHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
