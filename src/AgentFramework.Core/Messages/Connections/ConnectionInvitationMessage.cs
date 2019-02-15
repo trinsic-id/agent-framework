@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using AgentFramework.Core.Models;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Messages.Connections
