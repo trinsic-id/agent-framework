@@ -52,8 +52,6 @@ namespace AgentFramework.Core.Messages.Connections
         /// </value>
         [JsonProperty("diddoc")]
         public DidDoc DidDoc { get; set; }
-        [JsonProperty("name")]
-        public string Name { get; set; }
 
         /// <inheritdoc />
         public override string ToString() =>

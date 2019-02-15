@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using AgentFramework.Core.Models;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Messages.Connections
@@ -70,7 +69,7 @@ namespace AgentFramework.Core.Messages.Connections
             $"Type={Type}, " +
             $"Name={Name}, " +
             $"ImageUrl={ImageUrl}, " +
-            $"ConnectionKey={(ConnectionKey?.Length > 0 ? "[hidden]" : null)}, " +
-            $"Endpoint={Endpoint}";
+            $"RoutingKeys={string.Join(",", RoutingKeys)}, " +
+            $"ConnectionKey={(ConnectionKey?.Length > 0 ? "[hidden]" : null)}, ";
     }
 }
