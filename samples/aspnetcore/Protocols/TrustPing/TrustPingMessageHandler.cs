@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using System.Threading.Tasks;
+using AgentFramework.Core.Messages;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Models.Events;
@@ -46,17 +47,17 @@ namespace WebAgent.Messages
                 {
                     var pingMessage = messagePayload.GetMessage<TrustPingMessage>();
 
-                    //if (pingMessage.ResponseRequested)
-                    //{
-                    //    if (agentContext is AgentContext context)
-                    //    {
-                    //        context.AddNext(new OutgoingMessage
-                    //        {
-                    //            Message = new TrustPingResponseMessage().ToJson()
-                    //        }.AsMessagePayload());
-                    //    }
-                    //}
-                    break;
+                        if (pingMessage.ResponseRequested)
+                        {
+                            if (agentContext is AgentContext context)
+                            {
+                                context.AddNext(new OutgoingMessage
+                                {
+                                    OutboundMessage = new MessagePayload(new TrustPingResponseMessage())
+                                }.AsMessagePayload());
+                            }
+                        }
+                        break;
                 }
                 case CustomMessageTypes.TrustPingResponseMessageType:
                 {

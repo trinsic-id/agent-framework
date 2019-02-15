@@ -10,7 +10,6 @@
     <ApplicationURL>http://localhost:5000/</ApplicationURL>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="AgentFramework.AspNetCore" Version="2.1.0-preview.464" />
     <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.9" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.0.1916590" />
@@ -20,6 +19,12 @@
 
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AgentFramework.AspNetCore\AgentFramework.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\AgentFramework.Core.Handlers\AgentFramework.Core.Handlers.csproj" />
+    <ProjectReference Include="..\..\src\AgentFramework.Core\AgentFramework.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
