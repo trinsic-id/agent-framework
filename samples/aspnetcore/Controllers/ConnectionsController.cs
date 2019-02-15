@@ -27,7 +27,7 @@ namespace WebAgent.Controllers
         private readonly IWalletService _walletService;
         private readonly IWalletRecordService _recordService;
         private readonly IProvisioningService _provisioningService;
-        private readonly IMessageService _routerService;
+        private readonly IMessageService _messageService;
         private readonly WalletOptions _walletOptions;
 
         public ConnectionsController(
@@ -36,7 +36,7 @@ namespace WebAgent.Controllers
             IWalletService walletService, 
             IWalletRecordService recordService,
             IProvisioningService provisioningService,
-            IMessageService routerService,
+            IMessageService messageService,
             IOptions<WalletOptions> walletOptions)
         {
             _eventAggregator = eventAggregator;
@@ -44,7 +44,7 @@ namespace WebAgent.Controllers
             _walletService = walletService;
             _recordService = recordService;
             _provisioningService = provisioningService;
-            _routerService = routerService;
+            _messageService = messageService;
             _walletOptions = walletOptions.Value;
         }
 
@@ -85,8 +85,9 @@ namespace WebAgent.Controllers
                 Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
                     _walletOptions.WalletCredentials)
             };
-
-            var _ = await _connectionService.AcceptInvitationAsync(context, DecodeInvitation(model.InvitationDetails));
+            var invite = DecodeInvitation(model.InvitationDetails);
+            var invitationResult = await _connectionService.AcceptInvitationAsync(context, invite);
+            await _messageService.SendAsync(context.Wallet, invitationResult.Request, invitationResult.Connection, invite.ConnectionKey);
 
             return RedirectToAction("Index");
         }
@@ -125,7 +126,7 @@ namespace WebAgent.Controllers
                     responseRecieved = true;
                 });
 
-            await _routerService.SendAsync(context.Wallet, message, connection);
+            await _messageService.SendAsync(context.Wallet, message, connection);
 
             var cts = new CancellationTokenSource();
             cts.CancelAfter(15000);
@@ -191,7 +192,7 @@ namespace WebAgent.Controllers
             await _recordService.AddAsync(context.Wallet, messageRecord);
 
             // Send an agent message using the secure connection
-            await _routerService.SendAsync(context.Wallet, message, connection);
+            await _messageService.SendAsync(context.Wallet, message, connection);
 
             return RedirectToAction("Details", new {id = connectionId});
         }

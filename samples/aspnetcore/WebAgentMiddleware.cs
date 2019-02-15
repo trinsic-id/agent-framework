@@ -19,6 +19,8 @@ namespace WebAgent
             IOptions<WalletOptions> walletOptions)
             : base(next, walletService, serviceProvider, walletOptions)
         {
+            AddConnectionHandler();
+            AddForwardHandler();
             AddHandler<BasicMessageHandler>();
             AddHandler<TrustPingMessageHandler>();
         }
