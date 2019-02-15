@@ -25,7 +25,7 @@ namespace AgentFramework.Core.Models.Dids
         /// <summary>
         /// The PEM representation of the key.
         /// </summary>
-        public string PublicKeyPem { get; set; }
+        public string PublicKeyBase58 { get; set; }
 
         //TODO add other public key representations
     }

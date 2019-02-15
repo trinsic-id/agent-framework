@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
@@ -59,7 +60,7 @@ namespace AgentFramework.Core.Tests
             _provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(Task.FromResult(new ProvisioningRecord
                 {
-                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri}
+                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri, Verkey = "~LGkX716up2KAimNfz11HRr" }
                 }));
 
             _connectionService = new DefaultConnectionService(
@@ -152,16 +153,14 @@ namespace AgentFramework.Core.Tests
             //Process a connection request
             var connectionRecord = await _connectionService.GetAsync(_issuerWallet, connectionId);
             _issuerWallet.Connection = connectionRecord;
+
             await _connectionService.ProcessRequestAsync(_issuerWallet, new ConnectionRequestMessage
             {
-                Did = "EYS94e95kf6LXF49eARL76",
-                Verkey = "~LGkX716up2KAimNfz11HRr",
-                Endpoint = new AgentEndpoint
+                Did = "did:sov:EYS94e95kf6LXF49eARL76",
+                DidDoc = new ConnectionRecord
                 {
-                    Did = "EYS94e95kf6LXF49eARL76",
-                    Verkey = "~LGkX716up2KAimNfz11HRr"
-                },
-                Type = MessageTypes.ConnectionRequest
+                    MyVk = "~LGkX716up2KAimNfz11HRr"
+                }.MyDidDoc(await _provisioningMock.Object.GetProvisioningAsync(_issuerWallet.Wallet))
             });
 
             //Accept the connection request
@@ -193,14 +192,11 @@ namespace AgentFramework.Core.Tests
             _issuerWallet.Connection = connectionRecord;
             await _connectionService.ProcessRequestAsync(_issuerWallet, new ConnectionRequestMessage
             {
-                Did = "EYS94e95kf6LXF49eARL76",
-                Verkey = "~LGkX716up2KAimNfz11HRr",
-                Endpoint = new AgentEndpoint
+                Did = "did:sov:EYS94e95kf6LXF49eARL76",
+                DidDoc = new ConnectionRecord
                 {
-                    Did = "EYS94e95kf6LXF49eARL76",
-                    Verkey = "~LGkX716up2KAimNfz11HRr"
-                },
-                Type = MessageTypes.ConnectionRequest
+                    MyVk = "~LGkX716up2KAimNfz11HRr"
+                }.MyDidDoc(await _provisioningMock.Object.GetProvisioningAsync(_issuerWallet.Wallet))
             });
 
             //Accept the connection request

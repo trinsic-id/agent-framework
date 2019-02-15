@@ -1,5 +1,5 @@
 ﻿using System;
-using AgentFramework.Core.Models;
+using AgentFramework.Core.Models.Dids;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Messages.Connections
@@ -27,30 +27,19 @@ namespace AgentFramework.Core.Messages.Connections
         public string Did { get; set; }
 
         /// <summary>
-        /// Gets or sets the verkey.
+        /// Gets or sets the did doc.
         /// </summary>
         /// <value>
-        /// The verkey.
+        /// The did doc.
         /// </value>
-        [JsonProperty("verkey")]
-        public string Verkey { get; set; }
+        [JsonProperty("diddoc")]
+        public DidDoc DidDoc { get; set; }
 
-        /// <summary>
-        /// Gets or sets the public endpoint.
-        /// </summary>
-        /// <value>
-        /// The public endpoint.
-        /// </value>
-        [JsonProperty("endpoint")]
-        public AgentEndpoint Endpoint { get; set; }
-        
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +
             $"Id={Id}, " +
             $"Type={Type}, " +
-            $"Did={Did}, " +
-            $"Verkey={(Verkey?.Length > 0 ? "[hidden]" : null)}, " +
-            $"Endpoint={Endpoint}";
+            $"Did={Did}, ";
     }
 }

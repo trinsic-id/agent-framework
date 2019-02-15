@@ -1,5 +1,5 @@
 ﻿using System;
-using AgentFramework.Core.Models;
+using AgentFramework.Core.Models.Dids;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Messages.Connections
@@ -18,31 +18,13 @@ namespace AgentFramework.Core.Messages.Connections
         public string Type { get; set; } = MessageTypes.ConnectionRequest;
 
         /// <summary>
-        /// Gets or sets the did.
+        /// Gets or sets the name.
         /// </summary>
         /// <value>
-        /// The did.
+        /// The name.
         /// </value>
-        [JsonProperty("did")]
-        public string Did { get; set; }
-
-        /// <summary>
-        /// Gets or sets the verkey.
-        /// </summary>
-        /// <value>
-        /// The verkey.
-        /// </value>
-        [JsonProperty("verkey")]
-        public string Verkey { get; set; }
-
-        /// <summary>
-        /// Gets or sets the public endpoint.
-        /// </summary>
-        /// <value>
-        /// The public endpoint.
-        /// </value>
-        [JsonProperty("endpoint")]
-        public AgentEndpoint Endpoint { get; set; }
+        [JsonProperty("name")]
+        public string Name { get; set; }
 
         /// <summary>
         /// Gets or sets the image URL.
@@ -54,11 +36,22 @@ namespace AgentFramework.Core.Messages.Connections
         public string ImageUrl { get; set; }
 
         /// <summary>
-        /// Gets or sets the name.
+        /// Gets or sets the did.
         /// </summary>
         /// <value>
-        /// The name.
+        /// The did.
         /// </value>
+        [JsonProperty("did")]
+        public string Did { get; set; }
+
+        /// <summary>
+        /// Gets or sets the did doc.
+        /// </summary>
+        /// <value>
+        /// The did doc.
+        /// </value>
+        [JsonProperty("diddoc")]
+        public DidDoc DidDoc { get; set; }
         [JsonProperty("name")]
         public string Name { get; set; }
 
@@ -68,9 +61,7 @@ namespace AgentFramework.Core.Messages.Connections
             $"Id={Id}, " +
             $"Type={Type}, " +
             $"Did={Did}, " +
-            $"Verkey={(Verkey?.Length > 0 ? "[hidden]" : null)}, " +
             $"Name={Name}, " +
-            $"ImageUrl={ImageUrl}, " +
-            $"Endpoint={Endpoint}";
+            $"ImageUrl={ImageUrl}, ";
     }
 }

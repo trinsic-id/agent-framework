@@ -14,7 +14,6 @@ using AgentFramework.Core.Models.Records;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
-using Hyperledger.Indy.WalletApi;
 using Xunit;
 
 namespace AgentFramework.Core.Tests

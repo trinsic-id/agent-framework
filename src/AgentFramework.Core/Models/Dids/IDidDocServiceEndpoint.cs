@@ -13,7 +13,7 @@
         /// <summary>
         /// Type of the service.
         /// </summary>
-        string Type { get; set; }
+        string Type { get; }
 
         /// <summary>
         /// Endpoint of the service.

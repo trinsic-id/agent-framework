@@ -8,12 +8,13 @@ using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Models;
+using AgentFramework.Core.Models.Dids;
 using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PairwiseApi;
-using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 
 namespace AgentFramework.Core.Runtime
@@ -104,7 +105,8 @@ namespace AgentFramework.Core.Runtime
             {
                 Invitation = new ConnectionInvitationMessage
                 {
-                    Endpoint = provisioning.Endpoint,
+                    ServiceEndpoint = provisioning.Endpoint.Uri,
+                    RoutingKeys = provisioning.Endpoint.Verkey != null ? new[] { provisioning.Endpoint.Verkey } : null,
                     ConnectionKey = connectionKey,
                     Name = config.MyAlias.Name ?? provisioning.Owner.Name,
                     ImageUrl = config.MyAlias.ImageUrl ?? provisioning.Owner.ImageUrl
@@ -129,13 +131,13 @@ namespace AgentFramework.Core.Runtime
         public virtual async Task<AcceptInvitationResult> AcceptInvitationAsync(IAgentContext agentContext, ConnectionInvitationMessage invitation)
         {
             Logger.LogInformation(LoggingEvents.AcceptInvitation, "Key {0}, Endpoint {1}",
-                invitation.ConnectionKey, invitation.Endpoint.Uri);
+                invitation.ConnectionKey, invitation.ServiceEndpoint);
 
             var my = await Did.CreateAndStoreMyDidAsync(agentContext.Wallet, "{}");
 
             var connection = new ConnectionRecord
             {
-                Endpoint = invitation.Endpoint,
+                Endpoint = new AgentEndpoint(invitation.ServiceEndpoint, null, invitation.RoutingKeys.Count != 0 ? invitation.RoutingKeys[0] : null),
                 MyDid = my.Did,
                 MyVk = my.VerKey,
                 Id = Guid.NewGuid().ToString().ToLowerInvariant()
@@ -161,11 +163,10 @@ namespace AgentFramework.Core.Runtime
             {
                 Request = new ConnectionRequestMessage
                 {
-                    Did = my.Did,
-                    Verkey = my.VerKey,
-                    Endpoint = provisioning.Endpoint,
+                    Did = DidUtils.ToDid(DidUtils.DidSovMethodSpec, connection.MyDid),
+                    DidDoc = connection.MyDidDoc(provisioning),
                     Name = provisioning.Owner?.Name,
-                    ImageUrl = provisioning.Owner?.ImageUrl
+                    ImageUrl = provisioning.Owner?.ImageUrl,
                 },
                 Connection = connection
             };
@@ -174,15 +175,19 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public async Task<string> ProcessRequestAsync(IAgentContext agentContext, ConnectionRequestMessage request)
         {
-            Logger.LogInformation(LoggingEvents.ProcessConnectionRequest, "Key {0}", request.Verkey);
+            Logger.LogInformation(LoggingEvents.ProcessConnectionRequest, "Did {0}", request.Did);
             
             var my = await Did.CreateAndStoreMyDidAsync(agentContext.Wallet, "{}");
 
-            await Did.StoreTheirDidAsync(agentContext.Wallet, new { did = request.Did, verkey = request.Verkey }.ToJson());
+            //TODO throw exception or a problem report if the connection request features a did doc that has no indy agent did doc convention featured
+            //i.e there is no way for this agent to respond to messages. And or no keys specified
+            await Did.StoreTheirDidAsync(agentContext.Wallet, new { did = DidUtils.IdentifierFromDid(request.Did), verkey = request.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
 
-            agentContext.Connection.Endpoint = request.Endpoint;
-            agentContext.Connection.TheirDid = request.Did;
-            agentContext.Connection.TheirVk = request.Verkey;
+            if (request.DidDoc.Services[0] is IndyAgentDidDocService service)
+                agentContext.Connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
+
+            agentContext.Connection.TheirDid = DidUtils.IdentifierFromDid(request.Did);
+            agentContext.Connection.TheirVk = request.DidDoc.Keys[0].PublicKeyBase58;
             agentContext.Connection.MyDid = my.Did;
             agentContext.Connection.MyVk = my.VerKey;
 
@@ -224,18 +229,20 @@ namespace AgentFramework.Core.Runtime
         public async Task<string> ProcessResponseAsync(IAgentContext agentContext, ConnectionResponseMessage response)
         {
             Logger.LogInformation(LoggingEvents.AcceptConnectionResponse, "To {1}", agentContext.Connection.MyDid);
-            
+
+            //TODO throw exception or a problem report if the connection request features a did doc that has no indy agent did doc convention featured
+            //i.e there is no way for this agent to respond to messages. And or no keys specified
             await Did.StoreTheirDidAsync(agentContext.Wallet,
-                new { did = response.Did, verkey = response.Verkey }.ToJson());
+                new { did = DidUtils.IdentifierFromDid(response.Did), verkey = response.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
 
-            await Pairwise.CreateAsync(agentContext.Wallet, response.Did, agentContext.Connection.MyDid,
-                response.Endpoint.ToJson());
+            await Pairwise.CreateAsync(agentContext.Wallet, DidUtils.IdentifierFromDid(response.Did), agentContext.Connection.MyDid,
+                response.DidDoc.Services[0].ServiceEndpoint);
 
-            agentContext.Connection.TheirDid = response.Did;
-            agentContext.Connection.TheirVk = response.Verkey;
+            agentContext.Connection.TheirDid = DidUtils.IdentifierFromDid(response.Did);
+            agentContext.Connection.TheirVk = response.DidDoc.Keys[0].PublicKeyBase58;
 
-            if (response.Endpoint != null)
-                agentContext.Connection.Endpoint = response.Endpoint;
+            if (response.DidDoc.Services[0] is IndyAgentDidDocService service)
+                agentContext.Connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
 
             await agentContext.Connection.TriggerAsync(ConnectionTrigger.Response);
             await RecordService.UpdateAsync(agentContext.Wallet, agentContext.Connection);
@@ -260,8 +267,6 @@ namespace AgentFramework.Core.Runtime
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Connection state was invalid. Expected '{ConnectionState.Negotiating}', found '{connection.State}'");
 
-            var connectionCopy = connection.DeepCopy();
-
             await Pairwise.CreateAsync(agentContext.Wallet, connection.TheirDid, connection.MyDid, connection.Endpoint.ToJson());
 
             await connection.TriggerAsync(ConnectionTrigger.Request);
@@ -271,9 +276,8 @@ namespace AgentFramework.Core.Runtime
             var provisioning = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
             return new ConnectionResponseMessage
             {
-                Did = connection.MyDid,
-                Endpoint = provisioning.Endpoint,
-                Verkey = connection.MyVk
+                Did = DidUtils.ToDid(DidUtils.DidSovMethodSpec, connection.MyDid),
+                DidDoc = connection.MyDidDoc(provisioning)
             };
         }
 

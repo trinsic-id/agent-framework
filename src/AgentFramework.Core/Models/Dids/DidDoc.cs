@@ -11,6 +11,12 @@ namespace AgentFramework.Core.Models.Dids
     public class DidDoc
     {
         /// <summary>
+        /// The DID doc context.
+        /// </summary>
+        [JsonProperty("@context")]
+        public string Context { get; set; } = "https://w3id.org/did/v1";
+
+        /// <summary>
         /// List of public keys available on the DID doc.
         /// </summary>
         [JsonProperty("publicKey")]
