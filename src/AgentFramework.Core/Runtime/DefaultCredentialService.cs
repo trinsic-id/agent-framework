@@ -215,7 +215,7 @@ namespace AgentFramework.Core.Runtime
                     SearchQuery.Equal(nameof(CredentialRecord.CredentialDefinitionId), definitionId),
                     SearchQuery.Equal(nameof(CredentialRecord.ConnectionId), connection.Id),
                     SearchQuery.Equal(nameof(CredentialRecord.State), CredentialState.Requested.ToString("G"))
-                ), null, 1);
+                ), null, 5);
 
             if (credentialSearch.Count == 0)
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Credential record not found");
@@ -353,12 +353,12 @@ namespace AgentFramework.Core.Runtime
             var nonce = request["nonce"].ToObject<string>();
 
             var query = SearchQuery.Equal(TagConstants.Nonce , nonce);
-            var credentialSearch = await RecordService.SearchAsync<CredentialRecord>(agentContext.Wallet, query, null, 1);
+            var credentialSearch = await RecordService.SearchAsync<CredentialRecord>(agentContext.Wallet, query, null, 5);
 
             if (credentialSearch.Count == 0)
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Credential record not found");
 
-            var credential = credentialSearch.Single();
+            var credential = credentialSearch.Single(); // TODO: Use threading
 
             if (credential.State != CredentialState.Offered)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
@@ -446,9 +446,9 @@ namespace AgentFramework.Core.Runtime
             if (definitionRecord.SupportsRevocation)
             {
                 var revocationRecordSearch = await RecordService.SearchAsync<RevocationRegistryRecord>(
-                    agentContext.Wallet, SearchQuery.Equal(nameof(RevocationRegistryRecord.CredentialDefinitionId), definitionRecord.Id), null, 1);
+                    agentContext.Wallet, SearchQuery.Equal(nameof(RevocationRegistryRecord.CredentialDefinitionId), definitionRecord.Id), null, 5);
 
-                var revocationRecord = revocationRecordSearch.First(); // TODO: Credential definition can have multiple revocation registries
+                var revocationRecord = revocationRecordSearch.Single(); // TODO: Credential definition can have multiple revocation registries
 
                 revocationRegistryId = revocationRecord.Id;
                 tailsReader = await TailsService.OpenTailsAsync(revocationRecord.TailsFile);
@@ -500,8 +500,8 @@ namespace AgentFramework.Core.Runtime
             await credential.TriggerAsync(CredentialTrigger.Revoke);
 
             var revocationRecordSearch = await RecordService.SearchAsync<RevocationRegistryRecord>(
-                agentContext.Wallet, SearchQuery.Equal(nameof(RevocationRegistryRecord.CredentialDefinitionId), definition.Id), null, 1);
-            var revocationRecord = revocationRecordSearch.First();
+                agentContext.Wallet, SearchQuery.Equal(nameof(RevocationRegistryRecord.CredentialDefinitionId), definition.Id), null, 5);
+            var revocationRecord = revocationRecordSearch.Single(); // TODO: Add support for multiple revocation registries
 
             // Revoke the credential
             var tailsReader = await TailsService.OpenTailsAsync(revocationRecord.TailsFile);
