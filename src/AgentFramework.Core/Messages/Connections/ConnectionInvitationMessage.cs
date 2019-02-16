@@ -36,15 +36,6 @@ namespace AgentFramework.Core.Messages.Connections
         public string ImageUrl { get; set; }
 
         /// <summary>
-        /// Gets or sets the connection key.
-        /// </summary>
-        /// <value>
-        /// The connection key.
-        /// </value>
-        [JsonProperty("connectionKey")]
-        public string ConnectionKey { get; set; }
-
-        /// <summary>
         /// Gets or sets the service endpoint.
         /// </summary>
         /// <value>
@@ -62,6 +53,15 @@ namespace AgentFramework.Core.Messages.Connections
         [JsonProperty("routing_keys")]
         public IList<string> RoutingKeys { get; set; }
 
+        /// <summary>
+        /// Gets or sets the recipient keys.
+        /// </summary>
+        /// <value>
+        /// The recipient keys.
+        /// </value>
+        [JsonProperty("recipient_keys")]
+        public IList<string> RecipientKeys { get; set; }
+
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +
@@ -69,7 +69,6 @@ namespace AgentFramework.Core.Messages.Connections
             $"Type={Type}, " +
             $"Name={Name}, " +
             $"ImageUrl={ImageUrl}, " +
-            $"RoutingKeys={string.Join(",", RoutingKeys)}, " +
-            $"ConnectionKey={(ConnectionKey?.Length > 0 ? "[hidden]" : null)}, ";
+            $"RoutingKeys={string.Join(",", RoutingKeys)}, ";
     }
 }

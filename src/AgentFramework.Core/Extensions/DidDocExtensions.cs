@@ -73,7 +73,7 @@ namespace AgentFramework.Core.Extensions
                     {
                         Id = $"{DidUtils.ToDid(DidUtils.DidSovMethodSpec,connection.MyDid)};indy-agent",
                         ServiceEndpoint = connection.Endpoint.Verkey,
-                        RecipientKeys = connection.MyVk == null ? new[] { connection.MyVk } : new string[0],
+                        RecipientKeys = connection.TheirVk == null ? new[] { connection.TheirVk } : new string[0],
                         RoutingKeys = connection.Endpoint?.Verkey == null ? new[] { connection.Endpoint.Verkey } : new string[0]
                     }
                 }

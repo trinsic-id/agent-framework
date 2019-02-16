@@ -107,7 +107,7 @@ namespace AgentFramework.Core.Runtime
                 {
                     ServiceEndpoint = provisioning.Endpoint.Uri,
                     RoutingKeys = provisioning.Endpoint.Verkey != null ? new[] { provisioning.Endpoint.Verkey } : null,
-                    ConnectionKey = connectionKey,
+                    RecipientKeys = new [] { connectionKey },
                     Name = config.MyAlias.Name ?? provisioning.Owner.Name,
                     ImageUrl = config.MyAlias.ImageUrl ?? provisioning.Owner.ImageUrl
                 },
@@ -131,7 +131,7 @@ namespace AgentFramework.Core.Runtime
         public virtual async Task<AcceptInvitationResult> AcceptInvitationAsync(IAgentContext agentContext, ConnectionInvitationMessage invitation)
         {
             Logger.LogInformation(LoggingEvents.AcceptInvitation, "Key {0}, Endpoint {1}",
-                invitation.ConnectionKey, invitation.ServiceEndpoint);
+                invitation.RecipientKeys[0], invitation.ServiceEndpoint);
 
             var my = await Did.CreateAndStoreMyDidAsync(agentContext.Wallet, "{}");
 

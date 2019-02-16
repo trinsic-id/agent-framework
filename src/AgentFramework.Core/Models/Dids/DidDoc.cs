@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Models.Dids
@@ -26,6 +24,7 @@ namespace AgentFramework.Core.Models.Dids
         /// List of services available on the did doc.
         /// </summary>
         [JsonProperty("service")]
+        [JsonConverter(typeof(DidDocServiceEndpointsConverter))]
         public IList<IDidDocServiceEndpoint> Services { get; set; }
     }
 }

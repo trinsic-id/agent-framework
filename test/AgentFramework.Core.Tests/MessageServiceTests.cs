@@ -105,7 +105,7 @@ namespace AgentFramework.Core.Tests
         public async Task PackAnon()
         {
 
-            var message = new ConnectionInvitationMessage() {ConnectionKey = "123"}.ToByteArray();
+            var message = new ConnectionInvitationMessage {RecipientKeys = new [] { "123" }}.ToByteArray();
 
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
@@ -119,7 +119,7 @@ namespace AgentFramework.Core.Tests
         public async Task PackAuth()
         {
 
-            var message = new ConnectionInvitationMessage() {ConnectionKey = "123"}.ToByteArray();
+            var message = new ConnectionInvitationMessage { RecipientKeys = new[] { "123" }}.ToByteArray();
 
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
@@ -133,7 +133,7 @@ namespace AgentFramework.Core.Tests
         public async Task PackAndUnpackAnon()
         {
 
-            var message = new ConnectionInvitationMessage() {ConnectionKey = "123"};
+            var message = new ConnectionInvitationMessage { RecipientKeys = new[] { "123" }};
 
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
@@ -151,7 +151,7 @@ namespace AgentFramework.Core.Tests
         public async Task PackAndUnpackAuth()
         {
 
-            var message = new ConnectionInvitationMessage() {ConnectionKey = "123"}.ToByteArray();
+            var message = new ConnectionInvitationMessage() { RecipientKeys = new[] { "123" }}.ToByteArray();
 
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
@@ -173,7 +173,7 @@ namespace AgentFramework.Core.Tests
         public async Task UnpackToCustomType()
         {
 
-            var message = new ConnectionInvitationMessage() {ConnectionKey = "123"};
+            var message = new ConnectionInvitationMessage() {RecipientKeys = new [] { "123" }};
 
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
@@ -182,7 +182,7 @@ namespace AgentFramework.Core.Tests
             var unpack = await CryptoUtils.UnpackAsync<ConnectionInvitationMessage>(_wallet, packed);
 
             Assert.NotNull(unpack);
-            Assert.Equal("123", unpack.ConnectionKey);
+            Assert.Equal("123", unpack.RecipientKeys[0]);
         }
 
         [Fact]
