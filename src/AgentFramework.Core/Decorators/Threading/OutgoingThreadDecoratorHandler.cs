@@ -22,7 +22,7 @@ namespace AgentFramework.Core.Decorators.Threading
         /// <returns></returns>
         public Task<OutgoingMessage> ProcessAsync(OutgoingMessage message, IAgentContext agentContext)
         {
-            //TODO I probably want to be able to set this type of thing from the particular outgoing message, ie only add a certain decorator under a certain condition?
+            //TODO probably want to be able to set this type of thing from the particular outgoing message, ie only add a certain decorator under a certain condition?
 
             if (message.OutboundMessage == null)
                 throw new AgentFrameworkException(ErrorCode.InvalidMessage,
@@ -34,15 +34,17 @@ namespace AgentFramework.Core.Decorators.Threading
             ThreadDecorator previousMessageThreadContext = null;
             string previousMessageId = null;
 
+            var inboundMessage = new MessagePayload(message.InboundMessage, false);
+
             try
             {
-                previousMessageThreadContext = message.InboundMessage.GetDecorator<ThreadDecorator>(DecoratorIdentifier);
+                previousMessageThreadContext = inboundMessage.GetDecorator<ThreadDecorator>(DecoratorIdentifier);
             }
             catch (AgentFrameworkException) { }
 
             try
             {
-                previousMessageId = message.InboundMessage.GetMessageId();
+                previousMessageId = inboundMessage.GetMessageId();
             }
             catch (AgentFrameworkException) { }
 
@@ -64,8 +66,12 @@ namespace AgentFramework.Core.Decorators.Threading
                 };
             }
 
+            var outboundMessage = new MessagePayload(message.OutboundMessage, false);
+
             if (currentThreadContext != null)
-                message.OutboundMessage.AddDecorator(currentThreadContext, DecoratorIdentifier);
+                outboundMessage.AddDecorator(currentThreadContext, DecoratorIdentifier);
+
+            message.OutboundMessage = outboundMessage.GetMessage();
 
             return Task.FromResult(message);
         }
