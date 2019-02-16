@@ -9,8 +9,8 @@ namespace AgentFramework.Core.Messages
 
         [JsonProperty("@type")] public string Type { get; set; } = "did:test:123;/spec/internal/outgoing";
 
-        public MessagePayload OutboundMessage { get; set; }
+        public string OutboundMessage { get; set; }
 
-        public MessagePayload InboundMessage { get; set; }
+        public string InboundMessage { get; set; }
     }
 }

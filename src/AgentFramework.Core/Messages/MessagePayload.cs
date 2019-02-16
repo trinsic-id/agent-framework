@@ -39,7 +39,7 @@ namespace AgentFramework.Core.Messages
         : this(message.ToJson(), false)
         {
         }
-
+        
         /// <summary>
         /// The raw format of the message.
         /// </summary>
@@ -70,6 +70,15 @@ namespace AgentFramework.Core.Messages
             Packed
                 ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
                 : _messageJson.ToObject<T>();
+
+        /// <summary>
+        /// Gets the message cast to the expect message type.
+        /// </summary>
+        /// <returns>The agent message.</returns>
+        public string GetMessage() =>
+            Packed
+                ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
+                : _messageJson.ToJson();
 
         /// <summary>
         /// Gets the decorator.

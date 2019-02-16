@@ -23,7 +23,7 @@ namespace AgentFramework.Core.Handlers.Internal
                 message = await handler.ProcessAsync(message, agentContext);
 
             var inner = await CryptoUtils.PackAsync(
-                agentContext.Wallet, agentContext.Connection.TheirVk, agentContext.Connection.MyVk, message.OutboundMessage.Payload);
+                agentContext.Wallet, agentContext.Connection.TheirVk, agentContext.Connection.MyVk, message.OutboundMessage.GetUTF8Bytes());
 
             if (agentContext is AgentContext context) 
                 context.AddNext(new MessagePayload(new HttpOutgoingMessage { Message = inner.GetUTF8String() }));
