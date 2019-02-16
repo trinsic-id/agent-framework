@@ -87,7 +87,7 @@ namespace WebAgent.Controllers
             };
             var invite = DecodeInvitation(model.InvitationDetails);
             var invitationResult = await _connectionService.AcceptInvitationAsync(context, invite);
-            await _messageService.SendAsync(context.Wallet, invitationResult.Request, invitationResult.Connection, invite.ConnectionKey);
+            await _messageService.SendAsync(context.Wallet, invitationResult.Request, invitationResult.Connection, invite.RecipientKeys[0]);
 
             return RedirectToAction("Index");
         }
@@ -128,22 +128,16 @@ namespace WebAgent.Controllers
 
             await _messageService.SendAsync(context.Wallet, message, connection);
 
-            var cts = new CancellationTokenSource();
-            cts.CancelAfter(15000);
 
-            try
+            var task = Task.Factory.StartNew(() =>
             {
-                await Task.Factory.StartNew(() =>
-                {
-                    while (!responseRecieved) { }
-                    return true;
-                }, cts.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                return BadRequest();
-            }
-            return Ok();
+                while (!responseRecieved) { }
+                return true;
+            });
+
+            task.Wait(5000);
+
+            return RedirectToAction("Details", new { id = connectionId });
         }
 
         [HttpGet]

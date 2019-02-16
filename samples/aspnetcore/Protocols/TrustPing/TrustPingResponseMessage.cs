@@ -15,7 +15,7 @@ namespace WebAgent.Messages
 
         /// <inheritdoc />
         [JsonProperty("@type")]
-        public string Type { get; set; } = CustomMessageTypes.TrustPingMessageType;
+        public string Type { get; set; } = CustomMessageTypes.TrustPingResponseMessageType;
 
         /// <summary>
         /// Gets or sets the comment of the message.

@@ -53,7 +53,7 @@ namespace WebAgent.Messages
                             {
                                 context.AddNext(new OutgoingMessage
                                 {
-                                    OutboundMessage = new MessagePayload(new TrustPingResponseMessage())
+                                    OutboundMessage = new TrustPingResponseMessage().ToJson()
                                 }.AsMessagePayload());
                             }
                         }
