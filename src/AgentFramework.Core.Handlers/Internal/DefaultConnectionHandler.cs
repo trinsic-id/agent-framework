@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Utils;
@@ -60,8 +61,8 @@ namespace AgentFramework.Core.Handlers.Internal
                         if (agentContext is AgentContext context)
                             context.AddNext(new OutgoingMessage 
                                 {
-                                    OutboundMessage = new MessagePayload((await _connectionService.AcceptRequestAsync(agentContext, connectionId))),
-                                    InboundMessage = messagePayload
+                                    OutboundMessage = (await _connectionService.AcceptRequestAsync(agentContext, connectionId)).ToJson(),
+                                    InboundMessage = messagePayload.GetMessage<ConnectionRequestMessage>().ToJson()
                                 }.AsMessagePayload());
                     }
 
