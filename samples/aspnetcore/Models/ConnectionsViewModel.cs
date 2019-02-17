@@ -17,5 +17,7 @@ namespace WebAgent.Models
         public ConnectionRecord Connection { get; set; }
 
         public IEnumerable<BasicMessageRecord> Messages { get; set; }
+
+        public bool? TrustPingSuccess { get; set; }
     }
 }

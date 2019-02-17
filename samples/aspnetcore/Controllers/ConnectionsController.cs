@@ -137,11 +137,13 @@ namespace WebAgent.Controllers
 
             task.Wait(5000);
 
-            return RedirectToAction("Details", new { id = connectionId });
+            if (responseRecieved)
+                return RedirectToAction("Details", new { id = connectionId, trustPingSuccess = true });
+            return RedirectToAction("Details", new { id = connectionId, trustPingSuccess = false });
         }
 
         [HttpGet]
-        public async Task<IActionResult> Details(string id)
+        public async Task<IActionResult> Details(string id, bool? trustPingSuccess = null)
         {
             var context = new AgentContext
             {
@@ -153,7 +155,8 @@ namespace WebAgent.Controllers
             {
                 Connection = await _connectionService.GetAsync(context, id),
                 Messages = await _recordService.SearchAsync<BasicMessageRecord>(context.Wallet,
-                    SearchQuery.Equal(nameof(BasicMessageRecord.ConnectionId), id), null, 10)
+                    SearchQuery.Equal(nameof(BasicMessageRecord.ConnectionId), id), null, 10),
+                TrustPingSuccess = trustPingSuccess
             };
 
             return View(model);
