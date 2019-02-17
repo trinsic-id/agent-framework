@@ -1,5 +1,7 @@
 ﻿using System;
+using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Dids;
+using Hyperledger.Indy.DidApi;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Messages.Connections
@@ -36,29 +38,20 @@ namespace AgentFramework.Core.Messages.Connections
         public string ImageUrl { get; set; }
 
         /// <summary>
-        /// Gets or sets the did.
+        /// Gets or sets the connection object.
         /// </summary>
         /// <value>
-        /// The did.
+        /// The connection object.
         /// </value>
-        [JsonProperty("DID")]
-        public string Did { get; set; }
-
-        /// <summary>
-        /// Gets or sets the did doc.
-        /// </summary>
-        /// <value>
-        /// The did doc.
-        /// </value>
-        [JsonProperty("DIDDoc")]
-        public DidDoc DidDoc { get; set; }
+        [JsonProperty("connection")]
+        public Connection Connection { get; set; }
 
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +
             $"Id={Id}, " +
             $"Type={Type}, " +
-            $"Did={Did}, " +
+            $"Did={Connection?.Did}, " +
             $"Name={Label}, " +
             $"ImageUrl={ImageUrl}, ";
     }

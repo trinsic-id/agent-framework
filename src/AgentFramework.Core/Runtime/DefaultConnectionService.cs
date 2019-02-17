@@ -163,8 +163,11 @@ namespace AgentFramework.Core.Runtime
             {
                 Request = new ConnectionRequestMessage
                 {
-                    Did = connection.MyDid,
-                    DidDoc = connection.MyDidDoc(provisioning),
+                    Connection = new Connection
+                    {
+                        Did = connection.MyDid,
+                        DidDoc = connection.MyDidDoc(provisioning)
+                    },
                     Label = provisioning.Owner?.Name,
                     ImageUrl = provisioning.Owner?.ImageUrl,
                 },
@@ -175,19 +178,19 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public async Task<string> ProcessRequestAsync(IAgentContext agentContext, ConnectionRequestMessage request)
         {
-            Logger.LogInformation(LoggingEvents.ProcessConnectionRequest, "Did {0}", request.Did);
+            Logger.LogInformation(LoggingEvents.ProcessConnectionRequest, "Did {0}", request.Connection.Did);
             
             var my = await Did.CreateAndStoreMyDidAsync(agentContext.Wallet, "{}");
 
             //TODO throw exception or a problem report if the connection request features a did doc that has no indy agent did doc convention featured
             //i.e there is no way for this agent to respond to messages. And or no keys specified
-            await Did.StoreTheirDidAsync(agentContext.Wallet, new { did = request.Did, verkey = request.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
+            await Did.StoreTheirDidAsync(agentContext.Wallet, new { did = request.Connection.Did, verkey = request.Connection.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
 
-            if (request.DidDoc.Services[0] is IndyAgentDidDocService service)
+            if (request.Connection.DidDoc.Services[0] is IndyAgentDidDocService service)
                 agentContext.Connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
 
-            agentContext.Connection.TheirDid = request.Did;
-            agentContext.Connection.TheirVk = request.DidDoc.Keys[0].PublicKeyBase58;
+            agentContext.Connection.TheirDid = request.Connection.Did;
+            agentContext.Connection.TheirVk = request.Connection.DidDoc.Keys[0].PublicKeyBase58;
             agentContext.Connection.MyDid = my.Did;
             agentContext.Connection.MyVk = my.VerKey;
 
@@ -233,15 +236,15 @@ namespace AgentFramework.Core.Runtime
             //TODO throw exception or a problem report if the connection request features a did doc that has no indy agent did doc convention featured
             //i.e there is no way for this agent to respond to messages. And or no keys specified
             await Did.StoreTheirDidAsync(agentContext.Wallet,
-                new { did = response.Did, verkey = response.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
+                new { did = response.Connection.Did, verkey = response.Connection.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
 
-            await Pairwise.CreateAsync(agentContext.Wallet, response.Did, agentContext.Connection.MyDid,
-                response.DidDoc.Services[0].ServiceEndpoint);
+            await Pairwise.CreateAsync(agentContext.Wallet, response.Connection.Did, agentContext.Connection.MyDid,
+                response.Connection.DidDoc.Services[0].ServiceEndpoint);
 
-            agentContext.Connection.TheirDid = response.Did;
-            agentContext.Connection.TheirVk = response.DidDoc.Keys[0].PublicKeyBase58;
+            agentContext.Connection.TheirDid = response.Connection.Did;
+            agentContext.Connection.TheirVk = response.Connection.DidDoc.Keys[0].PublicKeyBase58;
 
-            if (response.DidDoc.Services[0] is IndyAgentDidDocService service)
+            if (response.Connection.DidDoc.Services[0] is IndyAgentDidDocService service)
                 agentContext.Connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
 
             await agentContext.Connection.TriggerAsync(ConnectionTrigger.Response);
@@ -276,8 +279,11 @@ namespace AgentFramework.Core.Runtime
             var provisioning = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
             return new ConnectionResponseMessage
             {
-                Did = connection.MyDid,
-                DidDoc = connection.MyDidDoc(provisioning)
+                Connection = new Connection
+                { 
+                    Did = connection.MyDid,
+                    DidDoc = connection.MyDidDoc(provisioning)
+                }
             };
         }
 
