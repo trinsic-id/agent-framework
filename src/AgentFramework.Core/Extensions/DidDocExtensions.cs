@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using AgentFramework.Core.Models.Dids;
 using AgentFramework.Core.Models.Records;
-using AgentFramework.Core.Utils;
 
 namespace AgentFramework.Core.Extensions
 {
@@ -31,7 +30,7 @@ namespace AgentFramework.Core.Extensions
                     {
                         Id = $"{connection.MyDid}#keys-1",
                         Type = DefaultKeyType,
-                        Controller = DidUtils.ToDid(DidUtils.DidSovMethodSpec,connection.MyDid),
+                        Controller = connection.MyDid,
                         PublicKeyBase58 = connection.MyVk
                     }
                 },
@@ -39,7 +38,7 @@ namespace AgentFramework.Core.Extensions
                 {
                     new IndyAgentDidDocService
                     {
-                        Id = $"{DidUtils.ToDid(DidUtils.DidSovMethodSpec,connection.MyDid)};indy",
+                        Id = $"{connection.MyDid};indy",
                         ServiceEndpoint = provisioningRecord.Endpoint.Uri,
                         RecipientKeys = connection.MyVk != null ? new[] { connection.MyVk } : new string[0],
                         RoutingKeys = provisioningRecord.Endpoint?.Verkey != null ? new[] { provisioningRecord.Endpoint.Verkey } : new string[0]
@@ -63,7 +62,7 @@ namespace AgentFramework.Core.Extensions
                     {
                         Id = $"{connection.MyDid}#keys-1",
                         Type = DefaultKeyType,
-                        Controller = DidUtils.ToDid(DidUtils.DidSovMethodSpec,connection.TheirDid),
+                        Controller = connection.TheirDid,
                         PublicKeyBase58 = connection.TheirVk
                     }
                 },
@@ -71,7 +70,7 @@ namespace AgentFramework.Core.Extensions
                 {
                     new IndyAgentDidDocService
                     {
-                        Id = $"{DidUtils.ToDid(DidUtils.DidSovMethodSpec,connection.MyDid)};indy",
+                        Id = $"{connection.MyDid};indy",
                         ServiceEndpoint = connection.Endpoint.Verkey,
                         RecipientKeys = connection.TheirVk != null ? new[] { connection.TheirVk } : new string[0],
                         RoutingKeys = connection.Endpoint?.Verkey != null ? new[] { connection.Endpoint.Verkey } : new string[0]

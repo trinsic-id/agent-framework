@@ -163,7 +163,7 @@ namespace AgentFramework.Core.Runtime
             {
                 Request = new ConnectionRequestMessage
                 {
-                    Did = DidUtils.ToDid(DidUtils.DidSovMethodSpec, connection.MyDid),
+                    Did = connection.MyDid,
                     DidDoc = connection.MyDidDoc(provisioning),
                     Name = provisioning.Owner?.Name,
                     ImageUrl = provisioning.Owner?.ImageUrl,
@@ -181,12 +181,12 @@ namespace AgentFramework.Core.Runtime
 
             //TODO throw exception or a problem report if the connection request features a did doc that has no indy agent did doc convention featured
             //i.e there is no way for this agent to respond to messages. And or no keys specified
-            await Did.StoreTheirDidAsync(agentContext.Wallet, new { did = DidUtils.IdentifierFromDid(request.Did), verkey = request.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
+            await Did.StoreTheirDidAsync(agentContext.Wallet, new { did = request.Did, verkey = request.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
 
             if (request.DidDoc.Services[0] is IndyAgentDidDocService service)
                 agentContext.Connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
 
-            agentContext.Connection.TheirDid = DidUtils.IdentifierFromDid(request.Did);
+            agentContext.Connection.TheirDid = request.Did;
             agentContext.Connection.TheirVk = request.DidDoc.Keys[0].PublicKeyBase58;
             agentContext.Connection.MyDid = my.Did;
             agentContext.Connection.MyVk = my.VerKey;
@@ -233,12 +233,12 @@ namespace AgentFramework.Core.Runtime
             //TODO throw exception or a problem report if the connection request features a did doc that has no indy agent did doc convention featured
             //i.e there is no way for this agent to respond to messages. And or no keys specified
             await Did.StoreTheirDidAsync(agentContext.Wallet,
-                new { did = DidUtils.IdentifierFromDid(response.Did), verkey = response.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
+                new { did = response.Did, verkey = response.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
 
-            await Pairwise.CreateAsync(agentContext.Wallet, DidUtils.IdentifierFromDid(response.Did), agentContext.Connection.MyDid,
+            await Pairwise.CreateAsync(agentContext.Wallet, response.Did, agentContext.Connection.MyDid,
                 response.DidDoc.Services[0].ServiceEndpoint);
 
-            agentContext.Connection.TheirDid = DidUtils.IdentifierFromDid(response.Did);
+            agentContext.Connection.TheirDid = response.Did;
             agentContext.Connection.TheirVk = response.DidDoc.Keys[0].PublicKeyBase58;
 
             if (response.DidDoc.Services[0] is IndyAgentDidDocService service)
@@ -276,7 +276,7 @@ namespace AgentFramework.Core.Runtime
             var provisioning = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
             return new ConnectionResponseMessage
             {
-                Did = DidUtils.ToDid(DidUtils.DidSovMethodSpec, connection.MyDid),
+                Did = connection.MyDid,
                 DidDoc = connection.MyDidDoc(provisioning)
             };
         }
