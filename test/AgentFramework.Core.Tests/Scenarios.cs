@@ -55,7 +55,7 @@ namespace AgentFramework.Core.Tests
 
             if (initialInvitationResult == null)
             { 
-                Assert.True(invitationResult.Invitation.Name == inviteConfig.MyAlias.Name &&
+                Assert.True(invitationResult.Invitation.Label == inviteConfig.MyAlias.Name &&
                             invitationResult.Invitation.ImageUrl == inviteConfig.MyAlias.ImageUrl);
             }
 

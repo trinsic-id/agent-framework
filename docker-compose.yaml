@@ -43,6 +43,20 @@ services:
     networks:
       agent_net:
         ipv4_address: 10.0.0.12
+    
+  python-agent:
+    image: indy-agent
+    environment:
+      - PORT=9000
+    ports:
+      - "9000:9000"
+    depends_on:
+      - "indy-pool"
+    links:
+      - "indy-pool"
+    networks:
+      agent_net:
+        ipv4_address: 10.0.0.13
 
 networks:
   agent_net:

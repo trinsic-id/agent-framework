@@ -165,7 +165,7 @@ namespace AgentFramework.Core.Runtime
                 {
                     Did = connection.MyDid,
                     DidDoc = connection.MyDidDoc(provisioning),
-                    Name = provisioning.Owner?.Name,
+                    Label = provisioning.Owner?.Name,
                     ImageUrl = provisioning.Owner?.ImageUrl,
                 },
                 Connection = connection
@@ -193,7 +193,7 @@ namespace AgentFramework.Core.Runtime
 
             agentContext.Connection.Alias = new ConnectionAlias
             {
-                Name = request.Name,
+                Name = request.Label,
                 ImageUrl = request.ImageUrl
             };
 

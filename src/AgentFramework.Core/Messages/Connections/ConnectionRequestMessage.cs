@@ -23,8 +23,8 @@ namespace AgentFramework.Core.Messages.Connections
         /// <value>
         /// The name.
         /// </value>
-        [JsonProperty("name")]
-        public string Name { get; set; }
+        [JsonProperty("label")]
+        public string Label { get; set; }
 
         /// <summary>
         /// Gets or sets the image URL.
@@ -59,7 +59,7 @@ namespace AgentFramework.Core.Messages.Connections
             $"Id={Id}, " +
             $"Type={Type}, " +
             $"Did={Did}, " +
-            $"Name={Name}, " +
+            $"Name={Label}, " +
             $"ImageUrl={ImageUrl}, ";
     }
 }

@@ -1,7 +1,7 @@
-FROM streetcred/dotnet-indy:latest AS base
+FROM streetcred/dotnet-indy:1.8.0-preview.1 AS base
 WORKDIR /app
 
-FROM streetcred/dotnet-indy:latest AS build
+FROM streetcred/dotnet-indy:1.8.0-preview.1 AS build
 WORKDIR /src
 COPY ["samples/aspnetcore", "samples/aspnetcore"]
 COPY ["src/AgentFramework.AspNetCore", "src/AgentFramework.AspNetCore"]
@@ -19,5 +19,10 @@ RUN dotnet publish "samples/aspnetcore/WebAgent.csproj" -c Release -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
+
+ARG PORT
+ENV PORT=${PORT}
+EXPOSE $PORT
+
 
 ENTRYPOINT ["dotnet", "WebAgent.dll"]
