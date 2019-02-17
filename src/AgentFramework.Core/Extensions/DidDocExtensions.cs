@@ -29,9 +29,9 @@ namespace AgentFramework.Core.Extensions
                 {
                     new DidDocKey
                     {
-                        Id = 1.ToString(),
+                        Id = $"{DidUtils.ToDid(DidUtils.DidSovMethodSpec,connection.MyDid)}#keys-1",
                         Type = DefaultKeyType,
-                        Owner = DidUtils.ToDid(DidUtils.DidSovMethodSpec,connection.MyDid),
+                        Controller = DidUtils.ToDid(DidUtils.DidSovMethodSpec,connection.MyDid),
                         PublicKeyBase58 = connection.MyVk
                     }
                 },
@@ -39,7 +39,7 @@ namespace AgentFramework.Core.Extensions
                 {
                     new IndyAgentDidDocService
                     {
-                        Id = $"{DidUtils.ToDid(DidUtils.DidSovMethodSpec,connection.MyDid)};indy-agent",
+                        Id = $"{DidUtils.ToDid(DidUtils.DidSovMethodSpec,connection.MyDid)};indy",
                         ServiceEndpoint = provisioningRecord.Endpoint.Uri,
                         RecipientKeys = connection.MyVk != null ? new[] { connection.MyVk } : new string[0],
                         RoutingKeys = provisioningRecord.Endpoint?.Verkey != null ? new[] { provisioningRecord.Endpoint.Verkey } : new string[0]
@@ -63,7 +63,7 @@ namespace AgentFramework.Core.Extensions
                     {
                         Id = 1.ToString(),
                         Type = DefaultKeyType,
-                        Owner = connection.TheirDid,
+                        Controller = connection.TheirDid,
                         PublicKeyBase58 = connection.TheirVk
                     }
                 },

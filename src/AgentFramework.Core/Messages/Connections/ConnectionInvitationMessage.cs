@@ -23,8 +23,8 @@ namespace AgentFramework.Core.Messages.Connections
         /// <value>
         /// The name.
         /// </value>
-        [JsonProperty("name")]
-        public string Name { get; set; }
+        [JsonProperty("label")]
+        public string Label { get; set; }
 
         /// <summary>
         /// Gets or sets the image URL.
@@ -50,7 +50,7 @@ namespace AgentFramework.Core.Messages.Connections
         /// <value>
         /// The routing keys.
         /// </value>
-        [JsonProperty("routing_keys")]
+        [JsonProperty("routingKeys")]
         public IList<string> RoutingKeys { get; set; }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace AgentFramework.Core.Messages.Connections
         /// <value>
         /// The recipient keys.
         /// </value>
-        [JsonProperty("recipient_keys")]
+        [JsonProperty("recipientKeys")]
         public IList<string> RecipientKeys { get; set; }
 
         /// <inheritdoc />
@@ -67,7 +67,7 @@ namespace AgentFramework.Core.Messages.Connections
             $"{GetType().Name}: " +
             $"Id={Id}, " +
             $"Type={Type}, " +
-            $"Name={Name}, " +
+            $"Name={Label}, " +
             $"ImageUrl={ImageUrl}, " +
             $"RoutingKeys={string.Join(",", RoutingKeys)}, ";
     }

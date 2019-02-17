@@ -20,10 +20,10 @@ namespace AgentFramework.Core.Models.Dids
         public string Type { get; set; }
 
         /// <summary>
-        /// The owner key.
+        /// The controller key.
         /// </summary>
-        [JsonProperty("owner")]
-        public string Owner { get; set; }
+        [JsonProperty("controller")]
+        public string Controller { get; set; }
 
         /// <summary>
         /// The PEM representation of the key.

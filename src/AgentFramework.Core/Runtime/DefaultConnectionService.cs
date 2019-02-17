@@ -108,7 +108,7 @@ namespace AgentFramework.Core.Runtime
                     ServiceEndpoint = provisioning.Endpoint.Uri,
                     RoutingKeys = provisioning.Endpoint.Verkey != null ? new[] { provisioning.Endpoint.Verkey } : null,
                     RecipientKeys = new [] { connectionKey },
-                    Name = config.MyAlias.Name ?? provisioning.Owner.Name,
+                    Label = config.MyAlias.Name ?? provisioning.Owner.Name,
                     ImageUrl = config.MyAlias.ImageUrl ?? provisioning.Owner.ImageUrl
                 },
                 Connection = connection
@@ -137,22 +137,22 @@ namespace AgentFramework.Core.Runtime
 
             var connection = new ConnectionRecord
             {
-                Endpoint = new AgentEndpoint(invitation.ServiceEndpoint, null, invitation.RoutingKeys.Count != 0 ? invitation.RoutingKeys[0] : null),
+                Endpoint = new AgentEndpoint(invitation.ServiceEndpoint, null, invitation.RoutingKeys != null && invitation.RoutingKeys.Count != 0 ? invitation.RoutingKeys[0] : null),
                 MyDid = my.Did,
                 MyVk = my.VerKey,
                 Id = Guid.NewGuid().ToString().ToLowerInvariant()
             };
 
-            if (!string.IsNullOrEmpty(invitation.Name) || !string.IsNullOrEmpty(invitation.ImageUrl))
+            if (!string.IsNullOrEmpty(invitation.Label) || !string.IsNullOrEmpty(invitation.ImageUrl))
             {
                 connection.Alias = new ConnectionAlias
                 {
-                    Name = invitation.Name,
+                    Name = invitation.Label,
                     ImageUrl = invitation.ImageUrl
                 };
 
-                if (string.IsNullOrEmpty(invitation.Name))
-                    connection.SetTag(TagConstants.Alias, invitation.Name);
+                if (string.IsNullOrEmpty(invitation.Label))
+                    connection.SetTag(TagConstants.Alias, invitation.Label);
             }
 
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);

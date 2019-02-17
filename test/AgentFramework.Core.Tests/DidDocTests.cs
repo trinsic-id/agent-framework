@@ -14,14 +14,14 @@ namespace AgentFramework.Core.Tests
                                 "   \"@context\": \"https://w3id.org/did/v1\",\r\n    " +
                                 "   \"publicKey\": [\r\n      " +
                                 "   {\r\n        " +
-                                "       \"id\": \"1\",\r\n        " +
+                                "       \"id\": \"did:sov:8fgY2SmLQBwcsqZ8tMHRre#keys-1\",\r\n        " +
                                 "       \"type\": \"Ed25519VerificationKey2018\",\r\n        " +
-                                "       \"owner\": \"did:sov:8fgY2SmLQBwcsqZ8tMHRre\",\r\n        " +
+                                "       \"controller\": \"did:sov:8fgY2SmLQBwcsqZ8tMHRre\",\r\n        " +
                                 "       \"publicKeyBase58\": \"5BNGGHwZ5oserT2UvDS7BmqNp5W3edNsGdm3DRHDynr5\"\r\n      " +
                                 "   }\r\n],\r\n    " +
                                 "   \"service\": [\r\n      " +
                                 "   {\r\n        " +
-                                "       \"id\": \"did:sov:8fgY2SmLQBwcsqZ8tMHRre;indy-agent\",\r\n        " +
+                                "       \"id\": \"did:sov:8fgY2SmLQBwcsqZ8tMHRre;indy\",\r\n        " +
                                 "       \"type\": \"IndyAgent\",\r\n        " +
                                 "       \"recipientKeys\": [],\r\n        " +
                                 "       \"routingKeys\": [\r\n          " +

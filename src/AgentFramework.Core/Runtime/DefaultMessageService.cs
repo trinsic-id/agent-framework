@@ -58,15 +58,20 @@ namespace AgentFramework.Core.Runtime
             var inner = await CryptoUtils.PackAsync(
                 wallet, encryptionKey, connection.MyVk, message.ToByteArray());
 
-            var forward = await CryptoUtils.PackAsync(
-                wallet, connection.Endpoint.Verkey, null,
-                new ForwardMessage {Message = inner.GetUTF8String(), To = encryptionKey});
+            //TODO we will have multiple forwards here in future
+            byte[] forward = null;
+            if (connection.Endpoint.Verkey != null)
+            {
+                forward = await CryptoUtils.PackAsync(
+                    wallet, connection.Endpoint.Verkey, null,
+                    new ForwardMessage {Message = inner.GetUTF8String(), To = encryptionKey});
+            }
 
             var request = new HttpRequestMessage
             {
                 RequestUri = new Uri(connection.Endpoint.Uri),
                 Method = HttpMethod.Post,
-                Content = new ByteArrayContent(forward)
+                Content = new ByteArrayContent(forward ?? inner)
             };
             request.Content.Headers.ContentType = new MediaTypeHeaderValue(AgentWireMessageMimeType);
 

@@ -41,7 +41,7 @@ namespace AgentFramework.Core.Messages.Connections
         /// <value>
         /// The did.
         /// </value>
-        [JsonProperty("did")]
+        [JsonProperty("DID")]
         public string Did { get; set; }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace AgentFramework.Core.Messages.Connections
         /// <value>
         /// The did doc.
         /// </value>
-        [JsonProperty("diddoc")]
+        [JsonProperty("DIDDoc")]
         public DidDoc DidDoc { get; set; }
 
         /// <inheritdoc />

@@ -105,7 +105,7 @@ namespace AgentFramework.Core.Models.Records
         public override string ToString() =>
             $"{GetType().Name}: " +
             $"Endpoint={Endpoint}, " +
-            $"Owner={Owner}, " +
+            $"Controller={Owner}, " +
             $"IssuerDid={IssuerDid}, " +
             $"IssuerVerkey={(IssuerVerkey?.Length > 0 ? "[hidden]" : null)}, " +
             $"MasterSecretId={(MasterSecretId?.Length > 0 ? "[hidden]" : null)}, " +
