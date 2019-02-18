@@ -187,7 +187,7 @@ namespace AgentFramework.Core.Runtime
             await Did.StoreTheirDidAsync(agentContext.Wallet, new { did = request.Connection.Did, verkey = request.Connection.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
 
             if (request.Connection.DidDoc.Services[0] is IndyAgentDidDocService service)
-                agentContext.Connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
+                agentContext.Connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys != null && service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
 
             agentContext.Connection.TheirDid = request.Connection.Did;
             agentContext.Connection.TheirVk = request.Connection.DidDoc.Keys[0].PublicKeyBase58;
@@ -245,7 +245,7 @@ namespace AgentFramework.Core.Runtime
             agentContext.Connection.TheirVk = response.Connection.DidDoc.Keys[0].PublicKeyBase58;
 
             if (response.Connection.DidDoc.Services[0] is IndyAgentDidDocService service)
-                agentContext.Connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
+                agentContext.Connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys != null && service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
 
             await agentContext.Connection.TriggerAsync(ConnectionTrigger.Response);
             await RecordService.UpdateAsync(agentContext.Wallet, agentContext.Connection);
