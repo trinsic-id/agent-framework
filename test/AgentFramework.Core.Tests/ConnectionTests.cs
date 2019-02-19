@@ -16,6 +16,7 @@ using AgentFramework.Core.Runtime;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace AgentFramework.Core.Tests
@@ -60,7 +61,7 @@ namespace AgentFramework.Core.Tests
             _provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(Task.FromResult(new ProvisioningRecord
                 {
-                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri, Verkey = "~LGkX716up2KAimNfz11HRr" }
+                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri}
                 }));
 
             _connectionService = new DefaultConnectionService(
@@ -156,11 +157,13 @@ namespace AgentFramework.Core.Tests
 
             await _connectionService.ProcessRequestAsync(_issuerWallet, new ConnectionRequestMessage
             {
-                Did = "did:sov:EYS94e95kf6LXF49eARL76",
-                DidDoc = new ConnectionRecord
-                {
-                    MyVk = "~LGkX716up2KAimNfz11HRr"
-                }.MyDidDoc(await _provisioningMock.Object.GetProvisioningAsync(_issuerWallet.Wallet))
+                Connection = new Connection {
+                    Did = "did:sov:EYS94e95kf6LXF49eARL76",
+                    DidDoc = new ConnectionRecord
+                    {
+                        MyVk = "~LGkX716up2KAimNfz11HRr"
+                    }.MyDidDoc(await _provisioningMock.Object.GetProvisioningAsync(_issuerWallet.Wallet))
+                }
             });
 
             //Accept the connection request
@@ -192,11 +195,13 @@ namespace AgentFramework.Core.Tests
             _issuerWallet.Connection = connectionRecord;
             await _connectionService.ProcessRequestAsync(_issuerWallet, new ConnectionRequestMessage
             {
-                Did = "did:sov:EYS94e95kf6LXF49eARL76",
-                DidDoc = new ConnectionRecord
-                {
-                    MyVk = "~LGkX716up2KAimNfz11HRr"
-                }.MyDidDoc(await _provisioningMock.Object.GetProvisioningAsync(_issuerWallet.Wallet))
+                Connection = new Connection { 
+                    Did = "did:sov:EYS94e95kf6LXF49eARL76",
+                    DidDoc = new ConnectionRecord
+                    {
+                        MyVk = "~LGkX716up2KAimNfz11HRr"
+                    }.MyDidDoc(await _provisioningMock.Object.GetProvisioningAsync(_issuerWallet.Wallet))
+                }
             });
 
             //Accept the connection request
@@ -282,6 +287,17 @@ namespace AgentFramework.Core.Tests
 
             Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
             Assert.Equal(connectionIssuerTwo.Endpoint.Uri, MockEndpointUri);
+        }
+
+        [Fact]
+        public async Task Test()
+        {
+            string connectionRequestJson =
+                "{\n  \"@type\": \"did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/request\",\n  \"label\": \"test\",\n  \"connection\": {\n    \"DID\": \"DKF8gGMQoUrj1rDVPVfFBW\",\n    \"DIDDoc\": {\n      \"@context\": \"https://w3id.org/did/v1\",\n      \"id\": \"DKF8gGMQoUrj1rDVPVfFBW\",\n      \"publicKey\": [\n        {\n          \"id\": \"DKF8gGMQoUrj1rDVPVfFBW#keys-1\",\n          \"type\": \"Ed25519VerificationKey2018\",\n          \"controller\": \"DKF8gGMQoUrj1rDVPVfFBW\",\n          \"publicKeyBase58\": \"7iHeiEP6QU56oe6nGcSsVhvYPLJoNKaX6Dc727GM1UxB\"\n        }\n      ],\n      \"service\": [\n        {\n          \"id\": \"DKF8gGMQoUrj1rDVPVfFBW;indy\",\n          \"type\": \"IndyAgent\",\n          \"recipientKeys\": [\n            \"7iHeiEP6QU56oe6nGcSsVhvYPLJoNKaX6Dc727GM1UxB\"\n          ],\n          \"serviceEndpoint\": \"http://localhost:9000/indy\"\n        }\n      ]\n    }\n  },\n  \"@id\": \"3ec57100-6e44-4923-94ca-6f6aabe01439\"\n}";
+
+            var connectionRequest = JsonConvert.DeserializeObject<ConnectionRequestMessage>(connectionRequestJson);
+
+            await _connectionService.ProcessRequestAsync(_issuerWallet, connectionRequest);
         }
 
         public async Task DisposeAsync()

@@ -29,10 +29,20 @@ namespace AgentFramework.Core.Handlers
         /// <value>The provider.</value>
         protected IServiceProvider Provider { get; }
 
+        /// <summary>Gets the connection service.</summary>
+        /// <value>The connection service.</value>
+        protected IConnectionService ConnectionService { get; }
+
+        /// <summary>Gets the logger.</summary>
+        /// <value>The logger.</value>
+        protected ILogger<AgentBase> Logger { get; }
+
         /// <summary>Initializes a new instance of the <see cref="AgentBase"/> class.</summary>
-        protected AgentBase(IServiceProvider provider)
+        protected AgentBase(IServiceProvider provider, IConnectionService connectionService, ILogger<AgentBase> logger)
         {
             Provider = provider;
+            ConnectionService = connectionService;
+            Logger = logger;
             _handlers = new List<IMessageHandler>();
 
             _logger = provider.GetService<ILogger<AgentBase>>();
@@ -92,7 +102,12 @@ namespace AgentFramework.Core.Handlers
                 if (message.Packed)
                 {
                     var unpacked = await CryptoUtils.UnpackAsync(agentContext.Wallet, message.Payload);
+                    Logger.LogInformation($"Agent Message Recieved : {unpacked.Message}");
                     messagePayload = new MessagePayload(unpacked.Message, false);
+                    if (unpacked.SenderVerkey != null && agentContext.Connection == null)
+                    {
+                        agentContext.Connection = await ConnectionService.ResolveByMyKeyAsync(agentContext, unpacked.RecipientVerkey);
+                    }
                 }
                 else
                 {

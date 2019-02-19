@@ -27,6 +27,8 @@ namespace WebAgent
         {
             services.AddMvc();
 
+            services.AddLogging();
+
             // Register agent framework dependency services and handlers
             services.AddAgentFramework(c => c.SetPoolOptions(new PoolOptions { GenesisFilename = Path.GetFullPath("pool_genesis.txn") }));
 

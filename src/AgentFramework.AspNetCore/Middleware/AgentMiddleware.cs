@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AgentFramework.AspNetCore.Middleware
@@ -22,12 +21,16 @@ namespace AgentFramework.AspNetCore.Middleware
         /// <param name="walletService">The wallet service.</param>
         /// <param name="serviceProvider">The service provider.</param>
         /// <param name="walletOptions">The wallet options.</param>
+        /// <param name="connectionService">The connection service.</param>
+        /// <param name="logger">The logger.</param>
         public AgentMiddleware(
             RequestDelegate next,
             IWalletService walletService,
             IServiceProvider serviceProvider,
-            IOptions<WalletOptions> walletOptions)
-            : base(serviceProvider)
+            IOptions<WalletOptions> walletOptions,
+            IConnectionService connectionService,
+            ILogger<AgentBase> logger)
+            : base(serviceProvider, connectionService, logger)
         {
             _next = next;
             _walletService = walletService;
