@@ -52,8 +52,8 @@ namespace WebAgent
             app.UseStaticFiles();
 
             // Add agent middleware
-            var agentBaseUrl = new Uri(Environment.GetEnvironmentVariable("ASPNETCORE_URLS"));
-            app.UseAgentFramework<WebAgentMiddleware>($"{new Uri(agentBaseUrl, "/agent")}",
+            var agentBaseUrl = Environment.GetEnvironmentVariable("AGENT_ENDPOINT");
+            app.UseAgentFramework<WebAgentMiddleware>(agentBaseUrl,
                 obj =>
                 {
                     obj.AddOwnershipInfo(NameGenerator.GetRandomName(), null);

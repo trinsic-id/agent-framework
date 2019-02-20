@@ -36,6 +36,7 @@ services:
     environment:
       - ASPNETCORE_URLS=http://10.0.0.12:8000
       - ASPNETCORE_ENVIRONMENT=Development
+      - AGENT_ENDPOINT=https://ngrok
     ports:
       - "8000:8000"
     depends_on:
