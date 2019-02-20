@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Decorators.Signature;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models.Connections;
@@ -235,6 +236,9 @@ namespace AgentFramework.Core.Runtime
 
             //TODO throw exception or a problem report if the connection request features a did doc that has no indy agent did doc convention featured
             //i.e there is no way for this agent to respond to messages. And or no keys specified
+            response.Connection =
+                await SignatureUtils.UnpackAndVerifyData<Connection>(agentContext, response.ConnectionSig);
+
             await Did.StoreTheirDidAsync(agentContext.Wallet,
                 new { did = response.Connection.Did, verkey = response.Connection.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
 
@@ -277,13 +281,19 @@ namespace AgentFramework.Core.Runtime
 
             // Send back response message
             var provisioning = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
+
+            var connectionData = new Connection
+            {
+                Did = connection.MyDid,
+                DidDoc = connection.MyDidDoc(provisioning)
+            };
+
+            var sigData = await SignatureUtils.SignData(agentContext, connectionData, connection.GetTag(TagConstants.ConnectionKey));
+
             return new ConnectionResponseMessage
             {
-                Connection = new Connection
-                { 
-                    Did = connection.MyDid,
-                    DidDoc = connection.MyDidDoc(provisioning)
-                }
+                Connection = connectionData,
+                ConnectionSig = sigData
             };
         }
 

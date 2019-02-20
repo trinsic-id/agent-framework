@@ -1,4 +1,5 @@
 ﻿using System;
+using AgentFramework.Core.Decorators.Signature;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Dids;
 using Hyperledger.Indy.DidApi;
@@ -27,6 +28,15 @@ namespace AgentFramework.Core.Messages.Connections
         /// </value>
         [JsonProperty("connection")]
         public Connection Connection { get; set; }
+
+        /// <summary>
+        /// Gets or sets the connection object.
+        /// </summary>
+        /// <value>
+        /// The connection object.
+        /// </value>
+        [JsonProperty("connection~sig")]
+        public SignatureDecorator ConnectionSig { get; set; }
 
         /// <inheritdoc />
         public override string ToString() =>
