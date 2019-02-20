@@ -10,11 +10,11 @@
         /// <summary>
         /// Ping Message Type.
         /// </summary>
-        public const string TrustPingMessageType = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping";
+        public const string TrustPingMessageType = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trustping/1.0/ping";
 
         /// <summary>
         /// Ping Response Message Type.
         /// </summary>
-        public const string TrustPingResponseMessageType = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping_response";
+        public const string TrustPingResponseMessageType = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trustping/1.0/ping_response";
     }
 }

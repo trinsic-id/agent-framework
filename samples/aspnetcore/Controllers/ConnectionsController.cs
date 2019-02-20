@@ -3,6 +3,7 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers.Internal;
@@ -74,6 +75,7 @@ namespace WebAgent.Controllers
 
             var invitation = await _connectionService.CreateInvitationAsync(context, new InviteConfiguration { AutoAcceptConnection = true });
             ViewData["Invitation"] = EncodeInvitation(invitation.Invitation);
+            ViewData["DefaultUri"] = $"{(await _provisioningService.GetProvisioningAsync(context.Wallet)).Endpoint.Uri}?c_i=";
             return View();
         }
 
@@ -85,7 +87,19 @@ namespace WebAgent.Controllers
                 Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
                     _walletOptions.WalletCredentials)
             };
-            var invite = DecodeInvitation(model.InvitationDetails);
+
+            string inviteRaw = null;
+            try
+            {
+                var uri = new Uri(model.InvitationDetails);
+                inviteRaw = HttpUtility.ParseQueryString(uri.Query).Get("c_i");
+            }
+            catch (Exception)
+            {
+                inviteRaw = model.InvitationDetails;
+            }
+
+            var invite = DecodeInvitation(inviteRaw);
             var invitationResult = await _connectionService.AcceptInvitationAsync(context, invite);
             await _messageService.SendAsync(context.Wallet, invitationResult.Request, invitationResult.Connection, invite.RecipientKeys[0]);
 
@@ -97,7 +111,18 @@ namespace WebAgent.Controllers
         {
             ViewData["InvitationDetails"] = model.InvitationDetails;
 
-            return View(DecodeInvitation(model.InvitationDetails));
+            string inviteRaw = null;
+            try
+            {
+                var uri = new Uri(model.InvitationDetails);
+                inviteRaw = HttpUtility.ParseQueryString(uri.Query).Get("c_i");
+            }
+            catch (Exception)
+            {
+                inviteRaw = model.InvitationDetails;
+            }
+
+            return View(DecodeInvitation(inviteRaw));
         }
 
         [HttpPost]

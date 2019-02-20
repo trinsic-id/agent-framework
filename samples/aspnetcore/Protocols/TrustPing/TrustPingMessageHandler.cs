@@ -47,16 +47,17 @@ namespace WebAgent.Messages
                 {
                     var pingMessage = messagePayload.GetMessage<TrustPingMessage>();
 
-                        if (pingMessage.ResponseRequested)
-                        {
+                        // if (pingMessage.ResponseRequested)
+                        // {
                             if (agentContext is AgentContext context)
                             {
                                 context.AddNext(new OutgoingMessage
                                 {
+                                    InboundMessage = pingMessage.ToJson(),
                                     OutboundMessage = new TrustPingResponseMessage().ToJson()
                                 }.AsMessagePayload());
                             }
-                        }
+                        // }
                         break;
                 }
                 case CustomMessageTypes.TrustPingResponseMessageType:
