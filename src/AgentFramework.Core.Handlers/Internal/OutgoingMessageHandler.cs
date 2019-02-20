@@ -6,22 +6,27 @@ using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Routing;
 using AgentFramework.Core.Utils;
+using Microsoft.Extensions.Logging;
 
 namespace AgentFramework.Core.Handlers.Internal
 {
     internal class OutgoingMessageHandler : MessageHandlerBase<OutgoingMessage>
     {
         private readonly IEnumerable<IOutgoingMessageDecoratorHandler> _outgoingHandlers;
+        private readonly ILogger<OutgoingMessageHandler> _logger;
 
-        public OutgoingMessageHandler(IEnumerable<IOutgoingMessageDecoratorHandler> handlers)
+        public OutgoingMessageHandler(IEnumerable<IOutgoingMessageDecoratorHandler> handlers, ILogger<OutgoingMessageHandler> logger)
         {
             _outgoingHandlers = handlers;
+            _logger = logger;
         }
 
         protected override async Task ProcessAsync(OutgoingMessage message, IAgentContext agentContext)
         {
             foreach (var handler in _outgoingHandlers)
                 message = await handler.ProcessAsync(message, agentContext);
+
+            _logger.LogInformation($"Agent Message Sent : {message.OutboundMessage}");
 
             var inner = await CryptoUtils.PackAsync(
                 agentContext.Wallet, agentContext.Connection.TheirVk, agentContext.Connection.MyVk, message.OutboundMessage.GetUTF8Bytes());
