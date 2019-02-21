@@ -5,11 +5,13 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace AgentFramework.Core.Handlers
 {
@@ -19,6 +21,7 @@ namespace AgentFramework.Core.Handlers
     public abstract class AgentBase
     {
         private readonly IList<IMessageHandler> _handlers;
+        private ILogger<AgentBase> _logger;
 
         /// <summary>Gets the provider.</summary>
         /// <value>The provider.</value>
@@ -29,6 +32,8 @@ namespace AgentFramework.Core.Handlers
         {
             Provider = provider;
             _handlers = new List<IMessageHandler>();
+
+            _logger = provider.GetService<ILogger<AgentBase>>();
         }
 
         /// <summary>Adds a handler for supporting default connection flow.</summary>
@@ -97,6 +102,7 @@ namespace AgentFramework.Core.Handlers
                         handler => handler.SupportedMessageTypes.Any(
                             type => type.Equals(messagePayload.GetMessageType(), StringComparison.OrdinalIgnoreCase))) is IMessageHandler messageHandler)
                 {
+                    _logger.LogDebug("Processing message type {MessageType}, {MessageData}", messagePayload.GetMessageType(), messagePayload.Payload.GetUTF8String());
                     await messageHandler.ProcessAsync(agentContext, messagePayload);
                 }
                 else
