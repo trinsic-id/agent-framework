@@ -258,7 +258,7 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public virtual async Task<(CredentialOfferMessage,string)> CreateOfferAsync(IAgentContext agentContext, OfferConfiguration config, string connectionId = null)
         {
-            Logger.LogInformation(LoggingEvents.CreateCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
+            Logger.LogInformation(LoggingEvents.CreateCredentialOffer, "DefinitionId {0}, IssuerDid {1}",
                 config.CredentialDefinitionId, config.IssuerDid);
 
             if (!config.MultiPartyOffer && !string.IsNullOrEmpty(connectionId))
