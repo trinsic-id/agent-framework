@@ -1,10 +1,17 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using AgentFramework.AspNetCore.Configuration.Service;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
@@ -12,8 +19,11 @@ using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records;
+using AgentFramework.Core.Models.Wallets;
 using AgentFramework.Core.Runtime;
+using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
@@ -21,6 +31,47 @@ using Xunit;
 
 namespace AgentFramework.Core.Tests
 {
+    public class AgentHttpHandler : HttpMessageHandler
+    {
+        public IServiceProvider AgentBase { get; }
+        public Wallet Wallet { get; }
+        public Pool Pool { get; }
+
+        public AgentHttpHandler(IServiceProvider agentBase, IAgentContext context)
+        {
+            AgentBase = agentBase;
+            Wallet = context.Wallet;
+            Pool = context.Pool;
+        }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var ab = AgentBase.GetService<MockAgent>();
+
+            if (request.Method != HttpMethod.Post)
+            {
+                throw new Exception("Invalid http method");
+            }
+
+            var body = await request.Content.ReadAsByteArrayAsync();
+            await ab.HandleAsync(body, Wallet, Pool);
+
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        }
+    }
+
+    public class MockAgent : AgentBase
+    {
+        public MockAgent(
+            IServiceProvider provider, 
+            IConnectionService connectionService, 
+            ILogger<AgentBase> logger) : base(provider, connectionService, logger)
+        {
+        }
+
+        internal Task HandleAsync(byte[] data, Wallet wallet, Pool pool = null) => ProcessAsync(data, wallet, pool);
+    }
+
     public class ConnectionTests : IAsyncLifetime
     {
         private readonly string _issuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}"; 
@@ -104,6 +155,62 @@ namespace AgentFramework.Core.Tests
             _issuerWallet = new AgentContext {Wallet = await Wallet.OpenWalletAsync(_issuerConfig, Credentials)};
             _holderWallet = new AgentContext {Wallet = await Wallet.OpenWalletAsync(_holderConfig, Credentials)};
             _holderWalletTwo = new AgentContext {Wallet = await Wallet.OpenWalletAsync(_holderConfigTwo, Credentials)};
+        }
+
+        [Fact]
+        public async Task ConnectUsingHttp()
+        {
+            try
+            {
+                var config1 = new WalletConfiguration() {Id = Guid.NewGuid().ToString()};
+                var config2 = new WalletConfiguration() { Id = Guid.NewGuid().ToString() };
+                var cred = new WalletCredentials() {Key = "2"};
+
+                var firstContainer = new ServiceCollection();
+                firstContainer.AddAgentFramework();
+                firstContainer.AddLogging();
+                firstContainer.AddSingleton<IAgentContext>(_issuerWallet);
+                firstContainer.AddSingleton<MockAgent>();
+                firstContainer.AddSingleton(provider => new HttpClient(
+                    new AgentHttpHandler(provider,
+                        provider.GetService<IAgentContext>())));
+                var firstProvider = firstContainer.BuildServiceProvider();
+                var firstConnection = firstProvider.GetRequiredService<IConnectionService>();
+                var firstMessageService = firstProvider.GetRequiredService<IMessageService>();
+
+                var secondContainer = new ServiceCollection();
+                secondContainer.AddAgentFramework();
+                secondContainer.AddLogging();
+                secondContainer.AddSingleton(_issuerWallet);
+                secondContainer.AddSingleton<AgentHttpHandler>();
+                secondContainer.AddSingleton<MockAgent>();
+                secondContainer.AddSingleton(provider => new HttpClient(provider.GetService<AgentHttpHandler>()));
+                var secondProvider = secondContainer.BuildServiceProvider();
+                var secondConnection = secondProvider.GetRequiredService<IConnectionService>();
+                var secondMessageService = firstProvider.GetRequiredService<IMessageService>();
+
+                await Task.Yield();
+
+                await firstProvider.GetService<IProvisioningService>().ProvisionAgentAsync(new ProvisioningConfiguration(){ WalletConfiguration = config1, WalletCredentials = cred, EndpointUri = new Uri("http://mock")});
+                var firstWallet = await firstProvider.GetService<IWalletService>().GetWalletAsync(config1, cred);
+
+                await secondProvider.GetService<IProvisioningService>().ProvisionAgentAsync(new ProvisioningConfiguration() { WalletConfiguration = config2, WalletCredentials = cred, EndpointUri = new Uri("http://mock") });
+                var secondWallet = await secondProvider.GetService<IWalletService>().GetWalletAsync(config2, cred);
+
+
+                var invitation = await firstConnection.CreateInvitationAsync(new AgentContext(){Wallet = firstWallet},
+                    new InviteConfiguration {AutoAcceptConnection = true});
+                await firstMessageService.SendAsync(firstWallet, invitation.Invitation, invitation.Connection);
+
+                var acceptInvitation =
+                    await secondConnection.AcceptInvitationAsync(new AgentContext(){ Wallet = secondWallet}, invitation.Invitation);
+                await secondMessageService.SendAsync(secondWallet, acceptInvitation.Request,
+                    acceptInvitation.Connection, invitation.Invitation.RecipientKeys.First());
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+            }
         }
 
         [Fact]
