@@ -53,7 +53,7 @@ namespace AgentFramework.Core.Handlers
         {
             _handlers.Add(new DefaultConnectionHandler(Provider.GetService<IConnectionService>()));
             _handlers.Add(new OutgoingMessageHandler(Provider.GetServices<IOutgoingMessageDecoratorHandler>(), Provider.GetService<ILogger<OutgoingMessageHandler>>()));
-            _handlers.Add(new HttpOutgoingMessageHandler(Provider.GetService<HttpClientHandler>() ?? new HttpClientHandler()));
+            _handlers.Add(new HttpOutgoingMessageHandler(Provider.GetService<HttpMessageHandler>()));
         }
         /// <summary>Adds a handler for supporting default credential flow.</summary>
         protected void AddCredentialHandler()

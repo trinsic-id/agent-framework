@@ -11,9 +11,9 @@ namespace AgentFramework.Core.Handlers.Internal
     {
         private readonly HttpClient _httpClient;
 
-        internal HttpOutgoingMessageHandler(HttpClientHandler handler)
+        internal HttpOutgoingMessageHandler(HttpMessageHandler handler)
         {
-            _httpClient = new HttpClient(handler);
+            _httpClient = new HttpClient(handler ?? new HttpClientHandler());
         }
         public const string AgentWireMessageMimeType = "application/ssi-agent-wire";
 

@@ -31,31 +31,22 @@ using Xunit;
 
 namespace AgentFramework.Core.Tests
 {
-    public class AgentHttpHandler : HttpMessageHandler
+    public class MockAgentHttpHandler : HttpMessageHandler
     {
-        public IServiceProvider AgentBase { get; }
-        public Wallet Wallet { get; }
-        public Pool Pool { get; }
-
-        public AgentHttpHandler(IServiceProvider agentBase, IAgentContext context)
+        public MockAgentHttpHandler(Action<byte[]> callback)
         {
-            AgentBase = agentBase;
-            Wallet = context.Wallet;
-            Pool = context.Pool;
+            Callback = callback;
         }
+
+        public Action<byte[]> Callback { get; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var ab = AgentBase.GetService<MockAgent>();
-
             if (request.Method != HttpMethod.Post)
             {
                 throw new Exception("Invalid http method");
             }
-
-            var body = await request.Content.ReadAsByteArrayAsync();
-            await ab.HandleAsync(body, Wallet, Pool);
-
+            Callback(await request.Content.ReadAsByteArrayAsync());
             return new HttpResponseMessage(HttpStatusCode.OK);
         }
     }
@@ -160,57 +151,88 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task ConnectUsingHttp()
         {
-            try
+            var slim = new SemaphoreSlim(0, 1);
+
+            var config1 = new WalletConfiguration() { Id = Guid.NewGuid().ToString() };
+            var config2 = new WalletConfiguration() { Id = Guid.NewGuid().ToString() };
+            var cred = new WalletCredentials() { Key = "2" };
+
+            MockAgent agent1 = null;
+            MockAgent agent2 = null;
+            IAgentContext context1 = null;
+            IAgentContext context2 = null;
+
+            // Setup first agent runtime
+            var result1 = await CreateDependency(config1, cred, new MockAgentHttpHandler(data => agent2.HandleAsync(data, context2.Wallet, context2.Pool)));
+            var provider1 = result1.Item1;
+            context1 = result1.Item2;
+            agent1 = provider1.GetRequiredService<MockAgent>();
+            var connectionService1 = provider1.GetRequiredService<IConnectionService>();
+
+            // Setup second agent runtime
+            var result2 = await CreateDependency(config2, cred, new MockAgentHttpHandler(data => agent1.HandleAsync(data, context1.Wallet, context1.Pool)));
+            var provider2 = result2.Item1;
+            context2 = result2.Item2;
+            var connectionService2 = provider2.GetRequiredService<IConnectionService>();
+            var messageService2 = provider2.GetRequiredService<IMessageService>();
+
+            // Hook into response message event of second runtime to release semaphore
+            var sub = provider2.GetRequiredService<IEventAggregator>().GetEventByType<ServiceMessageProcessingEvent>()
+                .Where(x => x.MessageType == MessageTypes.ConnectionResponse)
+                .Subscribe(x => slim.Release());
+            agent2 = provider2.GetRequiredService<MockAgent>();
+
+            // Invitation flow
             {
-                var config1 = new WalletConfiguration() {Id = Guid.NewGuid().ToString()};
-                var config2 = new WalletConfiguration() { Id = Guid.NewGuid().ToString() };
-                var cred = new WalletCredentials() {Key = "2"};
-
-                var firstContainer = new ServiceCollection();
-                firstContainer.AddAgentFramework();
-                firstContainer.AddLogging();
-                firstContainer.AddSingleton<IAgentContext>(_issuerWallet);
-                firstContainer.AddSingleton<MockAgent>();
-                firstContainer.AddSingleton(provider => new HttpClient(
-                    new AgentHttpHandler(provider,
-                        provider.GetService<IAgentContext>())));
-                var firstProvider = firstContainer.BuildServiceProvider();
-                var firstConnection = firstProvider.GetRequiredService<IConnectionService>();
-                var firstMessageService = firstProvider.GetRequiredService<IMessageService>();
-
-                var secondContainer = new ServiceCollection();
-                secondContainer.AddAgentFramework();
-                secondContainer.AddLogging();
-                secondContainer.AddSingleton(_issuerWallet);
-                secondContainer.AddSingleton<AgentHttpHandler>();
-                secondContainer.AddSingleton<MockAgent>();
-                secondContainer.AddSingleton(provider => new HttpClient(provider.GetService<AgentHttpHandler>()));
-                var secondProvider = secondContainer.BuildServiceProvider();
-                var secondConnection = secondProvider.GetRequiredService<IConnectionService>();
-                var secondMessageService = firstProvider.GetRequiredService<IMessageService>();
-
-                await Task.Yield();
-
-                await firstProvider.GetService<IProvisioningService>().ProvisionAgentAsync(new ProvisioningConfiguration(){ WalletConfiguration = config1, WalletCredentials = cred, EndpointUri = new Uri("http://mock")});
-                var firstWallet = await firstProvider.GetService<IWalletService>().GetWalletAsync(config1, cred);
-
-                await secondProvider.GetService<IProvisioningService>().ProvisionAgentAsync(new ProvisioningConfiguration() { WalletConfiguration = config2, WalletCredentials = cred, EndpointUri = new Uri("http://mock") });
-                var secondWallet = await secondProvider.GetService<IWalletService>().GetWalletAsync(config2, cred);
-
-
-                var invitation = await firstConnection.CreateInvitationAsync(new AgentContext(){Wallet = firstWallet},
-                    new InviteConfiguration {AutoAcceptConnection = true});
-                await firstMessageService.SendAsync(firstWallet, invitation.Invitation, invitation.Connection);
+                var invitation = await connectionService1.CreateInvitationAsync(context1,
+                    new InviteConfiguration { AutoAcceptConnection = true });
 
                 var acceptInvitation =
-                    await secondConnection.AcceptInvitationAsync(new AgentContext(){ Wallet = secondWallet}, invitation.Invitation);
-                await secondMessageService.SendAsync(secondWallet, acceptInvitation.Request,
+                    await connectionService2.AcceptInvitationAsync(context2, invitation.Invitation);
+                await messageService2.SendAsync(context2.Wallet, acceptInvitation.Request,
                     acceptInvitation.Connection, invitation.Invitation.RecipientKeys.First());
+
+                // Wait for connection to be established or continue after 30 sec timeout
+                await slim.WaitAsync(TimeSpan.FromSeconds(30));
+
+                var connectionRecord1 = await connectionService1.GetAsync(context1, invitation.Connection.Id);
+                var connectionRecord2 = await connectionService2.GetAsync(context2, acceptInvitation.Connection.Id);
+
+                Assert.Equal(ConnectionState.Connected, connectionRecord1.State);
+                Assert.Equal(ConnectionState.Connected, connectionRecord2.State);
+                Assert.Equal(connectionRecord1.MyDid, connectionRecord2.TheirDid);
+                Assert.Equal(connectionRecord1.TheirDid, connectionRecord2.MyDid);
             }
-            catch (Exception e)
+
+            // Cleanup
             {
-                Debug.WriteLine(e);
+                sub.Dispose();
+
+                await context1.Wallet.CloseAsync();
+                await context2.Wallet.CloseAsync();
+
+                await Wallet.DeleteWalletAsync(config1.ToJson(), cred.ToJson());
+                await Wallet.DeleteWalletAsync(config2.ToJson(), cred.ToJson());
             }
+        }
+
+        public async Task<(IServiceProvider, IAgentContext)> CreateDependency(
+            WalletConfiguration configuration, 
+            WalletCredentials credentials, 
+            MockAgentHttpHandler handler)
+        {
+            var container = new ServiceCollection();
+            container.AddAgentFramework();
+            container.AddLogging();
+            container.AddSingleton<MockAgent>();
+            container.AddSingleton<HttpMessageHandler>(handler);
+            container.AddSingleton(p => new HttpClient(p.GetRequiredService<HttpMessageHandler>()));
+            var provider = container.BuildServiceProvider();
+
+            await provider.GetService<IProvisioningService>().ProvisionAgentAsync(new ProvisioningConfiguration { WalletConfiguration = configuration, WalletCredentials = credentials, EndpointUri = new Uri("http://mock") });
+            var context = new AgentContext { Wallet = await provider.GetService<IWalletService>().GetWalletAsync(configuration, credentials) };
+
+            return (provider, context);
         }
 
         [Fact]
