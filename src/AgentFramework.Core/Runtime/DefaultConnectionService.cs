@@ -217,6 +217,8 @@ namespace AgentFramework.Core.Runtime
 
             var newConnection = agentContext.Connection.DeepCopy();
             newConnection.Id = Guid.NewGuid().ToString();
+            newConnection.RemoveTag(TagConstants.ConnectionKey);
+
             await newConnection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await RecordService.AddAsync(agentContext.Wallet, newConnection);
 
