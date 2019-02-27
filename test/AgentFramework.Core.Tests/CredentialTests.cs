@@ -152,7 +152,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CanIssueCredential()
         {
-            int events = 0;
+            var events = 0;
             _eventAggregator.GetEventByType<ServiceMessageProcessingEvent>()
                 .Where(_ => (_.MessageType == MessageTypes.CredentialOffer ||
                              _.MessageType == MessageTypes.CredentialRequest ||
@@ -185,10 +185,8 @@ namespace AgentFramework.Core.Tests
             var result = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
                 new[] {"test-attr"});
 
-            var (offer, id) = await _credentialService.CreateOfferAsync(_issuerWallet,
+            var (_, credentialRecord) = await _credentialService.CreateOfferAsync(_issuerWallet,
                 new OfferConfiguration { CredentialDefinitionId = result.Item1 });
-
-            var credentialRecord = await _credentialService.GetAsync(_issuerWallet, id);
 
             Assert.False(credentialRecord.MultiPartyOffer);
             Assert.Equal(CredentialState.Offered, credentialRecord.State);
@@ -203,10 +201,10 @@ namespace AgentFramework.Core.Tests
             var result = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
                 new[] { "test-attr" });
 
-            (var offer, var id) = await _credentialService.CreateOfferAsync(_issuerWallet,
+            var (_, record) = await _credentialService.CreateOfferAsync(_issuerWallet,
                 new OfferConfiguration { CredentialDefinitionId = result.Item1, MultiPartyOffer = true });
 
-            var credentialRecord = await _credentialService.GetAsync(_issuerWallet, id);
+            var credentialRecord = await _credentialService.GetAsync(_issuerWallet, record.Id);
 
             Assert.True(credentialRecord.MultiPartyOffer);
             Assert.Equal(CredentialState.Offered, credentialRecord.State);
@@ -230,20 +228,21 @@ namespace AgentFramework.Core.Tests
             var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
-            // Creata a schema and credential definition for this issuer
-            (var definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
+            // Create a schema and credential definition for this issuer
+            var (definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
                 new[] { "dummy_attr" });
 
-            var offerConfig = new OfferConfiguration()
+            var offerConfig = new OfferConfiguration
             {
                 IssuerDid = issuer.Did,
                 CredentialDefinitionId = definitionId
             };
 
             // Send an offer to the holder using the established connection channel
-            await _credentialService.SendOfferAsync(_issuerWallet, issuerConnection.Id, offerConfig);
+            var (offer, _) = await _credentialService.CreateOfferAsync(_issuerWallet, offerConfig, issuerConnection.Id);
+            _messages.Add(offer);
 
-            // Holder retrives message from their cloud agent
+            // Holder retrieves message from their cloud agent
             var credentialOffer = FindContentMessage<CredentialOfferMessage>(_messages);
 
             // Holder processes the credential offer by storing it
@@ -254,11 +253,12 @@ namespace AgentFramework.Core.Tests
             await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
 
             // Holder accepts the credential offer and sends a credential request
-            await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
+            var request = await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
                 new Dictionary<string, string>
                 {
                     {"dummy_attr", "dummyVal"}
                 });
+            _messages.Add(request);
 
             // Issuer retrieves credential request from cloud agent
             var credentialRequest = FindContentMessage<CredentialRequestMessage>(_messages);
@@ -285,7 +285,7 @@ namespace AgentFramework.Core.Tests
             var connectionId = Guid.NewGuid().ToString();
 
             await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new InviteConfiguration() { ConnectionId = connectionId, AutoAcceptConnection = false });
+                new InviteConfiguration { ConnectionId = connectionId, AutoAcceptConnection = false });
 
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.CreateOfferAsync(_issuerWallet, new OfferConfiguration(), connectionId));
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
@@ -294,7 +294,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task SendOfferAsyncThrowsExceptionConnectionNotFound()
         {
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.SendOfferAsync(_issuerWallet, "bad-connection-id", new OfferConfiguration()));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.CreateOfferAsync(_issuerWallet, new OfferConfiguration(), "bad-connection-id"));
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }
 
@@ -304,33 +304,35 @@ namespace AgentFramework.Core.Tests
             var connectionId = Guid.NewGuid().ToString();
 
             await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new InviteConfiguration() { ConnectionId = connectionId, AutoAcceptConnection = false });
+                new InviteConfiguration {ConnectionId = connectionId, AutoAcceptConnection = false});
 
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.SendOfferAsync(_issuerWallet, connectionId, new OfferConfiguration()));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
+                await _credentialService.CreateOfferAsync(_issuerWallet, new OfferConfiguration(), connectionId));
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
 
-        [Fact]
-        public async Task SendOfferAsyncThrowsExceptionUnableToSendA2AMessage()
-        {
-            var (issuerConnection, _) = await Scenarios.EstablishConnectionAsync(
-                _connectionService, _messages, _issuerWallet, _holderWallet);
+        //[Fact]
+        //public async Task SendOfferAsyncThrowsExceptionUnableToSendA2AMessage()
+        //{
+        //    var (issuerConnection, _) = await Scenarios.EstablishConnectionAsync(
+        //        _connectionService, _messages, _issuerWallet, _holderWallet);
             
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
-                new { seed = "000000000000000000000000Steward1" }.ToJson());
+        //    var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
+        //        new { seed = "000000000000000000000000Steward1" }.ToJson());
 
-            (var credId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
-                new[] { "dummy_attr" });
+        //    var (credId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
+        //        new[] { "dummy_attr" });
 
-            _routeMessage = false;
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.SendOfferAsync(_issuerWallet, issuerConnection.Id, new OfferConfiguration
-            {
-                CredentialDefinitionId = credId
-            }));
-            _routeMessage = true;
+        //    _routeMessage = false;
+        //    var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
+        //        await _credentialService.CreateOfferAsync(_issuerWallet, new OfferConfiguration
+        //        {
+        //            CredentialDefinitionId = credId
+        //        }, issuerConnection.Id));
+        //    _routeMessage = true;
 
-            Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionError);
-        }
+        //    Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionError);
+        //}
 
         [Fact]
         public async Task ProcessCredentialRequestThrowsCredentialNotFound()
@@ -365,20 +367,21 @@ namespace AgentFramework.Core.Tests
             var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
-            // Creata a schema and credential definition for this issuer
-            (var definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
+            // Create a schema and credential definition for this issuer
+            var (definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
                 new[] { "dummy_attr" });
 
-            var offerConfig = new OfferConfiguration()
+            var offerConfig = new OfferConfiguration
             {
                 IssuerDid = issuer.Did,
                 CredentialDefinitionId = definitionId
             };
 
             // Send an offer to the holder using the established connection channel
-            await _credentialService.SendOfferAsync(_issuerWallet, issuerConnection.Id, offerConfig);
+           var (offerMessage, _) = await _credentialService.CreateOfferAsync(_issuerWallet, offerConfig, issuerConnection.Id);
+           _messages.Add(offerMessage);
 
-            // Holder retrives message from their cloud agent
+            // Holder retrieves message from their cloud agent
             var credentialOffer = FindContentMessage<CredentialOfferMessage>(_messages);
 
             // Holder processes the credential offer by storing it
@@ -389,11 +392,12 @@ namespace AgentFramework.Core.Tests
             await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
 
             // Holder accepts the credential offer and sends a credential request
-            await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
+            var request = await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
                 new Dictionary<string, string>
                 {
                     {"dummy_attr", "dummyVal"}
                 });
+            _messages.Add(request);
 
             // Issuer retrieves credential request from cloud agent
             var credentialRequest = FindContentMessage<CredentialRequestMessage>(_messages);
@@ -432,20 +436,21 @@ namespace AgentFramework.Core.Tests
             var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
-            // Creata a schema and credential definition for this issuer
-            (var definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
+            // Create a schema and credential definition for this issuer
+            var (definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
                 new[] { "dummy_attr" });
 
-            var offerConfig = new OfferConfiguration()
+            var offerConfig = new OfferConfiguration
             {
                 IssuerDid = issuer.Did,
                 CredentialDefinitionId = definitionId
             };
 
             // Send an offer to the holder using the established connection channel
-            await _credentialService.SendOfferAsync(_issuerWallet,issuerConnection.Id,  offerConfig);
+            var (message, _) = await _credentialService.CreateOfferAsync(_issuerWallet, offerConfig, issuerConnection.Id);
+            _messages.Add(message);
 
-            // Holder retrives message from their cloud agent
+            // Holder retrieves message from their cloud agent
             var credentialOffer = FindContentMessage<CredentialOfferMessage>(_messages);
 
             // Holder processes the credential offer by storing it
@@ -456,11 +461,12 @@ namespace AgentFramework.Core.Tests
             await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
 
             // Holder accepts the credential offer and sends a credential request
-            await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
+            var request = await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
                 new Dictionary<string, string>
                 {
                     {"dummy_attr", "dummyVal"}
                 });
+            _messages.Add(request);
 
             // Issuer retrieves credential request from cloud agent
             var credentialRequest = FindContentMessage<CredentialRequestMessage>(_messages);
@@ -471,69 +477,72 @@ namespace AgentFramework.Core.Tests
                 await _credentialService.ProcessCredentialRequestAsync(_issuerWallet, credentialRequest, issuerConnection);
 
             // Issuer accepts the credential requests and issues a credential
-            await _credentialService.IssueCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId);
+            var credentialMessage = await _credentialService.IssueCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId);
+            _messages.Add(credentialMessage);
 
             //Try issue the credential again
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.IssueCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId));
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
 
-        [Fact]
-        public async Task IssueCredentialThrowsExceptionUnableToSendA2AMessage()
-        {
-            //Establish a connection between the two parties
-            var (issuerConnection, holderConnection) = await Scenarios.EstablishConnectionAsync(
-                _connectionService, _messages, _issuerWallet, _holderWallet);
+        //[Fact]
+        //public async Task IssueCredentialThrowsExceptionUnableToSendA2AMessage()
+        //{
+        //    //Establish a connection between the two parties
+        //    var (issuerConnection, holderConnection) = await Scenarios.EstablishConnectionAsync(
+        //        _connectionService, _messages, _issuerWallet, _holderWallet);
 
-            // Create an issuer DID/VK. Can also be created during provisioning
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
-                new { seed = "000000000000000000000000Steward1" }.ToJson());
+        //    // Create an issuer DID/VK. Can also be created during provisioning
+        //    var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
+        //        new { seed = "000000000000000000000000Steward1" }.ToJson());
 
-            // Creata a schema and credential definition for this issuer
-            (var definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
-                new[] { "dummy_attr" });
+        //    // Create a schema and credential definition for this issuer
+        //    var (definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
+        //        new[] { "dummy_attr" });
 
-            var offerConfig = new OfferConfiguration()
-            {
-                IssuerDid = issuer.Did,
-                CredentialDefinitionId = definitionId
-            };
+        //    var offerConfig = new OfferConfiguration
+        //    {
+        //        IssuerDid = issuer.Did,
+        //        CredentialDefinitionId = definitionId
+        //    };
 
-            // Send an offer to the holder using the established connection channel
-            await _credentialService.SendOfferAsync(_issuerWallet, issuerConnection.Id, offerConfig);
+        //    // Send an offer to the holder using the established connection channel
+        //    var (offer, _) = await _credentialService.CreateOfferAsync(_issuerWallet, offerConfig, issuerConnection.Id);
+        //    _messages.Add(offer);
 
-            // Holder retrives message from their cloud agent
-            var credentialOffer = FindContentMessage<CredentialOfferMessage>(_messages);
+        //    // Holder retrieves message from their cloud agent
+        //    var credentialOffer = FindContentMessage<CredentialOfferMessage>(_messages);
 
-            // Holder processes the credential offer by storing it
-            var holderCredentialId =
-                await _credentialService.ProcessOfferAsync(_holderWallet, credentialOffer, holderConnection);
+        //    // Holder processes the credential offer by storing it
+        //    var holderCredentialId =
+        //        await _credentialService.ProcessOfferAsync(_holderWallet, credentialOffer, holderConnection);
 
-            // Holder creates master secret. Will also be created during wallet agent provisioning
-            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
+        //    // Holder creates master secret. Will also be created during wallet agent provisioning
+        //    await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
 
-            // Holder accepts the credential offer and sends a credential request
-            await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
-                new Dictionary<string, string>
-                {
-                    {"dummy_attr", "dummyVal"}
-                });
+        //    // Holder accepts the credential offer and sends a credential request
+        //    var request = await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
+        //        new Dictionary<string, string>
+        //        {
+        //            {"dummy_attr", "dummyVal"}
+        //        });
+        //    _messages.Add(request);
 
-            // Issuer retrieves credential request from cloud agent
-            var credentialRequest = FindContentMessage<CredentialRequestMessage>(_messages);
-            Assert.NotNull(credentialRequest);
+        //    // Issuer retrieves credential request from cloud agent
+        //    var credentialRequest = FindContentMessage<CredentialRequestMessage>(_messages);
+        //    Assert.NotNull(credentialRequest);
 
-            // Issuer processes the credential request by storing it
-            var issuerCredentialId =
-                await _credentialService.ProcessCredentialRequestAsync(_issuerWallet, credentialRequest, issuerConnection);
+        //    // Issuer processes the credential request by storing it
+        //    var issuerCredentialId =
+        //        await _credentialService.ProcessCredentialRequestAsync(_issuerWallet, credentialRequest, issuerConnection);
 
-            //Try issue the credential with a credential service that has a bad routing service
+        //    //Try issue the credential with a credential service that has a bad routing service
 
-            _routeMessage = false;
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.IssueCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId));
-            Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionError);
-            _routeMessage = true;
-        }
+        //    _routeMessage = false;
+        //    var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.IssueCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId));
+        //    Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionError);
+        //    _routeMessage = true;
+        //}
         
         [Fact]
         public async Task RejectOfferAsyncThrowsExceptionCredentialOfferNotFound()
@@ -543,7 +552,7 @@ namespace AgentFramework.Core.Tests
         }
 
         [Fact]
-        public async Task RejectOfferAsyncThrowsExeceptionCredentialOfferInvalidState()
+        public async Task RejectOfferAsyncThrowsExceptionCredentialOfferInvalidState()
         {
             //Establish a connection between the two parties
             var (issuerConnection, holderConnection) = await Scenarios.EstablishConnectionAsync(
@@ -553,20 +562,21 @@ namespace AgentFramework.Core.Tests
             var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
-            // Creata a schema and credential definition for this issuer
-            (var definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
+            // Create a schema and credential definition for this issuer
+            var (definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
                 new[] { "dummy_attr" });
 
-            var offerConfig = new OfferConfiguration()
+            var offerConfig = new OfferConfiguration
             {
                 IssuerDid = issuer.Did,
                 CredentialDefinitionId = definitionId
             };
 
             // Send an offer to the holder using the established connection channel
-            await _credentialService.SendOfferAsync(_issuerWallet, issuerConnection.Id, offerConfig);
+            var (offer, _) = await _credentialService.CreateOfferAsync(_issuerWallet, offerConfig, issuerConnection.Id);
+            _messages.Add(offer);
 
-            // Holder retrives message from their cloud agent
+            // Holder retrieves message from their cloud agent
             var credentialOffer = FindContentMessage<CredentialOfferMessage>(_messages);
 
             // Holder processes the credential offer by storing it

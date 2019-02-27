@@ -126,7 +126,7 @@ namespace AgentFramework.Core.Runtime
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
 
-            (var msg, var id) = await CreateProofRequestAsync(agentContext, connectionId, proofRequestJson);
+            var (msg, id) = await CreateProofRequestAsync(agentContext, connectionId, proofRequestJson);
 
             try
             {

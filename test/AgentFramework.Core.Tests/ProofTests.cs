@@ -62,7 +62,7 @@ namespace AgentFramework.Core.Tests
             var provisionMock = new Mock<IProvisioningService>();
             provisionMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(
-                    Task.FromResult<ProvisioningRecord>(new ProvisioningRecord() {MasterSecretId = MasterSecretId}));
+                    Task.FromResult<ProvisioningRecord>(new ProvisioningRecord {MasterSecretId = MasterSecretId}));
 
             var routingMock = new Mock<IMessageService>();
             routingMock.Setup(x =>
@@ -177,7 +177,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CredentialProofDemo()
         {
-            int events = 0;
+            var events = 0;
             _eventAggregator.GetEventByType<ServiceMessageProcessingEvent>()
                 .Where(_ => (_.MessageType == MessageTypes.ProofRequest ||
                              _.MessageType == MessageTypes.DisclosedProof))
@@ -306,7 +306,7 @@ namespace AgentFramework.Core.Tests
             var connectionId = Guid.NewGuid().ToString();
 
             await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new InviteConfiguration() { ConnectionId = connectionId });
+                new InviteConfiguration { ConnectionId = connectionId });
 
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.SendProofRequestAsync(_issuerWallet, connectionId, new ProofRequest
             {
@@ -373,7 +373,7 @@ namespace AgentFramework.Core.Tests
             var connectionId = Guid.NewGuid().ToString();
 
             await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new InviteConfiguration() { ConnectionId = connectionId });
+                new InviteConfiguration { ConnectionId = connectionId });
 
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofRequestAsync(_issuerWallet, connectionId, new ProofRequest
             {

@@ -153,9 +153,9 @@ namespace AgentFramework.Core.Tests
         {
             var slim = new SemaphoreSlim(0, 1);
 
-            var config1 = new WalletConfiguration() { Id = Guid.NewGuid().ToString() };
-            var config2 = new WalletConfiguration() { Id = Guid.NewGuid().ToString() };
-            var cred = new WalletCredentials() { Key = "2" };
+            var config1 = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
+            var config2 = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
+            var cred = new WalletCredentials { Key = "2" };
 
             MockAgent agent1 = null;
             MockAgent agent2 = null;
@@ -241,7 +241,7 @@ namespace AgentFramework.Core.Tests
             var connectionId = Guid.NewGuid().ToString();
 
             await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new InviteConfiguration() {ConnectionId = connectionId});
+                new InviteConfiguration {ConnectionId = connectionId});
 
             var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
 
@@ -256,7 +256,7 @@ namespace AgentFramework.Core.Tests
             var connectionId = Guid.NewGuid().ToString();
 
             await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new InviteConfiguration() { ConnectionId = connectionId, MultiPartyInvitation = true });
+                new InviteConfiguration { ConnectionId = connectionId, MultiPartyInvitation = true });
 
             var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
 
@@ -287,10 +287,10 @@ namespace AgentFramework.Core.Tests
             await _connectionService.ProcessRequestAsync(_issuerWallet, new ConnectionRequestMessage
             {
                 Connection = new Connection {
-                    Did = "did:sov:EYS94e95kf6LXF49eARL76",
+                    Did = "EYS94e95kf6LXF49eARL76",
                     DidDoc = new ConnectionRecord
                     {
-                        MyVk = "~LGkX716up2KAimNfz11HRr"
+                        MyVk = "6vyxuqpe3UBcTmhF3Wmmye2UVroa51Lcd9smQKFB5QX1"
                     }.MyDidDoc(await _provisioningMock.Object.GetProvisioningAsync(_issuerWallet.Wallet))
                 }
             });
@@ -325,10 +325,10 @@ namespace AgentFramework.Core.Tests
             await _connectionService.ProcessRequestAsync(_issuerWallet, new ConnectionRequestMessage
             {
                 Connection = new Connection { 
-                    Did = "did:sov:EYS94e95kf6LXF49eARL76",
+                    Did = "EYS94e95kf6LXF49eARL76",
                     DidDoc = new ConnectionRecord
                     {
-                        MyVk = "~LGkX716up2KAimNfz11HRr"
+                        MyVk = "6vyxuqpe3UBcTmhF3Wmmye2UVroa51Lcd9smQKFB5QX1"
                     }.MyDidDoc(await _provisioningMock.Object.GetProvisioningAsync(_issuerWallet.Wallet))
                 }
             });
@@ -348,7 +348,7 @@ namespace AgentFramework.Core.Tests
             var connectionId = Guid.NewGuid().ToString();
 
             await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new InviteConfiguration() { ConnectionId = connectionId });
+                new InviteConfiguration { ConnectionId = connectionId });
 
             var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
 
@@ -365,7 +365,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CanEstablishConnectionAsync()
         {
-            int events = 0;
+            var events = 0;
             _eventAggregator.GetEventByType<ServiceMessageProcessingEvent>()
                 .Where(_ => (_.MessageType == MessageTypes.ConnectionRequest ||
                              _.MessageType == MessageTypes.ConnectionResponse))
@@ -399,6 +399,8 @@ namespace AgentFramework.Core.Tests
             var (connectionIssuer, connectionHolderOne) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _issuerWallet, _holderWallet, invite, invite.Connection.Id);
 
+            _messages.Clear();
+
             var (connectionIssuerTwo, connectionHolderTwo) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _issuerWallet, _holderWalletTwo, invite, invite.Connection.Id);
 
@@ -418,16 +420,16 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(connectionIssuerTwo.Endpoint.Uri, MockEndpointUri);
         }
 
-        [Fact]
-        public async Task Test()
-        {
-            string connectionRequestJson =
-                "{\n  \"@type\": \"did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/request\",\n  \"label\": \"test\",\n  \"connection\": {\n    \"DID\": \"DKF8gGMQoUrj1rDVPVfFBW\",\n    \"DIDDoc\": {\n      \"@context\": \"https://w3id.org/did/v1\",\n      \"id\": \"DKF8gGMQoUrj1rDVPVfFBW\",\n      \"publicKey\": [\n        {\n          \"id\": \"DKF8gGMQoUrj1rDVPVfFBW#keys-1\",\n          \"type\": \"Ed25519VerificationKey2018\",\n          \"controller\": \"DKF8gGMQoUrj1rDVPVfFBW\",\n          \"publicKeyBase58\": \"7iHeiEP6QU56oe6nGcSsVhvYPLJoNKaX6Dc727GM1UxB\"\n        }\n      ],\n      \"service\": [\n        {\n          \"id\": \"DKF8gGMQoUrj1rDVPVfFBW;indy\",\n          \"type\": \"IndyAgent\",\n          \"recipientKeys\": [\n            \"7iHeiEP6QU56oe6nGcSsVhvYPLJoNKaX6Dc727GM1UxB\"\n          ],\n          \"serviceEndpoint\": \"http://localhost:9000/indy\"\n        }\n      ]\n    }\n  },\n  \"@id\": \"3ec57100-6e44-4923-94ca-6f6aabe01439\"\n}";
+        //[Fact]
+        //public async Task Test()
+        //{
+        //    var connectionRequestJson =
+        //        "{\n  \"@type\": \"did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/request\",\n  \"label\": \"test\",\n  \"connection\": {\n    \"DID\": \"DKF8gGMQoUrj1rDVPVfFBW\",\n    \"DIDDoc\": {\n      \"@context\": \"https://w3id.org/did/v1\",\n      \"id\": \"DKF8gGMQoUrj1rDVPVfFBW\",\n      \"publicKey\": [\n        {\n          \"id\": \"DKF8gGMQoUrj1rDVPVfFBW#keys-1\",\n          \"type\": \"Ed25519VerificationKey2018\",\n          \"controller\": \"DKF8gGMQoUrj1rDVPVfFBW\",\n          \"publicKeyBase58\": \"7iHeiEP6QU56oe6nGcSsVhvYPLJoNKaX6Dc727GM1UxB\"\n        }\n      ],\n      \"service\": [\n        {\n          \"id\": \"DKF8gGMQoUrj1rDVPVfFBW;indy\",\n          \"type\": \"IndyAgent\",\n          \"recipientKeys\": [\n            \"7iHeiEP6QU56oe6nGcSsVhvYPLJoNKaX6Dc727GM1UxB\"\n          ],\n          \"serviceEndpoint\": \"http://localhost:9000/indy\"\n        }\n      ]\n    }\n  },\n  \"@id\": \"3ec57100-6e44-4923-94ca-6f6aabe01439\"\n}";
 
-            var connectionRequest = JsonConvert.DeserializeObject<ConnectionRequestMessage>(connectionRequestJson);
+        //    var connectionRequest = JsonConvert.DeserializeObject<ConnectionRequestMessage>(connectionRequestJson);
 
-            await _connectionService.ProcessRequestAsync(_issuerWallet, connectionRequest);
-        }
+        //    await _connectionService.ProcessRequestAsync(_issuerWallet, connectionRequest);
+        //}
 
         public async Task DisposeAsync()
         {

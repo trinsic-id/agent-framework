@@ -10,7 +10,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CanDeserializeDidDoc()
         {
-            string jsonDidDoc = "{\r\n    " +
+            var jsonDidDoc = "{\r\n    " +
                                 "   \"@context\": \"https://w3id.org/did/v1\",\r\n    " +
                                 "   \"publicKey\": [\r\n      " +
                                 "   {\r\n        " +

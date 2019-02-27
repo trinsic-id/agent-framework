@@ -31,15 +31,15 @@ namespace AgentFramework.Core.Tests
             // Create invitation by the issuer
             var connectionSecondId = Guid.NewGuid().ToString();
 
-            var inviteConfig = new InviteConfiguration()
+            var inviteConfig = new InviteConfiguration
             {
                 ConnectionId = connectionSecondId,
-                MyAlias = new ConnectionAlias()
+                MyAlias = new ConnectionAlias
                 {
                     Name = "Issuer",
                     ImageUrl = "www.issuerdomain.com/profilephoto"
                 },
-                TheirAlias = new ConnectionAlias()
+                TheirAlias = new ConnectionAlias
                 {
                     Name = "Holder",
                     ImageUrl = "www.holderdomain.com/profilephoto"
@@ -110,8 +110,9 @@ namespace AgentFramework.Core.Tests
             var issuer = await Did.CreateAndStoreMyDidAsync(issuerContext.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
-            // Creata a schema and credential definition for this issuer
-            (string definitionId, _) = await CreateDummySchemaAndNonRevokableCredDef(issuerContext, schemaService, issuer.Did, new[] { "first_name", "last_name" });
+            // Create a schema and credential definition for this issuer
+            var (definitionId, _) = await CreateDummySchemaAndNonRevokableCredDef(issuerContext, schemaService,
+                issuer.Did, new[] {"first_name", "last_name"});
             
             var offerConfig = offerConfiguration ?? new OfferConfiguration
             {
@@ -120,9 +121,10 @@ namespace AgentFramework.Core.Tests
             };
             
             // Send an offer to the holder using the established connection channel
-            await credentialService.SendOfferAsync(issuerContext, issuerConnection.Id, offerConfig);
+            var (offerMessage, _) = await credentialService.CreateOfferAsync(issuerContext, offerConfig, issuerConnection.Id);
+            messages.TryAdd(offerMessage);
 
-            // Holder retrives message from their cloud agent
+            // Holder retrieves message from their cloud agent
             var credentialOffer = FindContentMessage<CredentialOfferMessage>(messages);
 
             // Holder processes the credential offer by storing it
@@ -133,12 +135,13 @@ namespace AgentFramework.Core.Tests
             await AnonCreds.ProverCreateMasterSecretAsync(holderContext.Wallet, proverMasterSecretId);
 
             // Holder accepts the credential offer and sends a credential request
-            await credentialService.AcceptOfferAsync(holderContext, holderCredentialId,
+            var request = await credentialService.AcceptOfferAsync(holderContext, holderCredentialId,
                 new Dictionary<string, string>
                 {
                     {"first_name", "Jane"},
                     {"last_name", "Doe"}
                 });
+            messages.TryAdd(request);
 
             // Issuer retrieves credential request from cloud agent
             var credentialRequest = FindContentMessage<CredentialRequestMessage>(messages);
@@ -149,7 +152,8 @@ namespace AgentFramework.Core.Tests
                 await credentialService.ProcessCredentialRequestAsync(issuerContext, credentialRequest, issuerConnection);
 
             // Issuer accepts the credential requests and issues a credential
-            await credentialService.IssueCredentialAsync(issuerContext, issuer.Did, issuerCredentialId);
+            var credentialMessage = await credentialService.IssueCredentialAsync(issuerContext, issuer.Did, issuerCredentialId);
+            messages.TryAdd(credentialMessage);
 
             // Holder retrieves the credential from their cloud agent
             var credential = FindContentMessage<CredentialMessage>(messages);
@@ -167,7 +171,7 @@ namespace AgentFramework.Core.Tests
 
         internal static async Task<(string,string)> CreateDummySchemaAndNonRevokableCredDef(IAgentContext context, ISchemaService schemaService, string issuerDid, string[] attributeValues)
         {
-            // Creata a schema and credential definition for this issuer
+            // Create a schema and credential definition for this issuer
             var schemaId = await schemaService.CreateSchemaAsync(context.Pool, context.Wallet, issuerDid,
                 $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", attributeValues);
             return (await schemaService.CreateCredentialDefinitionAsync(context.Pool, context.Wallet, schemaId,  issuerDid, "Tag", false, 100, new Uri("http://mock/tails")), schemaId);

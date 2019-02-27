@@ -19,20 +19,20 @@ namespace AgentFramework.Core.Contracts
         /// <param name="agentContext">Agent Context.</param>
         /// <param name="credentialId">The credential identifier.</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
-        /// <returns>The stored credental record</returns>
+        /// <returns>The stored credential record</returns>
         Task<CredentialRecord> GetAsync(IAgentContext agentContext, string credentialId);
 
         /// <summary>
-        /// Retreives a list of <see cref="CredentialRecord"/> items for the given search criteria.
+        /// Retrieves a list of <see cref="CredentialRecord"/> items for the given search criteria.
         /// </summary>
         /// <param name="agentContext">Agent Context.</param>
         /// <param name="query">The query.</param>
         /// <param name="count">The number of items to return</param>
-        /// <returns>A list of credential records matchinc the search criteria</returns>
+        /// <returns>A list of credential records matching the search criteria</returns>
         Task<List<CredentialRecord>> ListAsync(IAgentContext agentContext, ISearchQuery query = null, int count = 100);
 
         /// <summary>
-        /// Process the offer and stores in the desinated wallet asynchronous.
+        /// Process the offer and stores in the designated wallet asynchronous.
         /// </summary>
         /// <param name="agentContext">Agent Context.</param>
         /// <param name="credentialOffer">The credential offer.</param>
@@ -50,7 +50,7 @@ namespace AgentFramework.Core.Contracts
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
         /// <returns>The response async.</returns>
-        Task AcceptOfferAsync(IAgentContext agentContext, string credentialId, Dictionary<string, string> attributeValues = null);
+        Task<CredentialRequestMessage> AcceptOfferAsync(IAgentContext agentContext, string credentialId, Dictionary<string, string> attributeValues = null);
 
         /// <summary>
         /// Rejects a credential offer asynchronous.
@@ -80,9 +80,9 @@ namespace AgentFramework.Core.Contracts
         /// <param name="config">A configuration object used to configure the resulting offers presentation.</param>
         /// <param name="connectionId">The connection id.</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
-        /// <returns>The offer message and the identifer. </returns>
-        Task<(CredentialOfferMessage, string)> CreateOfferAsync(IAgentContext agentContext, OfferConfiguration config,
-            string connectionId = null);
+        /// <returns>The offer message and the identifier. </returns>
+        Task<(CredentialOfferMessage message, CredentialRecord record)> CreateOfferAsync(
+            IAgentContext agentContext, OfferConfiguration config, string connectionId = null);
 
         /// <summary>
         /// Revokes a credential offer.
@@ -103,7 +103,7 @@ namespace AgentFramework.Core.Contracts
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
         /// <returns>The offer identifier.</returns>
-        Task<string> SendOfferAsync(IAgentContext agentContext, string connectionId, OfferConfiguration config);
+        //Task<string> SendOfferAsync(IAgentContext agentContext, string connectionId, OfferConfiguration config);
 
         /// <summary>
         /// Processes the credential request and stores in the designated wallet.
@@ -122,7 +122,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="issuerDid">The issuer did.</param>
         /// <param name="credentialId">The credential identifier.</param>
         /// <returns>The response async.</returns>
-        Task IssueCredentialAsync(IAgentContext agentContext, string issuerDid, string credentialId);
+        Task<CredentialMessage> IssueCredentialAsync(IAgentContext agentContext, string issuerDid, string credentialId);
 
         /// <summary>
         /// Creates and sends a credential with the given credential identifier. 
@@ -133,7 +133,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="credentialId">Credential identifier.</param>
         /// <param name="values">Values.</param>
         /// <returns>The response async.</returns>
-        Task IssueCredentialAsync(IAgentContext agentContext, string issuerDid, string credentialId, Dictionary<string, string> values);
+        Task<CredentialMessage> IssueCredentialAsync(IAgentContext agentContext, string issuerDid, string credentialId, Dictionary<string, string> values);
 
         /// <summary>
         /// Rejects a credential request asynchronous.

@@ -10,7 +10,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public void CanFormatCredentialValues()
         {
-            Dictionary<string, string> attributeValues = new Dictionary<string, string>()
+            var attributeValues = new Dictionary<string, string>
             {
                 {"first_name", "Test"},
                 {"last_name", "holder"}
@@ -30,7 +30,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public void CanGetAttributes()
         {
-            Dictionary<string, string> expectedResult = new Dictionary<string, string>()
+            var expectedResult = new Dictionary<string, string>
             {
                 {"first_name", "Test"},
                 {"last_name", "holder"}

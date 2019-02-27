@@ -15,8 +15,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgentFramework.Core.Handler
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgentFramework.Core.Tests", "test\AgentFramework.Core.Tests\AgentFramework.Core.Tests.csproj", "{A8311790-E3EF-454D-84A7-920D0B48BFD3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentFramework.Crypto.Tests", "test\AgentFramework.Crypto.Tests\AgentFramework.Crypto.Tests.csproj", "{F63DB175-8DCA-4332-BDD8-FF3B56B8BF59}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,10 +37,6 @@ Global
 		{A8311790-E3EF-454D-84A7-920D0B48BFD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8311790-E3EF-454D-84A7-920D0B48BFD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8311790-E3EF-454D-84A7-920D0B48BFD3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F63DB175-8DCA-4332-BDD8-FF3B56B8BF59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F63DB175-8DCA-4332-BDD8-FF3B56B8BF59}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F63DB175-8DCA-4332-BDD8-FF3B56B8BF59}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F63DB175-8DCA-4332-BDD8-FF3B56B8BF59}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -52,7 +46,6 @@ Global
 		{2C868A14-7883-4BF5-9C6E-F37263ED7C4C} = {73FF6DBD-5847-4F2D-94BE-196AE9A80228}
 		{C22E8B65-CF5F-4DFD-9935-BFF43BE944DD} = {73FF6DBD-5847-4F2D-94BE-196AE9A80228}
 		{A8311790-E3EF-454D-84A7-920D0B48BFD3} = {02ADBA96-A50C-44F0-A9D9-FA0629AA2DF4}
-		{F63DB175-8DCA-4332-BDD8-FF3B56B8BF59} = {02ADBA96-A50C-44F0-A9D9-FA0629AA2DF4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4FFA80F9-ADC6-40DB-BBD1-A522B8A68560}

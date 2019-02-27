@@ -22,7 +22,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CanTransitionFromInvitedToNegotiatingWithRequest()
         {
-            var record = new ConnectionRecord() { State = ConnectionState.Invited };
+            var record = new ConnectionRecord { State = ConnectionState.Invited };
 
             Assert.True(ConnectionState.Invited == record.State);
 
@@ -34,7 +34,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CanTransitionFromNegotiatingToConnectedWithRespone()
         {
-            var record = new ConnectionRecord() { State = ConnectionState.Negotiating };
+            var record = new ConnectionRecord { State = ConnectionState.Negotiating };
 
             Assert.True(ConnectionState.Negotiating == record.State);
 

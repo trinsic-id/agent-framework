@@ -59,7 +59,7 @@ namespace AgentFramework.Core.Tests
                     ItExpr.IsAny<CancellationToken>()
                 )
                 // prepare the expected response of the mocked http call
-                .ReturnsAsync(new HttpResponseMessage()
+                .ReturnsAsync(new HttpResponseMessage
                 {
                     StatusCode = HttpStatusCode.OK,
                     Content = new StringContent(""),
@@ -151,7 +151,7 @@ namespace AgentFramework.Core.Tests
         public async Task PackAndUnpackAuth()
         {
 
-            var message = new ConnectionInvitationMessage() { RecipientKeys = new[] { "123" }}.ToByteArray();
+            var message = new ConnectionInvitationMessage { RecipientKeys = new[] { "123" }}.ToByteArray();
 
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
@@ -173,7 +173,7 @@ namespace AgentFramework.Core.Tests
         public async Task UnpackToCustomType()
         {
 
-            var message = new ConnectionInvitationMessage() {RecipientKeys = new [] { "123" }};
+            var message = new ConnectionInvitationMessage {RecipientKeys = new [] { "123" }};
 
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");

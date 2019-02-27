@@ -142,7 +142,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task AcceptOfferAsync(IAgentContext agentContext, string credentialId,
+        public virtual async Task<CredentialRequestMessage> AcceptOfferAsync(IAgentContext agentContext, string credentialId,
             Dictionary<string, string> attributeValues = null)
         {
             var credential = await GetAsync(agentContext, credentialId);
@@ -151,7 +151,7 @@ namespace AgentFramework.Core.Runtime
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Credential state was invalid. Expected '{CredentialState.Offered}', found '{credential.State}'");
 
-            var credentialCopy = credential.DeepCopy();
+            //var credentialCopy = credential.DeepCopy();
 
             var connection = await ConnectionService.GetAsync(agentContext, credential.ConnectionId);
             
@@ -167,22 +167,22 @@ namespace AgentFramework.Core.Runtime
             await credential.TriggerAsync(CredentialTrigger.Request);
             await RecordService.UpdateAsync(agentContext.Wallet, credential);
 
-            var msg = new CredentialRequestMessage
+            return new CredentialRequestMessage
             {
                 OfferJson = credential.OfferJson,
                 CredentialRequestJson = request.CredentialRequestJson,
                 CredentialValuesJson = CredentialUtils.FormatCredentialValues(attributeValues)
             };
 
-            try
-            {
-                await MessageService.SendAsync(agentContext.Wallet, msg, connection);
-            }
-            catch (Exception e)
-            {
-                await RecordService.UpdateAsync(agentContext.Wallet, credentialCopy);
-                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send credential request message", e);
-            }
+            //try
+            //{
+            //    await MessageService.SendAsync(agentContext.Wallet, msg, connection);
+            //}
+            //catch (Exception e)
+            //{
+            //    await RecordService.UpdateAsync(agentContext.Wallet, credentialCopy);
+            //    throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send credential request message", e);
+            //}
         }
 
         /// <inheritdoc />
@@ -256,7 +256,8 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<(CredentialOfferMessage,string)> CreateOfferAsync(IAgentContext agentContext, OfferConfiguration config, string connectionId = null)
+        public virtual async Task<(CredentialOfferMessage message, CredentialRecord record)> 
+            CreateOfferAsync(IAgentContext agentContext, OfferConfiguration config, string connectionId = null)
         {
             Logger.LogInformation(LoggingEvents.CreateCredentialOffer, "DefinitionId {0}, IssuerDid {1}",
                 config.CredentialDefinitionId, config.IssuerDid);
@@ -270,7 +271,8 @@ namespace AgentFramework.Core.Runtime
                         $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
             }
 
-            var offerJson = await AnonCreds.IssuerCreateCredentialOfferAsync(agentContext.Wallet, config.CredentialDefinitionId);
+            var offerJson =
+                await AnonCreds.IssuerCreateCredentialOfferAsync(agentContext.Wallet, config.CredentialDefinitionId);
             var nonce = JObject.Parse(offerJson)["nonce"].ToObject<string>();
 
             // Write offer record to local wallet
@@ -302,7 +304,7 @@ namespace AgentFramework.Core.Runtime
 
             await RecordService.AddAsync(agentContext.Wallet, credentialRecord);
 
-            return (new CredentialOfferMessage { OfferJson = offerJson }, credentialRecord.Id);
+            return (new CredentialOfferMessage {OfferJson = offerJson}, credentialRecord);
         }
 
         /// <inheritdoc />
@@ -317,32 +319,32 @@ namespace AgentFramework.Core.Runtime
             await RecordService.DeleteAsync<ConnectionRecord>(agentContext.Wallet, offerId);
         }
 
-        /// <inheritdoc />
-        public virtual async Task<string> SendOfferAsync(IAgentContext agentContext, string connectionId, OfferConfiguration config)
-        {
-            Logger.LogInformation(LoggingEvents.SendCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
-                config.CredentialDefinitionId, connectionId, config.IssuerDid);
+        ///// <inheritdoc />
+        //public virtual async Task<string> SendOfferAsync(IAgentContext agentContext, string connectionId, OfferConfiguration config)
+        //{
+        //    Logger.LogInformation(LoggingEvents.SendCredentialOffer, "DefinitionId {0}, ConnectionId {1}, IssuerDid {2}",
+        //        config.CredentialDefinitionId, connectionId, config.IssuerDid);
 
-            var connection = await ConnectionService.GetAsync(agentContext, connectionId);
+        //    var connection = await ConnectionService.GetAsync(agentContext, connectionId);
 
-            if (connection.State != ConnectionState.Connected)
-                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
-                    $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
+        //    if (connection.State != ConnectionState.Connected)
+        //        throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+        //            $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
 
-            (var offer, string id) = await CreateOfferAsync(agentContext, config);
+        //    (var offer, string id) = await CreateOfferAsync(agentContext, config);
 
-            try
-            {
-                await MessageService.SendAsync(agentContext.Wallet, offer, connection);
-            }
-            catch (Exception e)
-            {
-                await RecordService.DeleteAsync<CredentialRecord>(agentContext.Wallet, id);
-                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send credential offer message", e);
-            }
+        //    try
+        //    {
+        //        await MessageService.SendAsync(agentContext.Wallet, offer, connection);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        await RecordService.DeleteAsync<CredentialRecord>(agentContext.Wallet, id);
+        //        throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send credential offer message", e);
+        //    }
 
-            return id;
-        }
+        //    return id;
+        //}
 
         /// <inheritdoc />
         public virtual async Task<string> ProcessCredentialRequestAsync(IAgentContext agentContext, CredentialRequestMessage credentialRequest, ConnectionRecord connection)
@@ -412,13 +414,13 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual Task IssueCredentialAsync(IAgentContext agentContext, string issuerDid, string credentialId)
+        public virtual Task<CredentialMessage> IssueCredentialAsync(IAgentContext agentContext, string issuerDid, string credentialId)
         {
             return IssueCredentialAsync(agentContext, issuerDid, credentialId, null);
         }
 
         /// <inheritdoc />
-        public virtual async Task IssueCredentialAsync(IAgentContext agentContext, string issuerDid, string credentialId,
+        public virtual async Task<CredentialMessage> IssueCredentialAsync(IAgentContext agentContext, string issuerDid, string credentialId,
            Dictionary<string, string> values)
         {
             var credential = await GetAsync(agentContext, credentialId);
@@ -427,7 +429,7 @@ namespace AgentFramework.Core.Runtime
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Credential state was invalid. Expected '{CredentialState.Requested}', found '{credential.State}'");
 
-            var credentialCopy = credential.DeepCopy();
+            //var credentialCopy = credential.DeepCopy();
 
             if (values != null && values.Count > 0)
                 credential.ValuesJson = CredentialUtils.FormatCredentialValues(values);
@@ -465,24 +467,23 @@ namespace AgentFramework.Core.Runtime
                 credential.CredentialRevocationId = issuedCredential.RevocId;
             }
 
-            var msg = new CredentialMessage
+            await credential.TriggerAsync(CredentialTrigger.Issue);
+            await RecordService.UpdateAsync(agentContext.Wallet, credential);
+
+            return new CredentialMessage
             {
                 CredentialJson = issuedCredential.CredentialJson,
                 RevocationRegistryId = revocationRegistryId
             };
-
-            await credential.TriggerAsync(CredentialTrigger.Issue);
-            await RecordService.UpdateAsync(agentContext.Wallet, credential);
-
-            try
-            {
-                await MessageService.SendAsync(agentContext.Wallet, msg, connection);
-            }
-            catch (Exception e)
-            {
-                await RecordService.UpdateAsync(agentContext.Wallet, credentialCopy);
-                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send credential request message", e);
-            }
+            //try
+            //{
+            //    await MessageService.SendAsync(agentContext.Wallet, msg, connection);
+            //}
+            //catch (Exception e)
+            //{
+            //    await RecordService.UpdateAsync(agentContext.Wallet, credentialCopy);
+            //    throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send credential request message", e);
+            //}
         }
 
         /// <inheritdoc />
