@@ -32,10 +32,6 @@ namespace AgentFramework.Core.Runtime
         /// </summary>
         protected readonly IWalletRecordService RecordService;
         /// <summary>
-        /// The message service
-        /// </summary>
-        protected readonly IMessageService MessageService;
-        /// <summary>
         /// The provisioning service
         /// </summary>
         protected readonly IProvisioningService ProvisioningService;
@@ -55,12 +51,10 @@ namespace AgentFramework.Core.Runtime
         public DefaultConnectionService(
             IEventAggregator eventAggregator,
             IWalletRecordService recordService,
-            IMessageService messageService,
             IProvisioningService provisioningService,
             ILogger<DefaultConnectionService> logger)
         {
             EventAggregator = eventAggregator;
-            MessageService = messageService;
             ProvisioningService = provisioningService;
             Logger = logger;
             RecordService = recordService;

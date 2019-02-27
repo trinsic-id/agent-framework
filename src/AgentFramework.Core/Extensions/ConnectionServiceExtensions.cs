@@ -85,9 +85,9 @@ namespace AgentFramework.Core.Extensions
                 throw new ArgumentNullException(nameof(agentContext));
 
             var record = (await connectionService.ListAsync(agentContext,
-                             SearchQuery.Equal(nameof(ConnectionRecord.MyVk), myKey), 1)).FirstOrDefault()
+                             SearchQuery.Equal(nameof(ConnectionRecord.MyVk), myKey), 5)).SingleOrDefault()
                          ?? (await connectionService.ListAsync(agentContext,
-                             SearchQuery.Equal(TagConstants.ConnectionKey, myKey), 1)).FirstOrDefault();
+                             SearchQuery.Equal(TagConstants.ConnectionKey, myKey), 5)).SingleOrDefault();
             
             if (record == null)
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound, $"Connection Record not found for key {myKey}");

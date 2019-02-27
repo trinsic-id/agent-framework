@@ -109,7 +109,6 @@ namespace AgentFramework.Core.Tests
             _connectionService = new DefaultConnectionService(
                 _eventAggregator,
                 new DefaultWalletRecordService(),
-                routingMock.Object,
                 _provisioningMock.Object,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
         }

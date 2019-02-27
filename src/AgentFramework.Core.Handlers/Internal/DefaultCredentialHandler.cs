@@ -10,10 +10,17 @@ namespace AgentFramework.Core.Handlers.Internal
     internal class DefaultCredentialHandler : IMessageHandler
     {
         private readonly ICredentialService _credentialService;
+        private readonly IMessageService _messageService;
 
-        public DefaultCredentialHandler(ICredentialService credentialService)
+        /// <summary>Initializes a new instance of the <see cref="DefaultCredentialHandler"/> class.</summary>
+        /// <param name="credentialService">The credential service.</param>
+        /// <param name="messageService">The message service.</param>
+        public DefaultCredentialHandler(
+            ICredentialService credentialService,
+            IMessageService messageService)
         {
             _credentialService = credentialService;
+            _messageService = messageService;
         }
 
         /// <summary>
@@ -41,23 +48,32 @@ namespace AgentFramework.Core.Handlers.Internal
             switch (messagePayload.GetMessageType())
             {
                 case MessageTypes.CredentialOffer:
+                {
                     var offer = messagePayload.GetMessage<CredentialOfferMessage>();
                     var credentialId = await _credentialService.ProcessOfferAsync(
                         agentContext, offer, agentContext.Connection);
-                    await _credentialService.AcceptOfferAsync(agentContext, credentialId);
+
+                    var request = await _credentialService.AcceptOfferAsync(agentContext, credentialId);
+                    await _messageService.SendAsync(agentContext.Wallet, request, agentContext.Connection);
                     return;
+                }
 
                 case MessageTypes.CredentialRequest:
+                {
                     var request = messagePayload.GetMessage<CredentialRequestMessage>();
+
                     await _credentialService.ProcessCredentialRequestAsync(
                         agentContext, request, agentContext.Connection);
                     return;
+                }
 
                 case MessageTypes.Credential:
+                {
                     var credential = messagePayload.GetMessage<CredentialMessage>();
                     await _credentialService.ProcessCredentialAsync(
                         agentContext, credential, agentContext.Connection);
                     return;
+                }
                 default:
                     throw new AgentFrameworkException(ErrorCode.InvalidMessage,
                         $"Unsupported message type {messagePayload.GetMessageType()}");

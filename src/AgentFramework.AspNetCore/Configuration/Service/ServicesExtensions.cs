@@ -1,6 +1,7 @@
 ﻿using System;
 using AgentFramework.AspNetCore.Middleware;
 using AgentFramework.AspNetCore.Options;
+using AgentFramework.Core.Handlers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +30,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             Action<AgentConfigurationBuilder> agentConfiguration = null)
         {
             RegisterCoreServices(services);
+            services.AddDefaultMessageHandlers();
 
             var serviceBuilder = new AgentConfigurationBuilder(services);
             agentConfiguration?.Invoke(serviceBuilder);

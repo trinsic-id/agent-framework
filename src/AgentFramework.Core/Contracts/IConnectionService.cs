@@ -93,7 +93,7 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="agentContext">Agent Context.</param>
         /// <param name="connectionId">Connection Identifier.</param>
-        /// <returns>The response async with a boolean indicating if deletion occured sucessfully</returns>
+        /// <returns>The response async with a boolean indicating if deletion occured successfully</returns>
         Task<bool> DeleteAsync(IAgentContext agentContext, string connectionId);
     }
 }

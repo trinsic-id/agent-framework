@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
@@ -12,16 +12,20 @@ namespace AgentFramework.Core.Handlers.Internal
     internal class DefaultConnectionHandler : IMessageHandler
     {
         private readonly IConnectionService _connectionService;
+        private readonly IMessageService _messageService;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultConnectionHandler"/> class.
-        /// </summary>
+        /// <summary>Initializes a new instance of the <see cref="DefaultConnectionHandler"/> class.</summary>
         /// <param name="connectionService">The connection service.</param>
-        public DefaultConnectionHandler(IConnectionService connectionService)
+        /// <param name="messageService">The message service.</param>
+        public DefaultConnectionHandler(
+            IConnectionService connectionService,
+            IMessageService messageService)
         {
             _connectionService = connectionService;
+            _messageService = messageService;
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Gets the supported message types.
         /// </summary>
@@ -52,27 +56,25 @@ namespace AgentFramework.Core.Handlers.Internal
                     return;
 
                 case MessageTypes.ConnectionRequest:
+                {
                     var request = messagePayload.GetMessage<ConnectionRequestMessage>();
                     var connectionId = await _connectionService.ProcessRequestAsync(agentContext, request);
                     // Auto accept connection if set during invitation
                     if (agentContext.Connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
                     {
-                        // Add a response message to be processed by the handler pipeline
-                        if (agentContext is AgentContext context)
-                            context.AddNext(new OutgoingMessage 
-                                {
-                                    OutboundMessage = (await _connectionService.AcceptRequestAsync(agentContext, connectionId)).ToJson(),
-                                    InboundMessage = messagePayload.GetMessage<ConnectionRequestMessage>().ToJson()
-                                }.AsMessagePayload());
+                        var response = await _connectionService.AcceptRequestAsync(agentContext, connectionId);
+                        await _messageService.SendAsync(agentContext.Wallet, response, agentContext.Connection);
                     }
 
                     return;
+                }
 
                 case MessageTypes.ConnectionResponse:
+                {
                     var response = messagePayload.GetMessage<ConnectionResponseMessage>();
                     await _connectionService.ProcessResponseAsync(agentContext, response);
                     return;
-
+                }
                 default:
                     throw new AgentFrameworkException(ErrorCode.InvalidMessage,
                         $"Unsupported message type {messagePayload.GetMessageType()}");

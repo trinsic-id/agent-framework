@@ -26,10 +26,7 @@ namespace AgentFramework.Core.Runtime
         /// The event aggregator.
         /// </summary>
         protected readonly IEventAggregator EventAggregator;
-        /// <summary>
-        /// The message service
-        /// </summary>
-        protected readonly IMessageService MessageService;
+
         /// <summary>
         /// The ledger service
         /// </summary>
@@ -63,7 +60,6 @@ namespace AgentFramework.Core.Runtime
         /// Initializes a new instance of the <see cref="DefaultCredentialService"/> class.
         /// </summary>
         /// <param name="eventAggregator">The event aggregator.</param>
-        /// <param name="messageService">The message service.</param>
         /// <param name="ledgerService">The ledger service.</param>
         /// <param name="connectionService">The connection service.</param>
         /// <param name="recordService">The record service.</param>
@@ -73,7 +69,6 @@ namespace AgentFramework.Core.Runtime
         /// <param name="logger">The logger.</param>
         public DefaultCredentialService(
             IEventAggregator eventAggregator,
-            IMessageService messageService,
             ILedgerService ledgerService,
             IConnectionService connectionService,
             IWalletRecordService recordService,
@@ -83,7 +78,6 @@ namespace AgentFramework.Core.Runtime
             ILogger<DefaultCredentialService> logger)
         {
             EventAggregator = eventAggregator;
-            MessageService = messageService;
             LedgerService = ledgerService;
             ConnectionService = connectionService;
             RecordService = recordService;
@@ -256,7 +250,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<(CredentialOfferMessage message, CredentialRecord record)> 
+        public virtual async Task<(CredentialOfferMessage, CredentialRecord)> 
             CreateOfferAsync(IAgentContext agentContext, OfferConfiguration config, string connectionId = null)
         {
             Logger.LogInformation(LoggingEvents.CreateCredentialOffer, "DefinitionId {0}, IssuerDid {1}",

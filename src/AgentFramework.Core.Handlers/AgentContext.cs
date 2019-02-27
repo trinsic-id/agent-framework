@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Messages;
@@ -7,7 +6,7 @@ using AgentFramework.Core.Models.Records;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 
-namespace AgentFramework.Core.Handlers.Internal
+namespace AgentFramework.Core.Handlers
 {
     /// <summary>
     /// Agent context that represents the context of a current agent.

@@ -38,7 +38,8 @@ namespace AgentFramework.Core.Contracts
         /// <param name="credentialOffer">The credential offer.</param>
         /// <param name="connection">The connection.</param>
         /// <returns>The credential identifier of the stored credential record.</returns>
-        Task<string> ProcessOfferAsync(IAgentContext agentContext, CredentialOfferMessage credentialOffer, ConnectionRecord connection);
+        Task<string> ProcessOfferAsync(IAgentContext agentContext, CredentialOfferMessage credentialOffer,
+            ConnectionRecord connection);
 
         /// <summary>
         /// Accepts the offer asynchronous.
@@ -50,7 +51,8 @@ namespace AgentFramework.Core.Contracts
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
         /// <returns>The response async.</returns>
-        Task<CredentialRequestMessage> AcceptOfferAsync(IAgentContext agentContext, string credentialId, Dictionary<string, string> attributeValues = null);
+        Task<CredentialRequestMessage> AcceptOfferAsync(IAgentContext agentContext, string credentialId,
+            Dictionary<string, string> attributeValues = null);
 
         /// <summary>
         /// Rejects a credential offer asynchronous.
@@ -71,7 +73,8 @@ namespace AgentFramework.Core.Contracts
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
         /// <returns>The identifier for the credential record.</returns>
-        Task<string> ProcessCredentialAsync(IAgentContext agentContext, CredentialMessage credential, ConnectionRecord connection);
+        Task<string> ProcessCredentialAsync(IAgentContext agentContext, CredentialMessage credential,
+            ConnectionRecord connection);
 
         /// <summary>
         /// Create a new credential offer.
@@ -81,7 +84,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="connectionId">The connection id.</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <returns>The offer message and the identifier. </returns>
-        Task<(CredentialOfferMessage message, CredentialRecord record)> CreateOfferAsync(
+        Task<(CredentialOfferMessage, CredentialRecord)> CreateOfferAsync(
             IAgentContext agentContext, OfferConfiguration config, string connectionId = null);
 
         /// <summary>
@@ -94,15 +97,15 @@ namespace AgentFramework.Core.Contracts
         /// <returns>The response async.</returns>
         Task RevokeCredentialOfferAsync(IAgentContext agentContext, string offerId);
 
-        /// <summary>
-        /// Sends the offer asynchronous.
-        /// </summary>
-        /// <param name="agentContext">Agent Context.</param>
-        /// <param name="connectionId">The connection id.</param>
-        /// <param name="config">A configuration object used to configure the resulting offers presentation</param>
-        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
-        /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
-        /// <returns>The offer identifier.</returns>
+        ///// <summary>
+        ///// Sends the offer asynchronous.
+        ///// </summary>
+        ///// <param name="agentContext">Agent Context.</param>
+        ///// <param name="connectionId">The connection id.</param>
+        ///// <param name="config">A configuration object used to configure the resulting offers presentation</param>
+        ///// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
+        ///// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
+        ///// <returns>The offer identifier.</returns>
         //Task<string> SendOfferAsync(IAgentContext agentContext, string connectionId, OfferConfiguration config);
 
         /// <summary>
@@ -113,7 +116,8 @@ namespace AgentFramework.Core.Contracts
         /// <param name="connection">The connection.</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <returns>The credential identifier of the stored credential record.</returns>
-        Task<string> ProcessCredentialRequestAsync(IAgentContext agentContext, CredentialRequestMessage credentialRequest, ConnectionRecord connection);
+        Task<string> ProcessCredentialRequestAsync(IAgentContext agentContext,
+            CredentialRequestMessage credentialRequest, ConnectionRecord connection);
 
         /// <summary>
         /// Creates and sends a credential with the given credential identifier
@@ -133,7 +137,8 @@ namespace AgentFramework.Core.Contracts
         /// <param name="credentialId">Credential identifier.</param>
         /// <param name="values">Values.</param>
         /// <returns>The response async.</returns>
-        Task<CredentialMessage> IssueCredentialAsync(IAgentContext agentContext, string issuerDid, string credentialId, Dictionary<string, string> values);
+        Task<CredentialMessage> IssueCredentialAsync(IAgentContext agentContext, string issuerDid, string credentialId,
+            Dictionary<string, string> values);
 
         /// <summary>
         /// Rejects a credential request asynchronous.

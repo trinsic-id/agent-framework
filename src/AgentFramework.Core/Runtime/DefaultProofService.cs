@@ -31,30 +31,32 @@ namespace AgentFramework.Core.Runtime
         /// The event aggregator
         /// </summary>
         protected readonly IEventAggregator EventAggregator;
-        /// <summary>
-        /// The message service
-        /// </summary>
-        protected readonly IMessageService MessageService;
+
         /// <summary>
         /// The connection service
         /// </summary>
         protected readonly IConnectionService ConnectionService;
+
         /// <summary>
         /// The record service
         /// </summary>
         protected readonly IWalletRecordService RecordService;
+
         /// <summary>
         /// The provisioning service
         /// </summary>
         protected readonly IProvisioningService ProvisioningService;
+
         /// <summary>
         /// The ledger service
         /// </summary>
         protected readonly ILedgerService LedgerService;
+
         /// <summary>
         /// The logger
         /// </summary>
         protected readonly ILogger<DefaultProofService> Logger;
+
         /// <summary>
         /// The tails service
         /// </summary>
@@ -74,7 +76,6 @@ namespace AgentFramework.Core.Runtime
         public DefaultProofService(
             IEventAggregator eventAggregator,
             IConnectionService connectionService,
-            IMessageService messageService,
             IWalletRecordService recordService,
             IProvisioningService provisioningService,
             ILedgerService ledgerService,
@@ -84,63 +85,63 @@ namespace AgentFramework.Core.Runtime
             EventAggregator = eventAggregator;
             TailsService = tailsService;
             ConnectionService = connectionService;
-            MessageService = messageService;
             RecordService = recordService;
             ProvisioningService = provisioningService;
             LedgerService = ledgerService;
             Logger = logger;
         }
 
+        ///// <inheritdoc />
+        ////public virtual async Task SendProofRequestAsync(IAgentContext agentContext, string connectionId, ProofRequest proofRequest)
+        ////{
+        ////    Logger.LogInformation(LoggingEvents.SendProofRequest, "ConnectionId {0}", connectionId);
+
+        ////    var connection = await ConnectionService.GetAsync(agentContext, connectionId);
+
+        ////    if (connection.State != ConnectionState.Connected)
+        ////        throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+        ////            $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
+
+        ////    var (msg, id) = await CreateProofRequestAsync(agentContext, connectionId, proofRequest);
+
+        ////    try
+        ////    {
+        ////        await MessageService.SendAsync(agentContext.Wallet, msg, connection);
+        ////    }
+        ////    catch (Exception e)
+        ////    {
+        ////        await RecordService.DeleteAsync<ProofRecord>(agentContext.Wallet, id);
+        ////        throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send proof request message", e);
+        ////    }
+        ////}
+
+        ///// <inheritdoc />
+        //public virtual async Task SendProofRequestAsync(IAgentContext agentContext, string connectionId, string proofRequestJson)
+        //{
+        //    Logger.LogInformation(LoggingEvents.SendProofRequest, "ConnectionId {0}", connectionId);
+
+        //    var connection = await ConnectionService.GetAsync(agentContext, connectionId);
+
+        //    if (connection.State != ConnectionState.Connected)
+        //        throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+        //            $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
+
+        //    var (msg, id) = await CreateProofRequestAsync(agentContext, connectionId, proofRequestJson);
+
+        //    try
+        //    {
+        //        await MessageService.SendAsync(agentContext.Wallet, msg, connection);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        await RecordService.DeleteAsync<ProofRecord>(agentContext.Wallet, id);
+        //        throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send proof request message", e);
+        //    }
+        //}
+
         /// <inheritdoc />
-        public virtual async Task SendProofRequestAsync(IAgentContext agentContext, string connectionId, ProofRequest proofRequest)
-        {
-            Logger.LogInformation(LoggingEvents.SendProofRequest, "ConnectionId {0}", connectionId);
-
-            var connection = await ConnectionService.GetAsync(agentContext, connectionId);
-
-            if (connection.State != ConnectionState.Connected)
-                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
-                    $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
-
-            var (msg, id) = await CreateProofRequestAsync(agentContext, connectionId, proofRequest);
-
-            try
-            {
-                await MessageService.SendAsync(agentContext.Wallet, msg, connection);
-            }
-            catch (Exception e)
-            {
-                await RecordService.DeleteAsync<ProofRecord>(agentContext.Wallet, id);
-                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send proof request message", e);
-            }
-        }
-
-        /// <inheritdoc />
-        public virtual async Task SendProofRequestAsync(IAgentContext agentContext, string connectionId, string proofRequestJson)
-        {
-            Logger.LogInformation(LoggingEvents.SendProofRequest, "ConnectionId {0}", connectionId);
-
-            var connection = await ConnectionService.GetAsync(agentContext, connectionId);
-
-            if (connection.State != ConnectionState.Connected)
-                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
-                    $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
-
-            var (msg, id) = await CreateProofRequestAsync(agentContext, connectionId, proofRequestJson);
-
-            try
-            {
-                await MessageService.SendAsync(agentContext.Wallet, msg, connection);
-            }
-            catch (Exception e)
-            {
-                await RecordService.DeleteAsync<ProofRecord>(agentContext.Wallet, id);
-                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send proof request message", e);
-            }
-        }
-
-        /// <inheritdoc />
-        public virtual async Task<(ProofRequestMessage, string)> CreateProofRequestAsync(IAgentContext agentContext, string connectionId,
+        public virtual async Task<(ProofRequestMessage, ProofRecord)> CreateProofRequestAsync(
+            IAgentContext agentContext, string connectionId,
             ProofRequest proofRequest)
         {
             if (string.IsNullOrWhiteSpace(proofRequest.Nonce))
@@ -150,7 +151,8 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<(ProofRequestMessage, string)> CreateProofRequestAsync(IAgentContext agentContext, string connectionId,
+        public virtual async Task<(ProofRequestMessage, ProofRecord)> CreateProofRequestAsync(
+            IAgentContext agentContext, string connectionId,
             string proofRequestJson)
         {
             Logger.LogInformation(LoggingEvents.CreateProofRequest, "ConnectionId {0}", connectionId);
@@ -174,7 +176,7 @@ namespace AgentFramework.Core.Runtime
 
             await RecordService.AddAsync(agentContext.Wallet, proofRecord);
 
-            return (new ProofRequestMessage { ProofRequestJson = proofRequestJson }, proofRecord.Id);
+            return (new ProofRequestMessage {ProofRequestJson = proofRequestJson}, proofRecord);
         }
 
         /// <inheritdoc />
@@ -208,7 +210,8 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessProofRequestAsync(IAgentContext agentContext, ProofRequestMessage proofRequest)
+        public virtual async Task<string> ProcessProofRequestAsync(IAgentContext agentContext,
+            ProofRequestMessage proofRequest)
         {
             var requestJson = proofRequest.ProofRequestJson;
 
@@ -287,7 +290,8 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<ProofMessage> AcceptProofRequestAsync(IAgentContext agentContext, string proofRequestId,
+        public virtual async Task<ProofMessage> AcceptProofRequestAsync(IAgentContext agentContext,
+            string proofRequestId,
             RequestedCredentials requestedCredentials)
         {
             var request = await GetAsync(agentContext, proofRequestId);
@@ -356,8 +360,8 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual Task<List<ProofRecord>> ListAsync(IAgentContext agentContext, ISearchQuery query = null, int count = 100) =>
-            RecordService.SearchAsync<ProofRecord>(agentContext.Wallet, query, null, count);
+        public virtual Task<List<ProofRecord>> ListAsync(IAgentContext agentContext, ISearchQuery query = null,
+            int count = 100) => RecordService.SearchAsync<ProofRecord>(agentContext.Wallet, query, null, count);
 
         /// <inheritdoc />
         public virtual async Task<ProofRecord> GetAsync(IAgentContext agentContext, string proofRecId)
@@ -371,7 +375,7 @@ namespace AgentFramework.Core.Runtime
 
             return record;
         }
-        
+
         /// <inheritdoc />
         public virtual async Task<List<Credential>> ListCredentialsForProofRequestAsync(IAgentContext agentContext,
             ProofRequest proofRequest, string attributeReferent)
@@ -385,6 +389,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         #region Private Methods
+
         private async Task<string> BuildSchemasAsync(Pool pool, IEnumerable<string> schemaIds)
         {
             var result = new Dictionary<string, JObject>();
@@ -448,7 +453,7 @@ namespace AgentFramework.Core.Runtime
                 var tailsReader = await TailsService.OpenTailsAsync(tailsfile);
 
                 var state = await AnonCreds.CreateRevocationStateAsync(tailsReader, registryDefinition.ObjectJson,
-                    delta.ObjectJson, (long)delta.Timestamp, credential.CredentialRevocationId);
+                    delta.ObjectJson, (long) delta.Timestamp, credential.CredentialRevocationId);
 
                 if (!result.ContainsKey(credential.RevocationRegistryId))
                     result.Add(credential.RevocationRegistryId, new Dictionary<string, JObject>());
@@ -498,6 +503,7 @@ namespace AgentFramework.Core.Runtime
 
             return result.ToJson();
         }
+
         #endregion
     }
 }

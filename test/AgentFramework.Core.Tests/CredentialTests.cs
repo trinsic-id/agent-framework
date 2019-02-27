@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Credentials;
@@ -86,13 +87,11 @@ namespace AgentFramework.Core.Tests
             _connectionService = new DefaultConnectionService(
                 _eventAggregator,
                 recordService,
-                routingMock.Object,
                 provisioningMock.Object,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
 
             _credentialService = new DefaultCredentialService(
                 _eventAggregator,
-                routingMock.Object,
                 ledgerService,
                 _connectionService,
                 recordService,

@@ -1,4 +1,6 @@
-﻿using AgentFramework.Core.Messages;
+﻿using AgentFramework.Core.Handlers.Internal;
+using AgentFramework.Core.Messages;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.Core.Handlers
 {
@@ -10,5 +12,15 @@ namespace AgentFramework.Core.Handlers
         /// <returns></returns>
         public static MessagePayload AsMessagePayload(this IAgentMessage agentMessage) =>
             new MessagePayload(agentMessage);
+
+        /// <summary>Adds the default message handlers.</summary>
+        /// <param name="collection">The collection.</param>
+        public static void AddDefaultMessageHandlers(this IServiceCollection collection)
+        {
+            collection.AddTransient<DefaultConnectionHandler>();
+            collection.AddTransient<DefaultCredentialHandler>();
+            collection.AddTransient<DefaultProofHandler>();
+            collection.AddTransient<DefaultForwardHandler>();
+        }
     }
 }

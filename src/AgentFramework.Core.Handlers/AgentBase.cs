@@ -23,7 +23,7 @@ namespace AgentFramework.Core.Handlers
     public abstract class AgentBase
     {
         private readonly IList<IMessageHandler> _handlers;
-        private ILogger<AgentBase> _logger;
+        private readonly ILogger<AgentBase> _logger;
 
         /// <summary>Gets the provider.</summary>
         /// <value>The provider.</value>
@@ -45,35 +45,33 @@ namespace AgentFramework.Core.Handlers
             Logger = logger;
             _handlers = new List<IMessageHandler>();
 
-            _logger = provider.GetService<ILogger<AgentBase>>();
+            _logger = provider.GetRequiredService<ILogger<AgentBase>>();
         }
 
         /// <summary>Adds a handler for supporting default connection flow.</summary>
         protected void AddConnectionHandler()
         {
-            _handlers.Add(new DefaultConnectionHandler(Provider.GetService<IConnectionService>()));
-            _handlers.Add(new OutgoingMessageHandler(Provider.GetServices<IOutgoingMessageDecoratorHandler>(), Provider.GetService<ILogger<OutgoingMessageHandler>>()));
-            _handlers.Add(new HttpOutgoingMessageHandler(Provider.GetService<HttpMessageHandler>()));
+            _handlers.Add(Provider.GetRequiredService<DefaultConnectionHandler>());
         }
         /// <summary>Adds a handler for supporting default credential flow.</summary>
         protected void AddCredentialHandler()
         {
-            _handlers.Add(new DefaultCredentialHandler(Provider.GetService<ICredentialService>()));
+            _handlers.Add(Provider.GetRequiredService<DefaultCredentialHandler>());
         }
         /// <summary>Adds the handler for supporting default proof flow.</summary>
         protected void AddProofHandler()
         {
-            _handlers.Add(new DefaultProofHandler(Provider.GetService<IProofService>()));
+            _handlers.Add(Provider.GetRequiredService<DefaultProofHandler>());
         }
         /// <summary>Adds a default forwarding handler.</summary>
         protected void AddForwardHandler()
         {
-            _handlers.Add(new DefaultForwardHandler(Provider.GetService<IConnectionService>()));
+            _handlers.Add(Provider.GetRequiredService<DefaultForwardHandler>());
         }
 
         /// <summary>Adds a custom the handler using dependency injection.</summary>
         /// <typeparam name="T"></typeparam>
-        protected void AddHandler<T>() where T : IMessageHandler => _handlers.Add(Provider.GetService<T>());
+        protected void AddHandler<T>() where T : IMessageHandler => _handlers.Add(Provider.GetRequiredService<T>());
 
         /// <summary>Adds an instance of a custom handler.</summary>
         /// <typeparam name="T"></typeparam>

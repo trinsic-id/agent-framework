@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Proofs;
@@ -90,13 +91,11 @@ namespace AgentFramework.Core.Tests
             _connectionService = new DefaultConnectionService(
                 _eventAggregator,
                 recordService,
-                routingMock.Object,
                 provisioningMock.Object,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
 
             _credentialService = new DefaultCredentialService(
                 _eventAggregator,
-                routingMock.Object,
                 ledgerService,
                 _connectionService,
                 recordService,
@@ -108,7 +107,6 @@ namespace AgentFramework.Core.Tests
             _proofService = new DefaultProofService(
                 _eventAggregator,
                 _connectionService,
-                routingMock.Object,
                 recordService,
                 provisionMock.Object,
                 ledgerService,
@@ -214,7 +212,8 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                _messages.Add(message);
             }
 
             // Holder accepts the proof requests and builds a proof
@@ -292,9 +291,10 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task SendProofRequestThrowsConnectionNotFound()
         {
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.SendProofRequestAsync(_issuerWallet, "bad-proof-id", new ProofRequest
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofRequestAsync(_issuerWallet, "bad-proof-id", new ProofRequest
             {
-                Name = "Test"
+                Name = "Test",
+                Nonce = "123"
             }));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
@@ -308,52 +308,53 @@ namespace AgentFramework.Core.Tests
             await _connectionService.CreateInvitationAsync(_issuerWallet,
                 new InviteConfiguration { ConnectionId = connectionId });
 
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.SendProofRequestAsync(_issuerWallet, connectionId, new ProofRequest
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofRequestAsync(_issuerWallet, connectionId, new ProofRequest
             {
-                Name = "Test"
+                Name = "Test",
+                Nonce = "123"
             }));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
         
-        [Fact]
-        public async Task SendProofRequestThrowsA2AMessageTransmissionFailure()
-        {
-            //Setup a connection and issue the credentials to the holder
-            var (issuerConnection, holderConnection) = await Scenarios.EstablishConnectionAsync(
-                _connectionService, _messages, _issuerWallet, _holderWallet);
+        //[Fact]
+        //public async Task SendProofRequestThrowsA2AMessageTransmissionFailure()
+        //{
+        //    //Setup a connection and issue the credentials to the holder
+        //    var (issuerConnection, holderConnection) = await Scenarios.EstablishConnectionAsync(
+        //        _connectionService, _messages, _issuerWallet, _holderWallet);
 
-            await Scenarios.IssueCredentialAsync(
-                _schemaService, _credentialService, _messages, issuerConnection,
-                holderConnection, _issuerWallet, _holderWallet, _pool, MasterSecretId, true);
+        //    await Scenarios.IssueCredentialAsync(
+        //        _schemaService, _credentialService, _messages, issuerConnection,
+        //        holderConnection, _issuerWallet, _holderWallet, _pool, MasterSecretId, true);
 
-            _messages.Clear();
+        //    _messages.Clear();
 
-            //Requestor initialize a connection with the holder
-            var (_, requestorConnection) = await Scenarios.EstablishConnectionAsync(
-                _connectionService, _messages, _holderWallet, _requestorWallet);
+        //    //Requestor initialize a connection with the holder
+        //    var (_, requestorConnection) = await Scenarios.EstablishConnectionAsync(
+        //        _connectionService, _messages, _holderWallet, _requestorWallet);
 
-            // Verifier sends a proof request to prover
-            {
-                var proofRequestObject = new ProofRequest
-                {
-                    Name = "ProofReq",
-                    Version = "1.0",
-                    Nonce = "123",
-                    RequestedAttributes = new Dictionary<string, ProofAttributeInfo>
-                    {
-                        {"first-name-requirement", new ProofAttributeInfo {Name = "first_name"}}
-                    }
-                };
+        //    // Verifier sends a proof request to prover
+        //    {
+        //        var proofRequestObject = new ProofRequest
+        //        {
+        //            Name = "ProofReq",
+        //            Version = "1.0",
+        //            Nonce = "123",
+        //            RequestedAttributes = new Dictionary<string, ProofAttributeInfo>
+        //            {
+        //                {"first-name-requirement", new ProofAttributeInfo {Name = "first_name"}}
+        //            }
+        //        };
 
-                //Requestor sends a proof request
-                _routeMessage = false;
-                var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject));
-                _routeMessage = true;
+        //        //Requestor sends a proof request
+        //        _routeMessage = false;
+        //        var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject));
+        //        _routeMessage = true;
 
-                Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionError);
-            }
-        }
+        //        Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionError);
+        //    }
+        //}
 
         [Fact]
         public async Task CreateProofRequestConnectionNotFound()
@@ -431,7 +432,8 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                _messages.Add(message);
             }
 
             // Holder accepts the proof requests and builds a proof
@@ -534,7 +536,8 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                _messages.Add(message);
             }
 
             // Holder accepts the proof requests and builds a proof
@@ -625,10 +628,11 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                _messages.Add(message);
             }
             
-            //Holder retrives proof request message from their cloud agent
+            //Holder retrieves proof request message from their cloud agent
             var proofRequest = FindContentMessage<ProofRequestMessage>();
             Assert.NotNull(proofRequest);
 
