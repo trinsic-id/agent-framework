@@ -1,8 +1,6 @@
 ﻿using System;
 using AgentFramework.Core.Decorators.Signature;
 using AgentFramework.Core.Models.Connections;
-using AgentFramework.Core.Models.Dids;
-using Hyperledger.Indy.DidApi;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Messages.Connections
@@ -10,16 +8,15 @@ namespace AgentFramework.Core.Messages.Connections
     /// <summary>
     /// Represents a connection response message
     /// </summary>
-    public class ConnectionResponseMessage : IAgentMessage
+    public class ConnectionResponseMessage : AgentMessage
     {
         /// <inheritdoc />
-        [JsonProperty("@id")]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        /// <inheritdoc />
-        [JsonProperty("@type")]
-        public string Type { get; set; } = MessageTypes.ConnectionResponse;
-
+        public ConnectionResponseMessage()
+        {
+            Id = Guid.NewGuid().ToString();
+            Type = MessageTypes.ConnectionResponse;
+        }
+        
         /// <summary>
         /// Gets or sets the connection object.
         /// </summary>

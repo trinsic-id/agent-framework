@@ -50,7 +50,7 @@ namespace AgentFramework.Core.Tests
         private readonly IPoolService _poolService;
 
         private bool _routeMessage = true;
-        private readonly ConcurrentBag<IAgentMessage> _messages = new ConcurrentBag<IAgentMessage>();
+        private readonly ConcurrentBag<AgentMessage> _messages = new ConcurrentBag<AgentMessage>();
 
         public ProofTests()
         {
@@ -67,8 +67,8 @@ namespace AgentFramework.Core.Tests
 
             var routingMock = new Mock<IMessageService>();
             routingMock.Setup(x =>
-                    x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
-                .Callback((Wallet _, IAgentMessage content, ConnectionRecord __, string ___) =>
+                    x.SendAsync(It.IsAny<Wallet>(), It.IsAny<AgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
+                .Callback((Wallet _, AgentMessage content, ConnectionRecord __, string ___) =>
                 {
                     if (_routeMessage)
                         _messages.Add(content);
@@ -647,7 +647,7 @@ namespace AgentFramework.Core.Tests
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
 
-        private T FindContentMessage<T>() where T : IAgentMessage
+        private T FindContentMessage<T>() where T : AgentMessage
             => _messages.OfType<T>().Single();
 
         public async Task DisposeAsync()

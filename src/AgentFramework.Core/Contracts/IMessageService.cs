@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using AgentFramework.Core.Messages;
-using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Records;
 using Hyperledger.Indy.WalletApi;
 
@@ -19,6 +18,6 @@ namespace AgentFramework.Core.Contracts
         /// <param name="connection">The connection record.</param>
         /// <param name="recipientKey">The recipients verkey to encrypt the message for.</param>
         /// <returns>The response async.</returns>
-        Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connection, string recipientKey = null);
+        Task SendAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection, string recipientKey = null);
     }
 }

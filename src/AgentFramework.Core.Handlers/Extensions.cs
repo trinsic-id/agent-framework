@@ -10,7 +10,7 @@ namespace AgentFramework.Core.Handlers
         /// <summary>Wraps the message in payload.</summary>
         /// <param name="agentMessage">The agent message.</param>
         /// <returns></returns>
-        public static MessagePayload AsMessagePayload(this IAgentMessage agentMessage) =>
+        public static MessagePayload AsMessagePayload(this AgentMessage agentMessage) =>
             new MessagePayload(agentMessage);
 
         /// <summary>Adds the default message handlers.</summary>

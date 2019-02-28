@@ -6,16 +6,16 @@ namespace AgentFramework.Core.Messages.Proofs
     /// <summary>
     /// A proof content message.
     /// </summary>
-    public class ProofMessage : IAgentMessage
+    [JsonConverter(typeof(AgentMessageConverter<ProofMessage>))]
+    public class ProofMessage : AgentMessage
     {
         /// <inheritdoc />
-        [JsonProperty("@id")]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        /// <inheritdoc />
-        [JsonProperty("@type")]
-        public string Type { get; set; } = MessageTypes.DisclosedProof;
-
+        public ProofMessage()
+        {
+            Id = Guid.NewGuid().ToString();
+            Type = MessageTypes.DisclosedProof;
+        }
+        
         /// <summary>
         /// Gets or sets the proof json.
         /// </summary>

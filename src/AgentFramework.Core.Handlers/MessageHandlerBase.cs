@@ -11,7 +11,7 @@ namespace AgentFramework.Core.Handlers
     /// <typeparam name="T"></typeparam>
     /// <seealso cref="AgentFramework.Core.Handlers.IMessageHandler" />
     public abstract class MessageHandlerBase<T> : IMessageHandler
-        where T : IAgentMessage, new()
+        where T : AgentMessage, new()
     {
         private readonly string _supportedMessageType;
 
@@ -27,7 +27,7 @@ namespace AgentFramework.Core.Handlers
         public IEnumerable<string> SupportedMessageTypes => new[] { _supportedMessageType };
 
         /// <summary>
-        /// Processes the incoming <see cref="IAgentMessage"/>
+        /// Processes the incoming <see cref="AgentMessage"/>
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="agentContext">The message agentContext.</param>

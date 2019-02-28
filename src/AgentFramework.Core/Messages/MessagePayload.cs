@@ -35,7 +35,7 @@ namespace AgentFramework.Core.Messages
 
         /// <inheritdoc />
         /// <param name="message">The message.</param>
-        public MessagePayload(IAgentMessage message)
+        public MessagePayload(AgentMessage message)
         : this(message.ToJson(), false)
         {
         }
@@ -66,10 +66,10 @@ namespace AgentFramework.Core.Messages
         /// </summary>
         /// <typeparam name="T">The generic type the message will be cast to.</typeparam>
         /// <returns>The agent message.</returns>
-        public T GetMessage<T>() where T : IAgentMessage =>
+        public T GetMessage<T>() where T : AgentMessage, new() =>
             Packed
                 ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
-                : _messageJson.ToObject<T>();
+                : JsonConvert.DeserializeObject<T>(_messageJson.ToString(), new AgentMessageConverter<T>());
 
         /// <summary>
         /// Gets the message cast to the expect message type.
@@ -79,40 +79,5 @@ namespace AgentFramework.Core.Messages
             Packed
                 ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
                 : _messageJson.ToJson();
-
-        /// <summary>
-        /// Gets the decorator.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="name">The name.</param>
-        /// <returns></returns>
-        /// <exception cref="AgentFrameworkException">ErrorCode.InvalidMessage Cannot deserialize packed message or unable to find decorator on message.</exception>
-        public T GetDecorator<T>(string name) where T : class
-        {
-            if (Packed)
-                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.");
-            try
-            {
-                return _messageJson[$"~{name}"].ToObject<T>();
-            }
-            catch (Exception e)
-            {
-                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Failed to extract decorator from message", e);
-            }
-        }
-
-        /// <summary>
-        /// Adds the decorator.
-        /// </summary>
-        /// <param name="decorator">The decorator.</param>
-        /// <param name="name">The decorator name.</param>
-        /// <exception cref="AgentFrameworkException">Cannot add a decorator to a packed message.</exception>
-        public void AddDecorator<T>(T decorator, string name) where T : class
-        {
-            if (Packed)
-                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot add a decorator to a packed message");
-
-            _messageJson.Add($"~{name}", JsonConvert.DeserializeObject<JToken>(decorator.ToJson()));
-        }
     }
 }

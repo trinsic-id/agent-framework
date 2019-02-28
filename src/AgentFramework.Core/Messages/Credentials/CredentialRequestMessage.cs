@@ -6,15 +6,14 @@ namespace AgentFramework.Core.Messages.Credentials
     /// <summary>
     /// A credential request content message.
     /// </summary>
-    public class CredentialRequestMessage : IAgentMessage
+    public class CredentialRequestMessage : AgentMessage
     {
         /// <inheritdoc />
-        [JsonProperty("@id")]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        /// <inheritdoc />
-        [JsonProperty("@type")]
-        public string Type { get; set; } = MessageTypes.CredentialRequest;
+        public CredentialRequestMessage()
+        {
+            Id = Guid.NewGuid().ToString();
+            Type = MessageTypes.CredentialRequest;
+        }
         
         /// <summary>
         /// Gets or sets the offer json.

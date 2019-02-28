@@ -30,7 +30,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             builder.Services.TryAddSingleton<IWalletService, DefaultWalletService>();
 
             //TODO fix this
-            builder.Services.AddSingleton<IOutgoingMessageDecoratorHandler, OutgoingThreadDecoratorHandler>();
+            //builder.Services.AddSingleton<IOutgoingMessageDecoratorHandler, OutgoingThreadDecoratorHandler>();
 
             return builder;
         }

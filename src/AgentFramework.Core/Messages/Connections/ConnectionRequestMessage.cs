@@ -1,7 +1,5 @@
 ﻿using System;
 using AgentFramework.Core.Models.Connections;
-using AgentFramework.Core.Models.Dids;
-using Hyperledger.Indy.DidApi;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Messages.Connections
@@ -9,15 +7,14 @@ namespace AgentFramework.Core.Messages.Connections
     /// <summary>
     /// Represents a connection request message.
     /// </summary>
-    public class ConnectionRequestMessage : IAgentMessage
+    public class ConnectionRequestMessage : AgentMessage
     {
         /// <inheritdoc />
-        [JsonProperty("@id")]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        /// <inheritdoc />
-        [JsonProperty("@type")]
-        public string Type { get; set; } = MessageTypes.ConnectionRequest;
+        public ConnectionRequestMessage()
+        {
+            Id = Guid.NewGuid().ToString();
+            Type = MessageTypes.ConnectionRequest;
+        }
 
         /// <summary>
         /// Gets or sets the name.

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
-using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Utils;
@@ -65,7 +64,6 @@ namespace AgentFramework.Core.Handlers.Internal
                         var response = await _connectionService.AcceptRequestAsync(agentContext, connectionId);
                         await _messageService.SendAsync(agentContext.Wallet, response, agentContext.Connection);
                     }
-
                     return;
                 }
 

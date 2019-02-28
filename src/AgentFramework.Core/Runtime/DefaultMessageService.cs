@@ -37,8 +37,29 @@ namespace AgentFramework.Core.Runtime
             HttpClient = httpClient;
         }
 
+        //TODO ???
+        public async Task<byte[]> PrepareAsync(Wallet wallet, AgentMessage message, string recipientKey, string[] routingKeys = null, string senderKey = null)
+        {
+            var msg = await CryptoUtils.PackAsync(wallet, recipientKey, senderKey, message.ToByteArray());
+
+            var previousKey = recipientKey;
+
+            if (routingKeys != null)
+            {
+                foreach (var routingKey in routingKeys)
+                {
+                    msg = await CryptoUtils.PackAsync(
+                        wallet, routingKey, null,
+                        new ForwardMessage {Message = msg.GetUTF8String(), To = previousKey});
+                    previousKey = routingKey;
+                }
+            }
+
+            return msg;
+        }
+
         /// <inheritdoc />
-        public virtual async Task SendAsync(Wallet wallet, IAgentMessage message, ConnectionRecord connection,
+        public virtual async Task SendAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection,
             string recipientKey = null)
         {
             Logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0} Endpoint {1}", connection.TheirVk,
@@ -55,8 +76,7 @@ namespace AgentFramework.Core.Runtime
                                 ?? throw new AgentFrameworkException(
                                     ErrorCode.A2AMessageTransmissionError, "Cannot find encryption key");
 
-            var inner = await CryptoUtils.PackAsync(
-                wallet, encryptionKey, connection.MyVk, message.ToByteArray());
+            var inner = await CryptoUtils.PackAsync(wallet, encryptionKey, connection.MyVk, message.ToByteArray());
 
             //TODO we will have multiple forwards here in future
             byte[] forward = null;

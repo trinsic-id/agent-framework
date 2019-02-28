@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -12,7 +11,6 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers;
-using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models;
@@ -26,7 +24,6 @@ using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace AgentFramework.Core.Tests
@@ -81,7 +78,7 @@ namespace AgentFramework.Core.Tests
         private readonly IConnectionService _connectionService;
 
         private bool _routeMessage = true;
-        private readonly ConcurrentBag<IAgentMessage> _messages = new ConcurrentBag<IAgentMessage>();
+        private readonly ConcurrentBag<AgentMessage> _messages = new ConcurrentBag<AgentMessage>();
 
         public ConnectionTests()
         {
@@ -89,8 +86,8 @@ namespace AgentFramework.Core.Tests
 
             var routingMock = new Mock<IMessageService>();
             routingMock.Setup(x =>
-                    x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
-                .Callback((Wallet _, IAgentMessage content, ConnectionRecord __, string ___) =>
+                    x.SendAsync(It.IsAny<Wallet>(), It.IsAny<AgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
+                .Callback((Wallet _, AgentMessage content, ConnectionRecord __, string ___) =>
                 {
                     if (_routeMessage)
                         _messages.Add(content);

@@ -7,16 +7,16 @@ namespace AgentFramework.Core.Messages.Connections
     /// <summary>
     /// Represents an invitation message for establishing connection.
     /// </summary>
-    public class ConnectionInvitationMessage : IAgentMessage
+    [JsonConverter(typeof(AgentMessageConverter<ConnectionInvitationMessage>))]
+    public class ConnectionInvitationMessage : AgentMessage
     {
         /// <inheritdoc />
-        [JsonProperty("@id")]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        /// <inheritdoc />
-        [JsonProperty("@type")]
-        public string Type { get; set; } = MessageTypes.ConnectionInvitation;
-
+        public ConnectionInvitationMessage()
+        {
+            Id = Guid.NewGuid().ToString();
+            Type = MessageTypes.ConnectionInvitation;
+        }
+        
         /// <summary>
         /// Gets or sets the name.
         /// </summary>

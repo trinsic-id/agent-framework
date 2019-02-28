@@ -22,7 +22,7 @@ namespace AgentFramework.Core.Tests
     {
         internal static async Task<(ConnectionRecord firstParty, ConnectionRecord secondParty)> EstablishConnectionAsync(
             IConnectionService connectionService,
-            IProducerConsumerCollection<IAgentMessage> _messages,
+            IProducerConsumerCollection<AgentMessage> _messages,
             IAgentContext firstContext,
             IAgentContext secondContext,
             CreateInvitationResult initialInvitationResult = null,
@@ -100,7 +100,7 @@ namespace AgentFramework.Core.Tests
         
         internal static async Task<(CredentialRecord issuerCredential, CredentialRecord holderCredential)> IssueCredentialAsync(
             ISchemaService schemaService, ICredentialService credentialService,
-            IProducerConsumerCollection<IAgentMessage> messages,
+            IProducerConsumerCollection<AgentMessage> messages,
             ConnectionRecord issuerConnection, ConnectionRecord holderConnection, 
             IAgentContext issuerContext, 
             IAgentContext holderContext,
@@ -177,8 +177,8 @@ namespace AgentFramework.Core.Tests
             return (await schemaService.CreateCredentialDefinitionAsync(context.Pool, context.Wallet, schemaId,  issuerDid, "Tag", false, 100, new Uri("http://mock/tails")), schemaId);
         }
 
-        private static T FindContentMessage<T>(IEnumerable<IAgentMessage> collection)
-            where T : IAgentMessage
+        private static T FindContentMessage<T>(IEnumerable<AgentMessage> collection)
+            where T : AgentMessage
             => collection.OfType<T>().Single();
     }
 }

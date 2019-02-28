@@ -29,12 +29,7 @@ using Xunit;
 
 namespace AgentFramework.Core.Tests
 {
-    public class MockAgentMessage : IAgentMessage
-    {
-        public string Id { get; set; }
-
-        public string Type { get; set; }
-    }
+    public class MockAgentMessage : AgentMessage { }
 
     public class MessageServiceTests : IAsyncLifetime
     {
