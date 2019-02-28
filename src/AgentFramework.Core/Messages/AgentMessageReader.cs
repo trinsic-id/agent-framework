@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AgentFramework.Core.Messages
 {
-    internal class AgentMessageConverter<T> : JsonConverter where T : AgentMessage, new()
+    internal class AgentMessageReader<T> : JsonConverter where T : AgentMessage, new()
     {
         /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)

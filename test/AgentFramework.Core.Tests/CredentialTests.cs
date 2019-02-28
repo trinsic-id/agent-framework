@@ -62,11 +62,11 @@ namespace AgentFramework.Core.Tests
 
             var routingMock = new Mock<IMessageService>();
             routingMock.Setup(x =>
-                    x.SendAsync(It.IsAny<Wallet>(), It.IsAny<AgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
-                .Callback((Wallet _, AgentMessage content, ConnectionRecord __, string ___) =>
+                    x.SendToConnectionAsync(It.IsAny<Wallet>(), It.IsAny<OutgoingMessageContext>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
+                .Callback((Wallet _, OutgoingMessageContext content, ConnectionRecord __, string ___) =>
                 {
                     if (_routeMessage)
-                        _messages.Add(content);
+                        _messages.Add(content.OutboundMessage);
                     else
                         throw new AgentFrameworkException(ErrorCode.LedgerOperationRejected, "");
                 })

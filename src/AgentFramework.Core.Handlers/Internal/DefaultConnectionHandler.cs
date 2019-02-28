@@ -45,14 +45,14 @@ namespace AgentFramework.Core.Handlers.Internal
         /// <param name="messagePayload">The agent message agentContext.</param>
         /// <returns></returns>
         /// <exception cref="AgentFrameworkException">Unsupported message type {message.Type}</exception>
-        public async Task ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload)
+        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload)
         {
             switch (messagePayload.GetMessageType())
             {
                 case MessageTypes.ConnectionInvitation:
                     var invitation = messagePayload.GetMessage<ConnectionInvitationMessage>();
                     await _connectionService.AcceptInvitationAsync(agentContext, invitation);
-                    return;
+                    return null;
 
                 case MessageTypes.ConnectionRequest:
                 {
@@ -61,17 +61,18 @@ namespace AgentFramework.Core.Handlers.Internal
                     // Auto accept connection if set during invitation
                     if (agentContext.Connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
                     {
-                        var response = await _connectionService.AcceptRequestAsync(agentContext, connectionId);
-                        await _messageService.SendAsync(agentContext.Wallet, response, agentContext.Connection);
+                        var response = new OutgoingMessageContext(request,
+                            await _connectionService.AcceptRequestAsync(agentContext, connectionId));
+                        await _messageService.SendToConnectionAsync(agentContext.Wallet, response, agentContext.Connection);
                     }
-                    return;
+                    return null;
                 }
 
                 case MessageTypes.ConnectionResponse:
                 {
                     var response = messagePayload.GetMessage<ConnectionResponseMessage>();
                     await _connectionService.ProcessResponseAsync(agentContext, response);
-                    return;
+                    return null;
                 }
                 default:
                     throw new AgentFrameworkException(ErrorCode.InvalidMessage,

@@ -32,10 +32,10 @@ namespace AgentFramework.Core.Handlers
         /// <param name="message">The message.</param>
         /// <param name="agentContext">The message agentContext.</param>
         /// <returns></returns>
-        protected abstract Task ProcessAsync(T message, IAgentContext agentContext);
+        protected abstract Task<AgentMessage> ProcessAsync(T message, IAgentContext agentContext);
 
         /// <inheritdoc />
-        public Task ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload) =>
+        public Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload) =>
             ProcessAsync(messagePayload.GetMessage<T>(), agentContext);
     }
 }

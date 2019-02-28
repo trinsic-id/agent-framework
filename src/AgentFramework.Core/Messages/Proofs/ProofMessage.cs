@@ -6,7 +6,7 @@ namespace AgentFramework.Core.Messages.Proofs
     /// <summary>
     /// A proof content message.
     /// </summary>
-    [JsonConverter(typeof(AgentMessageConverter<ProofMessage>))]
+    [JsonConverter(typeof(AgentMessageReader<ProofMessage>))]
     public class ProofMessage : AgentMessage
     {
         /// <inheritdoc />

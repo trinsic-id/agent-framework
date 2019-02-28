@@ -63,7 +63,7 @@ namespace AgentFramework.Core.Tests
         {
             var messageJson = "{\"@id\":\"a9f6ca12-2e36-4fed-b8d1-7a2cd6e3692d\",\"@type\":\"did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/request\",\"~sample\":{\"Prop1\":\"123\"}}";
             var obj = JsonConvert.DeserializeObject<ConnectionRequestMessage>(messageJson,
-                new AgentMessageConverter<ConnectionRequestMessage>());
+                new AgentMessageReader<ConnectionRequestMessage>());
 
             Assert.NotNull(obj);
 

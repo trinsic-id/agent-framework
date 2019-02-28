@@ -9,6 +9,7 @@ using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Messages;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Dids;
 using AgentFramework.Core.Models.Events;
@@ -45,7 +46,6 @@ namespace AgentFramework.Core.Runtime
         /// </summary>
         /// <param name="eventAggregator">The event aggregator.</param>
         /// <param name="recordService">The record service.</param>
-        /// <param name="messageService">The message service.</param>
         /// <param name="provisioningService">The provisioning service.</param>
         /// <param name="logger">The logger.</param>
         public DefaultConnectionService(

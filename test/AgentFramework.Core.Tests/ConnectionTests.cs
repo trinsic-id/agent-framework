@@ -51,9 +51,7 @@ namespace AgentFramework.Core.Tests
     public class MockAgent : AgentBase
     {
         public MockAgent(
-            IServiceProvider provider, 
-            IConnectionService connectionService, 
-            ILogger<AgentBase> logger) : base(provider, connectionService, logger)
+            IServiceProvider provider) : base(provider)
         {
         }
 
@@ -86,11 +84,11 @@ namespace AgentFramework.Core.Tests
 
             var routingMock = new Mock<IMessageService>();
             routingMock.Setup(x =>
-                    x.SendAsync(It.IsAny<Wallet>(), It.IsAny<AgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
-                .Callback((Wallet _, AgentMessage content, ConnectionRecord __, string ___) =>
+                    x.SendToConnectionAsync(It.IsAny<Wallet>(), It.IsAny<OutgoingMessageContext>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
+                .Callback((Wallet _, OutgoingMessageContext content, ConnectionRecord __, string ___) =>
                 {
                     if (_routeMessage)
-                        _messages.Add(content);
+                        _messages.Add(content.OutboundMessage);
                     else
                         throw new AgentFrameworkException(ErrorCode.LedgerOperationRejected, "");
                 })
@@ -185,7 +183,7 @@ namespace AgentFramework.Core.Tests
 
                 var acceptInvitation =
                     await connectionService2.AcceptInvitationAsync(context2, invitation.Invitation);
-                await messageService2.SendAsync(context2.Wallet, acceptInvitation.Request,
+                await messageService2.SendToConnectionAsync(context2.Wallet, new OutgoingMessageContext(acceptInvitation.Request),
                     acceptInvitation.Connection, invitation.Invitation.RecipientKeys.First());
 
                 // Wait for connection to be established or continue after 30 sec timeout

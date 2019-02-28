@@ -2,78 +2,62 @@
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
+using Hyperledger.Indy.WalletApi;
 
 namespace AgentFramework.Core.Decorators.Threading
 {
-    ///// <summary>
-    ///// Outgoing thread decorator handler
-    ///// </summary>
-    //public class OutgoingThreadDecoratorHandler : IOutgoingMessageDecoratorHandler
-    //{
-    //    /// <inheritdoc />
-    //    public string DecoratorIdentifier => "thread";
+    /// <summary>
+    /// Outgoing thread decorator handler
+    /// </summary>
+    public class OutgoingThreadDecoratorHandler : IOutgoingMessageDecoratorHandler
+    {
+        /// <inheritdoc />
+        public string DecoratorIdentifier => "thread";
 
-    //    /// <inheritdoc />
-    //    /// <summary>
-    //    /// Processes adding threading to an outgoing message.
-    //    /// </summary>
-    //    /// <param name="message">Outgoing message.</param>
-    //    /// <param name="agentContext"></param>
-    //    /// <returns></returns>
-    //    public Task<OutgoingMessage> ProcessAsync(OutgoingMessage message, IAgentContext agentContext)
-    //    {
-    //        //TODO probably want to be able to set this type of thing from the particular outgoing message, ie only add a certain decorator under a certain condition?
+        /// <inheritdoc />
+        /// <summary>
+        /// Processes adding threading to an outgoing message.
+        /// </summary>
+        /// <param name="messageContext">Outgoing message.</param>
+        /// <param name="wallet">The wallet.</param>
+        /// <returns></returns>
+        public Task<OutgoingMessageContext> ProcessAsync(OutgoingMessageContext messageContext, Wallet wallet)
+        {
+            //TODO probably want to be able to set this type of thing from the particular outgoing message, ie only add a certain decorator under a certain condition?
 
-    //        if (message.OutboundMessage == null)
-    //            throw new AgentFrameworkException(ErrorCode.InvalidMessage,
-    //                "Cannot apply decorator when outbound message is null");
+            if (messageContext.OutboundMessage == null)
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage,
+                    "Cannot apply decorator when outbound message is null");
 
-    //        if (message.InboundMessage == null)
-    //            return Task.FromResult(message);
+            if (messageContext.InboundMessage == null)
+                return Task.FromResult(messageContext);
 
-    //        ThreadDecorator previousMessageThreadContext = null;
-    //        string previousMessageId = null;
+            ThreadDecorator previousMessageThreadContext = null;
+            try
+            {
+                previousMessageThreadContext = messageContext.InboundMessage.GetDecorator<ThreadDecorator>(DecoratorIdentifier);
+            }
+            catch (AgentFrameworkException) { }
 
-    //        var inboundMessage = new MessagePayload(message.InboundMessage, false);
+            ThreadDecorator currentThreadContext;
+            if (previousMessageThreadContext != null)
+            {
+                currentThreadContext = new ThreadDecorator
+                {
+                    ParentThreadId = previousMessageThreadContext.ParentThreadId,
+                    ThreadId = previousMessageThreadContext.ThreadId
+                };
+            }
+            else
+            {
+                currentThreadContext = new ThreadDecorator
+                {
+                    ThreadId = messageContext.InboundMessage.Id
+                };
+            }
 
-    //        try
-    //        {
-    //            previousMessageThreadContext = inboundMessage.GetDecorator<ThreadDecorator>(DecoratorIdentifier);
-    //        }
-    //        catch (AgentFrameworkException) { }
-
-    //        try
-    //        {
-    //            previousMessageId = inboundMessage.GetMessageId();
-    //        }
-    //        catch (AgentFrameworkException) { }
-
-    //        ThreadDecorator currentThreadContext = null;
-
-    //        if (previousMessageThreadContext != null)
-    //        {
-    //            currentThreadContext = new ThreadDecorator
-    //            {
-    //                ParentThreadId = previousMessageThreadContext.ParentThreadId,
-    //                ThreadId = previousMessageThreadContext.ThreadId
-    //            };
-    //        }
-    //        else if (!string.IsNullOrEmpty(previousMessageId))
-    //        {
-    //            currentThreadContext = new ThreadDecorator
-    //            {
-    //                ThreadId = previousMessageId
-    //            };
-    //        }
-
-    //        var outboundMessage = new MessagePayload(message.OutboundMessage, false);
-
-    //        if (currentThreadContext != null)
-    //            outboundMessage.AddDecorator(currentThreadContext, DecoratorIdentifier);
-
-    //        message.OutboundMessage = outboundMessage.GetMessage();
-
-    //        return Task.FromResult(message);
-    //    }
-    //}
+            messageContext.OutboundMessage.AddDecorator(currentThreadContext, DecoratorIdentifier);
+            return Task.FromResult(messageContext);
+        }
+    }
 }

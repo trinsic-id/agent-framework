@@ -69,7 +69,12 @@ namespace AgentFramework.Core.Messages
         public T GetMessage<T>() where T : AgentMessage, new() =>
             Packed
                 ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
-                : JsonConvert.DeserializeObject<T>(_messageJson.ToString(), new AgentMessageConverter<T>());
+                : JsonConvert.DeserializeObject<T>(_messageJson.ToString(), new AgentMessageReader<T>());
+
+        public AgentMessage GetAsAgentMessage() =>
+            Packed
+                ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
+                : JsonConvert.DeserializeObject<AgentMessage>(_messageJson.ToString());
 
         /// <summary>
         /// Gets the message cast to the expect message type.

@@ -4,7 +4,6 @@ using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AgentFramework.AspNetCore.Middleware
@@ -21,16 +20,12 @@ namespace AgentFramework.AspNetCore.Middleware
         /// <param name="walletService">The wallet service.</param>
         /// <param name="serviceProvider">The service provider.</param>
         /// <param name="walletOptions">The wallet options.</param>
-        /// <param name="connectionService">The connection service.</param>
-        /// <param name="logger">The logger.</param>
         public AgentMiddleware(
             RequestDelegate next,
             IWalletService walletService,
             IServiceProvider serviceProvider,
-            IOptions<WalletOptions> walletOptions,
-            IConnectionService connectionService,
-            ILogger<AgentBase> logger)
-            : base(serviceProvider, connectionService, logger)
+            IOptions<WalletOptions> walletOptions)
+            : base(serviceProvider)
         {
             _next = next;
             _walletService = walletService;
@@ -58,10 +53,14 @@ namespace AgentFramework.AspNetCore.Middleware
                 _walletOptions.WalletConfiguration,
                 _walletOptions.WalletCredentials);
 
-            await ProcessAsync(body, wallet);
+            var result = await ProcessAsync(body, wallet);
 
             context.Response.StatusCode = 200;
-            await context.Response.WriteAsync(string.Empty);
+
+            if (result != null)
+                await context.Response.Body.WriteAsync(result, 0, result.Length);
+            else
+                await context.Response.WriteAsync(string.Empty);
         }
     }
 }

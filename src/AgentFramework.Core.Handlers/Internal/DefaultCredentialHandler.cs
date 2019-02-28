@@ -43,7 +43,7 @@ namespace AgentFramework.Core.Handlers.Internal
         /// <param name="messagePayload">The agent message.</param>
         /// <returns></returns>
         /// <exception cref="AgentFrameworkException">Unsupported message type {messageType}</exception>
-        public async Task ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload)
+        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload)
         {
             switch (messagePayload.GetMessageType())
             {
@@ -54,8 +54,8 @@ namespace AgentFramework.Core.Handlers.Internal
                         agentContext, offer, agentContext.Connection);
 
                     var request = await _credentialService.AcceptOfferAsync(agentContext, credentialId);
-                    await _messageService.SendAsync(agentContext.Wallet, request, agentContext.Connection);
-                    return;
+                    await _messageService.SendToConnectionAsync(agentContext.Wallet, new OutgoingMessageContext(request), agentContext.Connection);
+                    return null;
                 }
 
                 case MessageTypes.CredentialRequest:
@@ -64,7 +64,7 @@ namespace AgentFramework.Core.Handlers.Internal
 
                     await _credentialService.ProcessCredentialRequestAsync(
                         agentContext, request, agentContext.Connection);
-                    return;
+                    return null;
                 }
 
                 case MessageTypes.Credential:
@@ -72,7 +72,7 @@ namespace AgentFramework.Core.Handlers.Internal
                     var credential = messagePayload.GetMessage<CredentialMessage>();
                     await _credentialService.ProcessCredentialAsync(
                         agentContext, credential, agentContext.Connection);
-                    return;
+                    return null;
                 }
                 default:
                     throw new AgentFrameworkException(ErrorCode.InvalidMessage,

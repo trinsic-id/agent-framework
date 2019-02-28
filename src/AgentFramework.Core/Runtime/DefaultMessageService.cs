@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Decorators;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Routing;
@@ -11,7 +13,6 @@ using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Runtime
 {
@@ -20,6 +21,11 @@ namespace AgentFramework.Core.Runtime
     {
         /// <summary>The agent wire message MIME type</summary>
         public const string AgentWireMessageMimeType = "application/ssi-agent-wire";
+
+        /// <summary>
+        /// The outgoing message decorators.
+        /// </summary>
+        protected readonly IEnumerable<IOutgoingMessageDecoratorHandler> OutgoingMessageDecorators;
 
         /// <summary>The logger</summary>
         // ReSharper disable InconsistentNaming
@@ -32,16 +38,22 @@ namespace AgentFramework.Core.Runtime
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultMessageService"/> class.
         /// </summary>
-        public DefaultMessageService(ILogger<DefaultMessageService> logger, HttpClient httpClient)
+        public DefaultMessageService(IEnumerable<IOutgoingMessageDecoratorHandler> outgoingMessageDecorators, ILogger<DefaultMessageService> logger, HttpClient httpClient)
         {
+            OutgoingMessageDecorators = outgoingMessageDecorators;
             Logger = logger;
             HttpClient = httpClient;
         }
 
-        //TODO ???
-        public async Task<byte[]> PrepareAsync(Wallet wallet, AgentMessage message, string recipientKey, string[] routingKeys = null, string senderKey = null)
+        /// <inheritdoc />
+        public async Task<byte[]> PrepareAsync(Wallet wallet, OutgoingMessageContext messageContext, string recipientKey, string[] routingKeys = null, string senderKey = null)
         {
-            var msg = await CryptoUtils.PackAsync(wallet, recipientKey, senderKey, message.ToByteArray());
+            foreach (var outgoingMessageDecoratorHandler in OutgoingMessageDecorators)
+            {
+                messageContext = await outgoingMessageDecoratorHandler.ProcessAsync(messageContext, wallet);
+            }
+
+            var msg = await CryptoUtils.PackAsync(wallet, recipientKey, senderKey, messageContext.OutboundMessage.ToByteArray());
 
             var previousKey = recipientKey;
 
@@ -60,11 +72,12 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task SendAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection,
-            string recipientKey = null)
+        public virtual async Task SendToConnectionAsync(Wallet wallet, OutgoingMessageContext messageContext, ConnectionRecord connection, string recipientKey = null)
         {
             Logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0} Endpoint {1}", connection.TheirVk,
                 connection.Endpoint.Uri);
+
+            var message = messageContext.OutboundMessage;
 
             if (string.IsNullOrEmpty(message.Id))
                 throw new AgentFrameworkException(ErrorCode.InvalidMessage, "@id field on message must be populated");
@@ -72,27 +85,20 @@ namespace AgentFramework.Core.Runtime
             if (string.IsNullOrEmpty(message.Type))
                 throw new AgentFrameworkException(ErrorCode.InvalidMessage, "@type field on message must be populated");
 
-            var encryptionKey = recipientKey
+            recipientKey = recipientKey
                                 ?? connection.TheirVk
                                 ?? throw new AgentFrameworkException(
                                     ErrorCode.A2AMessageTransmissionError, "Cannot find encryption key");
 
-            var inner = await CryptoUtils.PackAsync(wallet, encryptionKey, connection.MyVk, message);
+            var routingKeys = connection.Endpoint?.Verkey != null ? new[] {connection.Endpoint.Verkey} : new string[0];
 
-            //TODO we will have multiple forwards here in future
-            byte[] forward = null;
-            if (connection.Endpoint.Verkey != null)
-            {
-                forward = await CryptoUtils.PackAsync(
-                    wallet, connection.Endpoint.Verkey, null,
-                    new ForwardMessage {Message = inner.GetUTF8String(), To = encryptionKey});
-            }
-
+            var wireMsg = await PrepareAsync(wallet, messageContext, recipientKey, routingKeys, connection.MyVk);
+            
             var request = new HttpRequestMessage
             {
                 RequestUri = new Uri(connection.Endpoint.Uri),
                 Method = HttpMethod.Post,
-                Content = new ByteArrayContent(forward ?? inner)
+                Content = new ByteArrayContent(wireMsg)
             };
             request.Content.Headers.ContentType = new MediaTypeHeaderValue(AgentWireMessageMimeType);
 

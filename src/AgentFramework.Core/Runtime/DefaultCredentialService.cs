@@ -170,7 +170,7 @@ namespace AgentFramework.Core.Runtime
 
             //try
             //{
-            //    await MessageService.SendAsync(agentContext.Wallet, msg, connection);
+            //    await MessageService.SendToConnectionAsync(agentContext.Wallet, msg, connection);
             //}
             //catch (Exception e)
             //{
@@ -329,7 +329,7 @@ namespace AgentFramework.Core.Runtime
 
         //    try
         //    {
-        //        await MessageService.SendAsync(agentContext.Wallet, offer, connection);
+        //        await MessageService.SendToConnectionAsync(agentContext.Wallet, offer, connection);
         //    }
         //    catch (Exception e)
         //    {
@@ -471,7 +471,7 @@ namespace AgentFramework.Core.Runtime
             };
             //try
             //{
-            //    await MessageService.SendAsync(agentContext.Wallet, msg, connection);
+            //    await MessageService.SendToConnectionAsync(agentContext.Wallet, msg, connection);
             //}
             //catch (Exception e)
             //{

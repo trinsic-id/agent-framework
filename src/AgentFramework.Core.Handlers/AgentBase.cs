@@ -21,7 +21,6 @@ namespace AgentFramework.Core.Handlers
     public abstract class AgentBase
     {
         private readonly IList<IMessageHandler> _handlers;
-        private readonly ILogger<AgentBase> _logger;
 
         /// <summary>Gets the provider.</summary>
         /// <value>The provider.</value>
@@ -31,19 +30,22 @@ namespace AgentFramework.Core.Handlers
         /// <value>The connection service.</value>
         protected IConnectionService ConnectionService { get; }
 
+        /// <summary>Gets the message service.</summary>
+        /// <value>The message service.</value>
+        protected IMessageService MessageService { get; }
+
         /// <summary>Gets the logger.</summary>
         /// <value>The logger.</value>
         protected ILogger<AgentBase> Logger { get; }
 
         /// <summary>Initializes a new instance of the <see cref="AgentBase"/> class.</summary>
-        protected AgentBase(IServiceProvider provider, IConnectionService connectionService, ILogger<AgentBase> logger)
+        protected AgentBase(IServiceProvider provider)
         {
             Provider = provider;
-            ConnectionService = connectionService;
-            Logger = logger;
+            ConnectionService = provider.GetRequiredService<IConnectionService>();
+            MessageService = provider.GetRequiredService<IMessageService>();
+            Logger = provider.GetRequiredService<ILogger<AgentBase>>();
             _handlers = new List<IMessageHandler>();
-
-            _logger = provider.GetRequiredService<ILogger<AgentBase>>();
         }
 
         /// <summary>Adds a handler for supporting default connection flow.</summary>
@@ -85,44 +87,65 @@ namespace AgentFramework.Core.Handlers
         /// <returns></returns>
         /// <exception cref="Exception">Expected inner message to be of type 'ForwardMessage'</exception>
         /// <exception cref="AgentFrameworkException">Couldn't locate a message handler for type {messageType}</exception>
-        protected async Task ProcessAsync(byte[] body, Wallet wallet, Pool pool = null)
+        protected async Task<byte[]> ProcessAsync(byte[] body, Wallet wallet, Pool pool = null)
         {
             EnsureConfigured();
 
             var agentContext = new AgentContext {Wallet = wallet, Pool = pool};
             agentContext.AddNext(new MessagePayload(body, true));
 
-            while (agentContext.TryGetNext(out var message))
+            OutgoingMessageContext outgoingContext = null;
+            while (agentContext.TryGetNext(out var message) && outgoingContext == null)
             {
-                MessagePayload messagePayload;
-                if (message.Packed)
-                {
-                    var unpacked = await CryptoUtils.UnpackAsync(agentContext.Wallet, message.Payload);
-                    Logger.LogInformation($"Agent Message Received : {unpacked.Message}");
-                    messagePayload = new MessagePayload(unpacked.Message, false);
-                    if (unpacked.SenderVerkey != null && agentContext.Connection == null)
-                    {
-                        agentContext.Connection = await ConnectionService.ResolveByMyKeyAsync(agentContext, unpacked.RecipientVerkey);
-                    }
-                }
-                else
-                {
-                    messagePayload = message;
-                }
+                outgoingContext = await ProcessMessage(agentContext, message);
+            }
 
-                if (_handlers.Where(handler => handler != null).FirstOrDefault(
-                        handler => handler.SupportedMessageTypes.Any(
-                            type => type.Equals(messagePayload.GetMessageType(), StringComparison.OrdinalIgnoreCase))) is IMessageHandler messageHandler)
+            if (outgoingContext?.OutboundMessage != null) // && dont duplex????
+            {
+                //TODO what happens when I fail to transmit the message? need to roll back the state of the internal message?
+                await MessageService.SendToConnectionAsync(wallet, new OutgoingMessageContext(outgoingContext.OutboundMessage),
+                    agentContext.Connection);
+                outgoingContext = null;
+            }
+
+            byte[] response = null;
+            if (outgoingContext?.OutboundMessage != null)
+            {
+                response = await MessageService.PrepareAsync(wallet, outgoingContext, "");
+            }
+            return response;
+        }
+
+        private async Task<OutgoingMessageContext> ProcessMessage(IAgentContext agentContext, MessagePayload message)
+        {
+            MessagePayload messagePayload;
+            if (message.Packed)
+            {
+                var unpacked = await CryptoUtils.UnpackAsync(agentContext.Wallet, message.Payload);
+                Logger.LogInformation($"Agent Message Received : {unpacked.Message}");
+                messagePayload = new MessagePayload(unpacked.Message, false);
+                if (unpacked.SenderVerkey != null && agentContext.Connection == null)
                 {
-                    _logger.LogDebug("Processing message type {MessageType}, {MessageData}", messagePayload.GetMessageType(), messagePayload.Payload.GetUTF8String());
-                    await messageHandler.ProcessAsync(agentContext, messagePayload);
-                }
-                else
-                {
-                    throw new AgentFrameworkException(ErrorCode.InvalidMessage,
-                        $"Couldn't locate a message handler for type {messagePayload.GetMessageType()}");
+                    agentContext.Connection = await ConnectionService.ResolveByMyKeyAsync(agentContext, unpacked.RecipientVerkey);
                 }
             }
+            else
+            {
+                messagePayload = message;
+            }
+
+            if (_handlers.Where(handler => handler != null).FirstOrDefault(
+                handler => handler.SupportedMessageTypes.Any(
+                    type => type.Equals(messagePayload.GetMessageType(), StringComparison.OrdinalIgnoreCase))) is IMessageHandler messageHandler)
+            {
+                Logger.LogDebug("Processing message type {MessageType}, {MessageData}", messagePayload.GetMessageType(), messagePayload.Payload.GetUTF8String());
+                var outboundMessage = await messageHandler.ProcessAsync(agentContext, messagePayload);
+                if (outboundMessage != null)
+                    return new OutgoingMessageContext(messagePayload.GetAsAgentMessage(), outboundMessage);
+                return null;
+            }
+            throw new AgentFrameworkException(ErrorCode.InvalidMessage,
+                $"Couldn't locate a message handler for type {messagePayload.GetMessageType()}");
         }
 
         private void EnsureConfigured()
