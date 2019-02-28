@@ -5,20 +5,12 @@ using Newtonsoft.Json.Linq;
 
 namespace AgentFramework.Core.Messages
 {
-    internal class AgentMessageConverter<T> : JsonConverter where T : AgentMessage, new ()
+    internal class AgentMessageConverter<T> : JsonConverter where T : AgentMessage, new()
     {
         /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var val = JObject.FromObject(value);
-            var message = (T)value;
-
-            var decorators = message.GetDecorators();
-
-            foreach (var decorator in decorators)
-                val.Add(decorator.Name, decorator.Value);
-
-            writer.WriteRawValue(val.ToString());
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc />
@@ -40,6 +32,32 @@ namespace AgentFramework.Core.Messages
         }
 
         /// <inheritdoc />
-        public override bool CanConvert(Type objectType) => true;
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType.IsAssignableFrom(typeof(T));
+        }
+    }
+
+    internal class AgentMessageWriter : JsonConverter<AgentMessage>
+    {
+        public override void WriteJson(JsonWriter writer, AgentMessage value, JsonSerializer serializer)
+        {        
+            var val = JObject.FromObject(value);
+            var decorators = value.GetDecorators();
+
+            foreach (var decorator in decorators)
+                val.Add(decorator.Name, decorator.Value);
+
+            serializer.Serialize(writer, val);
+        }
+
+        public override AgentMessage ReadJson(JsonReader reader, Type objectType, AgentMessage existingValue, bool hasExistingValue,
+            JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool CanRead => false;
+        public override bool CanWrite => true;
     }
 }

@@ -11,6 +11,7 @@ using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Runtime
 {
@@ -76,7 +77,7 @@ namespace AgentFramework.Core.Runtime
                                 ?? throw new AgentFrameworkException(
                                     ErrorCode.A2AMessageTransmissionError, "Cannot find encryption key");
 
-            var inner = await CryptoUtils.PackAsync(wallet, encryptionKey, connection.MyVk, message.ToByteArray());
+            var inner = await CryptoUtils.PackAsync(wallet, encryptionKey, connection.MyVk, message);
 
             //TODO we will have multiple forwards here in future
             byte[] forward = null;

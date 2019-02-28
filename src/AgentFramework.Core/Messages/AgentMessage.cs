@@ -61,7 +61,7 @@ namespace AgentFramework.Core.Messages
             try
             {
                 var decorator = _decorators.First(_ => _.Name == $"~{name}");
-                return decorator.ToObject<T>();
+                return decorator.Value.ToObject<T>();
             }
             catch (Exception e)
             {

@@ -98,7 +98,7 @@ namespace AgentFramework.Core.Handlers
                 if (message.Packed)
                 {
                     var unpacked = await CryptoUtils.UnpackAsync(agentContext.Wallet, message.Payload);
-                    Logger.LogInformation($"Agent Message Recieved : {unpacked.Message}");
+                    Logger.LogInformation($"Agent Message Received : {unpacked.Message}");
                     messagePayload = new MessagePayload(unpacked.Message, false);
                     if (unpacked.SenderVerkey != null && agentContext.Connection == null)
                     {

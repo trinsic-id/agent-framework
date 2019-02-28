@@ -7,7 +7,6 @@ namespace AgentFramework.Core.Messages.Connections
     /// <summary>
     /// Represents an invitation message for establishing connection.
     /// </summary>
-    [JsonConverter(typeof(AgentMessageConverter<ConnectionInvitationMessage>))]
     public class ConnectionInvitationMessage : AgentMessage
     {
         /// <inheritdoc />
