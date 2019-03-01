@@ -141,7 +141,7 @@ namespace AgentFramework.Core.Handlers
                 Logger.LogDebug("Processing message type {MessageType}, {MessageData}", messagePayload.GetMessageType(), messagePayload.Payload.GetUTF8String());
                 var outboundMessage = await messageHandler.ProcessAsync(agentContext, messagePayload);
                 if (outboundMessage != null)
-                    return new OutgoingMessageContext(messagePayload.GetAsAgentMessage(), outboundMessage);
+                    return new OutgoingMessageContext(outboundMessage);
                 return null;
             }
             throw new AgentFrameworkException(ErrorCode.InvalidMessage,

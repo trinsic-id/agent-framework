@@ -5,14 +5,14 @@ using Newtonsoft.Json;
 
 namespace WebAgent.Protocols.BasicMessage
 {
-    public class BasicMessage : IAgentMessage
+    public class BasicMessage : AgentMessage
     {
-        [JsonProperty("@id")]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        [JsonProperty("@type")]
-        public string Type { get; set; } = CustomMessageTypes.BasicMessageType;
-
+        public BasicMessage()
+        {
+            Id = Guid.NewGuid().ToString();
+            Type = CustomMessageTypes.BasicMessageType;
+        }
+        
         [JsonProperty("content")]
         public string Content { get; set; }
 

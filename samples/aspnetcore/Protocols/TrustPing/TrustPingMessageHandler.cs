@@ -17,9 +17,15 @@ namespace WebAgent.Messages
         /// </summary>
         private readonly IEventAggregator _eventAggregator;
 
-        public TrustPingMessageHandler(IEventAggregator eventAggregator)
+        /// <summary>
+        /// The message service.
+        /// </summary>
+        private readonly IMessageService _messageService;
+
+        public TrustPingMessageHandler(IEventAggregator eventAggregator, IMessageService messageService)
         {
             _eventAggregator = eventAggregator;
+            _messageService = messageService;
         }
 
         /// <summary>
@@ -39,7 +45,7 @@ namespace WebAgent.Messages
         /// </summary>
         /// <param name="agentContext"></param>
         /// <param name="messagePayload">The agent message agentContext.</param>
-        public async Task ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload)
+        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload)
         {
             switch (messagePayload.GetMessageType())
             {
@@ -47,18 +53,10 @@ namespace WebAgent.Messages
                 {
                     var pingMessage = messagePayload.GetMessage<TrustPingMessage>();
 
-                        // if (pingMessage.ResponseRequested)
-                        // {
-                            if (agentContext is AgentContext context)
-                            {
-                                context.AddNext(new OutgoingMessage
-                                {
-                                    InboundMessage = pingMessage.ToJson(),
-                                    OutboundMessage = new TrustPingResponseMessage().ToJson()
-                                }.AsMessagePayload());
-                            }
-                        // }
-                        break;
+                    // if (pingMessage.ResponseRequested)
+                    // {
+                    return new TrustPingResponseMessage();
+                    // }
                 }
                 case CustomMessageTypes.TrustPingResponseMessageType:
                 {
@@ -69,6 +67,7 @@ namespace WebAgent.Messages
                     break;
                 }
             }
+            return null;
         }
     }
 }

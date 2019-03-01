@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using System.Web;
 using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Handlers.Internal;
+using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Credentials;
@@ -27,6 +29,7 @@ namespace WebAgent.Controllers
     public class CredentialsController : Controller
     {
         private readonly IConnectionService _connectionService;
+        private readonly IMessageService _messageService;
         private readonly IProvisioningService _provisioningService;
         private readonly ISchemaService _schemaService;
         private readonly ICredentialService _credentialService;
@@ -45,6 +48,7 @@ namespace WebAgent.Controllers
             IOptions<WalletOptions> walletOptions)
         {
             _connectionService = connectionService;
+            _messageService = messageService;
             _provisioningService = provisioningService;
             _schemaService = schemaService;
             _credentialService = credentialService;
@@ -104,7 +108,7 @@ namespace WebAgent.Controllers
             var credentialDefinitionId = await _schemaService.CreateCredentialDefinitionAsync(context.Pool, context.Wallet, schemaId, issuerDid, Guid.NewGuid().ToString(),
                 false, 100, new Uri(tailsUri));
 
-            await _credentialService.SendOfferAsync(context, connectionId, new OfferConfiguration
+            (var offer, var record) = await _credentialService.CreateOfferAsync(context, new OfferConfiguration
             {
                 CredentialAttributeValues = new Dictionary<string, string>()
                 {
@@ -112,7 +116,8 @@ namespace WebAgent.Controllers
                 },
                 IssuerDid = issuerDid,
                 CredentialDefinitionId = credentialDefinitionId
-            });
+            }, connectionId);
+            await _messageService.SendToConnectionAsync(context.Wallet, new OutgoingMessageContext(offer), connection);
 
             return RedirectToAction("Index");
         }

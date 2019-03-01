@@ -7,15 +7,13 @@ namespace WebAgent.Messages
     /// <summary>
     /// A ping response message.
     /// </summary>
-    public class TrustPingResponseMessage : IAgentMessage
+    public class TrustPingResponseMessage : AgentMessage
     {
-        /// <inheritdoc />
-        [JsonProperty("@id")]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        /// <inheritdoc />
-        [JsonProperty("@type")]
-        public string Type { get; set; } = CustomMessageTypes.TrustPingResponseMessageType;
+        public TrustPingResponseMessage()
+        {
+            Id = Guid.NewGuid().ToString();
+            Type = CustomMessageTypes.TrustPingResponseMessageType;
+        }
 
         /// <summary>
         /// Gets or sets the comment of the message.
