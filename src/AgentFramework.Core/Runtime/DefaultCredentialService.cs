@@ -265,9 +265,11 @@ namespace AgentFramework.Core.Runtime
                         $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
             }
 
-            var offerJson =
-                await AnonCreds.IssuerCreateCredentialOfferAsync(agentContext.Wallet, config.CredentialDefinitionId);
-            var nonce = JObject.Parse(offerJson)["nonce"].ToObject<string>();
+            var offerJson = await AnonCreds.IssuerCreateCredentialOfferAsync(
+                agentContext.Wallet, config.CredentialDefinitionId);
+            var offerJobj = JObject.Parse(offerJson);
+            var nonce = offerJobj["nonce"].ToObject<string>();
+            var schemaId = offerJobj["schema_id"].ToObject<string>();
 
             // Write offer record to local wallet
             var credentialRecord = new CredentialRecord
@@ -276,12 +278,11 @@ namespace AgentFramework.Core.Runtime
                 CredentialDefinitionId = config.CredentialDefinitionId,
                 OfferJson = offerJson,
                 MultiPartyOffer = config.MultiPartyOffer,
+                ConnectionId = config.MultiPartyOffer ? null : connectionId,
+                SchemaId = schemaId,
                 ValuesJson = CredentialUtils.FormatCredentialValues(config.CredentialAttributeValues),
                 State = CredentialState.Offered,
             };
-
-            if (!config.MultiPartyOffer)
-                credentialRecord.ConnectionId = connectionId;
 
             credentialRecord.SetTag(TagConstants.Nonce, nonce);
             credentialRecord.SetTag(TagConstants.Role, TagConstants.Issuer);
