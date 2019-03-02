@@ -70,11 +70,35 @@ namespace AgentFramework.Core.Messages
         }
 
         /// <summary>
+        /// Finds the decorator with the specified name or returns <code>null</code>.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name">The name.</param>
+        /// <returns>The requested decorator or null</returns>
+        public T FindDecorator<T>(string name) where T : class
+        {
+            var decorator = _decorators.FirstOrDefault(_ => _.Name == $"~{name}");
+            return decorator?.Value.ToObject<T>();
+        }
+
+        /// <summary>
         /// Adds the decorator.
         /// </summary>
         /// <param name="decorator">The decorator.</param>
         /// <param name="name">The decorator name.</param>
         public void AddDecorator<T>(T decorator, string name) where T : class =>
             _decorators.Add(new JProperty($"~{name}", JsonConvert.DeserializeObject<JToken>(decorator.ToJson())));
+
+        /// <summary>
+        /// Sets the decorator overriding any existing values
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="decorator">The decorator.</param>
+        /// <param name="name">The name.</param>
+        public void SetDecorator<T>(T decorator, string name) where T : class
+        {
+            _decorators.Remove(_decorators.FirstOrDefault(x => x.Name == $"~{name}"));
+            AddDecorator(decorator, name);
+        }
     }
 }
