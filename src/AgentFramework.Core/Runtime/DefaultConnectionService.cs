@@ -9,7 +9,6 @@ using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Extensions;
-using AgentFramework.Core.Messages;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Dids;
 using AgentFramework.Core.Models.Events;
@@ -233,7 +232,7 @@ namespace AgentFramework.Core.Runtime
             //TODO throw exception or a problem report if the connection request features a did doc that has no indy agent did doc convention featured
             //i.e there is no way for this agent to respond to messages. And or no keys specified
             response.Connection =
-                await SignatureUtils.UnpackAndVerifyData<Connection>(agentContext, response.ConnectionSig);
+                SignatureUtils.UnpackAndVerifyData<Connection>(response.ConnectionSig);
 
             await Did.StoreTheirDidAsync(agentContext.Wallet,
                 new { did = response.Connection.Did, verkey = response.Connection.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());

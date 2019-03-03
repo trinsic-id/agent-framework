@@ -46,7 +46,13 @@ namespace AgentFramework.Core.Decorators.Signature
             return sigDecorator;
         }
 
-        public static async Task<T> UnpackAndVerifyData<T>(IAgentContext agentContext, SignatureDecorator decorator)
+        /// <summary>
+        /// Unpack and verify signed data before casting it to the supplied type.
+        /// </summary>
+        /// <typeparam name="T">Type in which to cast the result to.</typeparam>
+        /// <param name="decorator">Signature decorator to unpack and verify</param>
+        /// <returns>Resulting data cast to type T.</returns>
+        public static T UnpackAndVerifyData<T>(SignatureDecorator decorator)
         {
             var sigDataBytes = decorator.SignatureData.GetBytesFromBase64();
             var sigDataString = sigDataBytes.Skip(8).ToArray().GetUTF8String();

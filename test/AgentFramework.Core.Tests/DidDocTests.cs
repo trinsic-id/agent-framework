@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using AgentFramework.Core.Models.Dids;
+﻿using AgentFramework.Core.Models.Dids;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -8,7 +7,7 @@ namespace AgentFramework.Core.Tests
     public class DidDocTests
     {
         [Fact]
-        public async Task CanDeserializeDidDoc()
+        public void CanDeserializeDidDoc()
         {
             var jsonDidDoc = "{\r\n    " +
                                 "   \"@context\": \"https://w3id.org/did/v1\",\r\n    " +
