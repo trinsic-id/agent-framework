@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Decorators.Threading;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Models.Credentials;
@@ -130,6 +131,7 @@ namespace AgentFramework.Core.Runtime
             {
                 RecordId = credentialRecord.Id,
                 MessageType = credentialOffer.Type,
+                ThreadId = credentialOffer.GetThreadId()
             });
 
             return credentialRecord.Id;
@@ -244,6 +246,7 @@ namespace AgentFramework.Core.Runtime
             {
                 RecordId = credentialRecord.Id,
                 MessageType = credential.Type,
+                ThreadId = credential.GetThreadId()
             });
 
             return credentialRecord.Id;
@@ -376,6 +379,7 @@ namespace AgentFramework.Core.Runtime
                 {
                     RecordId = credential.Id,
                     MessageType = credentialRequest.Type,
+                    ThreadId = credentialRequest.GetThreadId()
                 });
 
                 return credential.Id;

@@ -50,6 +50,27 @@ namespace AgentFramework.Core.Decorators.Threading
             message.ThreadMessage(previousMessage);
         }
 
+        /// <summary>
+        /// Gets the current messages thread id.
+        /// </summary>
+        /// <param name="message">Message to extract the thread id from.</param>
+        /// <returns>Thread id of the message.</returns>
+        public static string GetThreadId(this AgentMessage message)
+        {
+            string threadId = null;
+            try
+            {
+                var threadBlock = message.GetDecorator<ThreadDecorator>(DecoratorIdentifier);
+                threadId = threadBlock.ThreadId;
+            }
+            catch (Exception){ }
+
+            if (string.IsNullOrEmpty(threadId))
+                threadId = message.Id;
+
+            return threadId;
+        }
+
         private static void ThreadMessage(this AgentMessage messageToThread, AgentMessage messageToThreadFrom)
         {
             ThreadDecorator previousMessageThreadContext = null;

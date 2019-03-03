@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Decorators.Signature;
+using AgentFramework.Core.Decorators.Threading;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models.Connections;
@@ -203,6 +204,7 @@ namespace AgentFramework.Core.Runtime
                 {
                     RecordId = agentContext.Connection.Id,
                     MessageType = request.Type,
+                    ThreadId = request.GetThreadId()
                 });
 
                 return agentContext.Connection.Id;
@@ -219,6 +221,7 @@ namespace AgentFramework.Core.Runtime
             {
                 RecordId = newConnection.Id,
                 MessageType = request.Type,
+                ThreadId = request.GetThreadId()
             });
 
             return newConnection.Id;
@@ -253,6 +256,7 @@ namespace AgentFramework.Core.Runtime
             {
                 RecordId = agentContext.Connection.Id,
                 MessageType = response.Type,
+                ThreadId = response.GetThreadId()
             });
 
             return agentContext.Connection.Id;

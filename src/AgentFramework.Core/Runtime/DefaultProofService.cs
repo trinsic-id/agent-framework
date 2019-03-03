@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Decorators.Threading;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages.Proofs;
@@ -155,6 +156,7 @@ namespace AgentFramework.Core.Runtime
             {
                 RecordId = proofRecord.Id,
                 MessageType = proof.Type,
+                ThreadId = proof.GetThreadId()
             });
 
             return proofRecord.Id;
@@ -186,6 +188,7 @@ namespace AgentFramework.Core.Runtime
             {
                 RecordId = proofRecord.Id,
                 MessageType = proofRequest.Type,
+                ThreadId = proofRequest.GetThreadId()
             });
 
             return proofRecord.Id;
