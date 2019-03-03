@@ -94,29 +94,29 @@ namespace AgentFramework.Core.Handlers
             var agentContext = new AgentContext {Wallet = wallet, Pool = pool};
             agentContext.AddNext(new MessagePayload(body, true));
 
-            OutgoingMessageContext outgoingContext = null;
-            while (agentContext.TryGetNext(out var message) && outgoingContext == null)
+            AgentMessage outgoingMessage = null;
+            while (agentContext.TryGetNext(out var message) && outgoingMessage == null)
             {
-                outgoingContext = await ProcessMessage(agentContext, message);
+                outgoingMessage = await ProcessMessage(agentContext, message);
             }
 
-            if (outgoingContext?.OutboundMessage != null) // && dont duplex????
+            if (outgoingMessage != null) // && dont duplex????
             {
                 //TODO what happens when I fail to transmit the message? need to roll back the state of the internal message?
-                await MessageService.SendToConnectionAsync(wallet, new OutgoingMessageContext(outgoingContext.OutboundMessage),
+                await MessageService.SendToConnectionAsync(wallet, outgoingMessage,
                     agentContext.Connection);
-                outgoingContext = null;
+                outgoingMessage = null;
             }
 
             byte[] response = null;
-            if (outgoingContext?.OutboundMessage != null)
+            if (outgoingMessage != null)
             {
-                response = await MessageService.PrepareAsync(wallet, outgoingContext, "");
+                response = await MessageService.PrepareAsync(wallet, outgoingMessage, "");
             }
             return response;
         }
 
-        private async Task<OutgoingMessageContext> ProcessMessage(IAgentContext agentContext, MessagePayload message)
+        private async Task<AgentMessage> ProcessMessage(IAgentContext agentContext, MessagePayload message)
         {
             MessagePayload messagePayload;
             if (message.Packed)
@@ -140,9 +140,7 @@ namespace AgentFramework.Core.Handlers
             {
                 Logger.LogDebug("Processing message type {MessageType}, {MessageData}", messagePayload.GetMessageType(), messagePayload.Payload.GetUTF8String());
                 var outboundMessage = await messageHandler.ProcessAsync(agentContext, messagePayload);
-                if (outboundMessage != null)
-                    return new OutgoingMessageContext(outboundMessage);
-                return null;
+                return outboundMessage;
             }
             throw new AgentFrameworkException(ErrorCode.InvalidMessage,
                 $"Couldn't locate a message handler for type {messagePayload.GetMessageType()}");

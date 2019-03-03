@@ -21,12 +21,7 @@ namespace AgentFramework.Core.Runtime
     {
         /// <summary>The agent wire message MIME type</summary>
         public const string AgentWireMessageMimeType = "application/ssi-agent-wire";
-
-        /// <summary>
-        /// The outgoing message decorators.
-        /// </summary>
-        protected readonly IEnumerable<IOutgoingMessageDecoratorHandler> OutgoingMessageDecorators;
-
+        
         /// <summary>The logger</summary>
         // ReSharper disable InconsistentNaming
         protected readonly ILogger<DefaultMessageService> Logger;
@@ -38,22 +33,16 @@ namespace AgentFramework.Core.Runtime
         /// <summary>
         /// Initializes a new instance of the <see cref="DefaultMessageService"/> class.
         /// </summary>
-        public DefaultMessageService(IEnumerable<IOutgoingMessageDecoratorHandler> outgoingMessageDecorators, ILogger<DefaultMessageService> logger, HttpClient httpClient)
+        public DefaultMessageService(ILogger<DefaultMessageService> logger, HttpClient httpClient)
         {
-            OutgoingMessageDecorators = outgoingMessageDecorators;
             Logger = logger;
             HttpClient = httpClient;
         }
 
         /// <inheritdoc />
-        public async Task<byte[]> PrepareAsync(Wallet wallet, OutgoingMessageContext messageContext, string recipientKey, string[] routingKeys = null, string senderKey = null)
+        public async Task<byte[]> PrepareAsync(Wallet wallet, AgentMessage message, string recipientKey, string[] routingKeys = null, string senderKey = null)
         {
-            foreach (var outgoingMessageDecoratorHandler in OutgoingMessageDecorators)
-            {
-                messageContext = await outgoingMessageDecoratorHandler.ProcessAsync(messageContext, wallet);
-            }
-
-            var msg = await CryptoUtils.PackAsync(wallet, recipientKey, senderKey, messageContext.OutboundMessage.ToByteArray());
+            var msg = await CryptoUtils.PackAsync(wallet, recipientKey, senderKey, message.ToByteArray());
 
             var previousKey = recipientKey;
 
@@ -72,12 +61,10 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task SendToConnectionAsync(Wallet wallet, OutgoingMessageContext messageContext, ConnectionRecord connection, string recipientKey = null)
+        public virtual async Task SendToConnectionAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection, string recipientKey = null)
         {
             Logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0} Endpoint {1}", connection.TheirVk,
                 connection.Endpoint.Uri);
-
-            var message = messageContext.OutboundMessage;
 
             if (string.IsNullOrEmpty(message.Id))
                 throw new AgentFrameworkException(ErrorCode.InvalidMessage, "@id field on message must be populated");
@@ -92,7 +79,7 @@ namespace AgentFramework.Core.Runtime
 
             var routingKeys = connection.Endpoint?.Verkey != null ? new[] {connection.Endpoint.Verkey} : new string[0];
 
-            var wireMsg = await PrepareAsync(wallet, messageContext, recipientKey, routingKeys, connection.MyVk);
+            var wireMsg = await PrepareAsync(wallet, message, recipientKey, routingKeys, connection.MyVk);
             
             var request = new HttpRequestMessage
             {

@@ -67,7 +67,6 @@ namespace AgentFramework.Core.Runtime
         /// </summary>
         /// <param name="eventAggregator">The event aggregator.</param>
         /// <param name="connectionService">The connection service.</param>
-        /// <param name="messageService">The message service.</param>
         /// <param name="recordService">The record service.</param>
         /// <param name="provisioningService">The provisioning service.</param>
         /// <param name="ledgerService">The ledger service.</param>
@@ -90,54 +89,6 @@ namespace AgentFramework.Core.Runtime
             LedgerService = ledgerService;
             Logger = logger;
         }
-
-        ///// <inheritdoc />
-        ////public virtual async Task SendProofRequestAsync(IAgentContext agentContext, string connectionId, ProofRequest proofRequest)
-        ////{
-        ////    Logger.LogInformation(LoggingEvents.SendProofRequest, "ConnectionId {0}", connectionId);
-
-        ////    var connection = await ConnectionService.GetAsync(agentContext, connectionId);
-
-        ////    if (connection.State != ConnectionState.Connected)
-        ////        throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
-        ////            $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
-
-        ////    var (msg, id) = await CreateProofRequestAsync(agentContext, connectionId, proofRequest);
-
-        ////    try
-        ////    {
-        ////        await MessageService.SendToConnectionAsync(agentContext.Wallet, msg, connection);
-        ////    }
-        ////    catch (Exception e)
-        ////    {
-        ////        await RecordService.DeleteAsync<ProofRecord>(agentContext.Wallet, id);
-        ////        throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send proof request message", e);
-        ////    }
-        ////}
-
-        ///// <inheritdoc />
-        //public virtual async Task SendProofRequestAsync(IAgentContext agentContext, string connectionId, string proofRequestJson)
-        //{
-        //    Logger.LogInformation(LoggingEvents.SendProofRequest, "ConnectionId {0}", connectionId);
-
-        //    var connection = await ConnectionService.GetAsync(agentContext, connectionId);
-
-        //    if (connection.State != ConnectionState.Connected)
-        //        throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
-        //            $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
-
-        //    var (msg, id) = await CreateProofRequestAsync(agentContext, connectionId, proofRequestJson);
-
-        //    try
-        //    {
-        //        await MessageService.SendToConnectionAsync(agentContext.Wallet, msg, connection);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        await RecordService.DeleteAsync<ProofRecord>(agentContext.Wallet, id);
-        //        throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Failed to send proof request message", e);
-        //    }
-        //}
 
         /// <inheritdoc />
         public virtual async Task<(ProofRequestMessage, ProofRecord)> CreateProofRequestAsync(

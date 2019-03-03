@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using System.Threading.Tasks;
+using AgentFramework.Core.Decorators.Threading;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers.Internal;
@@ -55,7 +56,7 @@ namespace WebAgent.Messages
 
                     // if (pingMessage.ResponseRequested)
                     // {
-                    return new TrustPingResponseMessage();
+                    return pingMessage.CreateThreadedReply<TrustPingResponseMessage>();
                     // }
                 }
                 case CustomMessageTypes.TrustPingResponseMessageType:

@@ -54,7 +54,7 @@ namespace AgentFramework.Core.Handlers.Internal
                         agentContext, offer, agentContext.Connection);
 
                     var request = await _credentialService.AcceptOfferAsync(agentContext, credentialId);
-                    await _messageService.SendToConnectionAsync(agentContext.Wallet, new OutgoingMessageContext(request), agentContext.Connection);
+                    await _messageService.SendToConnectionAsync(agentContext.Wallet, request, agentContext.Connection);
                     return null;
                 }
 

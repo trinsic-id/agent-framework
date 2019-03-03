@@ -18,18 +18,18 @@ namespace AgentFramework.Core.Contracts
         /// <param name="connection">The connection record.</param>
         /// <param name="recipientKey">The recipients verkey to encrypt the message for.</param>
         /// <returns>The response async.</returns>
-        Task SendToConnectionAsync(Wallet wallet, OutgoingMessageContext messageContext, ConnectionRecord connection, string recipientKey = null);
+        Task SendToConnectionAsync(Wallet wallet, AgentMessage messageContext, ConnectionRecord connection, string recipientKey = null);
 
         /// <summary>
         /// Prepares a wire level message from the application level agent message asynchronously.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
-        /// <param name="messageContext">The message context.</param>
+        /// <param name="message">The message context.</param>
         /// <param name="recipientKey">The key to encrypt the message for.</param>
         /// <param name="routingKeys">The routing keys to pack the message for.</param>
         /// <param name="senderKey">The sender key to encrypt the message from.</param>
         /// <returns>The response async.</returns>
-        Task<byte[]> PrepareAsync(Wallet wallet, OutgoingMessageContext messageContext, string recipientKey, string[] routingKeys = null,
+        Task<byte[]> PrepareAsync(Wallet wallet, AgentMessage message, string recipientKey, string[] routingKeys = null,
             string senderKey = null);
     }
 }

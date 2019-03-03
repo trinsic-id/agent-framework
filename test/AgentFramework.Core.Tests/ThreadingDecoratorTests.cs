@@ -1,19 +1,11 @@
 ﻿using System;
-using System.IO;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Decorators.Threading;
 using AgentFramework.Core.Exceptions;
-using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers;
-using AgentFramework.Core.Handlers.Internal;
-using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
-using AgentFramework.Core.Runtime;
-using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace AgentFramework.Core.Tests
@@ -56,66 +48,55 @@ namespace AgentFramework.Core.Tests
             await Wallet.DeleteWalletAsync(_walletConfig, Credentials);
         }
 
-        //[Fact]
-        //public void DoesntCreateThreadWhenNoInboundMessage()
-        //{
-        //    var threadDecorator = new OutgoingThreadDecoratorHandler();
+        [Fact]
+        public void CreatesNewThreadFromUnthreadedInboundMessage()
+        {
+            var inboundMessage = new ConnectionRequestMessage();
 
-        //    var outgoingMessage = new OutgoingMessage
-        //    {
-        //        OutboundMessage = new ConnectionRequestMessage().ToJson()
-        //    };
+            var outboundMessage = inboundMessage.CreateThreadedReply<ConnectionResponseMessage>();
 
-        //    threadDecorator.ProcessAsync(outgoingMessage, _agent);
+            var threadingBlock = outboundMessage.GetDecorator<ThreadDecorator>("thread");
 
-        //    Assert.Throws<AgentFrameworkException>(() => new MessagePayload(JsonConvert.DeserializeObject<AgentMessage>(outgoingMessage.OutboundMessage)).GetDecorator<ThreadDecorator>("thread"));
-        //}
+            Assert.True(threadingBlock.ThreadId == inboundMessage.Id);
+            Assert.True(threadingBlock.SenderOrder == 0);
+            Assert.True(threadingBlock.RecievedOrders.Count == 0);
+        }
 
-        //[Fact]
-        //public void CreatesNewThreadFromUnthreadedInboundMessage()
-        //{
-        //    var threadDecorator = new OutgoingThreadDecoratorHandler();
+        [Fact]
+        public void AddsToThreadFromThreadedInboundMessage()
+        {
+            var inboundMessage = new ConnectionRequestMessage();
 
-        //    var outgoingMessage = new OutgoingMessage
-        //    {
-        //        InboundMessage = new ConnectionRequestMessage().ToJson(),
-        //        OutboundMessage = new ConnectionResponseMessage().ToJson()
-        //    };
+            var threadId = Guid.NewGuid().ToString();
+            inboundMessage.AddDecorator(new ThreadDecorator()
+            {
+                ThreadId = threadId
+            }, "thread");
 
-        //    threadDecorator.ProcessAsync(outgoingMessage, _agent);
+            var outgoingMessage = inboundMessage.CreateThreadedReply<ConnectionResponseMessage>();
 
-        //    var threadingBlock = new MessagePayload(JsonConvert.DeserializeObject<AgentMessage>(outgoingMessage.OutboundMessage)).GetDecorator<ThreadDecorator>("thread");
-            
-        //    Assert.True(threadingBlock.ThreadId == new MessagePayload(JsonConvert.DeserializeObject<AgentMessage>(outgoingMessage.InboundMessage)).GetMessageId());
-        //    Assert.True(threadingBlock.SenderOrder == 0);
-        //    Assert.True(threadingBlock.RecievedOrders.Count == 0);
-        //}
+            var threadingBlock = outgoingMessage.GetDecorator<ThreadDecorator>("thread");
 
-        //[Fact]
-        //public void AddsToThreadFromThreadedInboundMessage()
-        //{
-        //    var threadDecorator = new OutgoingThreadDecoratorHandler();
+            Assert.True(threadingBlock.ThreadId == threadId);
+            Assert.True(threadingBlock.SenderOrder == 0);
+            Assert.True(threadingBlock.RecievedOrders.Count == 0);
+        }
 
-        //    var threadId = Guid.NewGuid().ToString();
-        //    var inboundMessage = new MessagePayload(new ConnectionRequestMessage());
-        //    inboundMessage.AddDecorator(new ThreadDecorator()
-        //    {
-        //        ThreadId = threadId
-        //    }, "thread");
+        [Fact]
+        public void ThreadFromThrowsExceptionOnAlreadyThreadedMessage()
+        {
+            var message = new ConnectionRequestMessage();
 
-        //    var outgoingMessage = new OutgoingMessage
-        //    {
-        //        InboundMessage = inboundMessage,
-        //        OutboundMessage = new MessagePayload(new ConnectionResponseMessage())
-        //    };
+            var threadId = Guid.NewGuid().ToString();
+            message.AddDecorator(new ThreadDecorator()
+            {
+                ThreadId = threadId
+            }, "thread");
 
-        //    threadDecorator.ProcessAsync(outgoingMessage, _agent);
+            var inboundMessage = new ConnectionInvitationMessage();
 
-        //    var threadingBlock = outgoingMessage.OutboundMessage.GetDecorator<ThreadDecorator>("thread");
-
-        //    Assert.True(threadingBlock.ThreadId == threadId);
-        //    Assert.True(threadingBlock.SenderOrder == 0);
-        //    Assert.True(threadingBlock.RecievedOrders.Count == 0);
-        //}
+            var ex = Assert.Throws<AgentFrameworkException>(() => message.ThreadFrom(inboundMessage));
+            Assert.True(ex.ErrorCode == ErrorCode.InvalidMessage);
+        }
     }
 }

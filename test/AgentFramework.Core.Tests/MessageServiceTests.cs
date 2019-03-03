@@ -74,7 +74,7 @@ namespace AgentFramework.Core.Tests
                 .Returns(Task.FromResult(new List<ConnectionRecord> {new ConnectionRecord()}));
 
             _messagingService =
-                new DefaultMessageService(new IOutgoingMessageDecoratorHandler[0], new Mock<ILogger<DefaultMessageService>>().Object, httpClient);
+                new DefaultMessageService(new Mock<ILogger<DefaultMessageService>>().Object, httpClient);
         }
 
         public async Task InitializeAsync()
@@ -197,7 +197,7 @@ namespace AgentFramework.Core.Tests
             };
 
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
-                await _messagingService.SendToConnectionAsync(_wallet, new OutgoingMessageContext(new MockAgentMessage()), connection));
+                await _messagingService.SendToConnectionAsync(_wallet, new MockAgentMessage(), connection));
             Assert.True(ex.ErrorCode == ErrorCode.InvalidMessage);
         }
 
@@ -217,7 +217,7 @@ namespace AgentFramework.Core.Tests
             };
 
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
-                await _messagingService.SendToConnectionAsync(_wallet, new OutgoingMessageContext(new MockAgentMessage { Id = Guid.NewGuid().ToString() }), connection));
+                await _messagingService.SendToConnectionAsync(_wallet, new MockAgentMessage { Id = Guid.NewGuid().ToString() }, connection));
             Assert.True(ex.ErrorCode == ErrorCode.InvalidMessage);
         }
     }

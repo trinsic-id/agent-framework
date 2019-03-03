@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Decorators.Threading;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
@@ -61,9 +62,9 @@ namespace AgentFramework.Core.Handlers.Internal
                     // Auto accept connection if set during invitation
                     if (agentContext.Connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
                     {
-                        var response = new OutgoingMessageContext(request,
-                            await _connectionService.AcceptRequestAsync(agentContext, connectionId));
-                        await _messageService.SendToConnectionAsync(agentContext.Wallet, response, agentContext.Connection);
+                        var message =  await _connectionService.AcceptRequestAsync(agentContext, connectionId);
+                        message.ThreadFrom(messagePayload.GetAsAgentMessage());
+                        await _messageService.SendToConnectionAsync(agentContext.Wallet, message, agentContext.Connection);
                     }
                     return null;
                 }

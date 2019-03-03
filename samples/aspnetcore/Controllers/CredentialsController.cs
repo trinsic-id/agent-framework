@@ -117,7 +117,7 @@ namespace WebAgent.Controllers
                 IssuerDid = issuerDid,
                 CredentialDefinitionId = credentialDefinitionId
             }, connectionId);
-            await _messageService.SendToConnectionAsync(context.Wallet, new OutgoingMessageContext(offer), connection);
+            await _messageService.SendToConnectionAsync(context.Wallet, offer, connection);
 
             return RedirectToAction("Index");
         }

@@ -103,7 +103,7 @@ namespace WebAgent.Controllers
 
             var invite = DecodeInvitation(inviteRaw);
             var invitationResult = await _connectionService.AcceptInvitationAsync(context, invite);
-            await _messageService.SendToConnectionAsync(context.Wallet, new OutgoingMessageContext(invitationResult.Request), invitationResult.Connection, invite.RecipientKeys[0]);
+            await _messageService.SendToConnectionAsync(context.Wallet, invitationResult.Request, invitationResult.Connection, invite.RecipientKeys[0]);
 
             return RedirectToAction("Index");
         }
@@ -153,7 +153,7 @@ namespace WebAgent.Controllers
                     responseRecieved = true;
                 });
 
-            await _messageService.SendToConnectionAsync(context.Wallet, new OutgoingMessageContext(message), connection);
+            await _messageService.SendToConnectionAsync(context.Wallet, message, connection);
 
 
             var task = Task.Factory.StartNew(() =>
@@ -216,7 +216,7 @@ namespace WebAgent.Controllers
             await _recordService.AddAsync(context.Wallet, messageRecord);
 
             // Send an agent message using the secure connection
-            await _messageService.SendToConnectionAsync(context.Wallet, new OutgoingMessageContext(message), connection);
+            await _messageService.SendToConnectionAsync(context.Wallet, message, connection);
 
             return RedirectToAction("Details", new {id = connectionId});
         }
