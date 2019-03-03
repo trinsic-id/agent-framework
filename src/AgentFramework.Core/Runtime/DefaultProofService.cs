@@ -192,8 +192,8 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<ProofMessage> CreateProofAsync(IAgentContext agentContext, string proofRequestId,
-            RequestedCredentials requestedCredentials)
+        public virtual async Task<ProofMessage> CreateProofAsync(IAgentContext agentContext, 
+            string proofRequestId, RequestedCredentials requestedCredentials)
         {
             var record = await GetAsync(agentContext, proofRequestId);
 
@@ -242,8 +242,7 @@ namespace AgentFramework.Core.Runtime
 
         /// <inheritdoc />
         public virtual async Task<ProofMessage> AcceptProofRequestAsync(IAgentContext agentContext,
-            string proofRequestId,
-            RequestedCredentials requestedCredentials)
+            string proofRequestId, RequestedCredentials requestedCredentials)
         {
             var request = await GetAsync(agentContext, proofRequestId);
 
@@ -317,14 +316,10 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public virtual async Task<ProofRecord> GetAsync(IAgentContext agentContext, string proofRecId)
         {
-            Logger.LogInformation(LoggingEvents.GetProofRecord, "ConnectionId {0}", proofRecId);
+            Logger.LogInformation(LoggingEvents.GetProofRecord, "ProofRecordId {0}", proofRecId);
 
-            var record = await RecordService.GetAsync<ProofRecord>(agentContext.Wallet, proofRecId);
-
-            if (record == null)
-                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Proof record not found");
-
-            return record;
+            return await RecordService.GetAsync<ProofRecord>(agentContext.Wallet, proofRecId) ??
+                   throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Proof record not found");
         }
 
         /// <inheritdoc />
