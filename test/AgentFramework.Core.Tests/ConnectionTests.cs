@@ -19,6 +19,7 @@ using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Wallets;
 using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Utils;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.DependencyInjection;
@@ -196,6 +197,10 @@ namespace AgentFramework.Core.Tests
                 Assert.Equal(ConnectionState.Connected, connectionRecord2.State);
                 Assert.Equal(connectionRecord1.MyDid, connectionRecord2.TheirDid);
                 Assert.Equal(connectionRecord1.TheirDid, connectionRecord2.MyDid);
+
+                Assert.Equal(
+                    connectionRecord1.GetTag(TagConstants.ConnectionThreadId), 
+                    connectionRecord2.GetTag(TagConstants.ConnectionThreadId));
             }
 
             // Cleanup

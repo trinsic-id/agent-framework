@@ -49,25 +49,16 @@ namespace AgentFramework.Core.Handlers
         }
 
         /// <summary>Adds a handler for supporting default connection flow.</summary>
-        protected void AddConnectionHandler()
-        {
-            _handlers.Add(Provider.GetRequiredService<DefaultConnectionHandler>());
-        }
+        protected void AddConnectionHandler() => _handlers.Add(Provider.GetRequiredService<DefaultConnectionHandler>());
+
         /// <summary>Adds a handler for supporting default credential flow.</summary>
-        protected void AddCredentialHandler()
-        {
-            _handlers.Add(Provider.GetRequiredService<DefaultCredentialHandler>());
-        }
+        protected void AddCredentialHandler() => _handlers.Add(Provider.GetRequiredService<DefaultCredentialHandler>());
+
         /// <summary>Adds the handler for supporting default proof flow.</summary>
-        protected void AddProofHandler()
-        {
-            _handlers.Add(Provider.GetRequiredService<DefaultProofHandler>());
-        }
+        protected void AddProofHandler() => _handlers.Add(Provider.GetRequiredService<DefaultProofHandler>());
+
         /// <summary>Adds a default forwarding handler.</summary>
-        protected void AddForwardHandler()
-        {
-            _handlers.Add(Provider.GetRequiredService<DefaultForwardHandler>());
-        }
+        protected void AddForwardHandler() => _handlers.Add(Provider.GetRequiredService<DefaultForwardHandler>());
 
         /// <summary>Adds a custom the handler using dependency injection.</summary>
         /// <typeparam name="T"></typeparam>
@@ -113,6 +104,7 @@ namespace AgentFramework.Core.Handlers
             {
                 response = await MessageService.PrepareAsync(wallet, outgoingMessage, "");
             }
+
             return response;
         }
 
@@ -126,7 +118,8 @@ namespace AgentFramework.Core.Handlers
                 messagePayload = new MessagePayload(unpacked.Message, false);
                 if (unpacked.SenderVerkey != null && agentContext.Connection == null)
                 {
-                    agentContext.Connection = await ConnectionService.ResolveByMyKeyAsync(agentContext, unpacked.RecipientVerkey);
+                    agentContext.Connection =
+                        await ConnectionService.ResolveByMyKeyAsync(agentContext, unpacked.RecipientVerkey);
                 }
             }
             else
@@ -135,13 +128,16 @@ namespace AgentFramework.Core.Handlers
             }
 
             if (_handlers.Where(handler => handler != null).FirstOrDefault(
-                handler => handler.SupportedMessageTypes.Any(
-                    type => type.Equals(messagePayload.GetMessageType(), StringComparison.OrdinalIgnoreCase))) is IMessageHandler messageHandler)
+                    handler => handler.SupportedMessageTypes.Any(
+                        type => type.Equals(messagePayload.GetMessageType(), StringComparison.OrdinalIgnoreCase))) is
+                IMessageHandler messageHandler)
             {
-                Logger.LogDebug("Processing message type {MessageType}, {MessageData}", messagePayload.GetMessageType(), messagePayload.Payload.GetUTF8String());
+                Logger.LogDebug("Processing message type {MessageType}, {MessageData}", messagePayload.GetMessageType(),
+                    messagePayload.Payload.GetUTF8String());
                 var outboundMessage = await messageHandler.ProcessAsync(agentContext, messagePayload);
                 return outboundMessage;
             }
+
             throw new AgentFrameworkException(ErrorCode.InvalidMessage,
                 $"Couldn't locate a message handler for type {messagePayload.GetMessageType()}");
         }
