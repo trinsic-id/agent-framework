@@ -31,6 +31,10 @@ namespace AgentFramework.Core.Utils
 
         public const int SendMessage = 3000;
         public const int ForwardMessage = 3001;
+
+        //Ephemeral challenge events
+        public const int ListChallengeConfigurations = 5000;
+        public const int GetChallengeConfiguration = 5001;
     }
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 

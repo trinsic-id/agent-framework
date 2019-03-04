@@ -213,7 +213,7 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, proofRequestObject, requestorConnection.Id);
                 _messages.Add(message);
             }
 
@@ -292,11 +292,11 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task SendProofRequestThrowsConnectionNotFound()
         {
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofRequestAsync(_issuerWallet, "bad-proof-id", new ProofRequest
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofRequestAsync(_issuerWallet, new ProofRequest
             {
                 Name = "Test",
                 Nonce = "123"
-            }));
+            }, "bad-proof-id"));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }
@@ -309,11 +309,11 @@ namespace AgentFramework.Core.Tests
             await _connectionService.CreateInvitationAsync(_issuerWallet,
                 new InviteConfiguration { ConnectionId = connectionId });
 
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofRequestAsync(_issuerWallet, connectionId, new ProofRequest
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofRequestAsync(_issuerWallet, new ProofRequest
             {
                 Name = "Test",
                 Nonce = "123"
-            }));
+            }, connectionId));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
@@ -321,11 +321,11 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CreateProofRequestConnectionNotFound()
         {
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofRequestAsync(_issuerWallet, "bad-connection-id", new ProofRequest
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofRequestAsync(_issuerWallet, new ProofRequest
             {
                 Name = "Test",
                 Nonce = "1234"
-            }));
+            }, "bad-connection-id"));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }
@@ -338,11 +338,11 @@ namespace AgentFramework.Core.Tests
             await _connectionService.CreateInvitationAsync(_issuerWallet,
                 new InviteConfiguration { ConnectionId = connectionId });
 
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofRequestAsync(_issuerWallet, connectionId, new ProofRequest
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofRequestAsync(_issuerWallet, new ProofRequest
             {
                 Name = "Test",
                 Nonce = "1234"
-            }));
+            }, connectionId));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
@@ -394,7 +394,7 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, proofRequestObject, requestorConnection.Id);
                 _messages.Add(message);
             }
 
@@ -498,7 +498,7 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, proofRequestObject, requestorConnection.Id);
                 _messages.Add(message);
             }
 
@@ -590,7 +590,7 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, proofRequestObject, requestorConnection.Id);
                 _messages.Add(message);
             }
             

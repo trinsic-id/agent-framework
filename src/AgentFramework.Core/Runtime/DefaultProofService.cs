@@ -93,19 +93,19 @@ namespace AgentFramework.Core.Runtime
 
         /// <inheritdoc />
         public virtual async Task<(ProofRequestMessage, ProofRecord)> CreateProofRequestAsync(
-            IAgentContext agentContext, string connectionId,
-            ProofRequest proofRequest)
+            IAgentContext agentContext, ProofRequest proofRequest,
+            string connectionId)
         {
             if (string.IsNullOrWhiteSpace(proofRequest.Nonce))
                 throw new ArgumentNullException(nameof(proofRequest.Nonce), "Nonce must be set.");
 
-            return await CreateProofRequestAsync(agentContext, connectionId, proofRequest.ToJson());
+            return await CreateProofRequestAsync(agentContext, proofRequest.ToJson(), connectionId);
         }
 
         /// <inheritdoc />
         public virtual async Task<(ProofRequestMessage, ProofRecord)> CreateProofRequestAsync(
-            IAgentContext agentContext, string connectionId,
-            string proofRequestJson)
+            IAgentContext agentContext, string proofRequestJson,
+            string connectionId = null)
         {
             Logger.LogInformation(LoggingEvents.CreateProofRequest, "ConnectionId {0}", connectionId);
 
@@ -241,6 +241,41 @@ namespace AgentFramework.Core.Runtime
                 ProofJson = proofJson,
                 RequestNonce = JsonConvert.DeserializeObject<ProofRequest>(record.RequestJson).Nonce
             };
+        }
+
+        /// <inheritdoc />
+        public virtual async Task<Proof> CreateProofAsync(IAgentContext agentContext,
+            ProofRequest proofRequest, RequestedCredentials requestedCredentials)
+        {
+            var provisioningRecord = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
+
+            var credentialObjects = new List<CredentialInfo>();
+            foreach (var credId in requestedCredentials.GetCredentialIdentifiers())
+            {
+                credentialObjects.Add(
+                    JsonConvert.DeserializeObject<CredentialInfo>(
+                        await AnonCreds.ProverGetCredentialAsync(agentContext.Wallet, credId)));
+            }
+
+            var schemas = await BuildSchemasAsync(agentContext.Pool,
+                credentialObjects
+                    .Select(x => x.SchemaId)
+                    .Distinct());
+
+            var definitions = await BuildCredentialDefinitionsAsync(agentContext.Pool,
+                credentialObjects
+                    .Select(x => x.CredentialDefinitionId)
+                    .Distinct());
+
+            var revocationStates = await BuildRevocationStatesAsync(agentContext.Pool,
+                credentialObjects,
+                requestedCredentials);
+
+            var proofJson = await AnonCreds.ProverCreateProofAsync(agentContext.Wallet, proofRequest.ToJson(),
+                requestedCredentials.ToJson(), provisioningRecord.MasterSecretId, schemas, definitions,
+                revocationStates);
+
+            return JsonConvert.DeserializeObject<Proof>(proofJson);
         }
 
         /// <inheritdoc />
