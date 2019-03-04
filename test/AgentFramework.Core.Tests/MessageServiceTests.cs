@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Decorators;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
@@ -29,12 +30,7 @@ using Xunit;
 
 namespace AgentFramework.Core.Tests
 {
-    public class MockAgentMessage : IAgentMessage
-    {
-        public string Id { get; set; }
-
-        public string Type { get; set; }
-    }
+    public class MockAgentMessage : AgentMessage { }
 
     public class MessageServiceTests : IAsyncLifetime
     {
@@ -59,7 +55,7 @@ namespace AgentFramework.Core.Tests
                     ItExpr.IsAny<CancellationToken>()
                 )
                 // prepare the expected response of the mocked http call
-                .ReturnsAsync(new HttpResponseMessage()
+                .ReturnsAsync(new HttpResponseMessage
                 {
                     StatusCode = HttpStatusCode.OK,
                     Content = new StringContent(""),
@@ -70,15 +66,12 @@ namespace AgentFramework.Core.Tests
                 })
                 .Verifiable();
 
-            // use real http client with mocked handler here
-            var httpClient = new HttpClient(handlerMock.Object);
-
             var mockConnectionService = new Mock<IConnectionService>();
             mockConnectionService.Setup(_ => _.ListAsync(It.IsAny<IAgentContext>(), It.IsAny<ISearchQuery>(), It.IsAny<int>()))
                 .Returns(Task.FromResult(new List<ConnectionRecord> {new ConnectionRecord()}));
 
             _messagingService =
-                new DefaultMessageService(new Mock<ILogger<DefaultMessageService>>().Object, httpClient);
+                new DefaultMessageService(new Mock<ILogger<DefaultMessageService>>().Object, handlerMock.Object);
         }
 
         public async Task InitializeAsync()
@@ -105,7 +98,7 @@ namespace AgentFramework.Core.Tests
         public async Task PackAnon()
         {
 
-            var message = new ConnectionInvitationMessage() {ConnectionKey = "123"}.ToByteArray();
+            var message = new ConnectionInvitationMessage {RecipientKeys = new [] { "123" }}.ToByteArray();
 
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
@@ -119,7 +112,7 @@ namespace AgentFramework.Core.Tests
         public async Task PackAuth()
         {
 
-            var message = new ConnectionInvitationMessage() {ConnectionKey = "123"}.ToByteArray();
+            var message = new ConnectionInvitationMessage { RecipientKeys = new[] { "123" }}.ToByteArray();
 
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
@@ -133,7 +126,7 @@ namespace AgentFramework.Core.Tests
         public async Task PackAndUnpackAnon()
         {
 
-            var message = new ConnectionInvitationMessage() {ConnectionKey = "123"};
+            var message = new ConnectionInvitationMessage { RecipientKeys = new[] { "123" }};
 
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
@@ -151,7 +144,7 @@ namespace AgentFramework.Core.Tests
         public async Task PackAndUnpackAuth()
         {
 
-            var message = new ConnectionInvitationMessage() {ConnectionKey = "123"}.ToByteArray();
+            var message = new ConnectionInvitationMessage { RecipientKeys = new[] { "123" }}.ToByteArray();
 
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
@@ -173,7 +166,7 @@ namespace AgentFramework.Core.Tests
         public async Task UnpackToCustomType()
         {
 
-            var message = new ConnectionInvitationMessage() {ConnectionKey = "123"};
+            var message = new ConnectionInvitationMessage {RecipientKeys = new [] { "123" }};
 
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
@@ -182,7 +175,7 @@ namespace AgentFramework.Core.Tests
             var unpack = await CryptoUtils.UnpackAsync<ConnectionInvitationMessage>(_wallet, packed);
 
             Assert.NotNull(unpack);
-            Assert.Equal("123", unpack.ConnectionKey);
+            Assert.Equal("123", unpack.RecipientKeys[0]);
         }
 
         [Fact]
@@ -201,7 +194,7 @@ namespace AgentFramework.Core.Tests
             };
 
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
-                await _messagingService.SendAsync(_wallet, new MockAgentMessage(), connection));
+                await _messagingService.SendToConnectionAsync(_wallet, new MockAgentMessage(), connection));
             Assert.True(ex.ErrorCode == ErrorCode.InvalidMessage);
         }
 
@@ -221,7 +214,7 @@ namespace AgentFramework.Core.Tests
             };
 
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
-                await _messagingService.SendAsync(_wallet, new MockAgentMessage { Id = Guid.NewGuid().ToString() }, connection));
+                await _messagingService.SendToConnectionAsync(_wallet, new MockAgentMessage { Id = Guid.NewGuid().ToString() }, connection));
             Assert.True(ex.ErrorCode == ErrorCode.InvalidMessage);
         }
     }

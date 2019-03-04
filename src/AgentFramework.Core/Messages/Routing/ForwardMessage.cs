@@ -6,16 +6,15 @@ namespace AgentFramework.Core.Messages.Routing
     /// <summary>
     /// Represents a forwarding message
     /// </summary>
-    public class ForwardMessage : IAgentMessage
+    public class ForwardMessage : AgentMessage
     {
         /// <inheritdoc />
-        [JsonProperty("@id")]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        /// <inheritdoc />
-        [JsonProperty("@type")]
-        public string Type { get; set; } = MessageTypes.Forward;
-
+        public ForwardMessage()
+        {
+            Id = Guid.NewGuid().ToString();
+            Type = MessageTypes.Forward;
+        }
+        
         /// <summary>
         /// Gets or sets the to or recipient field.
         /// </summary>

@@ -1,4 +1,5 @@
 ﻿using System.Net.Http;
+using AgentFramework.AspNetCore.Configuration.Service;
 using AgentFramework.Core.Contracts;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
@@ -13,14 +14,10 @@ namespace AgentFramework.Core.Tests
         public void ResolveDependancyServices()
         {
             var services = new ServiceCollection();
-            services.AddLogging();
-            services.AddSingleton(new HttpClient());
+            services.AddAgentFramework();
             
             // Initialize Autofac
             var builder = new ContainerBuilder();
-            builder.RegisterAssemblyTypes(typeof(IConnectionService).Assembly)
-                .AsImplementedInterfaces();
-            
             builder.Populate(services);
             
             // Build the final container

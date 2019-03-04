@@ -87,7 +87,8 @@ namespace AgentFramework.AspNetCore.Configuration
         {
             try
             {
-                await _poolService.CreatePoolAsync(_poolOptions.PoolName, _poolOptions.GenesisFilename);
+                if (_poolOptions.GenesisFilename != null)
+                    await _poolService.CreatePoolAsync(_poolOptions.PoolName, _poolOptions.GenesisFilename);
             }
             catch (PoolLedgerConfigExistsException)
             {

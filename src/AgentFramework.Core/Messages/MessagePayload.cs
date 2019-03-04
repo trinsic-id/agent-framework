@@ -1,10 +1,10 @@
 ﻿using System;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
-using AgentFramework.Core.Messages;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace AgentFramework.Core.Handlers
+namespace AgentFramework.Core.Messages
 {
     /// <summary>
     /// A message context object that surrounds an agent message
@@ -35,15 +35,23 @@ namespace AgentFramework.Core.Handlers
 
         /// <inheritdoc />
         /// <param name="message">The message.</param>
-        public MessagePayload(IAgentMessage message)
+        public MessagePayload(AgentMessage message)
         : this(message.ToJson(), false)
         {
         }
-
+        
         /// <summary>
         /// The raw format of the message.
         /// </summary>
         internal byte[] Payload { get; }
+
+        /// <summary>
+        /// The message id of the current message.
+        /// </summary>
+        public string GetMessageId() =>
+            Packed
+                ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
+                : _messageJson["@id"].Value<string>();
 
         /// <summary>
         /// The message type of the current message.
@@ -58,22 +66,18 @@ namespace AgentFramework.Core.Handlers
         /// </summary>
         /// <typeparam name="T">The generic type the message will be cast to.</typeparam>
         /// <returns>The agent message.</returns>
-        public T GetMessage<T>() where T : IAgentMessage =>
+        public T GetMessage<T>() where T : AgentMessage, new() =>
             Packed
                 ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
-                : _messageJson.ToObject<T>();
-
+                : JsonConvert.DeserializeObject<T>(_messageJson.ToString(), new AgentMessageReader<T>());
+        
         /// <summary>
-        /// Gets the decorator.
+        /// Gets the message cast to the expect message type.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="name">The name.</param>
-        /// <returns></returns>
-        /// <exception cref="AgentFrameworkException">Cannot deserialize packed message.</exception>
-        public T GetDecorator<T>(string name) where T : IAgentMessage =>
+        /// <returns>The agent message.</returns>
+        public string GetMessage() =>
             Packed
                 ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
-                : _messageJson[$"~{name}"].ToObject<T>();
-
+                : _messageJson.ToJson();
     }
 }

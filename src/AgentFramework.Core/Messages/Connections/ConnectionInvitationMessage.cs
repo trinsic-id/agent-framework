@@ -1,5 +1,5 @@
 ﻿using System;
-using AgentFramework.Core.Models;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Messages.Connections
@@ -7,33 +7,23 @@ namespace AgentFramework.Core.Messages.Connections
     /// <summary>
     /// Represents an invitation message for establishing connection.
     /// </summary>
-    public class ConnectionInvitationMessage : IAgentMessage
+    public class ConnectionInvitationMessage : AgentMessage
     {
         /// <inheritdoc />
-        [JsonProperty("@id")]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        /// <inheritdoc />
-        [JsonProperty("@type")]
-        public string Type { get; set; } = MessageTypes.ConnectionInvitation;
-
-        /// <summary>
-        /// Gets or sets the endpoint.
-        /// </summary>
-        /// <value>
-        /// The endpoint.
-        /// </value>
-        [JsonProperty("endpoint")]
-        public AgentEndpoint Endpoint { get; set; }
-
+        public ConnectionInvitationMessage()
+        {
+            Id = Guid.NewGuid().ToString();
+            Type = MessageTypes.ConnectionInvitation;
+        }
+        
         /// <summary>
         /// Gets or sets the name.
         /// </summary>
         /// <value>
         /// The name.
         /// </value>
-        [JsonProperty("name")]
-        public string Name { get; set; }
+        [JsonProperty("label")]
+        public string Label { get; set; }
 
         /// <summary>
         /// Gets or sets the image URL.
@@ -45,22 +35,39 @@ namespace AgentFramework.Core.Messages.Connections
         public string ImageUrl { get; set; }
 
         /// <summary>
-        /// Gets or sets the connection key.
+        /// Gets or sets the service endpoint.
         /// </summary>
         /// <value>
-        /// The connection key.
+        /// The service endpoint.
         /// </value>
-        [JsonProperty("connectionKey")]
-        public string ConnectionKey { get; set; }
-        
+        [JsonProperty("serviceEndpoint")]
+        public string ServiceEndpoint { get; set; }
+
+        /// <summary>
+        /// Gets or sets the routing keys.
+        /// </summary>
+        /// <value>
+        /// The routing keys.
+        /// </value>
+        [JsonProperty("routingKeys")]
+        public IList<string> RoutingKeys { get; set; }
+
+        /// <summary>
+        /// Gets or sets the recipient keys.
+        /// </summary>
+        /// <value>
+        /// The recipient keys.
+        /// </value>
+        [JsonProperty("recipientKeys")]
+        public IList<string> RecipientKeys { get; set; }
+
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +
             $"Id={Id}, " +
             $"Type={Type}, " +
-            $"Name={Name}, " +
+            $"Name={Label}, " +
             $"ImageUrl={ImageUrl}, " +
-            $"ConnectionKey={(ConnectionKey?.Length > 0 ? "[hidden]" : null)}, " +
-            $"Endpoint={Endpoint}";
+            $"RoutingKeys={string.Join(",", RoutingKeys)}, ";
     }
 }

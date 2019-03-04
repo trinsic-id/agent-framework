@@ -3,10 +3,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Proofs;
@@ -49,7 +51,7 @@ namespace AgentFramework.Core.Tests
         private readonly IPoolService _poolService;
 
         private bool _routeMessage = true;
-        private readonly ConcurrentBag<IAgentMessage> _messages = new ConcurrentBag<IAgentMessage>();
+        private readonly ConcurrentBag<AgentMessage> _messages = new ConcurrentBag<AgentMessage>();
 
         public ProofTests()
         {
@@ -62,12 +64,12 @@ namespace AgentFramework.Core.Tests
             var provisionMock = new Mock<IProvisioningService>();
             provisionMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
                 .Returns(
-                    Task.FromResult<ProvisioningRecord>(new ProvisioningRecord() {MasterSecretId = MasterSecretId}));
+                    Task.FromResult<ProvisioningRecord>(new ProvisioningRecord {MasterSecretId = MasterSecretId}));
 
             var routingMock = new Mock<IMessageService>();
             routingMock.Setup(x =>
-                    x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
-                .Callback((Wallet _, IAgentMessage content, ConnectionRecord __, string ___) =>
+                    x.SendToConnectionAsync(It.IsAny<Wallet>(), It.IsAny<AgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
+                .Callback((Wallet _, AgentMessage content, ConnectionRecord __, string ___) =>
                 {
                     if (_routeMessage)
                         _messages.Add(content);
@@ -84,19 +86,17 @@ namespace AgentFramework.Core.Tests
                     MasterSecretId = MasterSecretId
                 }));
 
-            var tailsService = new DefaultTailsService(ledgerService);
+            var tailsService = new DefaultTailsService(ledgerService, new HttpClientHandler());
             _schemaService = new DefaultSchemaService(provisioningMock.Object, recordService, ledgerService, tailsService);
 
             _connectionService = new DefaultConnectionService(
                 _eventAggregator,
                 recordService,
-                routingMock.Object,
                 provisioningMock.Object,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
 
             _credentialService = new DefaultCredentialService(
                 _eventAggregator,
-                routingMock.Object,
                 ledgerService,
                 _connectionService,
                 recordService,
@@ -108,7 +108,6 @@ namespace AgentFramework.Core.Tests
             _proofService = new DefaultProofService(
                 _eventAggregator,
                 _connectionService,
-                routingMock.Object,
                 recordService,
                 provisionMock.Object,
                 ledgerService,
@@ -177,7 +176,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CredentialProofDemo()
         {
-            int events = 0;
+            var events = 0;
             _eventAggregator.GetEventByType<ServiceMessageProcessingEvent>()
                 .Where(_ => (_.MessageType == MessageTypes.ProofRequest ||
                              _.MessageType == MessageTypes.DisclosedProof))
@@ -214,7 +213,8 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                _messages.Add(message);
             }
 
             // Holder accepts the proof requests and builds a proof
@@ -292,9 +292,10 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task SendProofRequestThrowsConnectionNotFound()
         {
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.SendProofRequestAsync(_issuerWallet, "bad-proof-id", new ProofRequest
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofRequestAsync(_issuerWallet, "bad-proof-id", new ProofRequest
             {
-                Name = "Test"
+                Name = "Test",
+                Nonce = "123"
             }));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
@@ -306,55 +307,17 @@ namespace AgentFramework.Core.Tests
             var connectionId = Guid.NewGuid().ToString();
 
             await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new InviteConfiguration() { ConnectionId = connectionId });
+                new InviteConfiguration { ConnectionId = connectionId });
 
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.SendProofRequestAsync(_issuerWallet, connectionId, new ProofRequest
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofRequestAsync(_issuerWallet, connectionId, new ProofRequest
             {
-                Name = "Test"
+                Name = "Test",
+                Nonce = "123"
             }));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
         
-        [Fact]
-        public async Task SendProofRequestThrowsA2AMessageTransmissionFailure()
-        {
-            //Setup a connection and issue the credentials to the holder
-            var (issuerConnection, holderConnection) = await Scenarios.EstablishConnectionAsync(
-                _connectionService, _messages, _issuerWallet, _holderWallet);
-
-            await Scenarios.IssueCredentialAsync(
-                _schemaService, _credentialService, _messages, issuerConnection,
-                holderConnection, _issuerWallet, _holderWallet, _pool, MasterSecretId, true);
-
-            _messages.Clear();
-
-            //Requestor initialize a connection with the holder
-            var (_, requestorConnection) = await Scenarios.EstablishConnectionAsync(
-                _connectionService, _messages, _holderWallet, _requestorWallet);
-
-            // Verifier sends a proof request to prover
-            {
-                var proofRequestObject = new ProofRequest
-                {
-                    Name = "ProofReq",
-                    Version = "1.0",
-                    Nonce = "123",
-                    RequestedAttributes = new Dictionary<string, ProofAttributeInfo>
-                    {
-                        {"first-name-requirement", new ProofAttributeInfo {Name = "first_name"}}
-                    }
-                };
-
-                //Requestor sends a proof request
-                _routeMessage = false;
-                var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject));
-                _routeMessage = true;
-
-                Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionError);
-            }
-        }
-
         [Fact]
         public async Task CreateProofRequestConnectionNotFound()
         {
@@ -373,7 +336,7 @@ namespace AgentFramework.Core.Tests
             var connectionId = Guid.NewGuid().ToString();
 
             await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new InviteConfiguration() { ConnectionId = connectionId });
+                new InviteConfiguration { ConnectionId = connectionId });
 
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofRequestAsync(_issuerWallet, connectionId, new ProofRequest
             {
@@ -431,7 +394,8 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                _messages.Add(message);
             }
 
             // Holder accepts the proof requests and builds a proof
@@ -534,7 +498,8 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                _messages.Add(message);
             }
 
             // Holder accepts the proof requests and builds a proof
@@ -625,10 +590,11 @@ namespace AgentFramework.Core.Tests
                 };
 
                 //Requestor sends a proof request
-                await _proofService.SendProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                var (message, _) = await _proofService.CreateProofRequestAsync(_requestorWallet, requestorConnection.Id, proofRequestObject);
+                _messages.Add(message);
             }
             
-            //Holder retrives proof request message from their cloud agent
+            //Holder retrieves proof request message from their cloud agent
             var proofRequest = FindContentMessage<ProofRequestMessage>();
             Assert.NotNull(proofRequest);
 
@@ -643,7 +609,7 @@ namespace AgentFramework.Core.Tests
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
 
-        private T FindContentMessage<T>() where T : IAgentMessage
+        private T FindContentMessage<T>() where T : AgentMessage
             => _messages.OfType<T>().Single();
 
         public async Task DisposeAsync()

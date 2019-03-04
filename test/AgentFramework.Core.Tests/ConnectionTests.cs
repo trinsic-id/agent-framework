@@ -1,24 +1,64 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using AgentFramework.AspNetCore.Configuration.Service;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
-using AgentFramework.Core.Handlers.Internal;
+using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records;
+using AgentFramework.Core.Models.Wallets;
 using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Utils;
+using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
 namespace AgentFramework.Core.Tests
 {
+    public class MockAgentHttpHandler : HttpMessageHandler
+    {
+        public MockAgentHttpHandler(Action<byte[]> callback)
+        {
+            Callback = callback;
+        }
+
+        public Action<byte[]> Callback { get; }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            if (request.Method != HttpMethod.Post)
+            {
+                throw new Exception("Invalid http method");
+            }
+            Callback(await request.Content.ReadAsByteArrayAsync());
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        }
+    }
+
+    public class MockAgent : AgentBase
+    {
+        public MockAgent(
+            IServiceProvider provider) : base(provider)
+        {
+        }
+
+        internal Task HandleAsync(byte[] data, Wallet wallet, Pool pool = null) => ProcessAsync(data, wallet, pool);
+    }
+
     public class ConnectionTests : IAsyncLifetime
     {
         private readonly string _issuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}"; 
@@ -37,7 +77,7 @@ namespace AgentFramework.Core.Tests
         private readonly IConnectionService _connectionService;
 
         private bool _routeMessage = true;
-        private readonly ConcurrentBag<IAgentMessage> _messages = new ConcurrentBag<IAgentMessage>();
+        private readonly ConcurrentBag<AgentMessage> _messages = new ConcurrentBag<AgentMessage>();
 
         public ConnectionTests()
         {
@@ -45,8 +85,8 @@ namespace AgentFramework.Core.Tests
 
             var routingMock = new Mock<IMessageService>();
             routingMock.Setup(x =>
-                    x.SendAsync(It.IsAny<Wallet>(), It.IsAny<IAgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
-                .Callback((Wallet _, IAgentMessage content, ConnectionRecord __, string ___) =>
+                    x.SendToConnectionAsync(It.IsAny<Wallet>(), It.IsAny<AgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
+                .Callback((Wallet _, AgentMessage content, ConnectionRecord __, string ___) =>
                 {
                     if (_routeMessage)
                         _messages.Add(content);
@@ -65,7 +105,6 @@ namespace AgentFramework.Core.Tests
             _connectionService = new DefaultConnectionService(
                 _eventAggregator,
                 new DefaultWalletRecordService(),
-                routingMock.Object,
                 _provisioningMock.Object,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
         }
@@ -105,12 +144,103 @@ namespace AgentFramework.Core.Tests
         }
 
         [Fact]
+        public async Task ConnectUsingHttp()
+        {
+            var slim = new SemaphoreSlim(0, 1);
+
+            var config1 = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
+            var config2 = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
+            var cred = new WalletCredentials { Key = "2" };
+
+            MockAgent agent1 = null;
+            MockAgent agent2 = null;
+            IAgentContext context1 = null;
+            IAgentContext context2 = null;
+
+            // Setup first agent runtime
+            var result1 = await CreateDependency(config1, cred, new MockAgentHttpHandler(data => agent2.HandleAsync(data, context2.Wallet, context2.Pool)));
+            var provider1 = result1.Item1;
+            context1 = result1.Item2;
+            agent1 = provider1.GetRequiredService<MockAgent>();
+            var connectionService1 = provider1.GetRequiredService<IConnectionService>();
+
+            // Setup second agent runtime
+            var result2 = await CreateDependency(config2, cred, new MockAgentHttpHandler(data => agent1.HandleAsync(data, context1.Wallet, context1.Pool)));
+            var provider2 = result2.Item1;
+            context2 = result2.Item2;
+            var connectionService2 = provider2.GetRequiredService<IConnectionService>();
+            var messageService2 = provider2.GetRequiredService<IMessageService>();
+
+            // Hook into response message event of second runtime to release semaphore
+            var sub = provider2.GetRequiredService<IEventAggregator>().GetEventByType<ServiceMessageProcessingEvent>()
+                .Where(x => x.MessageType == MessageTypes.ConnectionResponse)
+                .Subscribe(x => slim.Release());
+            agent2 = provider2.GetRequiredService<MockAgent>();
+
+            // Invitation flow
+            {
+                var invitation = await connectionService1.CreateInvitationAsync(context1,
+                    new InviteConfiguration { AutoAcceptConnection = true });
+
+                var acceptInvitation =
+                    await connectionService2.AcceptInvitationAsync(context2, invitation.Invitation);
+                await messageService2.SendToConnectionAsync(context2.Wallet, acceptInvitation.Request,
+                    acceptInvitation.Connection, invitation.Invitation.RecipientKeys.First());
+
+                // Wait for connection to be established or continue after 30 sec timeout
+                await slim.WaitAsync(TimeSpan.FromSeconds(30));
+
+                var connectionRecord1 = await connectionService1.GetAsync(context1, invitation.Connection.Id);
+                var connectionRecord2 = await connectionService2.GetAsync(context2, acceptInvitation.Connection.Id);
+
+                Assert.Equal(ConnectionState.Connected, connectionRecord1.State);
+                Assert.Equal(ConnectionState.Connected, connectionRecord2.State);
+                Assert.Equal(connectionRecord1.MyDid, connectionRecord2.TheirDid);
+                Assert.Equal(connectionRecord1.TheirDid, connectionRecord2.MyDid);
+
+                Assert.Equal(
+                    connectionRecord1.GetTag(TagConstants.ConnectionThreadId), 
+                    connectionRecord2.GetTag(TagConstants.ConnectionThreadId));
+            }
+
+            // Cleanup
+            {
+                sub.Dispose();
+
+                await context1.Wallet.CloseAsync();
+                await context2.Wallet.CloseAsync();
+
+                await Wallet.DeleteWalletAsync(config1.ToJson(), cred.ToJson());
+                await Wallet.DeleteWalletAsync(config2.ToJson(), cred.ToJson());
+            }
+        }
+
+        public async Task<(IServiceProvider, IAgentContext)> CreateDependency(
+            WalletConfiguration configuration, 
+            WalletCredentials credentials, 
+            MockAgentHttpHandler handler)
+        {
+            var container = new ServiceCollection();
+            container.AddAgentFramework();
+            container.AddLogging();
+            container.AddSingleton<MockAgent>();
+            container.AddSingleton<HttpMessageHandler>(handler);
+            container.AddSingleton(p => new HttpClient(p.GetRequiredService<HttpMessageHandler>()));
+            var provider = container.BuildServiceProvider();
+
+            await provider.GetService<IProvisioningService>().ProvisionAgentAsync(new ProvisioningConfiguration { WalletConfiguration = configuration, WalletCredentials = credentials, EndpointUri = new Uri("http://mock") });
+            var context = new AgentContext { Wallet = await provider.GetService<IWalletService>().GetWalletAsync(configuration, credentials) };
+
+            return (provider, context);
+        }
+
+        [Fact]
         public async Task CanCreateInvitationAsync()
         {
             var connectionId = Guid.NewGuid().ToString();
 
             await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new InviteConfiguration() {ConnectionId = connectionId});
+                new InviteConfiguration {ConnectionId = connectionId});
 
             var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
 
@@ -125,7 +255,7 @@ namespace AgentFramework.Core.Tests
             var connectionId = Guid.NewGuid().ToString();
 
             await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new InviteConfiguration() { ConnectionId = connectionId, MultiPartyInvitation = true });
+                new InviteConfiguration { ConnectionId = connectionId, MultiPartyInvitation = true });
 
             var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
 
@@ -152,16 +282,16 @@ namespace AgentFramework.Core.Tests
             //Process a connection request
             var connectionRecord = await _connectionService.GetAsync(_issuerWallet, connectionId);
             _issuerWallet.Connection = connectionRecord;
+
             await _connectionService.ProcessRequestAsync(_issuerWallet, new ConnectionRequestMessage
             {
-                Did = "EYS94e95kf6LXF49eARL76",
-                Verkey = "~LGkX716up2KAimNfz11HRr",
-                Endpoint = new AgentEndpoint
-                {
+                Connection = new Connection {
                     Did = "EYS94e95kf6LXF49eARL76",
-                    Verkey = "~LGkX716up2KAimNfz11HRr"
-                },
-                Type = MessageTypes.ConnectionRequest
+                    DidDoc = new ConnectionRecord
+                    {
+                        MyVk = "6vyxuqpe3UBcTmhF3Wmmye2UVroa51Lcd9smQKFB5QX1"
+                    }.MyDidDoc(await _provisioningMock.Object.GetProvisioningAsync(_issuerWallet.Wallet))
+                }
             });
 
             //Accept the connection request
@@ -193,14 +323,13 @@ namespace AgentFramework.Core.Tests
             _issuerWallet.Connection = connectionRecord;
             await _connectionService.ProcessRequestAsync(_issuerWallet, new ConnectionRequestMessage
             {
-                Did = "EYS94e95kf6LXF49eARL76",
-                Verkey = "~LGkX716up2KAimNfz11HRr",
-                Endpoint = new AgentEndpoint
-                {
+                Connection = new Connection { 
                     Did = "EYS94e95kf6LXF49eARL76",
-                    Verkey = "~LGkX716up2KAimNfz11HRr"
-                },
-                Type = MessageTypes.ConnectionRequest
+                    DidDoc = new ConnectionRecord
+                    {
+                        MyVk = "6vyxuqpe3UBcTmhF3Wmmye2UVroa51Lcd9smQKFB5QX1"
+                    }.MyDidDoc(await _provisioningMock.Object.GetProvisioningAsync(_issuerWallet.Wallet))
+                }
             });
 
             //Accept the connection request
@@ -218,7 +347,7 @@ namespace AgentFramework.Core.Tests
             var connectionId = Guid.NewGuid().ToString();
 
             await _connectionService.CreateInvitationAsync(_issuerWallet,
-                new InviteConfiguration() { ConnectionId = connectionId });
+                new InviteConfiguration { ConnectionId = connectionId });
 
             var connection = await _connectionService.GetAsync(_issuerWallet, connectionId);
 
@@ -235,7 +364,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CanEstablishConnectionAsync()
         {
-            int events = 0;
+            var events = 0;
             _eventAggregator.GetEventByType<ServiceMessageProcessingEvent>()
                 .Where(_ => (_.MessageType == MessageTypes.ConnectionRequest ||
                              _.MessageType == MessageTypes.ConnectionResponse))
@@ -269,6 +398,8 @@ namespace AgentFramework.Core.Tests
             var (connectionIssuer, connectionHolderOne) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _issuerWallet, _holderWallet, invite, invite.Connection.Id);
 
+            _messages.Clear();
+
             var (connectionIssuerTwo, connectionHolderTwo) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _issuerWallet, _holderWalletTwo, invite, invite.Connection.Id);
 
@@ -287,7 +418,7 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
             Assert.Equal(connectionIssuerTwo.Endpoint.Uri, MockEndpointUri);
         }
-
+        
         public async Task DisposeAsync()
         {
             if (_issuerWallet != null) await _issuerWallet.Wallet.CloseAsync();

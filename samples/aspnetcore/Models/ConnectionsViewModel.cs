@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using AgentFramework.Core.Models.Records;
-using WebAgent.Messages;
+using WebAgent.Protocols;
+using WebAgent.Protocols.BasicMessage;
 
 namespace WebAgent.Models
 {
@@ -15,6 +16,8 @@ namespace WebAgent.Models
     {
         public ConnectionRecord Connection { get; set; }
 
-        public IEnumerable<PrivateMessageRecord> Messages { get; set; }
+        public IEnumerable<BasicMessageRecord> Messages { get; set; }
+
+        public bool? TrustPingSuccess { get; set; }
     }
 }

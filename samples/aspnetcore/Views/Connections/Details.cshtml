@@ -1,4 +1,5 @@
-﻿@using WebAgent.Messages
+﻿@using WebAgent.Protocols
+@using WebAgent.Protocols.BasicMessage
 @model ConnectionDetailsViewModel
 
 <div class="row mt-2">
@@ -45,12 +46,32 @@
             </div>
             <div class="card-footer">
                 <form class="input-group mb-3" asp-controller="Connections" asp-action="SendMessage">
-                    <input type="hidden" name="connectionId" value="@Model.Connection.Id"/>
+                    <input type="hidden" name="connectionId" value="@Model.Connection.Id" />
                     <input type="text" name="text" autocomplete="off" class="form-control" placeholder="Type message here" aria-label="Recipient's username" aria-describedby="basic-addon2">
                     <div class="input-group-append">
                         <button class="btn btn-outline-primary" type="submit">Send Message</button>
                     </div>
                 </form>
+                <form class="container" asp-controller="Connections" asp-action="SendTrustPing">
+                    <div class="row">
+                        <input type="hidden" name="connectionId" value="@Model.Connection.Id" />
+                        <div class="col">
+                            <button class="btn btn-outline-primary" type="submit">Send Trust Ping</button>
+                        </div>
+                        @if (Model.TrustPingSuccess != null)
+                        {
+                            if (!Model.TrustPingSuccess.Value)
+                            {
+                                <div class="col alert alert-danger" role="alert">No trust ping response recieved, timeout!</div>
+                            }
+                            else
+                            {
+                                <div class="col alert alert-primary" role="alert">Success trust ping response recieved!</div>
+                            }
+                        }
+                    </div>
+                </form>
+                
             </div>
         </div>
     </div>

@@ -1,5 +1,6 @@
 ﻿using System;
-using AgentFramework.Core.Models;
+using AgentFramework.Core.Decorators.Signature;
+using AgentFramework.Core.Models.Connections;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Messages.Connections
@@ -7,50 +8,38 @@ namespace AgentFramework.Core.Messages.Connections
     /// <summary>
     /// Represents a connection response message
     /// </summary>
-    public class ConnectionResponseMessage : IAgentMessage
+    public class ConnectionResponseMessage : AgentMessage
     {
         /// <inheritdoc />
-        [JsonProperty("@id")]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        /// <inheritdoc />
-        [JsonProperty("@type")]
-        public string Type { get; set; } = MessageTypes.ConnectionResponse;
-
-        /// <summary>
-        /// Gets or sets the did.
-        /// </summary>
-        /// <value>
-        /// The did.
-        /// </value>
-        [JsonProperty("did")]
-        public string Did { get; set; }
-
-        /// <summary>
-        /// Gets or sets the verkey.
-        /// </summary>
-        /// <value>
-        /// The verkey.
-        /// </value>
-        [JsonProperty("verkey")]
-        public string Verkey { get; set; }
-
-        /// <summary>
-        /// Gets or sets the public endpoint.
-        /// </summary>
-        /// <value>
-        /// The public endpoint.
-        /// </value>
-        [JsonProperty("endpoint")]
-        public AgentEndpoint Endpoint { get; set; }
+        public ConnectionResponseMessage()
+        {
+            Id = Guid.NewGuid().ToString();
+            Type = MessageTypes.ConnectionResponse;
+        }
         
+        /// <summary>
+        /// Gets or sets the connection object.
+        /// </summary>
+        /// <value>
+        /// The connection object.
+        /// </value>
+        [JsonProperty("connection")]
+        public Connection Connection { get; set; }
+
+        /// <summary>
+        /// Gets or sets the connection object.
+        /// </summary>
+        /// <value>
+        /// The connection object.
+        /// </value>
+        [JsonProperty("connection~sig")]
+        public SignatureDecorator ConnectionSig { get; set; }
+
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +
             $"Id={Id}, " +
             $"Type={Type}, " +
-            $"Did={Did}, " +
-            $"Verkey={(Verkey?.Length > 0 ? "[hidden]" : null)}, " +
-            $"Endpoint={Endpoint}";
+            $"Did={Connection?.Did}, ";
     }
 }
