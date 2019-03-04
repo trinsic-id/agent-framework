@@ -418,18 +418,7 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
             Assert.Equal(connectionIssuerTwo.Endpoint.Uri, MockEndpointUri);
         }
-
-        //[Fact]
-        //public async Task Test()
-        //{
-        //    var connectionRequestJson =
-        //        "{\n  \"@type\": \"did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/request\",\n  \"label\": \"test\",\n  \"connection\": {\n    \"DID\": \"DKF8gGMQoUrj1rDVPVfFBW\",\n    \"DIDDoc\": {\n      \"@context\": \"https://w3id.org/did/v1\",\n      \"id\": \"DKF8gGMQoUrj1rDVPVfFBW\",\n      \"publicKey\": [\n        {\n          \"id\": \"DKF8gGMQoUrj1rDVPVfFBW#keys-1\",\n          \"type\": \"Ed25519VerificationKey2018\",\n          \"controller\": \"DKF8gGMQoUrj1rDVPVfFBW\",\n          \"publicKeyBase58\": \"7iHeiEP6QU56oe6nGcSsVhvYPLJoNKaX6Dc727GM1UxB\"\n        }\n      ],\n      \"service\": [\n        {\n          \"id\": \"DKF8gGMQoUrj1rDVPVfFBW;indy\",\n          \"type\": \"IndyAgent\",\n          \"recipientKeys\": [\n            \"7iHeiEP6QU56oe6nGcSsVhvYPLJoNKaX6Dc727GM1UxB\"\n          ],\n          \"serviceEndpoint\": \"http://localhost:9000/indy\"\n        }\n      ]\n    }\n  },\n  \"@id\": \"3ec57100-6e44-4923-94ca-6f6aabe01439\"\n}";
-
-        //    var connectionRequest = JsonConvert.DeserializeObject<ConnectionRequestMessage>(connectionRequestJson);
-
-        //    await _connectionService.ProcessRequestAsync(_issuerWallet, connectionRequest);
-        //}
-
+        
         public async Task DisposeAsync()
         {
             if (_issuerWallet != null) await _issuerWallet.Wallet.CloseAsync();

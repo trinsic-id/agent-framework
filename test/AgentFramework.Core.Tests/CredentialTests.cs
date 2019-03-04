@@ -311,29 +311,6 @@ namespace AgentFramework.Core.Tests
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
 
-        //[Fact]
-        //public async Task SendOfferAsyncThrowsExceptionUnableToSendA2AMessage()
-        //{
-        //    var (issuerConnection, _) = await Scenarios.EstablishConnectionAsync(
-        //        _connectionService, _messages, _issuerWallet, _holderWallet);
-            
-        //    var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
-        //        new { seed = "000000000000000000000000Steward1" }.ToJson());
-
-        //    var (credId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
-        //        new[] { "dummy_attr" });
-
-        //    _routeMessage = false;
-        //    var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
-        //        await _credentialService.CreateOfferAsync(_issuerWallet, new OfferConfiguration
-        //        {
-        //            CredentialDefinitionId = credId
-        //        }, issuerConnection.Id));
-        //    _routeMessage = true;
-
-        //    Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionError);
-        //}
-
         [Fact]
         public async Task ProcessCredentialRequestThrowsCredentialNotFound()
         {
@@ -484,65 +461,6 @@ namespace AgentFramework.Core.Tests
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.IssueCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId));
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
-
-        //[Fact]
-        //public async Task IssueCredentialThrowsExceptionUnableToSendA2AMessage()
-        //{
-        //    //Establish a connection between the two parties
-        //    var (issuerConnection, holderConnection) = await Scenarios.EstablishConnectionAsync(
-        //        _connectionService, _messages, _issuerWallet, _holderWallet);
-
-        //    // Create an issuer DID/VK. Can also be created during provisioning
-        //    var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
-        //        new { seed = "000000000000000000000000Steward1" }.ToJson());
-
-        //    // Create a schema and credential definition for this issuer
-        //    var (definitionId, _) = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
-        //        new[] { "dummy_attr" });
-
-        //    var offerConfig = new OfferConfiguration
-        //    {
-        //        IssuerDid = issuer.Did,
-        //        CredentialDefinitionId = definitionId
-        //    };
-
-        //    // Send an offer to the holder using the established connection channel
-        //    var (offer, _) = await _credentialService.CreateOfferAsync(_issuerWallet, offerConfig, issuerConnection.Id);
-        //    _messages.Add(offer);
-
-        //    // Holder retrieves message from their cloud agent
-        //    var credentialOffer = FindContentMessage<CredentialOfferMessage>(_messages);
-
-        //    // Holder processes the credential offer by storing it
-        //    var holderCredentialId =
-        //        await _credentialService.ProcessOfferAsync(_holderWallet, credentialOffer, holderConnection);
-
-        //    // Holder creates master secret. Will also be created during wallet agent provisioning
-        //    await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
-
-        //    // Holder accepts the credential offer and sends a credential request
-        //    var request = await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
-        //        new Dictionary<string, string>
-        //        {
-        //            {"dummy_attr", "dummyVal"}
-        //        });
-        //    _messages.Add(request);
-
-        //    // Issuer retrieves credential request from cloud agent
-        //    var credentialRequest = FindContentMessage<CredentialRequestMessage>(_messages);
-        //    Assert.NotNull(credentialRequest);
-
-        //    // Issuer processes the credential request by storing it
-        //    var issuerCredentialId =
-        //        await _credentialService.ProcessCredentialRequestAsync(_issuerWallet, credentialRequest, issuerConnection);
-
-        //    //Try issue the credential with a credential service that has a bad routing service
-
-        //    _routeMessage = false;
-        //    var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.IssueCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId));
-        //    Assert.True(ex.ErrorCode == ErrorCode.A2AMessageTransmissionError);
-        //    _routeMessage = true;
-        //}
         
         [Fact]
         public async Task RejectOfferAsyncThrowsExceptionCredentialOfferNotFound()
