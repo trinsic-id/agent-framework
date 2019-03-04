@@ -157,14 +157,12 @@ namespace AgentFramework.Core.Runtime
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             
             var provisioning = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
-            var request = invitation.CreateThreadedReply<ConnectionRequestMessage>();
-            request.Connection = new Connection
+            var request = new ConnectionRequestMessage
             {
-                Did = connection.MyDid,
-                DidDoc = connection.MyDidDoc(provisioning)
+                Connection = new Connection {Did = connection.MyDid, DidDoc = connection.MyDidDoc(provisioning)},
+                Label = provisioning.Owner?.Name,
+                ImageUrl = provisioning.Owner?.ImageUrl
             };
-            request.Label = provisioning.Owner?.Name;
-            request.ImageUrl = provisioning.Owner?.ImageUrl;
 
             // also set image as attachment
             if (provisioning.Owner?.ImageUrl != null)
@@ -175,8 +173,7 @@ namespace AgentFramework.Core.Runtime
                     Content = new AttachmentContent {Links = new[] {provisioning.Owner.ImageUrl}}
                 });
             }
-
-            connection.SetTag(TagConstants.ConnectionThreadId, request.GetThreadId());
+            
             await RecordService.AddAsync(agentContext.Wallet, connection);
             return new AcceptInvitationResult
             {
@@ -204,7 +201,7 @@ namespace AgentFramework.Core.Runtime
             agentContext.Connection.MyDid = my.Did;
             agentContext.Connection.MyVk = my.VerKey;
 
-            agentContext.Connection.SetTag(TagConstants.ConnectionThreadId, request.GetThreadId());
+            agentContext.Connection.SetTag(TagConstants.ConnectionThreadId, request.Id);
             
             agentContext.Connection.Alias = new ConnectionAlias
             {
@@ -309,7 +306,8 @@ namespace AgentFramework.Core.Runtime
             };
 
             var sigData = await SignatureUtils.SignData(agentContext, connectionData, connection.GetTag(TagConstants.ConnectionKey));
-            var response = new ConnectionRequestMessage {Id = connection.GetTag(TagConstants.ConnectionThreadId)}
+            var threadId = connection.GetTag(TagConstants.ConnectionThreadId);
+            var response = new ConnectionRequestMessage {Id = threadId}
                 .CreateThreadedReply<ConnectionResponseMessage>();
             response.Connection = connectionData;
             response.ConnectionSig = sigData;
