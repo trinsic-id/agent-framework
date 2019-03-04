@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace AgentFramework.AspNetCore.Middleware
@@ -55,10 +53,14 @@ namespace AgentFramework.AspNetCore.Middleware
                 _walletOptions.WalletConfiguration,
                 _walletOptions.WalletCredentials);
 
-            await ProcessAsync(body, wallet);
+            var result = await ProcessAsync(body, wallet);
 
             context.Response.StatusCode = 200;
-            await context.Response.WriteAsync(string.Empty);
+
+            if (result != null)
+                await context.Response.Body.WriteAsync(result, 0, result.Length);
+            else
+                await context.Response.WriteAsync(string.Empty);
         }
     }
 }

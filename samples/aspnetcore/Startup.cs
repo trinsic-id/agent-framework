@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WebAgent.Messages;
+using WebAgent.Protocols.BasicMessage;
 using WebAgent.Utils;
 
 namespace WebAgent
@@ -26,10 +27,13 @@ namespace WebAgent
         {
             services.AddMvc();
 
+            services.AddLogging();
+
             // Register agent framework dependency services and handlers
-            services.AddAgentFramework(c => c.SetPoolOptions(new PoolOptions { GenesisFilename = Path.GetFullPath("pool_genesis.txn") }));
-            // Register our message handler with DI
-            services.AddSingleton<PrivateMessageHandler>();
+            services.AddAgentFramework();
+
+            services.AddSingleton<BasicMessageHandler>();
+            services.AddSingleton<TrustPingMessageHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,10 +50,10 @@ namespace WebAgent
             }
 
             app.UseStaticFiles();
-
+            
             // Add agent middleware
-            var agentBaseUrl = new Uri(Environment.GetEnvironmentVariable("ASPNETCORE_URLS"));
-            app.UseAgentFramework<WebAgentMiddleware>($"{new Uri(agentBaseUrl, "/agent")}",
+            var agentBaseUrl = Environment.GetEnvironmentVariable("ENDPOINT_HOST") ?? Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
+            app.UseAgentFramework<WebAgentMiddleware>($"{new Uri(new Uri(agentBaseUrl), "/agent")}",
                 obj =>
                 {
                     obj.AddOwnershipInfo(NameGenerator.GetRandomName(), null);

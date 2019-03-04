@@ -68,7 +68,7 @@ namespace AgentFramework.Core.Models.Records
         /// </summary>
         /// <returns>The attribute.</returns>
         /// <param name="name">Name.</param>
-        public void RemoveTag(string name) => Set(name, name: null);
+        public void RemoveTag(string name) => Set(null, name: name);
 
         /// <summary>
         /// Set the specified value, field and name.

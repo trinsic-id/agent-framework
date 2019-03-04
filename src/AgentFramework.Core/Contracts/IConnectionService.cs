@@ -5,7 +5,6 @@ using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
-using AgentFramework.Core.Runtime;
 
 namespace AgentFramework.Core.Contracts
 {
@@ -93,7 +92,7 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="agentContext">Agent Context.</param>
         /// <param name="connectionId">Connection Identifier.</param>
-        /// <returns>The response async with a boolean indicating if deletion occured sucessfully</returns>
+        /// <returns>The response async with a boolean indicating if deletion occured successfully</returns>
         Task<bool> DeleteAsync(IAgentContext agentContext, string connectionId);
     }
 }

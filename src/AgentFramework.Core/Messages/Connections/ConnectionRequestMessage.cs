@@ -1,5 +1,5 @@
 ﻿using System;
-using AgentFramework.Core.Models;
+using AgentFramework.Core.Models.Connections;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Messages.Connections
@@ -7,42 +7,23 @@ namespace AgentFramework.Core.Messages.Connections
     /// <summary>
     /// Represents a connection request message.
     /// </summary>
-    public class ConnectionRequestMessage : IAgentMessage
+    public class ConnectionRequestMessage : AgentMessage
     {
         /// <inheritdoc />
-        [JsonProperty("@id")]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        /// <inheritdoc />
-        [JsonProperty("@type")]
-        public string Type { get; set; } = MessageTypes.ConnectionRequest;
-
-        /// <summary>
-        /// Gets or sets the did.
-        /// </summary>
-        /// <value>
-        /// The did.
-        /// </value>
-        [JsonProperty("did")]
-        public string Did { get; set; }
+        public ConnectionRequestMessage()
+        {
+            Id = Guid.NewGuid().ToString();
+            Type = MessageTypes.ConnectionRequest;
+        }
 
         /// <summary>
-        /// Gets or sets the verkey.
+        /// Gets or sets the name.
         /// </summary>
         /// <value>
-        /// The verkey.
+        /// The name.
         /// </value>
-        [JsonProperty("verkey")]
-        public string Verkey { get; set; }
-
-        /// <summary>
-        /// Gets or sets the public endpoint.
-        /// </summary>
-        /// <value>
-        /// The public endpoint.
-        /// </value>
-        [JsonProperty("endpoint")]
-        public AgentEndpoint Endpoint { get; set; }
+        [JsonProperty("label")]
+        public string Label { get; set; }
 
         /// <summary>
         /// Gets or sets the image URL.
@@ -54,23 +35,21 @@ namespace AgentFramework.Core.Messages.Connections
         public string ImageUrl { get; set; }
 
         /// <summary>
-        /// Gets or sets the name.
+        /// Gets or sets the connection object.
         /// </summary>
         /// <value>
-        /// The name.
+        /// The connection object.
         /// </value>
-        [JsonProperty("name")]
-        public string Name { get; set; }
+        [JsonProperty("connection")]
+        public Connection Connection { get; set; }
 
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +
             $"Id={Id}, " +
             $"Type={Type}, " +
-            $"Did={Did}, " +
-            $"Verkey={(Verkey?.Length > 0 ? "[hidden]" : null)}, " +
-            $"Name={Name}, " +
-            $"ImageUrl={ImageUrl}, " +
-            $"Endpoint={Endpoint}";
+            $"Did={Connection?.Did}, " +
+            $"Name={Label}, " +
+            $"ImageUrl={ImageUrl}, ";
     }
 }
