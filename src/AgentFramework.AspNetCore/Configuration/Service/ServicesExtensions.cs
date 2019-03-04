@@ -31,6 +31,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         {
             RegisterCoreServices(services);
             services.AddDefaultMessageHandlers();
+            services.AddLogging();
 
             var serviceBuilder = new AgentConfigurationBuilder(services);
             agentConfiguration?.Invoke(serviceBuilder);

@@ -30,13 +30,15 @@ namespace AgentFramework.Core.Runtime
         protected readonly HttpClient HttpClient;
         // ReSharper restore InconsistentNaming
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultMessageService"/> class.
-        /// </summary>
-        public DefaultMessageService(ILogger<DefaultMessageService> logger, HttpClient httpClient)
+        /// <summary>Initializes a new instance of the <see cref="DefaultMessageService"/> class.</summary>
+        /// <param name="logger">The logger.</param>
+        /// <param name="httpMessageHandler">The HTTP message handler.</param>
+        public DefaultMessageService(
+            ILogger<DefaultMessageService> logger, 
+            HttpMessageHandler httpMessageHandler)
         {
             Logger = logger;
-            HttpClient = httpClient;
+            HttpClient = new HttpClient(httpMessageHandler);
         }
 
         /// <inheritdoc />

@@ -66,15 +66,12 @@ namespace AgentFramework.Core.Tests
                 })
                 .Verifiable();
 
-            // use real http client with mocked handler here
-            var httpClient = new HttpClient(handlerMock.Object);
-
             var mockConnectionService = new Mock<IConnectionService>();
             mockConnectionService.Setup(_ => _.ListAsync(It.IsAny<IAgentContext>(), It.IsAny<ISearchQuery>(), It.IsAny<int>()))
                 .Returns(Task.FromResult(new List<ConnectionRecord> {new ConnectionRecord()}));
 
             _messagingService =
-                new DefaultMessageService(new Mock<ILogger<DefaultMessageService>>().Object, httpClient);
+                new DefaultMessageService(new Mock<ILogger<DefaultMessageService>>().Object, handlerMock.Object);
         }
 
         public async Task InitializeAsync()

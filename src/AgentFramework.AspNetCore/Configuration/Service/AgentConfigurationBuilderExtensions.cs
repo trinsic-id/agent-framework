@@ -23,14 +23,11 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             builder.Services.TryAddSingleton<IProofService, DefaultProofService>();
             builder.Services.TryAddSingleton<IProvisioningService, DefaultProvisioningService>();
             builder.Services.TryAddSingleton<IMessageService, DefaultMessageService>();
-            builder.Services.TryAddSingleton<HttpClient>();
+            builder.Services.TryAddSingleton<HttpMessageHandler, HttpClientHandler>();
             builder.Services.TryAddSingleton<ISchemaService, DefaultSchemaService>();
             builder.Services.TryAddSingleton<ITailsService, DefaultTailsService>();
             builder.Services.TryAddSingleton<IWalletRecordService, DefaultWalletRecordService>();
             builder.Services.TryAddSingleton<IWalletService, DefaultWalletService>();
-
-            //TODO fix this
-            //builder.Services.AddSingleton<IOutgoingMessageDecoratorHandler, OutgoingThreadDecoratorHandler>();
 
             return builder;
         }

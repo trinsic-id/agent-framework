@@ -41,8 +41,7 @@ namespace AgentFramework.Core.Tests
             Assert.NotNull(container.Resolve<IMessageService>());
             Assert.NotNull(container.Resolve<ITailsService>());
             Assert.NotNull(container.Resolve<IWalletService>());
-
-            Assert.NotNull(container.Resolve<HttpClient>());
+            Assert.NotNull(container.Resolve<HttpMessageHandler>());
         }
 
         [Fact]

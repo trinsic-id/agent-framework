@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
@@ -29,7 +30,7 @@ namespace AgentFramework.Core.Tests
         {
             var walletService = new DefaultWalletRecordService();
             var ledgerService = new DefaultLedgerService();
-            var tailsService = new DefaultTailsService(ledgerService);
+            var tailsService = new DefaultTailsService(ledgerService, new HttpClientHandler());
 
             var provisioningMock = new Mock<IProvisioningService>();
             _poolService = new DefaultPoolService();

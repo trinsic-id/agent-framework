@@ -30,10 +30,13 @@ namespace AgentFramework.Core.Runtime
 
         /// <summary>Initializes a new instance of the <see cref="DefaultTailsService"/> class.</summary>
         /// <param name="ledgerService">The ledger service.</param>
-        public DefaultTailsService(ILedgerService ledgerService)
+        /// <param name="httpMessageHandler">The HTTP message handler.</param>
+        public DefaultTailsService(
+            ILedgerService ledgerService, 
+            HttpMessageHandler httpMessageHandler)
         {
             LedgerService = ledgerService;
-            HttpClient = new HttpClient();
+            HttpClient = new HttpClient(httpMessageHandler);
         }
 
         /// <inheritdoc />

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
@@ -81,7 +82,7 @@ namespace AgentFramework.Core.Tests
                     TailsBaseUri = MockEndpointUri
                 }));
 
-            var tailsService = new DefaultTailsService(ledgerService);
+            var tailsService = new DefaultTailsService(ledgerService, new HttpClientHandler());
             _schemaService = new DefaultSchemaService(provisioningMock.Object, recordService, ledgerService, tailsService);
 
             _connectionService = new DefaultConnectionService(
