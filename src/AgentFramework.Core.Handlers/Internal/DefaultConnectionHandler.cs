@@ -64,7 +64,6 @@ namespace AgentFramework.Core.Handlers.Internal
                     if (agentContext.Connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
                     {
                         var message = await _connectionService.AcceptRequestAsync(agentContext, connectionId);
-                        message.ThreadFrom(request);
                         await _messageService.SendToConnectionAsync(agentContext.Wallet, message, agentContext.Connection);
                     }
                     return null;

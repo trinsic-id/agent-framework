@@ -26,6 +26,8 @@
         public const string Holder = "holder";
 
         public const string Requestor = "requestor";
+
+        public const string ConnectionThreadId = "connectionThreadId";
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
     }

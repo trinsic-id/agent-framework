@@ -63,7 +63,10 @@ namespace AgentFramework.Core.Decorators.Threading
                 var threadBlock = message.GetDecorator<ThreadDecorator>(DecoratorIdentifier);
                 threadId = threadBlock.ThreadId;
             }
-            catch (Exception){ }
+            catch (Exception)
+            {
+                // ignored
+            }
 
             if (string.IsNullOrEmpty(threadId))
                 threadId = message.Id;

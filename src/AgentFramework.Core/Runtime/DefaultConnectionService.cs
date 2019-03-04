@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Net.Cache;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Decorators.Attachments;
 using AgentFramework.Core.Decorators.Signature;
 using AgentFramework.Core.Decorators.Threading;
 using AgentFramework.Core.Exceptions;
@@ -18,6 +21,7 @@ using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PairwiseApi;
 using Microsoft.Extensions.Logging;
+using ConnectionState = AgentFramework.Core.Models.Records.ConnectionState;
 
 namespace AgentFramework.Core.Runtime
 {
@@ -151,21 +155,32 @@ namespace AgentFramework.Core.Runtime
             }
 
             await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
-            await RecordService.AddAsync(agentContext.Wallet, connection);
-
+            
             var provisioning = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
+            var request = invitation.CreateThreadedReply<ConnectionRequestMessage>();
+            request.Connection = new Connection
+            {
+                Did = connection.MyDid,
+                DidDoc = connection.MyDidDoc(provisioning)
+            };
+            request.Label = provisioning.Owner?.Name;
+            request.ImageUrl = provisioning.Owner?.ImageUrl;
+
+            // also set image as attachment
+            if (provisioning.Owner?.ImageUrl != null)
+            {
+                request.AddAttachment(new Attachment
+                {
+                    Nickname = "profile-image",
+                    Content = new AttachmentContent {Links = new[] {provisioning.Owner.ImageUrl}}
+                });
+            }
+
+            connection.SetTag(TagConstants.ConnectionThreadId, request.GetThreadId());
+            await RecordService.AddAsync(agentContext.Wallet, connection);
             return new AcceptInvitationResult
             {
-                Request = new ConnectionRequestMessage
-                {
-                    Connection = new Connection
-                    {
-                        Did = connection.MyDid,
-                        DidDoc = connection.MyDidDoc(provisioning)
-                    },
-                    Label = provisioning.Owner?.Name,
-                    ImageUrl = provisioning.Owner?.ImageUrl,
-                },
+                Request = request,
                 Connection = connection
             };
         }
@@ -174,7 +189,7 @@ namespace AgentFramework.Core.Runtime
         public async Task<string> ProcessRequestAsync(IAgentContext agentContext, ConnectionRequestMessage request)
         {
             Logger.LogInformation(LoggingEvents.ProcessConnectionRequest, "Did {0}", request.Connection.Did);
-            
+
             var my = await Did.CreateAndStoreMyDidAsync(agentContext.Wallet, "{}");
 
             //TODO throw exception or a problem report if the connection request features a did doc that has no indy agent did doc convention featured
@@ -189,6 +204,8 @@ namespace AgentFramework.Core.Runtime
             agentContext.Connection.MyDid = my.Did;
             agentContext.Connection.MyVk = my.VerKey;
 
+            agentContext.Connection.SetTag(TagConstants.ConnectionThreadId, request.GetThreadId());
+            
             agentContext.Connection.Alias = new ConnectionAlias
             {
                 Name = request.Label,
@@ -216,6 +233,8 @@ namespace AgentFramework.Core.Runtime
 
             await newConnection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await RecordService.AddAsync(agentContext.Wallet, newConnection);
+
+            agentContext.Connection = newConnection;
 
             EventAggregator.Publish(new ServiceMessageProcessingEvent
             {
@@ -245,6 +264,8 @@ namespace AgentFramework.Core.Runtime
 
             agentContext.Connection.TheirDid = response.Connection.Did;
             agentContext.Connection.TheirVk = response.Connection.DidDoc.Keys[0].PublicKeyBase58;
+
+            agentContext.Connection.SetTag(TagConstants.ConnectionThreadId, response.GetThreadId());
 
             if (response.Connection.DidDoc.Services[0] is IndyAgentDidDocService service)
                 agentContext.Connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys != null && service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
@@ -288,12 +309,12 @@ namespace AgentFramework.Core.Runtime
             };
 
             var sigData = await SignatureUtils.SignData(agentContext, connectionData, connection.GetTag(TagConstants.ConnectionKey));
+            var response = new ConnectionRequestMessage {Id = connection.GetTag(TagConstants.ConnectionThreadId)}
+                .CreateThreadedReply<ConnectionResponseMessage>();
+            response.Connection = connectionData;
+            response.ConnectionSig = sigData;
 
-            return new ConnectionResponseMessage
-            {
-                Connection = connectionData,
-                ConnectionSig = sigData
-            };
+            return response;
         }
 
         /// <inheritdoc />
