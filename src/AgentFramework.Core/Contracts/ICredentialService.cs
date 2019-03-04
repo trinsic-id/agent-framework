@@ -96,18 +96,7 @@ namespace AgentFramework.Core.Contracts
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
         /// <returns>The response async.</returns>
         Task RevokeCredentialOfferAsync(IAgentContext agentContext, string offerId);
-
-        ///// <summary>
-        ///// Sends the offer asynchronous.
-        ///// </summary>
-        ///// <param name="agentContext">Agent Context.</param>
-        ///// <param name="connectionId">The connection id.</param>
-        ///// <param name="config">A configuration object used to configure the resulting offers presentation</param>
-        ///// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
-        ///// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
-        ///// <returns>The offer identifier.</returns>
-        //Task<string> SendOfferAsync(IAgentContext agentContext, string connectionId, OfferConfiguration config);
-
+        
         /// <summary>
         /// Processes the credential request and stores in the designated wallet.
         /// </summary>

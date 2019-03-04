@@ -13,25 +13,6 @@ namespace AgentFramework.Core.Contracts
     /// </summary>
     public interface IProofService
     {
-        ///// <summary>
-        ///// Sends a proof request.
-        ///// </summary>
-        ///// <returns>The async.</returns>
-        ///// <param name="agentContext">Agent Context.</param>
-        ///// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
-        ///// <param name="proofRequest">Proof request object describing the proof request.</param>
-        ///// <returns>The response async.</returns>
-        //Task SendProofRequestAsync(IAgentContext agentContext, string connectionId, ProofRequest proofRequest);
-
-        ///// <summary>
-        ///// Sends a proof request.
-        ///// </summary>
-        ///// <param name="agentContext">Agent Context.</param>
-        ///// <param name="connectionId">The connection identifier.</param>
-        ///// <param name="proofRequestJson">The proof request json.</param>
-        ///// <returns>The response async.</returns>
-        //Task SendProofRequestAsync(IAgentContext agentContext, string connectionId, string proofRequestJson);
-
         /// <summary>
         /// Creates a proof request.
         /// </summary>

@@ -5,7 +5,6 @@ using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
-using AgentFramework.Core.Runtime;
 
 namespace AgentFramework.Core.Contracts
 {

@@ -7,7 +7,6 @@ using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Utils;
-using Hyperledger.Indy.WalletApi;
 
 namespace AgentFramework.Core.Extensions
 {

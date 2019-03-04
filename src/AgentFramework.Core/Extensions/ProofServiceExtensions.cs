@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
-using Hyperledger.Indy.WalletApi;
 
 // ReSharper disable CheckNamespace
 
