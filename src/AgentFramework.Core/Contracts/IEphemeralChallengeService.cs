@@ -55,6 +55,16 @@ namespace AgentFramework.Core.Contracts
         Task<EphemeralChallengeConfigRecord> GetChallengeConfigAsync(IAgentContext agentContext, string configId);
 
         /// <summary>
+        /// Get the challenges current state.
+        /// </summary>
+        /// <param name="agentContext">The agent context.</param>
+        /// <param name="challengeId">The challenge id.</param>
+        /// <param name="deleteIfResolved">If the challenge is resolved delete it from persistance.</param>
+        /// <returns>The current challenge state.</returns>
+        Task<ChallengeState> GetChallengeState(IAgentContext agentContext, string challengeId,
+            bool deleteIfResolved = true);
+
+        /// <summary>
         /// Lists the challenge configurations.
         /// </summary>
         /// <param name="agentContext">The agent context.</param>
@@ -71,14 +81,6 @@ namespace AgentFramework.Core.Contracts
         /// <param name="count">The count of credentials.</param>
         /// <returns>The challenge records.</returns>
         Task<List<EphemeralChallengeRecord>> ListChallengesAsync(IAgentContext agentContext, ISearchQuery query = null, int count = 100);
-
-        /// <summary>
-        /// Processes an ephemeral challenge.
-        /// </summary>
-        /// <param name="agentContext">The agent context.</param>
-        /// <param name="challenge">The ephemeral challenge.</param>
-        /// <returns>The identifier of the record associated to the message.</returns>
-        Task<string> ProcessChallengeAsync(IAgentContext agentContext, EphemeralChallengeMessage challenge);
 
         /// <summary>
         /// Processes an ephemeral challenge response.

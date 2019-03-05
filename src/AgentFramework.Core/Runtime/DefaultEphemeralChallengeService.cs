@@ -164,27 +164,15 @@ namespace AgentFramework.Core.Runtime
             };
         }
 
-        /// <inheritdoc />
-        public virtual async Task<string> ProcessChallengeAsync(IAgentContext agentContext,
-            EphemeralChallengeMessage challenge)
+        public virtual async Task<ChallengeState> GetChallengeState(IAgentContext agentContext, string challengeId,
+            bool deleteIfResolved = true)
         {
-            EphemeralChallengeRecord challengeRecord = new EphemeralChallengeRecord
-            {
-                Id = Guid.NewGuid().ToString(),
-                Challenge = challenge.Challenge
-            };
+            var challenge = await GetChallengeAsync(agentContext, challengeId);
 
-            challengeRecord.Tags.Add(TagConstants.Role, TagConstants.Holder);
-            await RecordService.AddAsync(agentContext.Wallet, challengeRecord);
+            if (deleteIfResolved && challenge.State != ChallengeState.Challenged)
+                await RecordService.DeleteAsync<EphemeralChallengeRecord>(agentContext.Wallet, challengeId);
 
-            EventAggregator.Publish(new ServiceMessageProcessingEvent
-            {
-                MessageType = MessageTypes.EphemeralChallenge,
-                RecordId = challengeRecord.Id,
-                ThreadId = challenge.GetThreadId()
-            });
-
-            return challengeRecord.Id;
+            return challenge.State;
         }
 
         /// <inheritdoc />
@@ -195,7 +183,18 @@ namespace AgentFramework.Core.Runtime
 
             //TODO improve this
             var results = await ListChallengesAsync(agentContext, new EqSubquery(TagConstants.LastThreadId, threadId));
-            var record = results.First();
+            var record = results.FirstOrDefault();
+
+            if (record == null)
+                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Challenge not found");
+
+            if (record.State != ChallengeState.Challenged)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                    $"Challenge state was invalid. Expected '{ChallengeState.Challenged}', found '{record.State}'");
+
+            if (record.State != ChallengeState.Challenged)
+                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Challenge not found");
+
             record.Response = challengeResponse.Response;
 
             if (challengeResponse.Status == EphemeralChallengeResponseStatus.Accepted)
@@ -225,18 +224,15 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public virtual async Task<EphemeralChallengeResponseMessage> AcceptChallenge(IAgentContext agentContext, EphemeralChallengeMessage message, RequestedCredentials credentials)
         {
-            var recordId = await ProcessChallengeAsync(agentContext, message);
-            var challengeRecord = await GetChallengeAsync(agentContext, recordId);
             var challengeResponse = new EphemeralChallengeResponseMessage
             {
                 Id = Guid.NewGuid().ToString(),
                 Status = EphemeralChallengeResponseStatus.Accepted
             };
 
-
-            if (challengeRecord.Challenge.Type == ChallengeType.Proof)
+            if (message.Challenge.Type == ChallengeType.Proof)
             {
-                var proofRequest = challengeRecord.Challenge.Contents.ToObject<ProofRequest>();
+                var proofRequest = message.Challenge.Contents.ToObject<ProofRequest>();
 
                 var proof = await ProofService.CreateProofAsync(agentContext, proofRequest, credentials);
                 challengeResponse.Response = new EphemeralChallengeContents

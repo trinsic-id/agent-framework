@@ -240,7 +240,7 @@ namespace AgentFramework.Core.Tests
         }
 
         [Fact]
-        public async Task CanCreateAndAcceptChallenge()
+        public async Task CanConductChallengeFlow()
         {
             //Setup a connection and issue the credentials to the holder
             var (issuerConnection, holderConnection) = await Scenarios.EstablishConnectionAsync(
@@ -267,11 +267,14 @@ namespace AgentFramework.Core.Tests
                     }
                 };
 
-                var challengeId = await _ephemeralChallengeService.CreateChallengeConfigAsync(_requestorWallet, challengeConfig);
+                var challengeConfigId = await _ephemeralChallengeService.CreateChallengeConfigAsync(_requestorWallet, challengeConfig);
 
                 //Requestor sends a proof request
-                var challengeResult = await _ephemeralChallengeService.CreateChallengeAsync(_requestorWallet, challengeId);
+                var challengeResult = await _ephemeralChallengeService.CreateChallengeAsync(_requestorWallet, challengeConfigId);
                 _messages.Add(challengeResult.Challenge);
+
+                var result = await _ephemeralChallengeService.GetChallengeState(_requestorWallet, challengeResult.ChallengeId);
+                Assert.True(result == ChallengeState.Challenged);
             }
 
             //Challenge responder recieves challenge
@@ -319,9 +322,8 @@ namespace AgentFramework.Core.Tests
 
                 var id = await _ephemeralChallengeService.ProcessChallengeResponseAsync(_requestorWallet, challengeResponseMessage);
 
-                var challenge = await _ephemeralChallengeService.GetChallengeAsync(_requestorWallet, id);
-
-                Assert.True(challenge.State == ChallengeState.Accepted);
+                var result = await _ephemeralChallengeService.GetChallengeState(_requestorWallet, id);
+                Assert.True(result == ChallengeState.Accepted);
             }
         }
 
