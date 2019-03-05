@@ -269,7 +269,6 @@ namespace AgentFramework.Core.Tests
 
                 var challengeConfigId = await _ephemeralChallengeService.CreateChallengeConfigAsync(_requestorWallet, challengeConfig);
 
-                //Requestor sends a proof request
                 var challengeResult = await _ephemeralChallengeService.CreateChallengeAsync(_requestorWallet, challengeConfigId);
                 _messages.Add(challengeResult.Challenge);
 
