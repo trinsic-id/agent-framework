@@ -1,4 +1,5 @@
 ﻿using AgentFramework.Core.Models.Records;
+using Newtonsoft.Json.Linq;
 
 namespace AgentFramework.Core.Models.EphemeralChallenge
 {
@@ -15,6 +16,6 @@ namespace AgentFramework.Core.Models.EphemeralChallenge
         /// <summary>
         /// Contents of the challenge.
         /// </summary>
-        public dynamic Contents { get; set; }
+        public JObject Contents { get; set; }
     }
 }

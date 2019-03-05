@@ -1,4 +1,6 @@
-﻿namespace AgentFramework.Core.Models.Records
+﻿using Newtonsoft.Json.Linq;
+
+namespace AgentFramework.Core.Models.Records
 {
     public enum ChallengeType
     {
@@ -30,7 +32,7 @@
         /// <summary>
         /// Gets the challenge configuration contents.
         /// </summary>
-        public dynamic Contents { get; set; }
+        public JObject Contents { get; set; }
 
         /// <inheritdoc />
         public override string ToString() =>

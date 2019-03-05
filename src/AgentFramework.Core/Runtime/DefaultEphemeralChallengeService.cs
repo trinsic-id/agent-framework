@@ -5,14 +5,17 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Decorators.Threading;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.EphemeralChallenge;
 using AgentFramework.Core.Models.EphemeralChallenge;
+using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Proofs;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Utils;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AgentFramework.Core.Runtime
 {
@@ -63,7 +66,7 @@ namespace AgentFramework.Core.Runtime
                 Id = Guid.NewGuid().ToString(),
                 Name = config.Name,
                 Type = config.Type,
-                Contents = config.Contents
+                Contents = JObject.FromObject(config.Contents)
             };
 
             await RecordService.AddAsync(agentContext.Wallet, configRecord);
@@ -127,7 +130,7 @@ namespace AgentFramework.Core.Runtime
 
             if (config.Type == ChallengeType.Proof)
             {
-                var proofRequestConfig = (ProofRequestConfiguration)config.Contents;
+                var proofRequestConfig = config.Contents.ToObject<ProofRequestConfiguration>();
                 (var proofRequest, var _) = await ProofService.CreateProofRequestAsync(agentContext, new ProofRequest
                 {
                     Name = config.Name,
@@ -140,7 +143,7 @@ namespace AgentFramework.Core.Runtime
                 challengeRecord.Challenge = new EphemeralChallengeContents
                 {
                     Type = ChallengeType.Proof,
-                    Contents = JsonConvert.DeserializeObject<ProofRequest>(proofRequest.ProofRequestJson)
+                    Contents = JsonConvert.DeserializeObject<JObject>(proofRequest.ProofRequestJson)
                 };
                 challengeMessage.Challenge = challengeRecord.Challenge;
             }
@@ -173,6 +176,14 @@ namespace AgentFramework.Core.Runtime
 
             challengeRecord.Tags.Add(TagConstants.Role, TagConstants.Holder);
             await RecordService.AddAsync(agentContext.Wallet, challengeRecord);
+
+            EventAggregator.Publish(new ServiceMessageProcessingEvent
+            {
+                MessageType = MessageTypes.EphemeralChallenge,
+                RecordId = challengeRecord.Id,
+                ThreadId = challenge.GetThreadId()
+            });
+
             return challengeRecord.Id;
         }
 
@@ -182,23 +193,37 @@ namespace AgentFramework.Core.Runtime
         {
             var threadId = challengeResponse.GetThreadId();
 
+            //TODO improve this
             var results = await ListChallengesAsync(agentContext, new EqSubquery(TagConstants.LastThreadId, threadId));
-
             var record = results.First();
-
             record.Response = challengeResponse.Response;
 
             if (challengeResponse.Status == EphemeralChallengeResponseStatus.Accepted)
-                await record.TriggerAsync(ChallengeTrigger.AcceptChallenge);
+            {
+                var result = await ProofService.VerifyProofAsync(agentContext, record.Challenge.Contents.ToObject<ProofRequest>(),
+                    record.Response.Contents.ToObject<Proof>());
+                if (result)
+                    await record.TriggerAsync(ChallengeTrigger.AcceptChallenge);
+                else
+                    await record.TriggerAsync(ChallengeTrigger.InvalidChallengeResponse);
+            }
             else
                 await record.TriggerAsync(ChallengeTrigger.RejectChallenge);
 
             await RecordService.AddAsync(agentContext.Wallet, record);
+
+            EventAggregator.Publish(new ServiceMessageProcessingEvent
+            {
+                MessageType = MessageTypes.EphemeralChallenge,
+                RecordId = record.Id,
+                ThreadId = challengeResponse.GetThreadId()
+            });
+
             return record.Id;
         }
 
         /// <inheritdoc />
-        public virtual async Task<EphemeralChallengeResponseMessage> AcceptChallenge(IAgentContext agentContext, EphemeralChallengeMessage message)
+        public virtual async Task<EphemeralChallengeResponseMessage> AcceptChallenge(IAgentContext agentContext, EphemeralChallengeMessage message, RequestedCredentials credentials)
         {
             var recordId = await ProcessChallengeAsync(agentContext, message);
             var challengeRecord = await GetChallengeAsync(agentContext, recordId);
@@ -211,15 +236,17 @@ namespace AgentFramework.Core.Runtime
 
             if (challengeRecord.Challenge.Type == ChallengeType.Proof)
             {
-                var proofRequest = (ProofRequest) challengeRecord.Challenge.Contents;
+                var proofRequest = challengeRecord.Challenge.Contents.ToObject<ProofRequest>();
 
-                var proof = await ProofService.CreateProofAsync(agentContext, proofRequest, new RequestedCredentials());
+                var proof = await ProofService.CreateProofAsync(agentContext, proofRequest, credentials);
                 challengeResponse.Response = new EphemeralChallengeContents
                 {
                     Type = ChallengeType.Proof,
-                    Contents = proof
+                    Contents = JObject.FromObject(proof)
                 };
             }
+
+            challengeResponse.ThreadFrom(message);
 
             return challengeResponse;
         }

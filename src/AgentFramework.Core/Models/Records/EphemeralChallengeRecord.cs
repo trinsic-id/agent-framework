@@ -98,6 +98,7 @@ namespace AgentFramework.Core.Models.Records
             var state = new StateMachine<ChallengeState, ChallengeTrigger>(() => State, x => State = x);
             state.Configure(ChallengeState.Challenged).Permit(ChallengeTrigger.AcceptChallenge, ChallengeState.Accepted);
             state.Configure(ChallengeState.Challenged).Permit(ChallengeTrigger.RejectChallenge, ChallengeState.Rejected);
+            state.Configure(ChallengeState.Challenged).Permit(ChallengeTrigger.InvalidChallengeResponse, ChallengeState.Invalid);
             return state;
         }
 
@@ -129,7 +130,11 @@ namespace AgentFramework.Core.Models.Records
         /// <summary>
         /// Challenge rejected state
         /// </summary>
-        Rejected
+        Rejected,
+        /// <summary>
+        /// Challenge response was invalid
+        /// </summary>
+        Invalid
     }
 
     /// <summary>
@@ -144,6 +149,10 @@ namespace AgentFramework.Core.Models.Records
         /// <summary>
         /// Reject challenge trigger
         /// </summary>
-        RejectChallenge
+        RejectChallenge,
+        /// <summary>
+        /// The challenge response was invalid
+        /// </summary>
+        InvalidChallengeResponse
     }
 }

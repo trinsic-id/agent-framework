@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AgentFramework.Core.Messages.EphemeralChallenge;
 using AgentFramework.Core.Models.EphemeralChallenge;
+using AgentFramework.Core.Models.Proofs;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 
@@ -17,8 +18,9 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="agentContext">The agent context.</param>
         /// <param name="message">The challenge message to accept.</param>
+        /// <param name="credentials">The requested credentials.</param>
         /// <returns>The ephemeral challenge response message.</returns>
-        Task<EphemeralChallengeResponseMessage> AcceptChallenge(IAgentContext agentContext, EphemeralChallengeMessage message);
+        Task<EphemeralChallengeResponseMessage> AcceptChallenge(IAgentContext agentContext, EphemeralChallengeMessage message, RequestedCredentials credentials);
 
         /// <summary>
         /// Creates an ephemeral challenge.

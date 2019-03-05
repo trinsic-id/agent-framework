@@ -102,8 +102,17 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="agentContext">Agent Context.</param>
         /// <param name="proofRecId">Identifier of the proof record.</param>
-        /// <returns>Status indicating validity of proof</returns>
+        /// <returns>Status indicating validity of proof.</returns>
         Task<bool> VerifyProofAsync(IAgentContext agentContext, string proofRecId);
+
+        /// <summary>
+        /// Verifies a proof.
+        /// </summary>
+        /// <param name="agentContext">Agent Context.</param>
+        /// <param name="proofRequest">The proof request.</param>
+        /// <param name="proof">The proof.</param>
+        /// <returns>Status indiciating the validity of proof.</returns>
+        Task<bool> VerifyProofAsync(IAgentContext agentContext, ProofRequest proofRequest, Proof proof);
 
         /// <summary>
         /// Gets an enumeration of proofs stored in the wallet.
