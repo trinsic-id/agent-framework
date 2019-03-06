@@ -111,6 +111,11 @@ namespace WebAgent.Controllers
         [HttpPost]
         public IActionResult ViewInvitation(AcceptConnectionViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return Redirect(Request.Headers["Referer"].ToString());
+            }
+
             ViewData["InvitationDetails"] = model.InvitationDetails;
 
             string inviteRaw = null;

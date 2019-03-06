@@ -53,10 +53,12 @@ namespace WebAgent
             
             // Add agent middleware
             var agentBaseUrl = Environment.GetEnvironmentVariable("ENDPOINT_HOST") ?? Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
+            var agentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? NameGenerator.GetRandomName();
+
             app.UseAgentFramework<WebAgentMiddleware>($"{new Uri(new Uri(agentBaseUrl), "/agent")}",
                 obj =>
                 {
-                    obj.AddOwnershipInfo(NameGenerator.GetRandomName(), null);
+                    obj.AddOwnershipInfo(agentName, null);
                 });
 
             // fun identicons
