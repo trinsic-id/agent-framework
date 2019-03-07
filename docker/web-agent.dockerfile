@@ -1,7 +1,7 @@
-FROM streetcred/dotnet-indy:latest AS base
+FROM streetcred/dotnet-indy:1.8.1 AS base
 WORKDIR /app
 
-FROM streetcred/dotnet-indy:latest AS build
+FROM streetcred/dotnet-indy:1.8.1 AS build
 WORKDIR /src
 COPY ["samples/aspnetcore/WebAgent.csproj", "."]
 RUN dotnet restore "WebAgent.csproj" \
