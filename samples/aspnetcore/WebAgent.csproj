@@ -7,6 +7,10 @@
 
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
     <StartAction>Project</StartAction>
+    <EnvironmentVariables>
+      <Variable name="ASPNETCORE_ENVIRONMENT" value="Development" />
+      <Variable name="ASPNETCORE_ENVIRONMENT" value="Development" />
+    </EnvironmentVariables>
     <ApplicationURL>http://localhost:5000/</ApplicationURL>
   </PropertyGroup>
   <ItemGroup>
@@ -15,16 +19,11 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.0.1916590" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.4" />
     <PackageReference Include="Jdenticon.AspNetCore" Version="2.2.1" />
+    <PackageReference Include="AgentFramework.AspNetCore" Version="2.1.0-preview.558" />
   </ItemGroup>
 
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.4" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\AgentFramework.AspNetCore\AgentFramework.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\src\AgentFramework.Core.Handlers\AgentFramework.Core.Handlers.csproj" />
-    <ProjectReference Include="..\..\src\AgentFramework.Core\AgentFramework.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
