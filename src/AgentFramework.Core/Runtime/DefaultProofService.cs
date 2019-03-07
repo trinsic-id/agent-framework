@@ -247,7 +247,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<Proof> CreateProofAsync(IAgentContext agentContext,
+        public virtual async Task<string> CreateProofAsync(IAgentContext agentContext,
             ProofRequest proofRequest, RequestedCredentials requestedCredentials)
         {
             var provisioningRecord = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
@@ -278,7 +278,7 @@ namespace AgentFramework.Core.Runtime
                 requestedCredentials.ToJson(), provisioningRecord.MasterSecretId, schemas, definitions,
                 revocationStates);
 
-            return JsonConvert.DeserializeObject<Proof>(proofJson);
+            return proofJson;
         }
 
         /// <inheritdoc />
@@ -314,8 +314,10 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<bool> VerifyProofAsync(IAgentContext agentContext, ProofRequest proofRequest, Proof proof)
+        public virtual async Task<bool> VerifyProofAsync(IAgentContext agentContext, string proofRequestJson, string proofJson)
         {
+            var proof = JsonConvert.DeserializeObject<PartialProof>(proofJson);
+
             var schemas = await BuildSchemasAsync(agentContext.Pool,
                 proof.Identifiers
                     .Select(x => x.SchemaId)
@@ -338,7 +340,7 @@ namespace AgentFramework.Core.Runtime
                 proof.Identifiers
                     .Where(x => x.RevocationRegistryId != null));
 
-            return await AnonCreds.VerifierVerifyProofAsync(proofRequest.ToJson(), proof.ToJson(), schemas,
+            return await AnonCreds.VerifierVerifyProofAsync(proofRequestJson, proofJson, schemas,
                 definitions, revocationDefinitions, revocationRegistries);
         }
 
@@ -351,10 +353,7 @@ namespace AgentFramework.Core.Runtime
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Proof record state was invalid. Expected '{ProofState.Accepted}', found '{proofRecord.State}'");
 
-            var proof = JsonConvert.DeserializeObject<Proof>(proofRecord.ProofJson);
-            var proofRequest = JsonConvert.DeserializeObject<ProofRequest>(proofRecord.RequestJson);
-
-            return await VerifyProofAsync(agentContext, proofRequest, proof);
+            return await VerifyProofAsync(agentContext, proofRecord.RequestJson, proofRecord.ProofJson);
         }
 
         /// <inheritdoc />

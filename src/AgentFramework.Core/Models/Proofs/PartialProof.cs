@@ -4,9 +4,9 @@ using Newtonsoft.Json;
 namespace AgentFramework.Core.Models.Proofs
 {
     /// <summary>
-    /// Represents a proof stored in the wallet.
+    /// Represents a partial proof stored in the wallet.
     /// </summary>
-    public class Proof
+    public class PartialProof
     {
         /// <summary>
         /// Gets or sets the proof identifiers.

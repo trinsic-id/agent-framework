@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Decorators.Threading;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.EphemeralChallenge;
 using AgentFramework.Core.Models.EphemeralChallenge;
@@ -199,8 +200,8 @@ namespace AgentFramework.Core.Runtime
 
             if (challengeResponse.Status == EphemeralChallengeResponseStatus.Accepted)
             {
-                var result = await ProofService.VerifyProofAsync(agentContext, record.Challenge.Contents.ToObject<ProofRequest>(),
-                    record.Response.Contents.ToObject<Proof>());
+                var result = await ProofService.VerifyProofAsync(agentContext, record.Challenge.Contents.ToJson(),
+                    record.Response.Contents.ToJson());
                 if (result)
                     await record.TriggerAsync(ChallengeTrigger.AcceptChallenge);
                 else
@@ -209,7 +210,7 @@ namespace AgentFramework.Core.Runtime
             else
                 await record.TriggerAsync(ChallengeTrigger.RejectChallenge);
 
-            await RecordService.AddAsync(agentContext.Wallet, record);
+            await RecordService.UpdateAsync(agentContext.Wallet, record);
 
             EventAggregator.Publish(new ServiceMessageProcessingEvent
             {
@@ -238,7 +239,7 @@ namespace AgentFramework.Core.Runtime
                 challengeResponse.Response = new EphemeralChallengeContents
                 {
                     Type = ChallengeType.Proof,
-                    Contents = JObject.FromObject(proof)
+                    Contents = JsonConvert.DeserializeObject<JObject>(proof)
                 };
             }
 
