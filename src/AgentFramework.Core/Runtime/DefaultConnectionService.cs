@@ -250,21 +250,20 @@ namespace AgentFramework.Core.Runtime
 
             //TODO throw exception or a problem report if the connection request features a did doc that has no indy agent did doc convention featured
             //i.e there is no way for this agent to respond to messages. And or no keys specified
-            response.Connection =
-                SignatureUtils.UnpackAndVerifyData<Connection>(response.ConnectionSig);
+            var connection = SignatureUtils.UnpackAndVerifyData<Connection>(response.ConnectionSig);
 
             await Did.StoreTheirDidAsync(agentContext.Wallet,
-                new { did = response.Connection.Did, verkey = response.Connection.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
+                new { did = connection.Did, verkey = connection.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
 
-            await Pairwise.CreateAsync(agentContext.Wallet, response.Connection.Did, agentContext.Connection.MyDid,
-                response.Connection.DidDoc.Services[0].ServiceEndpoint);
+            await Pairwise.CreateAsync(agentContext.Wallet, connection.Did, agentContext.Connection.MyDid,
+                connection.DidDoc.Services[0].ServiceEndpoint);
 
-            agentContext.Connection.TheirDid = response.Connection.Did;
-            agentContext.Connection.TheirVk = response.Connection.DidDoc.Keys[0].PublicKeyBase58;
+            agentContext.Connection.TheirDid = connection.Did;
+            agentContext.Connection.TheirVk = connection.DidDoc.Keys[0].PublicKeyBase58;
 
             agentContext.Connection.SetTag(TagConstants.ConnectionThreadId, response.GetThreadId());
 
-            if (response.Connection.DidDoc.Services[0] is IndyAgentDidDocService service)
+            if (connection.DidDoc.Services[0] is IndyAgentDidDocService service)
                 agentContext.Connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys != null && service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
 
             await agentContext.Connection.TriggerAsync(ConnectionTrigger.Response);
@@ -309,7 +308,6 @@ namespace AgentFramework.Core.Runtime
             var threadId = connection.GetTag(TagConstants.ConnectionThreadId);
             var response = new ConnectionRequestMessage {Id = threadId}
                 .CreateThreadedReply<ConnectionResponseMessage>();
-            response.Connection = connectionData;
             response.ConnectionSig = sigData;
 
             return response;

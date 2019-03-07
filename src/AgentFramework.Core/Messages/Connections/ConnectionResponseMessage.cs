@@ -23,15 +23,6 @@ namespace AgentFramework.Core.Messages.Connections
         /// <value>
         /// The connection object.
         /// </value>
-        [JsonProperty("connection")]
-        public Connection Connection { get; set; }
-
-        /// <summary>
-        /// Gets or sets the connection object.
-        /// </summary>
-        /// <value>
-        /// The connection object.
-        /// </value>
         [JsonProperty("connection~sig")]
         public SignatureDecorator ConnectionSig { get; set; }
 
@@ -39,7 +30,6 @@ namespace AgentFramework.Core.Messages.Connections
         public override string ToString() =>
             $"{GetType().Name}: " +
             $"Id={Id}, " +
-            $"Type={Type}, " +
-            $"Did={Connection?.Did}, ";
+            $"Type={Type}, ";
     }
 }
