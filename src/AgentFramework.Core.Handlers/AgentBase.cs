@@ -60,6 +60,9 @@ namespace AgentFramework.Core.Handlers
         /// <summary>Adds a default forwarding handler.</summary>
         protected void AddForwardHandler() => _handlers.Add(Provider.GetRequiredService<DefaultForwardHandler>());
 
+        /// <summary>Adds a default forwarding handler.</summary>
+        protected void AddEphemeralChallengeHandler() => _handlers.Add(Provider.GetRequiredService<DefaultEphemeralChallengeHandler>());
+
         /// <summary>Adds a custom the handler using dependency injection.</summary>
         /// <typeparam name="T"></typeparam>
         protected void AddHandler<T>() where T : IMessageHandler => _handlers.Add(Provider.GetRequiredService<T>());

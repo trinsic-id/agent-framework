@@ -18,22 +18,22 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <returns>The proof request.</returns>
         /// <param name="agentContext">Agent Context.</param>
-        /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="proofRequest">An enumeration of attribute we wish the prover to disclose.</param>
+        /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <returns>Proof Request message and identifier.</returns>
         Task<(ProofRequestMessage, ProofRecord)> CreateProofRequestAsync(IAgentContext agentContext,
-            string connectionId, ProofRequest proofRequest);
+            ProofRequest proofRequest, string connectionId = null);
 
         /// <summary>
         /// Creates a proof request.
         /// </summary>
         /// <returns>The proof request.</returns>
         /// <param name="agentContext">Agent Context.</param>
-        /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <param name="proofRequestJson">A string representation of proof request json object</param>
+        /// <param name="connectionId">Connection identifier of who the proof request will be sent to.</param>
         /// <returns>Proof Request message and identifier.</returns>
         Task<(ProofRequestMessage, ProofRecord)> CreateProofRequestAsync(IAgentContext agentContext,
-            string connectionId, string proofRequestJson);
+            string proofRequestJson, string connectionId);
 
         /// <summary>
         /// Processes a proof request and stores it for a given connection.
@@ -52,6 +52,18 @@ namespace AgentFramework.Core.Contracts
         /// <param name="proof">A proof.</param>
         /// <returns>Proof identifier.</returns>
         Task<string> ProcessProofAsync(IAgentContext agentContext, ProofMessage proof);
+
+        /// <summary>
+        /// Processes a proof request and generates an accompanying proof.
+        /// </summary>
+        /// <param name="agentContext">Agent Context.</param>
+        /// <param name="proofRequest">Proof Request.</param>
+        /// <param name="requestedCredentials">Requested Credentials.</param>
+        /// <returns>
+        /// The proof.
+        /// </returns>
+        Task<string> CreateProofAsync(IAgentContext agentContext,
+            ProofRequest proofRequest, RequestedCredentials requestedCredentials);
 
         /// <summary>
         /// Creates a proof.
@@ -90,8 +102,17 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="agentContext">Agent Context.</param>
         /// <param name="proofRecId">Identifier of the proof record.</param>
-        /// <returns>Status indicating validity of proof</returns>
+        /// <returns>Status indicating validity of proof.</returns>
         Task<bool> VerifyProofAsync(IAgentContext agentContext, string proofRecId);
+
+        /// <summary>
+        /// Verifies a proof.
+        /// </summary>
+        /// <param name="agentContext">Agent Context.</param>
+        /// <param name="proofRequestJson">The proof request.</param>
+        /// <param name="proofJson">The proof.</param>
+        /// <returns>Status indiciating the validity of proof.</returns>
+        Task<bool> VerifyProofAsync(IAgentContext agentContext, string proofRequestJson, string proofJson);
 
         /// <summary>
         /// Gets an enumeration of proofs stored in the wallet.

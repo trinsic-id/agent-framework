@@ -93,34 +93,37 @@ namespace AgentFramework.Core.Runtime
 
         /// <inheritdoc />
         public virtual async Task<(ProofRequestMessage, ProofRecord)> CreateProofRequestAsync(
-            IAgentContext agentContext, string connectionId,
-            ProofRequest proofRequest)
+            IAgentContext agentContext, ProofRequest proofRequest,
+            string connectionId)
         {
             if (string.IsNullOrWhiteSpace(proofRequest.Nonce))
                 throw new ArgumentNullException(nameof(proofRequest.Nonce), "Nonce must be set.");
 
-            return await CreateProofRequestAsync(agentContext, connectionId, proofRequest.ToJson());
+            return await CreateProofRequestAsync(agentContext, proofRequest.ToJson(), connectionId);
         }
 
         /// <inheritdoc />
         public virtual async Task<(ProofRequestMessage, ProofRecord)> CreateProofRequestAsync(
-            IAgentContext agentContext, string connectionId,
-            string proofRequestJson)
+            IAgentContext agentContext, string proofRequestJson,
+            string connectionId = null)
         {
             Logger.LogInformation(LoggingEvents.CreateProofRequest, "ConnectionId {0}", connectionId);
 
-            var connection = await ConnectionService.GetAsync(agentContext, connectionId);
+            if (connectionId != null)
+            {
+                var connection = await ConnectionService.GetAsync(agentContext, connectionId);
 
-            if (connection.State != ConnectionState.Connected)
-                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
-                    $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
+                if (connection.State != ConnectionState.Connected)
+                    throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                        $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
+            }
 
             var proofJobj = JObject.Parse(proofRequestJson);
 
             var proofRecord = new ProofRecord
             {
                 Id = Guid.NewGuid().ToString(),
-                ConnectionId = connection.Id,
+                ConnectionId = connectionId,
                 RequestJson = proofRequestJson
             };
             proofRecord.SetTag(TagConstants.Nonce, proofJobj["nonce"].ToObject<string>());
@@ -244,6 +247,41 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
+        public virtual async Task<string> CreateProofAsync(IAgentContext agentContext,
+            ProofRequest proofRequest, RequestedCredentials requestedCredentials)
+        {
+            var provisioningRecord = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
+
+            var credentialObjects = new List<CredentialInfo>();
+            foreach (var credId in requestedCredentials.GetCredentialIdentifiers())
+            {
+                credentialObjects.Add(
+                    JsonConvert.DeserializeObject<CredentialInfo>(
+                        await AnonCreds.ProverGetCredentialAsync(agentContext.Wallet, credId)));
+            }
+
+            var schemas = await BuildSchemasAsync(agentContext.Pool,
+                credentialObjects
+                    .Select(x => x.SchemaId)
+                    .Distinct());
+
+            var definitions = await BuildCredentialDefinitionsAsync(agentContext.Pool,
+                credentialObjects
+                    .Select(x => x.CredentialDefinitionId)
+                    .Distinct());
+
+            var revocationStates = await BuildRevocationStatesAsync(agentContext.Pool,
+                credentialObjects,
+                requestedCredentials);
+
+            var proofJson = await AnonCreds.ProverCreateProofAsync(agentContext.Wallet, proofRequest.ToJson(),
+                requestedCredentials.ToJson(), provisioningRecord.MasterSecretId, schemas, definitions,
+                revocationStates);
+
+            return proofJson;
+        }
+
+        /// <inheritdoc />
         public virtual async Task<ProofMessage> AcceptProofRequestAsync(IAgentContext agentContext,
             string proofRequestId, RequestedCredentials requestedCredentials)
         {
@@ -276,6 +314,37 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
+        public virtual async Task<bool> VerifyProofAsync(IAgentContext agentContext, string proofRequestJson, string proofJson)
+        {
+            var proof = JsonConvert.DeserializeObject<PartialProof>(proofJson);
+
+            var schemas = await BuildSchemasAsync(agentContext.Pool,
+                proof.Identifiers
+                    .Select(x => x.SchemaId)
+                    .Where(x => x != null)
+                    .Distinct());
+
+            var definitions = await BuildCredentialDefinitionsAsync(agentContext.Pool,
+                proof.Identifiers
+                    .Select(x => x.CredentialDefintionId)
+                    .Where(x => x != null)
+                    .Distinct());
+
+            var revocationDefinitions = await BuildRevocationRegistryDefinitionsAsync(agentContext.Pool,
+                proof.Identifiers
+                    .Select(x => x.RevocationRegistryId)
+                    .Where(x => x != null)
+                    .Distinct());
+
+            var revocationRegistries = await BuildRevocationRegistryDetlasAsync(agentContext.Pool,
+                proof.Identifiers
+                    .Where(x => x.RevocationRegistryId != null));
+
+            return await AnonCreds.VerifierVerifyProofAsync(proofRequestJson, proofJson, schemas,
+                definitions, revocationDefinitions, revocationRegistries);
+        }
+
+        /// <inheritdoc />
         public virtual async Task<bool> VerifyProofAsync(IAgentContext agentContext, string proofRecId)
         {
             var proofRecord = await GetAsync(agentContext, proofRecId);
@@ -284,32 +353,7 @@ namespace AgentFramework.Core.Runtime
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Proof record state was invalid. Expected '{ProofState.Accepted}', found '{proofRecord.State}'");
 
-            var proofObject = JsonConvert.DeserializeObject<Proof>(proofRecord.ProofJson);
-
-            var schemas = await BuildSchemasAsync(agentContext.Pool,
-                proofObject.Identifiers
-                    .Select(x => x.SchemaId)
-                    .Where(x => x != null)
-                    .Distinct());
-
-            var definitions = await BuildCredentialDefinitionsAsync(agentContext.Pool,
-                proofObject.Identifiers
-                    .Select(x => x.CredentialDefintionId)
-                    .Where(x => x != null)
-                    .Distinct());
-
-            var revocationDefinitions = await BuildRevocationRegistryDefinitionsAsync(agentContext.Pool,
-                proofObject.Identifiers
-                    .Select(x => x.RevocationRegistryId)
-                    .Where(x => x != null)
-                    .Distinct());
-
-            var revocationRegistries = await BuildRevocationRegistryDetlasAsync(agentContext.Pool,
-                proofObject.Identifiers
-                    .Where(x => x.RevocationRegistryId != null));
-
-            return await AnonCreds.VerifierVerifyProofAsync(proofRecord.RequestJson, proofRecord.ProofJson, schemas,
-                definitions, revocationDefinitions, revocationRegistries);
+            return await VerifyProofAsync(agentContext, proofRecord.RequestJson, proofRecord.ProofJson);
         }
 
         /// <inheritdoc />
