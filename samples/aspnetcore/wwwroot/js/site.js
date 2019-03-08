@@ -9,4 +9,14 @@ function copyToCliboard(element) {
 
 $(function () {
     $('[data-toggle="tooltip"]').tooltip();
+
+    $('#invitation-details-form').submit(function(e){
+        var inputElement = $("#invitation-details");
+        if (inputElement.val() != "")
+        {
+            return true;
+        }
+        inputElement.addClass("is-invalid");
+        return false;
+    });
 })

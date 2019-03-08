@@ -21,6 +21,7 @@ namespace WebAgent.Messages
         /// <value>
         /// The comment.
         /// </value>
+        [JsonProperty("comment")]
         public string Comment { get; set; }
     }
 }
