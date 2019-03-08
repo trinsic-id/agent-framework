@@ -24,7 +24,7 @@ namespace WebAgent.Protocols.BasicMessage
                 Id = Guid.NewGuid().ToString(),
                 ConnectionId = context.Connection.Id,
                 Text = message.Content,
-                SentTime = message.SentTime,
+                SentTime = DateTime.TryParse(message.SentTime, out var dateTime) ? dateTime : DateTime.UtcNow,
                 Direction = MessageDirection.Incoming
             });
 
