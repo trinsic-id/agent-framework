@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
@@ -205,16 +206,20 @@ namespace WebAgent.Controllers
                     _walletOptions.WalletCredentials)
             };
 
+            var sentTime = DateTime.UtcNow;
             var messageRecord = new BasicMessageRecord
             {
                 Id = Guid.NewGuid().ToString(),
                 Direction = MessageDirection.Outgoing,
                 Text = text,
-                SentTime = DateTime.UtcNow,
+                SentTime = sentTime,
                 ConnectionId = connectionId
             };
-
-            var message = new BasicMessage {Content = text};
+            var message = new BasicMessage
+            {
+                Content = text,
+                SentTime = sentTime.ToString("s", CultureInfo.InvariantCulture)
+            };
             var connection = await _connectionService.GetAsync(context, connectionId);
 
             // Save the outgoing message to the local wallet for chat history purposes

@@ -17,6 +17,6 @@ namespace WebAgent.Protocols.BasicMessage
         public string Content { get; set; }
 
         [JsonProperty("sent_time")]
-        public DateTime SentTime { get; set; }
+        public string SentTime { get; set; }
     }
 }

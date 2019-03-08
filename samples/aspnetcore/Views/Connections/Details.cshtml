@@ -1,5 +1,6 @@
 ﻿@using WebAgent.Protocols
 @using WebAgent.Protocols.BasicMessage
+@using WebAgent.Utils
 @model ConnectionDetailsViewModel
 
 <div class="row mt-2">
@@ -33,13 +34,17 @@
                     {
                         if (message.Direction == MessageDirection.Incoming)
                         {
-                        <div class="d-flex flex-row">
-                            <div class="p-2 mb-2 mr-5 bg-primary text-white rounded basic-message">@message.Text</div></div>
+                            <div class="d-flex flex-row">
+                                <div class="p-2 mr-5 bg-primary text-white rounded basic-message">@message.Text</div></div>
+                            <div class="d-flex flex-row mb-2 ">
+                                <small class="text-muted font-italic">@message.SentTime.ToLocalTime().TimeAgo()</small></div>
                         }
                         else
                         {
-                        <div class="d-flex flex-row-reverse">
-                            <div class="p-2 mb-2 ml-5 bg-secondary text-white rounded basic-message">@message.Text</div></div>
+                            <div class="d-flex flex-row-reverse">
+                                <div class="p-2 ml-5 bg-secondary text-white rounded basic-message">@message.Text</div></div>
+                            <div class="d-flex flex-row-reverse mb-2">
+                                <small class="text-muted font-italic">@message.SentTime.ToLocalTime().TimeAgo()</small></div>
                         }
                     }
                 }
