@@ -65,15 +65,6 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public virtual async Task SendToConnectionAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection, string recipientKey = null)
         {
-            Logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0} Endpoint {1}", connection.TheirVk,
-                connection.Endpoint.Uri);
-
-            if (string.IsNullOrEmpty(message.Id))
-                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "@id field on message must be populated");
-
-            if (string.IsNullOrEmpty(message.Type))
-                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "@type field on message must be populated");
-
             recipientKey = recipientKey
                                 ?? connection.TheirVk
                                 ?? throw new AgentFrameworkException(
@@ -81,11 +72,33 @@ namespace AgentFramework.Core.Runtime
 
             var routingKeys = connection.Endpoint?.Verkey != null ? new[] {connection.Endpoint.Verkey} : new string[0];
 
-            var wireMsg = await PrepareAsync(wallet, message, recipientKey, routingKeys, connection.MyVk);
-            
+            await SendToEndpoint(wallet, message, recipientKey, connection.Endpoint.Uri, routingKeys, connection.MyVk);
+        }
+
+        /// <inheritdoc />
+        public virtual async Task SendToEndpoint(Wallet wallet, AgentMessage message, string recipientKey,
+            string endpointUri, string[] routingKeys = null, string senderKey = null)
+        {
+            Logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0} Endpoint {1}", recipientKey,
+                endpointUri);
+
+            if (string.IsNullOrEmpty(message.Id))
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "@id field on message must be populated");
+
+            if (string.IsNullOrEmpty(message.Type))
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "@type field on message must be populated");
+
+            if (string.IsNullOrEmpty(recipientKey))
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "recipientKey cannot be null"); //TODO change this exception type
+
+            if (string.IsNullOrEmpty(endpointUri))
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "endpointUri cannot be null"); //TODO change this exception type
+
+            var wireMsg = await PrepareAsync(wallet, message, recipientKey, routingKeys);
+
             var request = new HttpRequestMessage
             {
-                RequestUri = new Uri(connection.Endpoint.Uri),
+                RequestUri = new Uri(endpointUri),
                 Method = HttpMethod.Post,
                 Content = new ByteArrayContent(wireMsg)
             };

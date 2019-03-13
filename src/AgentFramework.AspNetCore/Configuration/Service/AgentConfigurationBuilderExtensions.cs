@@ -1,8 +1,6 @@
 ﻿using System.Net.Http;
 using AgentFramework.AspNetCore.Runtime;
 using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Decorators;
-using AgentFramework.Core.Decorators.Threading;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Runtime;
 using Microsoft.Extensions.Caching.Memory;
@@ -21,6 +19,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             builder.Services.TryAddSingleton<ILedgerService, DefaultLedgerService>();
             builder.Services.TryAddSingleton<IPoolService, DefaultPoolService>();
             builder.Services.TryAddSingleton<IProofService, DefaultProofService>();
+            builder.Services.TryAddSingleton<IEphemeralChallengeService, DefaultEphemeralChallengeService>();
             builder.Services.TryAddSingleton<IProvisioningService, DefaultProvisioningService>();
             builder.Services.TryAddSingleton<IMessageService, DefaultMessageService>();
             builder.Services.TryAddSingleton<HttpMessageHandler, HttpClientHandler>();

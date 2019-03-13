@@ -36,6 +36,10 @@ namespace AgentFramework.Core.Runtime
         /// </summary>
         protected readonly IWalletRecordService RecordService;
         /// <summary>
+        /// The provisioning service.
+        /// </summary>
+        protected readonly IProvisioningService ProvisioningService;
+        /// <summary>
         /// The logger.
         /// </summary>
         protected readonly ILogger<DefaultEphemeralChallengeService> Logger;
@@ -46,16 +50,19 @@ namespace AgentFramework.Core.Runtime
         /// <param name="eventAggregator">The event aggregator.</param>
         /// <param name="proofService">The proof service.</param>
         /// <param name="recordService">The record service.</param>
+        /// <param name="provisioningService">The provisioning service.</param>
         /// <param name="logger">The logger.</param>
         public DefaultEphemeralChallengeService(
             IEventAggregator eventAggregator,
             IProofService proofService,
             IWalletRecordService recordService,
+            IProvisioningService provisioningService,
             ILogger<DefaultEphemeralChallengeService> logger)
         {
             EventAggregator = eventAggregator;
             ProofService = proofService;
             RecordService = recordService;
+            ProvisioningService = provisioningService;
             Logger = logger;
         }
 
@@ -129,6 +136,12 @@ namespace AgentFramework.Core.Runtime
             };
             EphemeralChallengeMessage challengeMessage = new EphemeralChallengeMessage();
 
+            var provisioning = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
+            
+            //TODO what do we use as the recipient key?
+            challengeMessage.ServiceEndpoint = provisioning.Endpoint.Uri;
+            challengeMessage.RecipientKeys = new[] {provisioning.Endpoint.Verkey};
+
             if (config.Type == ChallengeType.Proof)
             {
                 var proofRequestConfig = config.Contents.ToObject<ProofRequestConfiguration>();
@@ -165,7 +178,8 @@ namespace AgentFramework.Core.Runtime
             };
         }
 
-        public virtual async Task<ChallengeState> GetChallengeState(IAgentContext agentContext, string challengeId,
+        /// <inheritdoc />
+        public virtual async Task<ChallengeState> GetChallengeStateAsync(IAgentContext agentContext, string challengeId,
             bool deleteIfResolved = true)
         {
             var challenge = await GetChallengeAsync(agentContext, challengeId);
@@ -223,25 +237,25 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<EphemeralChallengeResponseMessage> AcceptChallenge(IAgentContext agentContext, EphemeralChallengeMessage message, RequestedCredentials credentials)
+        public virtual async Task<EphemeralChallengeResponseMessage> AcceptProofChallengeAsync(IAgentContext agentContext, EphemeralChallengeMessage message, RequestedCredentials credentials)
         {
+            if (message.Challenge.Type != ChallengeType.Proof)
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Challenge.Type != Proof");
+
             var challengeResponse = new EphemeralChallengeResponseMessage
             {
                 Id = Guid.NewGuid().ToString(),
                 Status = EphemeralChallengeResponseStatus.Accepted
             };
 
-            if (message.Challenge.Type == ChallengeType.Proof)
-            {
-                var proofRequest = message.Challenge.Contents.ToObject<ProofRequest>();
+            var proofRequest = message.Challenge.Contents.ToObject<ProofRequest>();
 
-                var proof = await ProofService.CreateProofAsync(agentContext, proofRequest, credentials);
-                challengeResponse.Response = new EphemeralChallengeContents
-                {
-                    Type = ChallengeType.Proof,
-                    Contents = JsonConvert.DeserializeObject<JObject>(proof)
-                };
-            }
+            var proof = await ProofService.CreateProofAsync(agentContext, proofRequest, credentials);
+            challengeResponse.Response = new EphemeralChallengeContents
+            {
+                Type = ChallengeType.Proof,
+                Contents = JsonConvert.DeserializeObject<JObject>(proof)
+            };
 
             challengeResponse.ThreadFrom(message);
 
