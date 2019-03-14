@@ -15,7 +15,6 @@ using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.PoolApi;
-using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -139,13 +138,7 @@ namespace AgentFramework.Core.Runtime
         {
             var proofJson = proof.ProofJson;
 
-            var proofRecordSearch =
-                await RecordService.SearchAsync<ProofRecord>(agentContext.Wallet,
-                    SearchQuery.Equal(TagConstants.Nonce, proof.RequestNonce), null, 1);
-
-            var proofRecord = proofRecordSearch.FirstOrDefault() ??
-                              throw new AgentFrameworkException(ErrorCode.RecordNotFound,
-                                  "Proof record not found");
+            var proofRecord = await this.GetByThreadId(agentContext, proof.GetThreadId());
 
             if (proofRecord.State != ProofState.Requested)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
@@ -171,9 +164,6 @@ namespace AgentFramework.Core.Runtime
         {
             var requestJson = proofRequest.ProofRequestJson;
 
-            var offer = JObject.Parse(requestJson);
-            var nonce = offer["nonce"].ToObject<string>();
-
             // Write offer record to local wallet
             var proofRecord = new ProofRecord
             {
@@ -182,7 +172,7 @@ namespace AgentFramework.Core.Runtime
                 ConnectionId = agentContext.Connection.Id,
                 State = ProofState.Requested
             };
-            proofRecord.SetTag(TagConstants.Nonce, nonce);
+            proofRecord.SetTag(TagConstants.LastThreadId, proofRequest.GetThreadId(), false);
             proofRecord.SetTag(TagConstants.Role, TagConstants.Holder);
 
             await RecordService.AddAsync(agentContext.Wallet, proofRecord);
@@ -239,11 +229,17 @@ namespace AgentFramework.Core.Runtime
             await record.TriggerAsync(ProofTrigger.Accept);
             await RecordService.UpdateAsync(agentContext.Wallet, record);
 
-            return new ProofMessage
+            var threadId = record.GetTag(TagConstants.LastThreadId);
+
+            var proofMsg = new ProofMessage
             {
                 ProofJson = proofJson,
                 RequestNonce = JsonConvert.DeserializeObject<ProofRequest>(record.RequestJson).Nonce
             };
+
+            proofMsg.ThreadFrom(threadId);
+
+            return proofMsg;
         }
 
         /// <inheritdoc />

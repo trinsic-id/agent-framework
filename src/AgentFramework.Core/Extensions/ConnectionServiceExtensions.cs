@@ -93,5 +93,26 @@ namespace AgentFramework.Core.Extensions
 
             return record;
         }
+
+        /// <summary>
+        /// Retrieves a connection record by its thread id.
+        /// </summary>
+        /// <param name="connectionService">Connection service.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="threadId">The thread id.</param>
+        /// <returns>The connection record.</returns>
+        public static async Task<ConnectionRecord> GetByThreadId(
+            this IConnectionService connectionService, IAgentContext context, string threadId)
+        {
+            var search = await connectionService.ListAsync(context, SearchQuery.Equal(nameof(TagConstants.LastThreadId), threadId), 1);
+
+            if (search.Count == 0)
+                throw new AgentFrameworkException(ErrorCode.RecordNotFound, $"Connection record not found by thread id : {threadId}");
+
+            if (search.Count > 1)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, $"Multiple connection records found by thread id : {threadId}");
+
+            return search.First();
+        }
     }
 }

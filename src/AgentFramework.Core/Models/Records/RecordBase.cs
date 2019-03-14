@@ -61,7 +61,8 @@ namespace AgentFramework.Core.Models.Records
         /// </summary>
         /// <param name="name">Name.</param>
         /// <param name="value">Value.</param>
-        public void SetTag(string name, string value) => Set(value, name: name);
+        /// <param name="encrypted">Controls if the tag is encrypted.</param>
+        public void SetTag(string name, string value, bool encrypted = true) => Set(value, encrypted, name);
 
         /// <summary>
         /// Removes a user attribute.

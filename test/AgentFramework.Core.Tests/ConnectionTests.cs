@@ -199,8 +199,8 @@ namespace AgentFramework.Core.Tests
                 Assert.Equal(connectionRecord1.TheirDid, connectionRecord2.MyDid);
 
                 Assert.Equal(
-                    connectionRecord1.GetTag(TagConstants.ConnectionThreadId), 
-                    connectionRecord2.GetTag(TagConstants.ConnectionThreadId));
+                    connectionRecord1.GetTag(TagConstants.LastThreadId), 
+                    connectionRecord2.GetTag(TagConstants.LastThreadId));
             }
 
             // Cleanup

@@ -1,12 +1,13 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
+using AgentFramework.Core.Utils;
 
-// ReSharper disable CheckNamespace
-
-namespace Streetcred.Sdk.Contracts
+namespace AgentFramework.Core.Extensions
 {
     /// <summary>
     /// A collection of convenience methods for the <see cref="IProofService"/> class.
@@ -32,5 +33,24 @@ namespace Streetcred.Sdk.Contracts
             IAgentContext context, int count = 100)
             => proofService.ListAsync(context,
                 SearchQuery.Equal(nameof(ProofRecord.State), ProofState.Accepted.ToString("G")), count);
+
+        /// <summary>Retrieves a proof record by its thread id.</summary>
+        /// <param name="proofService">Proof service.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="threadId">The thread id.</param>
+        /// <returns>The proof record.</returns>
+        public static async Task<ProofRecord> GetByThreadId(
+            this IProofService proofService, IAgentContext context, string threadId)
+        {
+            var search = await proofService.ListAsync(context, SearchQuery.Equal(nameof(TagConstants.LastThreadId), threadId), 1);
+
+            if (search.Count == 0)
+                throw new AgentFrameworkException(ErrorCode.RecordNotFound, $"Proof record not found by thread id : {threadId}");
+
+            if (search.Count > 1)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, $"Multiple proof records found by thread id : {threadId}");
+
+            return search.First();
+        }
     }
 }
