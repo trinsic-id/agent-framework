@@ -138,8 +138,8 @@ namespace AgentFramework.Core.Runtime
 
             var provisioning = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
 
-            challengeMessage.ChallengerName = provisioning.Owner.Name;
-            challengeMessage.ChallengerImageUrl = provisioning.Owner.ImageUrl;
+            challengeMessage.ChallengerName = provisioning.Owner?.Name;
+            challengeMessage.ChallengerImageUrl = provisioning.Owner?.ImageUrl;
 
             challengeMessage.ServiceEndpoint = provisioning.Endpoint.Uri;
             challengeMessage.RecipientKeys = new[] {provisioning.Endpoint.Verkey};
