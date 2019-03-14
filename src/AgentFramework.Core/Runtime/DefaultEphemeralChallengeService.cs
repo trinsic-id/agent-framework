@@ -137,7 +137,10 @@ namespace AgentFramework.Core.Runtime
             EphemeralChallengeMessage challengeMessage = new EphemeralChallengeMessage();
 
             var provisioning = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
-            
+
+            challengeMessage.ChallengerName = provisioning.Owner.Name;
+            challengeMessage.ChallengerImageUrl = provisioning.Owner.ImageUrl;
+
             challengeMessage.ServiceEndpoint = provisioning.Endpoint.Uri;
             challengeMessage.RecipientKeys = new[] {provisioning.Endpoint.Verkey};
 
