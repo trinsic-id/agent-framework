@@ -138,7 +138,6 @@ namespace AgentFramework.Core.Runtime
 
             var provisioning = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
             
-            //TODO what do we use as the recipient key?
             challengeMessage.ServiceEndpoint = provisioning.Endpoint.Uri;
             challengeMessage.RecipientKeys = new[] {provisioning.Endpoint.Verkey};
 

@@ -72,7 +72,7 @@ namespace AgentFramework.Core.Runtime
 
             var routingKeys = connection.Endpoint?.Verkey != null ? new[] {connection.Endpoint.Verkey} : new string[0];
 
-            await SendToEndpoint(wallet, message, recipientKey, connection.Endpoint.Uri, routingKeys, connection.MyVk);
+            await SendToEndpoint(wallet, message, recipientKey, connection.Endpoint?.Uri, routingKeys, connection.MyVk);
         }
 
         /// <inheritdoc />
@@ -89,10 +89,10 @@ namespace AgentFramework.Core.Runtime
                 throw new AgentFrameworkException(ErrorCode.InvalidMessage, "@type field on message must be populated");
 
             if (string.IsNullOrEmpty(recipientKey))
-                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "recipientKey cannot be null"); //TODO change this exception type
+                throw new ArgumentNullException(nameof(recipientKey));
 
             if (string.IsNullOrEmpty(endpointUri))
-                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "endpointUri cannot be null"); //TODO change this exception type
+                throw new ArgumentNullException(nameof(endpointUri));
 
             var wireMsg = await PrepareAsync(wallet, message, recipientKey, routingKeys);
 
