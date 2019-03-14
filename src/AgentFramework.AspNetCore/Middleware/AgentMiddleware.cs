@@ -1,35 +1,31 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 
 namespace AgentFramework.AspNetCore.Middleware
 {
-    /// <summary>An agent middleware</summary>
-    public class AgentMiddleware : AgentBase
+    /// <summary>
+    /// An agent middleware
+    /// </summary>
+    public class AgentMiddleware : AgentMessageProcessorBase
     {
         private readonly RequestDelegate _next;
-        private readonly IWalletService _walletService;
-        private readonly WalletOptions _walletOptions;
+        private readonly IAgentContextProvider _contextProvider;
 
         /// <summary>Initializes a new instance of the <see cref="AgentMiddleware"/> class.</summary>
         /// <param name="next">The next.</param>
-        /// <param name="walletService">The wallet service.</param>
         /// <param name="serviceProvider">The service provider.</param>
-        /// <param name="walletOptions">The wallet options.</param>
+        /// <param name="contextProvider">The agent context provider.</param>
         public AgentMiddleware(
             RequestDelegate next,
-            IWalletService walletService,
             IServiceProvider serviceProvider,
-            IOptions<WalletOptions> walletOptions)
+            IAgentContextProvider contextProvider)
             : base(serviceProvider)
         {
             _next = next;
-            _walletService = walletService;
-            _walletOptions = walletOptions.Value;
+            _contextProvider = contextProvider;
         }
 
         /// <summary>Called by the ASPNET Core runtime</summary>
@@ -49,11 +45,9 @@ namespace AgentFramework.AspNetCore.Middleware
             var body = new byte[(int) context.Request.ContentLength];
             await context.Request.Body.ReadAsync(body, 0, body.Length);
 
-            var wallet = await _walletService.GetWalletAsync(
-                _walletOptions.WalletConfiguration,
-                _walletOptions.WalletCredentials);
+            var agentContext = await _contextProvider.GetContextAsync();
 
-            var result = await ProcessAsync(body, wallet);
+            var result = await ProcessAsync(body, agentContext);
 
             context.Response.StatusCode = 200;
 

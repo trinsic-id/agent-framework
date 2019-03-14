@@ -3,9 +3,7 @@ using AgentFramework.AspNetCore.Middleware;
 using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Handlers;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Primitives;
 
 namespace AgentFramework.AspNetCore.Configuration.Service
 {
