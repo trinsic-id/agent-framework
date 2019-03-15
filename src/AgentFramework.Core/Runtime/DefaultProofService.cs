@@ -138,7 +138,7 @@ namespace AgentFramework.Core.Runtime
         {
             var proofJson = proof.ProofJson;
 
-            var proofRecord = await this.GetByThreadId(agentContext, proof.GetThreadId());
+            var proofRecord = await this.GetByThreadIdAsync(agentContext, proof.GetThreadId());
 
             if (proofRecord.State != ProofState.Requested)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,

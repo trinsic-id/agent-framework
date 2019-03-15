@@ -101,7 +101,7 @@ namespace AgentFramework.Core.Extensions
         /// <param name="context">The context.</param>
         /// <param name="threadId">The thread id.</param>
         /// <returns>The connection record.</returns>
-        public static async Task<ConnectionRecord> GetByThreadId(
+        public static async Task<ConnectionRecord> GetByThreadIdAsync(
             this IConnectionService connectionService, IAgentContext context, string threadId)
         {
             var search = await connectionService.ListAsync(context, SearchQuery.Equal(TagConstants.LastThreadId, threadId), 1);
@@ -112,7 +112,7 @@ namespace AgentFramework.Core.Extensions
             if (search.Count > 1)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, $"Multiple connection records found by thread id : {threadId}");
 
-            return search.First();
+            return search.Single();
         }
     }
 }

@@ -10,7 +10,6 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers;
-using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Models;
@@ -299,10 +298,7 @@ namespace AgentFramework.Core.Tests
                 _connectionService, _messages, _issuerWallet, _holderWallet);
             
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.ProcessCredentialRequestAsync(_issuerWallet,
-                new CredentialRequestMessage
-                {
-                    OfferJson = "{ \"nonce\":\"bad-nonce\" }"
-                }, issuerConnection));
+                new CredentialRequestMessage(), issuerConnection));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }

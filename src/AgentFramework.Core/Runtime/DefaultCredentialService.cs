@@ -162,7 +162,6 @@ namespace AgentFramework.Core.Runtime
             var threadId = credential.GetTag(TagConstants.LastThreadId);
             var response = new CredentialRequestMessage
             {
-                OfferJson = credential.OfferJson,
                 CredentialRequestJson = request.CredentialRequestJson,
                 CredentialValuesJson = CredentialUtils.FormatCredentialValues(attributeValues)
             };
@@ -192,7 +191,7 @@ namespace AgentFramework.Core.Runtime
             var definitionId = offer["cred_def_id"].ToObject<string>();
             var revRegId = offer["rev_reg_id"]?.ToObject<string>();
 
-            var credentialRecord = await this.GetByThreadId(agentContext, credential.GetThreadId());
+            var credentialRecord = await this.GetByThreadIdAsync(agentContext, credential.GetThreadId());
 
             if (credentialRecord.State != CredentialState.Requested)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
@@ -235,15 +234,6 @@ namespace AgentFramework.Core.Runtime
                 config.CredentialDefinitionId, config.IssuerDid);
 
             var threadId = Guid.NewGuid().ToString();
-
-            if (!string.IsNullOrEmpty(connectionId))
-            {
-                var connection = await ConnectionService.GetAsync(agentContext, connectionId);
-
-                if (connection.State != ConnectionState.Connected)
-                    throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
-                        $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
-            }
 
             var offerJson = await AnonCreds.IssuerCreateCredentialOfferAsync(
                 agentContext.Wallet, config.CredentialDefinitionId);
@@ -297,7 +287,7 @@ namespace AgentFramework.Core.Runtime
         {
             Logger.LogInformation(LoggingEvents.StoreCredentialRequest, "Type {0},", credentialRequest.Type);
            
-            var credential = await this.GetByThreadId(agentContext, credentialRequest.GetThreadId());
+            var credential = await this.GetByThreadIdAsync(agentContext, credentialRequest.GetThreadId());
 
             if (credential.State != CredentialState.Offered)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,

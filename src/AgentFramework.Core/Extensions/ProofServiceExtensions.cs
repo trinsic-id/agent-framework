@@ -39,7 +39,7 @@ namespace AgentFramework.Core.Extensions
         /// <param name="context">The context.</param>
         /// <param name="threadId">The thread id.</param>
         /// <returns>The proof record.</returns>
-        public static async Task<ProofRecord> GetByThreadId(
+        public static async Task<ProofRecord> GetByThreadIdAsync(
             this IProofService proofService, IAgentContext context, string threadId)
         {
             var search = await proofService.ListAsync(context, SearchQuery.Equal(TagConstants.LastThreadId, threadId), 1);
@@ -50,7 +50,7 @@ namespace AgentFramework.Core.Extensions
             if (search.Count > 1)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, $"Multiple proof records found by thread id : {threadId}");
 
-            return search.First();
+            return search.Single();
         }
     }
 }

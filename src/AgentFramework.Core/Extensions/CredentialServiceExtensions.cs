@@ -70,7 +70,7 @@ namespace AgentFramework.Core.Extensions
         /// <param name="context">The context.</param>
         /// <param name="threadId">The thread id.</param>
         /// <returns>The credential record.</returns>
-        public static async Task<CredentialRecord> GetByThreadId(
+        public static async Task<CredentialRecord> GetByThreadIdAsync(
             this ICredentialService credentialService, IAgentContext context, string threadId)
         {
             var search = await credentialService.ListAsync(context, SearchQuery.Equal(TagConstants.LastThreadId, threadId), 100);
@@ -81,7 +81,7 @@ namespace AgentFramework.Core.Extensions
             if (search.Count > 1)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, $"Multiple credential records found by thread id : {threadId}");
 
-            return search.First();
+            return search.Single();
         }
     }
 }
