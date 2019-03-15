@@ -235,6 +235,15 @@ namespace AgentFramework.Core.Runtime
 
             var threadId = Guid.NewGuid().ToString();
 
+            if (!string.IsNullOrEmpty(connectionId))
+            {
+                var connection = await ConnectionService.GetAsync(agentContext, connectionId);
+
+                if (connection.State != ConnectionState.Connected)
+                    throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                        $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
+            }
+
             var offerJson = await AnonCreds.IssuerCreateCredentialOfferAsync(
                 agentContext.Wallet, config.CredentialDefinitionId);
             var offerJobj = JObject.Parse(offerJson);
