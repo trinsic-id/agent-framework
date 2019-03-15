@@ -14,14 +14,6 @@ namespace AgentFramework.Core.Messages.Credentials
             Id = Guid.NewGuid().ToString();
             Type = MessageTypes.CredentialRequest;
         }
-        
-        /// <summary>
-        /// Gets or sets the offer json.
-        /// </summary>
-        /// <value>
-        /// The offer json.
-        /// </value>
-        public string OfferJson { get; set; }
 
         /// <summary>
         /// Gets or sets the credential request json.
@@ -44,7 +36,6 @@ namespace AgentFramework.Core.Messages.Credentials
             $"{GetType().Name}: " +
             $"Id={Id}, " +
             $"Type={Type}, " +
-            $"OfferJson={(OfferJson?.Length > 0 ? "[hidden]" : null)}, " +
             $"CredentialRequestJson={(CredentialRequestJson?.Length > 0 ? "[hidden]" : null)}, " +
             $"CredentialValuesJson={(CredentialValuesJson?.Length > 0 ? "[hidden]" : null)}";
     }

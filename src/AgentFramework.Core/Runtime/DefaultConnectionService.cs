@@ -201,7 +201,7 @@ namespace AgentFramework.Core.Runtime
             agentContext.Connection.MyDid = my.Did;
             agentContext.Connection.MyVk = my.VerKey;
 
-            agentContext.Connection.SetTag(TagConstants.ConnectionThreadId, request.Id);
+            agentContext.Connection.SetTag(TagConstants.LastThreadId, request.Id);
             
             agentContext.Connection.Alias = new ConnectionAlias
             {
@@ -226,7 +226,6 @@ namespace AgentFramework.Core.Runtime
 
             var newConnection = agentContext.Connection.DeepCopy();
             newConnection.Id = Guid.NewGuid().ToString();
-            //newConnection.RemoveTag(TagConstants.ConnectionKey);
 
             await newConnection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await RecordService.AddAsync(agentContext.Wallet, newConnection);
@@ -261,7 +260,7 @@ namespace AgentFramework.Core.Runtime
             agentContext.Connection.TheirDid = connection.Did;
             agentContext.Connection.TheirVk = connection.DidDoc.Keys[0].PublicKeyBase58;
 
-            agentContext.Connection.SetTag(TagConstants.ConnectionThreadId, response.GetThreadId());
+            agentContext.Connection.SetTag(TagConstants.LastThreadId, response.GetThreadId());
 
             if (connection.DidDoc.Services[0] is IndyAgentDidDocService service)
                 agentContext.Connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys != null && service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
@@ -305,11 +304,11 @@ namespace AgentFramework.Core.Runtime
             };
 
             var sigData = await SignatureUtils.SignData(agentContext, connectionData, connection.GetTag(TagConstants.ConnectionKey));
-            var threadId = connection.GetTag(TagConstants.ConnectionThreadId);
-            var response = new ConnectionRequestMessage {Id = threadId}
-                .CreateThreadedReply<ConnectionResponseMessage>();
-            response.ConnectionSig = sigData;
+            var threadId = connection.GetTag(TagConstants.LastThreadId);
 
+            var response = new ConnectionResponseMessage { ConnectionSig = sigData };
+            response.ThreadFrom(threadId);
+            
             return response;
         }
 
