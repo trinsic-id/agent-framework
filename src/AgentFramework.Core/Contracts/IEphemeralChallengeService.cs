@@ -20,7 +20,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="message">The challenge message to accept.</param>
         /// <param name="credentials">The requested credentials.</param>
         /// <returns>The ephemeral challenge response message.</returns>
-        Task<EphemeralChallengeResponseMessage> AcceptChallenge(IAgentContext agentContext, EphemeralChallengeMessage message, RequestedCredentials credentials);
+        Task<EphemeralChallengeResponseMessage> AcceptProofChallengeAsync(IAgentContext agentContext, EphemeralChallengeMessage message, RequestedCredentials credentials);
 
         /// <summary>
         /// Creates an ephemeral challenge.
@@ -61,7 +61,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="challengeId">The challenge id.</param>
         /// <param name="deleteIfResolved">If the challenge is resolved delete it from persistance.</param>
         /// <returns>The current challenge state.</returns>
-        Task<ChallengeState> GetChallengeState(IAgentContext agentContext, string challengeId,
+        Task<ChallengeState> GetChallengeStateAsync(IAgentContext agentContext, string challengeId,
             bool deleteIfResolved = true);
 
         /// <summary>

@@ -109,8 +109,7 @@ namespace AgentFramework.Core.Tests
                 tailsService,
                 new Mock<ILogger<DefaultProofService>>().Object);
 
-            _ephemeralChallengeService = new DefaultEphemeralChallengeService(_eventAggregator, _proofService, recordService, new Mock<ILogger<DefaultEphemeralChallengeService>>().Object);
-
+            _ephemeralChallengeService = new DefaultEphemeralChallengeService(_eventAggregator, _proofService, recordService, provisioningMock.Object, new Mock<ILogger<DefaultEphemeralChallengeService>>().Object);
         }
 
         public async Task InitializeAsync()
@@ -272,7 +271,7 @@ namespace AgentFramework.Core.Tests
                 var challengeResult = await _ephemeralChallengeService.CreateChallengeAsync(_requestorWallet, challengeConfigId);
                 _messages.Add(challengeResult.Challenge);
 
-                var result = await _ephemeralChallengeService.GetChallengeState(_requestorWallet, challengeResult.ChallengeId);
+                var result = await _ephemeralChallengeService.GetChallengeStateAsync(_requestorWallet, challengeResult.ChallengeId);
                 Assert.True(result == ChallengeState.Challenged);
             }
 
@@ -312,7 +311,7 @@ namespace AgentFramework.Core.Tests
                         });
                 }
 
-                _messages.Add(await _ephemeralChallengeService.AcceptChallenge(_holderWallet, challengeMessage, requestedCredentials));
+                _messages.Add(await _ephemeralChallengeService.AcceptProofChallengeAsync(_holderWallet, challengeMessage, requestedCredentials));
             }
 
             //Challenger recieves challenge response and verifies it
@@ -321,7 +320,7 @@ namespace AgentFramework.Core.Tests
 
                 var id = await _ephemeralChallengeService.ProcessChallengeResponseAsync(_requestorWallet, challengeResponseMessage);
 
-                var result = await _ephemeralChallengeService.GetChallengeState(_requestorWallet, id);
+                var result = await _ephemeralChallengeService.GetChallengeStateAsync(_requestorWallet, id);
                 Assert.True(result == ChallengeState.Accepted);
             }
         }
