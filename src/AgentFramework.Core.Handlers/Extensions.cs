@@ -1,5 +1,7 @@
-﻿using AgentFramework.Core.Handlers.Internal;
+﻿using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
+using AgentFramework.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.Core.Handlers
@@ -21,6 +23,17 @@ namespace AgentFramework.Core.Handlers
             collection.AddTransient<DefaultCredentialHandler>();
             collection.AddTransient<DefaultProofHandler>();
             collection.AddTransient<DefaultForwardHandler>();
+        }
+
+        internal static AgentContext ToHandlerAgentContext(this IAgentContext context)
+        {
+            return new AgentContext
+            {
+                Wallet = context.Wallet,
+                Pool = context.Pool,
+                Connection = context.Connection,
+                State = context.State
+            };
         }
     }
 }
