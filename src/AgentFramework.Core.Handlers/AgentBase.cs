@@ -8,8 +8,6 @@ using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Utils;
-using Hyperledger.Indy.PoolApi;
-using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -18,7 +16,7 @@ namespace AgentFramework.Core.Handlers
     /// <summary>
     /// Base agent implementation
     /// </summary>
-    public abstract class AgentBase
+    public abstract class AgentMessageProcessorBase
     {
         private readonly IList<IMessageHandler> _handlers;
 
@@ -36,15 +34,15 @@ namespace AgentFramework.Core.Handlers
 
         /// <summary>Gets the logger.</summary>
         /// <value>The logger.</value>
-        protected ILogger<AgentBase> Logger { get; }
+        protected ILogger<AgentMessageProcessorBase> Logger { get; }
 
-        /// <summary>Initializes a new instance of the <see cref="AgentBase"/> class.</summary>
-        protected AgentBase(IServiceProvider provider)
+        /// <summary>Initializes a new instance of the <see cref="AgentMessageProcessorBase"/> class.</summary>
+        protected AgentMessageProcessorBase(IServiceProvider provider)
         {
             Provider = provider;
             ConnectionService = provider.GetRequiredService<IConnectionService>();
             MessageService = provider.GetRequiredService<IMessageService>();
-            Logger = provider.GetRequiredService<ILogger<AgentBase>>();
+            Logger = provider.GetRequiredService<ILogger<AgentMessageProcessorBase>>();
             _handlers = new List<IMessageHandler>();
         }
 
@@ -76,16 +74,15 @@ namespace AgentFramework.Core.Handlers
         /// Invoke the handler pipeline and process the passed message.
         /// </summary>
         /// <param name="body">The body.</param>
-        /// <param name="wallet">The wallet.</param>
-        /// <param name="pool">The pool.</param>
+        /// <param name="context">The agent context.</param>
         /// <returns></returns>
         /// <exception cref="Exception">Expected inner message to be of type 'ForwardMessage'</exception>
         /// <exception cref="AgentFrameworkException">Couldn't locate a message handler for type {messageType}</exception>
-        protected async Task<byte[]> ProcessAsync(byte[] body, Wallet wallet, Pool pool = null)
+        protected async Task<byte[]> ProcessAsync(byte[] body, IAgentContext context)
         {
             EnsureConfigured();
 
-            var agentContext = new AgentContext {Wallet = wallet, Pool = pool};
+            var agentContext = context.ToHandlerAgentContext();
             agentContext.AddNext(new MessagePayload(body, true));
 
             AgentMessage outgoingMessage = null;
@@ -97,7 +94,7 @@ namespace AgentFramework.Core.Handlers
             if (outgoingMessage != null) // && dont duplex????
             {
                 //TODO what happens when I fail to transmit the message? need to roll back the state of the internal message?
-                await MessageService.SendToConnectionAsync(wallet, outgoingMessage,
+                await MessageService.SendToConnectionAsync(agentContext.Wallet, outgoingMessage,
                     agentContext.Connection);
                 outgoingMessage = null;
             }
@@ -105,7 +102,7 @@ namespace AgentFramework.Core.Handlers
             byte[] response = null;
             if (outgoingMessage != null)
             {
-                response = await MessageService.PrepareAsync(wallet, outgoingMessage, "");
+                response = await MessageService.PrepareAsync(agentContext.Wallet, outgoingMessage, "");
             }
 
             return response;

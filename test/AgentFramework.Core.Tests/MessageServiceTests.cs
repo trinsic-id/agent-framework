@@ -191,6 +191,7 @@ namespace AgentFramework.Core.Tests
                 {
                     Uri = "https://mock.com"
                 },
+                TheirVk = Guid.NewGuid().ToString()
             };
 
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
@@ -211,6 +212,7 @@ namespace AgentFramework.Core.Tests
                 {
                     Uri = "https://mock.com"
                 },
+                TheirVk = Guid.NewGuid().ToString()
             };
 
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>

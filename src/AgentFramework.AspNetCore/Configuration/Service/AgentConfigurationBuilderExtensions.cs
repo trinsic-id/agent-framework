@@ -1,8 +1,6 @@
 ﻿using System.Net.Http;
 using AgentFramework.AspNetCore.Runtime;
 using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Decorators;
-using AgentFramework.Core.Decorators.Threading;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Runtime;
 using Microsoft.Extensions.Caching.Memory;
@@ -16,11 +14,14 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         internal static AgentConfigurationBuilder AddDefaultServices(this AgentConfigurationBuilder builder)
         {
             builder.Services.TryAddSingleton<IEventAggregator, EventAggregator>();
+            builder.Services.TryAddSingleton<IAgentContextProvider, DefaultAgentContextProvider>();
+
             builder.Services.TryAddSingleton<IConnectionService, DefaultConnectionService>();
             builder.Services.TryAddSingleton<ICredentialService, DefaultCredentialService>();
             builder.Services.TryAddSingleton<ILedgerService, DefaultLedgerService>();
             builder.Services.TryAddSingleton<IPoolService, DefaultPoolService>();
             builder.Services.TryAddSingleton<IProofService, DefaultProofService>();
+            builder.Services.TryAddSingleton<IEphemeralChallengeService, DefaultEphemeralChallengeService>();
             builder.Services.TryAddSingleton<IProvisioningService, DefaultProvisioningService>();
             builder.Services.TryAddSingleton<IMessageService, DefaultMessageService>();
             builder.Services.TryAddSingleton<HttpMessageHandler, HttpClientHandler>();
@@ -52,6 +53,14 @@ namespace AgentFramework.AspNetCore.Configuration.Service
                    .Services.AddMemoryCache()
                             .AddSingleton(_ => options);
 
+            return builder;
+        }
+
+        public static AgentConfigurationBuilder OverrideDefaultAgentContextProvider<TProvider>(
+            this AgentConfigurationBuilder builder)
+            where TProvider : class, IAgentContextProvider
+        {
+            builder.Services.AddSingleton<IAgentContextProvider,TProvider>();
             return builder;
         }
 
