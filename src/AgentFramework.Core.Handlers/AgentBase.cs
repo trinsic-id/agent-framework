@@ -100,7 +100,7 @@ namespace AgentFramework.Core.Handlers
             }
 
             byte[] response = null;
-            if (outgoingMessage != null)
+            if (outgoingMessage != null) // TODO: This statement is always False
             {
                 response = await MessageService.PrepareAsync(agentContext.Wallet, outgoingMessage, "");
             }
@@ -118,8 +118,16 @@ namespace AgentFramework.Core.Handlers
                 messagePayload = new MessagePayload(unpacked.Message, false);
                 if (unpacked.SenderVerkey != null && agentContext.Connection == null)
                 {
-                    agentContext.Connection =
-                        await ConnectionService.ResolveByMyKeyAsync(agentContext, unpacked.RecipientVerkey);
+                    try
+                    {
+                        agentContext.Connection = await ConnectionService.ResolveByMyKeyAsync(
+                            agentContext, unpacked.RecipientVerkey);
+                    }
+                    catch (AgentFrameworkException ex) when (ex.ErrorCode == ErrorCode.RecordNotFound)
+                    {
+                        // OK if not resolved. Example: authpacked forward message in routing agent.
+                        // Downstream consumers should throw if Connection is required
+                    }
                 }
             }
             else

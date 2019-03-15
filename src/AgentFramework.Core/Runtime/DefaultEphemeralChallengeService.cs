@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -151,7 +151,7 @@ namespace AgentFramework.Core.Runtime
                 {
                     Name = config.Name,
                     Version = "1.0",
-                    Nonce = Guid.NewGuid().ToString(),
+                    Nonce = Guid.NewGuid().ToString("N"),
                     RequestedAttributes = proofRequestConfig.RequestedAttributes,
                     RequestedPredicates = proofRequestConfig.RequestedPredicates,
                     NonRevoked = proofRequestConfig.NonRevoked
