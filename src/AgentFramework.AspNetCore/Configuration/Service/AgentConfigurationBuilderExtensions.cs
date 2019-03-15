@@ -14,6 +14,8 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         internal static AgentConfigurationBuilder AddDefaultServices(this AgentConfigurationBuilder builder)
         {
             builder.Services.TryAddSingleton<IEventAggregator, EventAggregator>();
+            builder.Services.TryAddSingleton<IAgentContextProvider, DefaultAgentContextProvider>();
+
             builder.Services.TryAddSingleton<IConnectionService, DefaultConnectionService>();
             builder.Services.TryAddSingleton<ICredentialService, DefaultCredentialService>();
             builder.Services.TryAddSingleton<ILedgerService, DefaultLedgerService>();
@@ -51,6 +53,14 @@ namespace AgentFramework.AspNetCore.Configuration.Service
                    .Services.AddMemoryCache()
                             .AddSingleton(_ => options);
 
+            return builder;
+        }
+
+        public static AgentConfigurationBuilder OverrideDefaultAgentContextProvider<TProvider>(
+            this AgentConfigurationBuilder builder)
+            where TProvider : class, IAgentContextProvider
+        {
+            builder.Services.AddSingleton<IAgentContextProvider,TProvider>();
             return builder;
         }
 
