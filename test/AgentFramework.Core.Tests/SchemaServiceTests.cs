@@ -19,7 +19,7 @@ namespace AgentFramework.Core.Tests
         private readonly IPoolService _poolService;
         private readonly ISchemaService _schemaService;
 
-        private readonly string _poolName = $"Pool{Guid.NewGuid()}";
+        private readonly string _poolName = $"DefaultPool";
         private readonly string _issuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
 
@@ -43,7 +43,7 @@ namespace AgentFramework.Core.Tests
             var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
 
-            var schemaName = $"Test-Schema-{Guid.NewGuid().ToString()}";
+            var schemaName = $"Test-Schema-{Guid.NewGuid().ToString("N")}";
             var schemaVersion = "1.0";
             var schemaAttrNames = new[] {"test_attr_1", "test_attr_2"};
 

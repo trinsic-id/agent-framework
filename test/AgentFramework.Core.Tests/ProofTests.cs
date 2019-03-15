@@ -29,7 +29,7 @@ namespace AgentFramework.Core.Tests
 {
     public class ProofTests : IAsyncLifetime
     {
-        private readonly string _poolName = $"Pool{Guid.NewGuid()}";
+        private readonly string _poolName = $"DefaultPool";
         private const string IssuerConfig = "{\"id\":\"issuer_proof_test_wallet\"}";
         private const string HolderConfig = "{\"id\":\"holder_proof_test_wallet\"}";
         private const string RequestorConfig = "{\"id\":\"requestor_proof_test_wallet\"}";

@@ -26,7 +26,7 @@ namespace AgentFramework.Core.Tests
 {
     public class EphemeralChallengeTests : IAsyncLifetime
     {
-        private readonly string _poolName = $"Pool{Guid.NewGuid()}";
+        private readonly string _poolName = $"DefaultPool";
         private readonly string _issuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private readonly string _holderConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private readonly string _requestorConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
