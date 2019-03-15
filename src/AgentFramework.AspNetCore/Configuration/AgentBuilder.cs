@@ -10,6 +10,9 @@ using Microsoft.Extensions.Options;
 
 namespace AgentFramework.AspNetCore.Configuration
 {
+    /// <summary>
+    /// Agent Builder.
+    /// </summary>
     public class AgentBuilder
     {
         private string _issuerSeed;
@@ -26,6 +29,13 @@ namespace AgentFramework.AspNetCore.Configuration
         private readonly PoolOptions _poolOptions;
         private bool _createIssuer;
 
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        /// <param name="poolService">Pool service.</param>
+        /// <param name="provisioningService">Provisioning service.</param>
+        /// <param name="walletOptions">Wallet options.</param>
+        /// <param name="poolOptions">Pool options.</param>
         public AgentBuilder(
             IPoolService poolService,
             IProvisioningService provisioningService,
@@ -35,9 +45,15 @@ namespace AgentFramework.AspNetCore.Configuration
             _poolService = poolService;
             _provisioningService = provisioningService;
             _walletOptions = walletOptions.Value;
-            _poolOptions = poolOptions.Value;
+            _poolOptions= poolOptions.Value;
         }
 
+        /// <summary>
+        /// Sets the agent ownership information.
+        /// </summary>
+        /// <param name="name">Name of the agent owner.</param>
+        /// <param name="imageUrl">Profile image of the agent owner.</param>
+        /// <returns></returns>
         public AgentBuilder AddOwnershipInfo(string name, string imageUrl)
         {
             _agentOwnerName = name;

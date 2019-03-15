@@ -20,6 +20,18 @@ namespace AgentFramework.Core.Messages.EphemeralChallenge
         }
 
         /// <summary>
+        /// Challengers name.
+        /// </summary>
+        [JsonProperty("challengerName")]
+        public string ChallengerName { get; set; }
+
+        /// <summary>
+        /// Challengers name.
+        /// </summary>
+        [JsonProperty("challengerImageUrl")]
+        public string ChallengerImageUrl { get; set; }
+
+        /// <summary>
         /// Array of recipient keys.
         /// </summary>
         [JsonProperty("recipientKeys")]

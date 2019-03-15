@@ -20,7 +20,6 @@ using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Wallets;
 using AgentFramework.Core.Runtime;
 using AgentFramework.Core.Utils;
-using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -49,14 +48,14 @@ namespace AgentFramework.Core.Tests
         }
     }
 
-    public class MockAgent : AgentBase
+    public class MockAgent : AgentMessageProcessorBase
     {
         public MockAgent(
             IServiceProvider provider) : base(provider)
         {
         }
 
-        internal Task HandleAsync(byte[] data, Wallet wallet, Pool pool = null) => ProcessAsync(data, wallet, pool);
+        internal Task HandleAsync(byte[] data, IAgentContext context) => ProcessAsync(data, context);
     }
 
     public class ConnectionTests : IAsyncLifetime
@@ -158,14 +157,14 @@ namespace AgentFramework.Core.Tests
             IAgentContext context2 = null;
 
             // Setup first agent runtime
-            var result1 = await CreateDependency(config1, cred, new MockAgentHttpHandler(data => agent2.HandleAsync(data, context2.Wallet, context2.Pool)));
+            var result1 = await CreateDependency(config1, cred, new MockAgentHttpHandler(data => agent2.HandleAsync(data, context2)));
             var provider1 = result1.Item1;
             context1 = result1.Item2;
             agent1 = provider1.GetRequiredService<MockAgent>();
             var connectionService1 = provider1.GetRequiredService<IConnectionService>();
 
             // Setup second agent runtime
-            var result2 = await CreateDependency(config2, cred, new MockAgentHttpHandler(data => agent1.HandleAsync(data, context1.Wallet, context1.Pool)));
+            var result2 = await CreateDependency(config2, cred, new MockAgentHttpHandler(data => agent1.HandleAsync(data, context1)));
             var provider2 = result2.Item1;
             context2 = result2.Item2;
             var connectionService2 = provider2.GetRequiredService<IConnectionService>();
