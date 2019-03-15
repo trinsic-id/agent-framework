@@ -74,6 +74,20 @@ namespace AgentFramework.Core.Decorators.Threading
             return threadId;
         }
 
+        /// <summary>
+        /// Threads the current message.
+        /// </summary>
+        /// <param name="messageToThread">Message to thread.</param>
+        /// <param name="threadId">Thread id to thread the message with.</param>
+        public static void ThreadFrom(this AgentMessage messageToThread, string threadId)
+        {
+            var currentThreadContext = new ThreadDecorator
+            {
+                ThreadId = threadId
+            };
+            messageToThread.AddDecorator(currentThreadContext, DecoratorIdentifier);
+        }
+
         private static void ThreadMessage(this AgentMessage messageToThread, AgentMessage messageToThreadFrom)
         {
             ThreadDecorator previousMessageThreadContext = null;

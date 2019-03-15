@@ -10,7 +10,6 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers;
-using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Models;
@@ -19,6 +18,7 @@ using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Tests.Utils;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
@@ -31,7 +31,7 @@ namespace AgentFramework.Core.Tests
 {
     public class CredentialTests : IAsyncLifetime
     {
-        private readonly string _poolName = $"Pool{Guid.NewGuid()}";
+        private readonly string _poolName = $"DefaultPool";
         private readonly string _issuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private readonly string _holderConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
@@ -104,16 +104,7 @@ namespace AgentFramework.Core.Tests
 
         public async Task InitializeAsync()
         {
-            try
-            {
-                await _poolService.CreatePoolAsync(_poolName, Path.GetFullPath("pool_genesis.txn"));
-            }
-            catch (PoolLedgerConfigExistsException)
-            {
-                // OK
-            }
-
-            _pool = await _poolService.GetPoolAsync(_poolName, 2);
+            _pool = await PoolUtils.GetPoolAsync();
 
             try
             {
@@ -188,25 +179,6 @@ namespace AgentFramework.Core.Tests
             var (_, credentialRecord) = await _credentialService.CreateOfferAsync(_issuerWallet,
                 new OfferConfiguration { CredentialDefinitionId = result.Item1 });
 
-            Assert.False(credentialRecord.MultiPartyOffer);
-            Assert.Equal(CredentialState.Offered, credentialRecord.State);
-        }
-
-        [Fact]
-        public async Task CanCreateMultiPartyCredentialOffer()
-        {
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
-                new { seed = "000000000000000000000000Steward1" }.ToJson());
-
-            var result = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
-                new[] { "test-attr" });
-
-            var (_, record) = await _credentialService.CreateOfferAsync(_issuerWallet,
-                new OfferConfiguration { CredentialDefinitionId = result.Item1, MultiPartyOffer = true });
-
-            var credentialRecord = await _credentialService.GetAsync(_issuerWallet, record.Id);
-
-            Assert.True(credentialRecord.MultiPartyOffer);
             Assert.Equal(CredentialState.Offered, credentialRecord.State);
         }
 
@@ -318,10 +290,7 @@ namespace AgentFramework.Core.Tests
                 _connectionService, _messages, _issuerWallet, _holderWallet);
             
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.ProcessCredentialRequestAsync(_issuerWallet,
-                new CredentialRequestMessage
-                {
-                    OfferJson = "{ \"nonce\":\"bad-nonce\" }"
-                }, issuerConnection));
+                new CredentialRequestMessage(), issuerConnection));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }
@@ -517,11 +486,9 @@ namespace AgentFramework.Core.Tests
         {
             if (_issuerWallet != null) await _issuerWallet.Wallet.CloseAsync();
             if (_holderWallet != null) await _holderWallet.Wallet.CloseAsync();
-            if (_pool != null) await _pool.CloseAsync();
 
             await Wallet.DeleteWalletAsync(_issuerConfig, Credentials);
             await Wallet.DeleteWalletAsync(_holderConfig, Credentials);
-            await Pool.DeletePoolLedgerConfigAsync(_poolName);
         }
     }
 }

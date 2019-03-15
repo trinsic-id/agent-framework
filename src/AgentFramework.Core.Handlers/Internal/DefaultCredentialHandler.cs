@@ -50,20 +50,18 @@ namespace AgentFramework.Core.Handlers.Internal
                 case MessageTypes.CredentialOffer:
                 {
                     var offer = messagePayload.GetMessage<CredentialOfferMessage>();
-                    var credentialId = await _credentialService.ProcessOfferAsync(
+                    await _credentialService.ProcessOfferAsync(
                         agentContext, offer, agentContext.Connection);
 
-                    var request = await _credentialService.AcceptOfferAsync(agentContext, credentialId);
-                    await _messageService.SendToConnectionAsync(agentContext.Wallet, request, agentContext.Connection);
                     return null;
                 }
 
                 case MessageTypes.CredentialRequest:
                 {
                     var request = messagePayload.GetMessage<CredentialRequestMessage>();
-
                     await _credentialService.ProcessCredentialRequestAsync(
                         agentContext, request, agentContext.Connection);
+
                     return null;
                 }
 
@@ -72,6 +70,7 @@ namespace AgentFramework.Core.Handlers.Internal
                     var credential = messagePayload.GetMessage<CredentialMessage>();
                     await _credentialService.ProcessCredentialAsync(
                         agentContext, credential, agentContext.Connection);
+
                     return null;
                 }
                 default:

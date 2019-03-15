@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
+using AgentFramework.Core.Utils;
 
-// ReSharper disable CheckNamespace
-
-namespace Streetcred.Sdk.Contracts
+namespace AgentFramework.Core.Extensions
 {
     /// <summary>
     /// A collection of convenience methods for the <see cref="ICredentialService"/> class.
@@ -63,5 +64,24 @@ namespace Streetcred.Sdk.Contracts
             this ICredentialService credentialService, IAgentContext context, int count = 100)
             => credentialService.ListAsync(context,
                 SearchQuery.Equal(nameof(CredentialRecord.State), CredentialState.Rejected.ToString("G")), count);
+
+        /// <summary>Retrieves a credential record by its thread id.</summary>
+        /// <param name="credentialService">Credential service.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="threadId">The thread id.</param>
+        /// <returns>The credential record.</returns>
+        public static async Task<CredentialRecord> GetByThreadIdAsync(
+            this ICredentialService credentialService, IAgentContext context, string threadId)
+        {
+            var search = await credentialService.ListAsync(context, SearchQuery.Equal(TagConstants.LastThreadId, threadId), 100);
+
+            if (search.Count == 0)
+                throw new AgentFrameworkException(ErrorCode.RecordNotFound, $"Credential record not found by thread id : {threadId}");
+
+            if (search.Count > 1)
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, $"Multiple credential records found by thread id : {threadId}");
+
+            return search.Single();
+        }
     }
 }

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Decorators.Threading;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Events;
@@ -13,8 +14,6 @@ using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.BlobStorageApi;
-using Hyperledger.Indy.PoolApi;
-using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
@@ -110,7 +109,6 @@ namespace AgentFramework.Core.Runtime
             var offer = JObject.Parse(offerJson);
             var definitionId = offer["cred_def_id"].ToObject<string>();
             var schemaId = offer["schema_id"].ToObject<string>();
-            var nonce = offer["nonce"].ToObject<string>();
 
             // Write offer record to local wallet
             var credentialRecord = new CredentialRecord
@@ -123,7 +121,7 @@ namespace AgentFramework.Core.Runtime
                 State = CredentialState.Offered
             };
             credentialRecord.SetTag(TagConstants.Role, TagConstants.Holder);
-            credentialRecord.SetTag(TagConstants.Nonce, nonce);
+            credentialRecord.SetTag(TagConstants.LastThreadId, credentialOffer.GetThreadId());
 
             await RecordService.AddAsync(agentContext.Wallet, credentialRecord);
 
@@ -147,8 +145,6 @@ namespace AgentFramework.Core.Runtime
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Credential state was invalid. Expected '{CredentialState.Offered}', found '{credential.State}'");
 
-            //var credentialCopy = credential.DeepCopy();
-
             var connection = await ConnectionService.GetAsync(agentContext, credential.ConnectionId);
             
             var definition = await LedgerService.LookupDefinitionAsync(agentContext.Pool, credential.CredentialDefinitionId);
@@ -163,12 +159,16 @@ namespace AgentFramework.Core.Runtime
             await credential.TriggerAsync(CredentialTrigger.Request);
             await RecordService.UpdateAsync(agentContext.Wallet, credential);
 
-            return new CredentialRequestMessage
+            var threadId = credential.GetTag(TagConstants.LastThreadId);
+            var response = new CredentialRequestMessage
             {
-                OfferJson = credential.OfferJson,
                 CredentialRequestJson = request.CredentialRequestJson,
                 CredentialValuesJson = CredentialUtils.FormatCredentialValues(attributeValues)
             };
+
+            response.ThreadFrom(threadId);
+
+            return response;
         }
 
         /// <inheritdoc />
@@ -189,25 +189,9 @@ namespace AgentFramework.Core.Runtime
         {
             var offer = JObject.Parse(credential.CredentialJson);
             var definitionId = offer["cred_def_id"].ToObject<string>();
-            var schemaId = offer["schema_id"].ToObject<string>();
             var revRegId = offer["rev_reg_id"]?.ToObject<string>();
 
-            // TODO: Replace this with thread lookup
-            // Currently, this is unable to process multiple offers and requests reliably
-            var credentialSearch =
-                await RecordService.SearchAsync<CredentialRecord>(agentContext.Wallet,
-                SearchQuery.And(
-                    SearchQuery.Equal(nameof(CredentialRecord.SchemaId), schemaId),
-                    SearchQuery.Equal(nameof(CredentialRecord.CredentialDefinitionId), definitionId),
-                    SearchQuery.Equal(nameof(CredentialRecord.ConnectionId), connection.Id),
-                    SearchQuery.Equal(nameof(CredentialRecord.State), CredentialState.Requested.ToString("G"))
-                ), null, 5);
-
-            if (credentialSearch.Count == 0)
-                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Credential record not found");
-
-            var credentialRecord = credentialSearch.Single();
-            // TODO: Should resolve if multiple credential records are found
+            var credentialRecord = await this.GetByThreadIdAsync(agentContext, credential.GetThreadId());
 
             if (credentialRecord.State != CredentialState.Requested)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
@@ -249,7 +233,9 @@ namespace AgentFramework.Core.Runtime
             Logger.LogInformation(LoggingEvents.CreateCredentialOffer, "DefinitionId {0}, IssuerDid {1}",
                 config.CredentialDefinitionId, config.IssuerDid);
 
-            if (!config.MultiPartyOffer && !string.IsNullOrEmpty(connectionId))
+            var threadId = Guid.NewGuid().ToString();
+
+            if (!string.IsNullOrEmpty(connectionId))
             {
                 var connection = await ConnectionService.GetAsync(agentContext, connectionId);
 
@@ -261,7 +247,6 @@ namespace AgentFramework.Core.Runtime
             var offerJson = await AnonCreds.IssuerCreateCredentialOfferAsync(
                 agentContext.Wallet, config.CredentialDefinitionId);
             var offerJobj = JObject.Parse(offerJson);
-            var nonce = offerJobj["nonce"].ToObject<string>();
             var schemaId = offerJobj["schema_id"].ToObject<string>();
 
             // Write offer record to local wallet
@@ -270,18 +255,17 @@ namespace AgentFramework.Core.Runtime
                 Id = Guid.NewGuid().ToString(),
                 CredentialDefinitionId = config.CredentialDefinitionId,
                 OfferJson = offerJson,
-                MultiPartyOffer = config.MultiPartyOffer,
-                ConnectionId = config.MultiPartyOffer ? null : connectionId,
+                ConnectionId = connectionId,
                 SchemaId = schemaId,
                 ValuesJson = CredentialUtils.FormatCredentialValues(config.CredentialAttributeValues),
                 State = CredentialState.Offered,
             };
-
-            credentialRecord.SetTag(TagConstants.Nonce, nonce);
+            
+            credentialRecord.SetTag(TagConstants.LastThreadId, threadId);
             credentialRecord.SetTag(TagConstants.Role, TagConstants.Issuer);
 
             if (!string.IsNullOrEmpty(config.IssuerDid))
-                credentialRecord.Tags.Add(TagConstants.IssuerDid, config.IssuerDid);
+                credentialRecord.SetTag(TagConstants.IssuerDid, config.IssuerDid);
 
             if (config.Tags != null)
                 foreach (var tag in config.Tags)
@@ -292,7 +276,7 @@ namespace AgentFramework.Core.Runtime
 
             await RecordService.AddAsync(agentContext.Wallet, credentialRecord);
 
-            return (new CredentialOfferMessage {OfferJson = offerJson}, credentialRecord);
+            return (new CredentialOfferMessage {Id = threadId, OfferJson = offerJson}, credentialRecord);
         }
 
         /// <inheritdoc />
@@ -312,16 +296,7 @@ namespace AgentFramework.Core.Runtime
         {
             Logger.LogInformation(LoggingEvents.StoreCredentialRequest, "Type {0},", credentialRequest.Type);
            
-            var request = JObject.Parse(credentialRequest.OfferJson);
-            var nonce = request["nonce"].ToObject<string>();
-
-            var query = SearchQuery.Equal(TagConstants.Nonce , nonce);
-            var credentialSearch = await RecordService.SearchAsync<CredentialRecord>(agentContext.Wallet, query, null, 5);
-
-            if (credentialSearch.Count == 0)
-                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Credential record not found");
-
-            var credential = credentialSearch.Single(); // TODO: Use threading
+            var credential = await this.GetByThreadIdAsync(agentContext, credentialRequest.GetThreadId());
 
             if (credential.State != CredentialState.Offered)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
@@ -333,33 +308,17 @@ namespace AgentFramework.Core.Runtime
             credential.RequestJson = credentialRequest.CredentialRequestJson;
             credential.ConnectionId = connection.Id;
 
-            if (!credential.MultiPartyOffer)
-            {
-                await credential.TriggerAsync(CredentialTrigger.Request);
-                await RecordService.UpdateAsync(agentContext.Wallet, credential);
-
-                EventAggregator.Publish(new ServiceMessageProcessingEvent
-                {
-                    RecordId = credential.Id,
-                    MessageType = credentialRequest.Type,
-                    ThreadId = credentialRequest.GetThreadId()
-                });
-
-                return credential.Id;
-            }
-
-            var newCredential = credential.DeepCopy();
-            newCredential.Id = Guid.NewGuid().ToString();
             await credential.TriggerAsync(CredentialTrigger.Request);
-            await RecordService.AddAsync(agentContext.Wallet, newCredential);
+            await RecordService.UpdateAsync(agentContext.Wallet, credential);
 
             EventAggregator.Publish(new ServiceMessageProcessingEvent
             {
-                RecordId = newCredential.Id,
+                RecordId = credential.Id,
                 MessageType = credentialRequest.Type,
+                ThreadId = credentialRequest.GetThreadId()
             });
 
-            return newCredential.Id;
+            return credential.Id;
         }
 
         /// <inheritdoc />
@@ -390,8 +349,6 @@ namespace AgentFramework.Core.Runtime
             if (credential.State != CredentialState.Requested)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Credential state was invalid. Expected '{CredentialState.Requested}', found '{credential.State}'");
-
-            //var credentialCopy = credential.DeepCopy();
 
             if (values != null && values.Count > 0)
                 credential.ValuesJson = CredentialUtils.FormatCredentialValues(values);
@@ -431,12 +388,17 @@ namespace AgentFramework.Core.Runtime
 
             await credential.TriggerAsync(CredentialTrigger.Issue);
             await RecordService.UpdateAsync(agentContext.Wallet, credential);
+            var threadId = credential.GetTag(TagConstants.LastThreadId);
 
-            return new CredentialMessage
+            var credentialMsg =  new CredentialMessage
             {
                 CredentialJson = issuedCredential.CredentialJson,
                 RevocationRegistryId = revocationRegistryId
             };
+
+            credentialMsg.ThreadFrom(threadId);
+
+            return credentialMsg;
         }
 
         /// <inheritdoc />
