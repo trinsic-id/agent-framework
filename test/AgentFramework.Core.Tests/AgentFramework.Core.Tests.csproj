@@ -39,4 +39,7 @@
     <ProjectReference Include="..\..\src\AgentFramework.Core.Handlers\AgentFramework.Core.Handlers.csproj" />
     <ProjectReference Include="..\..\src\AgentFramework.Core\AgentFramework.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Utils\" />
+  </ItemGroup>
 </Project>

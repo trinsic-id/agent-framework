@@ -18,6 +18,7 @@ using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Tests.Utils;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
@@ -30,7 +31,7 @@ namespace AgentFramework.Core.Tests
 {
     public class CredentialTests : IAsyncLifetime
     {
-        private readonly string _poolName = $"Pool{Guid.NewGuid()}";
+        private readonly string _poolName = $"DefaultPool";
         private readonly string _issuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private readonly string _holderConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
@@ -103,16 +104,7 @@ namespace AgentFramework.Core.Tests
 
         public async Task InitializeAsync()
         {
-            try
-            {
-                await _poolService.CreatePoolAsync(_poolName, Path.GetFullPath("pool_genesis.txn"));
-            }
-            catch (PoolLedgerConfigExistsException)
-            {
-                // OK
-            }
-
-            _pool = await _poolService.GetPoolAsync(_poolName, 2);
+            _pool = await PoolUtils.GetPoolAsync();
 
             try
             {
@@ -494,11 +486,9 @@ namespace AgentFramework.Core.Tests
         {
             if (_issuerWallet != null) await _issuerWallet.Wallet.CloseAsync();
             if (_holderWallet != null) await _holderWallet.Wallet.CloseAsync();
-            if (_pool != null) await _pool.CloseAsync();
 
             await Wallet.DeleteWalletAsync(_issuerConfig, Credentials);
             await Wallet.DeleteWalletAsync(_holderConfig, Credentials);
-            await Pool.DeletePoolLedgerConfigAsync(_poolName);
         }
     }
 }

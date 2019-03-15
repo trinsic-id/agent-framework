@@ -18,6 +18,7 @@ using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Proofs;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Tests.Utils;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
@@ -117,15 +118,7 @@ namespace AgentFramework.Core.Tests
 
         public async Task InitializeAsync()
         {
-            try
-            {
-                await _poolService.CreatePoolAsync(_poolName, Path.GetFullPath("pool_genesis.txn"));
-            }
-            catch (PoolLedgerConfigExistsException)
-            {
-                // OK
-            }
-            _pool = await _poolService.GetPoolAsync(_poolName, 2);
+            _pool = await PoolUtils.GetPoolAsync();
 
             try
             {
@@ -617,12 +610,10 @@ namespace AgentFramework.Core.Tests
             if (_issuerWallet != null) await _issuerWallet.Wallet.CloseAsync();
             if (_holderWallet != null) await _holderWallet.Wallet.CloseAsync();
             if (_requestorWallet != null) await _requestorWallet.Wallet.CloseAsync();
-            if (_pool != null) await _pool.CloseAsync();
 
             await Wallet.DeleteWalletAsync(IssuerConfig, WalletCredentials);
             await Wallet.DeleteWalletAsync(HolderConfig, WalletCredentials);
             await Wallet.DeleteWalletAsync(RequestorConfig, WalletCredentials);
-            await Pool.DeletePoolLedgerConfigAsync(_poolName);
         }
     }
 }
