@@ -19,12 +19,6 @@ namespace AgentFramework.Core.Models.Credentials
         public string IssuerDid { get; set; }
 
         /// <summary>
-        /// Used to generate a credential offer that multiple parties
-        /// can use to form a credential request.
-        /// </summary>
-        public bool MultiPartyOffer { get; set; }
-
-        /// <summary>
         /// [Optional] For setting the credential values at the offer stage.
         /// Note these attributes are not disclosed in the
         /// offer.
@@ -41,7 +35,6 @@ namespace AgentFramework.Core.Models.Credentials
             $"{GetType().Name}: " +
             $"CredentialDefinitionId={CredentialDefinitionId}, " +
             $"IssuerDid={IssuerDid}, " +
-            $"MultiPartyOffer={MultiPartyOffer}, " +
             $"CredentialAttributeValues={string.Join(",", CredentialAttributeValues)}, " +
             $"Tags={string.Join(",", Tags)}";
     }

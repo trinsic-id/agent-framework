@@ -201,7 +201,7 @@ namespace AgentFramework.Core.Runtime
             agentContext.Connection.MyDid = my.Did;
             agentContext.Connection.MyVk = my.VerKey;
 
-            agentContext.Connection.SetTag(TagConstants.LastThreadId, request.Id, false);
+            agentContext.Connection.SetTag(TagConstants.LastThreadId, request.Id);
             
             agentContext.Connection.Alias = new ConnectionAlias
             {
@@ -260,7 +260,7 @@ namespace AgentFramework.Core.Runtime
             agentContext.Connection.TheirDid = connection.Did;
             agentContext.Connection.TheirVk = connection.DidDoc.Keys[0].PublicKeyBase58;
 
-            agentContext.Connection.SetTag(TagConstants.LastThreadId, response.GetThreadId(), false);
+            agentContext.Connection.SetTag(TagConstants.LastThreadId, response.GetThreadId());
 
             if (connection.DidDoc.Services[0] is IndyAgentDidDocService service)
                 agentContext.Connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys != null && service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);

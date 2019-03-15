@@ -155,7 +155,7 @@ namespace AgentFramework.Core.Runtime
             };
 
             challengeRecord.SetTag(TagConstants.Role, TagConstants.Requestor);
-            challengeRecord.SetTag(TagConstants.LastThreadId, message.Id, false);
+            challengeRecord.SetTag(TagConstants.LastThreadId, message.Id);
             await RecordService.AddAsync(agentContext.Wallet, challengeRecord);
 
             return new CreateChallengeResult

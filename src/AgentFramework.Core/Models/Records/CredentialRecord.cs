@@ -138,17 +138,6 @@ namespace AgentFramework.Core.Models.Records
             set => Set(value);
         }
 
-        /// <summary>
-        /// Gets or sets whether the credential offer is multi-party.
-        /// </summary>
-        /// <value>Indicates if the offer is multi-party.</value>
-        [JsonIgnore]
-        public bool MultiPartyOffer
-        {
-            get => GetBool();
-            set => Set(value);
-        }
-
         #region State Machine Implementation
         /// <summary>
         /// Gets or sets the state.
@@ -191,7 +180,6 @@ namespace AgentFramework.Core.Models.Records
             $"SchemaId={SchemaId}, " +
             $"CredentialDefinitionId={CredentialDefinitionId}, " +
             $"CredentialRevocationId={CredentialRevocationId}, " +
-            $"MultiPartyOffer={MultiPartyOffer}, " +
             $"RequestJson={(RequestJson?.Length > 0 ? "[hidden]" : null)}, " +
             $"ValuesJson={(ValuesJson?.Length > 0 ? "[hidden]" : null)}, " +
             $"OfferJson={(OfferJson?.Length > 0 ? "[hidden]" : null)}, " +

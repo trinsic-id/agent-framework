@@ -73,7 +73,7 @@ namespace AgentFramework.Core.Extensions
         public static async Task<CredentialRecord> GetByThreadId(
             this ICredentialService credentialService, IAgentContext context, string threadId)
         {
-            var search = await credentialService.ListAsync(context, SearchQuery.Equal(nameof(TagConstants.LastThreadId), threadId), 1);
+            var search = await credentialService.ListAsync(context, SearchQuery.Equal(TagConstants.LastThreadId, threadId), 100);
 
             if (search.Count == 0)
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound, $"Credential record not found by thread id : {threadId}");

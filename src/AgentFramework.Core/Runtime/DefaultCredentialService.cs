@@ -109,7 +109,6 @@ namespace AgentFramework.Core.Runtime
             var offer = JObject.Parse(offerJson);
             var definitionId = offer["cred_def_id"].ToObject<string>();
             var schemaId = offer["schema_id"].ToObject<string>();
-            var nonce = offer["nonce"].ToObject<string>();
 
             // Write offer record to local wallet
             var credentialRecord = new CredentialRecord
@@ -122,7 +121,7 @@ namespace AgentFramework.Core.Runtime
                 State = CredentialState.Offered
             };
             credentialRecord.SetTag(TagConstants.Role, TagConstants.Holder);
-            credentialRecord.SetTag(TagConstants.LastThreadId, credentialOffer.GetThreadId(), false);
+            credentialRecord.SetTag(TagConstants.LastThreadId, credentialOffer.GetThreadId());
 
             await RecordService.AddAsync(agentContext.Wallet, credentialRecord);
 
@@ -237,7 +236,7 @@ namespace AgentFramework.Core.Runtime
 
             var threadId = Guid.NewGuid().ToString();
 
-            if (!config.MultiPartyOffer && !string.IsNullOrEmpty(connectionId))
+            if (!string.IsNullOrEmpty(connectionId))
             {
                 var connection = await ConnectionService.GetAsync(agentContext, connectionId);
 
@@ -257,14 +256,13 @@ namespace AgentFramework.Core.Runtime
                 Id = Guid.NewGuid().ToString(),
                 CredentialDefinitionId = config.CredentialDefinitionId,
                 OfferJson = offerJson,
-                MultiPartyOffer = config.MultiPartyOffer,
-                ConnectionId = config.MultiPartyOffer ? null : connectionId,
+                ConnectionId = connectionId,
                 SchemaId = schemaId,
                 ValuesJson = CredentialUtils.FormatCredentialValues(config.CredentialAttributeValues),
                 State = CredentialState.Offered,
             };
             
-            credentialRecord.SetTag(TagConstants.LastThreadId, threadId, false);
+            credentialRecord.SetTag(TagConstants.LastThreadId, threadId);
             credentialRecord.SetTag(TagConstants.Role, TagConstants.Issuer);
 
             if (!string.IsNullOrEmpty(config.IssuerDid))
@@ -311,33 +309,17 @@ namespace AgentFramework.Core.Runtime
             credential.RequestJson = credentialRequest.CredentialRequestJson;
             credential.ConnectionId = connection.Id;
 
-            if (!credential.MultiPartyOffer)
-            {
-                await credential.TriggerAsync(CredentialTrigger.Request);
-                await RecordService.UpdateAsync(agentContext.Wallet, credential);
-
-                EventAggregator.Publish(new ServiceMessageProcessingEvent
-                {
-                    RecordId = credential.Id,
-                    MessageType = credentialRequest.Type,
-                    ThreadId = credentialRequest.GetThreadId()
-                });
-
-                return credential.Id;
-            }
-
-            var newCredential = credential.DeepCopy();
-            newCredential.Id = Guid.NewGuid().ToString();
             await credential.TriggerAsync(CredentialTrigger.Request);
-            await RecordService.AddAsync(agentContext.Wallet, newCredential);
+            await RecordService.UpdateAsync(agentContext.Wallet, credential);
 
             EventAggregator.Publish(new ServiceMessageProcessingEvent
             {
-                RecordId = newCredential.Id,
+                RecordId = credential.Id,
                 MessageType = credentialRequest.Type,
+                ThreadId = credentialRequest.GetThreadId()
             });
 
-            return newCredential.Id;
+            return credential.Id;
         }
 
         /// <inheritdoc />

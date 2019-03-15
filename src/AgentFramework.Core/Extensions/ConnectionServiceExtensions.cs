@@ -104,7 +104,7 @@ namespace AgentFramework.Core.Extensions
         public static async Task<ConnectionRecord> GetByThreadId(
             this IConnectionService connectionService, IAgentContext context, string threadId)
         {
-            var search = await connectionService.ListAsync(context, SearchQuery.Equal(nameof(TagConstants.LastThreadId), threadId), 1);
+            var search = await connectionService.ListAsync(context, SearchQuery.Equal(TagConstants.LastThreadId, threadId), 1);
 
             if (search.Count == 0)
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound, $"Connection record not found by thread id : {threadId}");

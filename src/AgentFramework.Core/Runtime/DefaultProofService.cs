@@ -108,6 +108,8 @@ namespace AgentFramework.Core.Runtime
         {
             Logger.LogInformation(LoggingEvents.CreateProofRequest, "ConnectionId {0}", connectionId);
 
+            var threadId = Guid.NewGuid().ToString();
+
             if (connectionId != null)
             {
                 var connection = await ConnectionService.GetAsync(agentContext, connectionId);
@@ -117,20 +119,18 @@ namespace AgentFramework.Core.Runtime
                         $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
             }
 
-            var proofJobj = JObject.Parse(proofRequestJson);
-
             var proofRecord = new ProofRecord
             {
                 Id = Guid.NewGuid().ToString(),
                 ConnectionId = connectionId,
                 RequestJson = proofRequestJson
             };
-            proofRecord.SetTag(TagConstants.Nonce, proofJobj["nonce"].ToObject<string>());
             proofRecord.SetTag(TagConstants.Role, TagConstants.Requestor);
+            proofRecord.SetTag(TagConstants.LastThreadId, threadId);
 
             await RecordService.AddAsync(agentContext.Wallet, proofRecord);
 
-            return (new ProofRequestMessage {ProofRequestJson = proofRequestJson}, proofRecord);
+            return (new ProofRequestMessage {Id = threadId, ProofRequestJson = proofRequestJson}, proofRecord);
         }
 
         /// <inheritdoc />
@@ -172,7 +172,7 @@ namespace AgentFramework.Core.Runtime
                 ConnectionId = agentContext.Connection.Id,
                 State = ProofState.Requested
             };
-            proofRecord.SetTag(TagConstants.LastThreadId, proofRequest.GetThreadId(), false);
+            proofRecord.SetTag(TagConstants.LastThreadId, proofRequest.GetThreadId());
             proofRecord.SetTag(TagConstants.Role, TagConstants.Holder);
 
             await RecordService.AddAsync(agentContext.Wallet, proofRecord);

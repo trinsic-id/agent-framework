@@ -42,7 +42,7 @@ namespace AgentFramework.Core.Extensions
         public static async Task<ProofRecord> GetByThreadId(
             this IProofService proofService, IAgentContext context, string threadId)
         {
-            var search = await proofService.ListAsync(context, SearchQuery.Equal(nameof(TagConstants.LastThreadId), threadId), 1);
+            var search = await proofService.ListAsync(context, SearchQuery.Equal(TagConstants.LastThreadId, threadId), 1);
 
             if (search.Count == 0)
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound, $"Proof record not found by thread id : {threadId}");

@@ -23,7 +23,7 @@ namespace AgentFramework.Core.Models.Records
         [JsonIgnore]
         public DateTime? CreatedAtUtc
         {
-            get => GetDateTime(false);
+            get => GetDateTime();
             internal set => Set(value, false);
         }
         
@@ -34,7 +34,7 @@ namespace AgentFramework.Core.Models.Records
         [JsonIgnore]
         public DateTime? UpdatedAtUtc
         {
-            get => GetDateTime(false);
+            get => GetDateTime();
             internal set => Set(value, false);
         }
 
@@ -197,15 +197,12 @@ namespace AgentFramework.Core.Models.Records
         /// <returns>The get.</returns>
         /// <param name="encrypted">Controls whether the fetched attribute is encrypted at rest</param>
         /// <param name="name">Name.</param>
-        protected string Get(bool encrypted = true, [CallerMemberName]string name = "")
+        protected string Get([CallerMemberName]string name = "")
         {
-            if (!encrypted)
-                name = $"~{name}";
-
             if (Tags.ContainsKey(name))
-            {
                 return Tags[name];
-            }
+            if (Tags.ContainsKey($"~{name}"))
+                return Tags[$"~{name}"];
             return null;
         }
 
@@ -213,9 +210,9 @@ namespace AgentFramework.Core.Models.Records
         /// <param name="encrypted">if set to <c>true</c> [encrypted].</param>
         /// <param name="name">The name.</param>
         /// <returns></returns>
-        protected DateTime? GetDateTime(bool encrypted = true, [CallerMemberName] string name = "")
+        protected DateTime? GetDateTime([CallerMemberName] string name = "")
         {
-            var strVal = Get(encrypted, name);
+            var strVal = Get(name);
 
             if (strVal == null)
                 return null;
@@ -227,9 +224,9 @@ namespace AgentFramework.Core.Models.Records
         /// <param name="encrypted">if set to <c>true</c> [encrypted].</param>
         /// <param name="name">The name.</param>
         /// <returns></returns>
-        protected bool GetBool(bool encrypted = true, [CallerMemberName] string name = "")
+        protected bool GetBool([CallerMemberName] string name = "")
         {
-            var strVal = Get(encrypted, name);
+            var strVal = Get(name);
 
             if (strVal == null)
                 return false;

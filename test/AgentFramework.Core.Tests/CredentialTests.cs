@@ -188,25 +188,6 @@ namespace AgentFramework.Core.Tests
             var (_, credentialRecord) = await _credentialService.CreateOfferAsync(_issuerWallet,
                 new OfferConfiguration { CredentialDefinitionId = result.Item1 });
 
-            Assert.False(credentialRecord.MultiPartyOffer);
-            Assert.Equal(CredentialState.Offered, credentialRecord.State);
-        }
-
-        [Fact]
-        public async Task CanCreateMultiPartyCredentialOffer()
-        {
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
-                new { seed = "000000000000000000000000Steward1" }.ToJson());
-
-            var result = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
-                new[] { "test-attr" });
-
-            var (_, record) = await _credentialService.CreateOfferAsync(_issuerWallet,
-                new OfferConfiguration { CredentialDefinitionId = result.Item1, MultiPartyOffer = true });
-
-            var credentialRecord = await _credentialService.GetAsync(_issuerWallet, record.Id);
-
-            Assert.True(credentialRecord.MultiPartyOffer);
             Assert.Equal(CredentialState.Offered, credentialRecord.State);
         }
 
