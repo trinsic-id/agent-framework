@@ -15,6 +15,33 @@
             <ul class="list-group list-group-flush">
                 <li class="list-group-item" data-toggle="tooltip" data-placement="top" title="MY DID">@Model.Connection.MyDid</li>
                 <li class="list-group-item" data-toggle="tooltip" data-placement="top" title="THEIR DID">@Model.Connection.TheirDid</li>
+                <li class="list-group-item">
+                    <form class="container" asp-controller="Connections" asp-action="SendTrustPing">
+                        <input type="hidden" name="connectionId" value="@Model.Connection.Id" />
+                        <button class="btn btn-sm btn-outline-primary mt-2" type="submit">Send Trust Ping</button>
+                        @if (Model.TrustPingSuccess != null)
+                        {
+                            if (!Model.TrustPingSuccess.Value)
+                            {
+                                <div class="alert alert-danger mt-2 alert-dismissible fade show" role="alert">
+                                    Ping timeout!
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-success mt-2 alert-dismissible fade show" role="alert">
+                                    <small>Success!</small>
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            }
+                        }
+                    </form>
+                </li>
             </ul>
         </div>
     </div>
@@ -57,26 +84,6 @@
                         <button class="btn btn-outline-primary" type="submit">Send Message</button>
                     </div>
                 </form>
-                <form class="container" asp-controller="Connections" asp-action="SendTrustPing">
-                    <div class="row">
-                        <input type="hidden" name="connectionId" value="@Model.Connection.Id" />
-                        <div class="col">
-                            <button class="btn btn-outline-primary" type="submit">Send Trust Ping</button>
-                        </div>
-                        @if (Model.TrustPingSuccess != null)
-                        {
-                            if (!Model.TrustPingSuccess.Value)
-                            {
-                                <div class="col alert alert-danger" role="alert">No trust ping response recieved, timeout!</div>
-                            }
-                            else
-                            {
-                                <div class="col alert alert-primary" role="alert">Success trust ping response recieved!</div>
-                            }
-                        }
-                    </div>
-                </form>
-                
             </div>
         </div>
     </div>
