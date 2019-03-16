@@ -1,8 +1,11 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.AspNetCore.Middleware
 {
@@ -17,15 +20,13 @@ namespace AgentFramework.AspNetCore.Middleware
         /// <summary>Initializes a new instance of the <see cref="AgentMiddleware"/> class.</summary>
         /// <param name="next">The next.</param>
         /// <param name="serviceProvider">The service provider.</param>
-        /// <param name="contextProvider">The agent context provider.</param>
         public AgentMiddleware(
             RequestDelegate next,
-            IServiceProvider serviceProvider,
-            IAgentContextProvider contextProvider)
+            IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
             _next = next;
-            _contextProvider = contextProvider;
+            _contextProvider = serviceProvider.GetRequiredService<IAgentContextProvider>();
         }
 
         /// <summary>Called by the ASPNET Core runtime</summary>
@@ -42,19 +43,21 @@ namespace AgentFramework.AspNetCore.Middleware
 
             if (context.Request.ContentLength == null) throw new Exception("Empty content length");
 
-            var body = new byte[(int) context.Request.ContentLength];
-            await context.Request.Body.ReadAsync(body, 0, body.Length);
+            using (var stream = new StreamReader(context.Request.Body))
+            {
+                var body = await stream.ReadToEndAsync();
 
-            var agentContext = await _contextProvider.GetContextAsync();
+                var result = await ProcessAsync(
+                    body: body.GetUTF8Bytes(), 
+                    context: await _contextProvider.GetContextAsync());
 
-            var result = await ProcessAsync(body, agentContext);
+                context.Response.StatusCode = 200;
 
-            context.Response.StatusCode = 200;
-
-            if (result != null)
-                await context.Response.Body.WriteAsync(result, 0, result.Length);
-            else
-                await context.Response.WriteAsync(string.Empty);
+                if (result != null)
+                    await context.Response.Body.WriteAsync(result, 0, result.Length);
+                else
+                    await context.Response.WriteAsync(string.Empty);
+            }
         }
     }
 }

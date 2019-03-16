@@ -195,7 +195,6 @@ namespace AgentFramework.Core.Models.Records
         /// Get the value of the specified tag name.
         /// </summary>
         /// <returns>The get.</returns>
-        /// <param name="encrypted">Controls whether the fetched attribute is encrypted at rest</param>
         /// <param name="name">Name.</param>
         protected string Get([CallerMemberName]string name = "")
         {
@@ -207,7 +206,6 @@ namespace AgentFramework.Core.Models.Records
         }
 
         /// <summary>Gets the date time.</summary>
-        /// <param name="encrypted">if set to <c>true</c> [encrypted].</param>
         /// <param name="name">The name.</param>
         /// <returns></returns>
         protected DateTime? GetDateTime([CallerMemberName] string name = "")
@@ -221,7 +219,6 @@ namespace AgentFramework.Core.Models.Records
         }
 
         /// <summary>Gets the bool.</summary>
-        /// <param name="encrypted">if set to <c>true</c> [encrypted].</param>
         /// <param name="name">The name.</param>
         /// <returns></returns>
         protected bool GetBool([CallerMemberName] string name = "")

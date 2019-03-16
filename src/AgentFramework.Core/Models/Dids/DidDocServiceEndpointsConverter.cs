@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AgentFramework.Core.Models.Dids
 {
-    class DidDocServiceEndpointsConverter : JsonConverter
+    internal class DidDocServiceEndpointsConverter : JsonConverter
     {
         /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) =>

@@ -1,7 +1,7 @@
 ﻿using System;
 using AgentFramework.AspNetCore.Middleware;
-using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Handlers;
+using AgentFramework.Core.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -80,13 +80,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             agentBuilder.Build(endpoint).GetAwaiter().GetResult();
 
             app.MapWhen(
-                context => context.Request.Path.Value.StartsWith(endpoint.AbsolutePath),
+                context => context.Request.Path.Value.StartsWith(endpoint.AbsolutePath, StringComparison.Ordinal),
                 appBuilder => { appBuilder.UseMiddleware<T>(); });
 
             if (agentBuilder.TailsBaseUri != null)
             {
                 app.MapWhen(
-                    context => context.Request.Path.Value.StartsWith(agentBuilder.TailsBaseUri.AbsolutePath),
+                    context => context.Request.Path.Value.StartsWith(agentBuilder.TailsBaseUri.AbsolutePath, StringComparison.Ordinal),
                     appBuilder => { appBuilder.UseMiddleware<TailsMiddleware>(); });
             }
         }
