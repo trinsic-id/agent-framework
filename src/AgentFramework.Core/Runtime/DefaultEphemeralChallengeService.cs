@@ -151,7 +151,7 @@ namespace AgentFramework.Core.Runtime
                 {
                     Name = config.Name,
                     Version = "1.0",
-                    Nonce = Guid.NewGuid().ToString("N"),
+                    Nonce = $"0{Guid.NewGuid().ToString("N")}",
                     RequestedAttributes = proofRequestConfig.RequestedAttributes,
                     RequestedPredicates = proofRequestConfig.RequestedPredicates,
                     NonRevoked = proofRequestConfig.NonRevoked

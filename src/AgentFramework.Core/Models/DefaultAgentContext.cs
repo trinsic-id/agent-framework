@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Models.Records;
-using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 
 namespace AgentFramework.Core.Models
@@ -24,7 +23,7 @@ namespace AgentFramework.Core.Models
         /// <summary>
         /// The agent context pool.
         /// </summary>
-        public Pool Pool { get; set; }
+        public PoolAwaitable Pool { get; set; }
 
         /// <inheritdoc />
         /// <summary>

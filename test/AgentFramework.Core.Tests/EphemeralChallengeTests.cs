@@ -147,17 +147,17 @@ namespace AgentFramework.Core.Tests
             _issuerWallet = new AgentContext
             {
                 Wallet = await Wallet.OpenWalletAsync(_issuerConfig, Credentials), 
-                Pool = _pool
+                Pool = PoolAwaitable.FromPool(_pool)
             };
             _holderWallet = new AgentContext
             {
                 Wallet = await Wallet.OpenWalletAsync(_holderConfig, Credentials), 
-                Pool = _pool
+                Pool = PoolAwaitable.FromPool(_pool)
             };
             _requestorWallet = new AgentContext
             {
                 Wallet = await Wallet.OpenWalletAsync(_requestorConfig, Credentials),
-                Pool = _pool
+                Pool = PoolAwaitable.FromPool(_pool)
             };
         }
 
