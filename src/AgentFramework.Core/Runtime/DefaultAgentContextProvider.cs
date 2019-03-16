@@ -42,7 +42,8 @@ namespace AgentFramework.Core.Runtime
             {
                 Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
                     _walletOptions.WalletCredentials),
-                Pool = await _poolService.GetPoolAsync(_poolOptions.PoolName, _poolOptions.ProtocolVersion)
+                Pool = new PoolAwaitable(() => _poolService.GetPoolAsync(
+                    _poolOptions.PoolName, _poolOptions.ProtocolVersion))
             };
         }
     }
