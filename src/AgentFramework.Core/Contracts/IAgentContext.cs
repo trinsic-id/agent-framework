@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Records;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
@@ -16,7 +17,7 @@ namespace AgentFramework.Core.Contracts
 
         /// <summary>Gets or sets the pool.</summary>
         /// <value>The pool.</value>
-        Pool Pool { get; set; }
+        PoolAwaitable Pool { get; set; }
 
         /// <summary>Name/value utility store to pass data
         /// along the execution pipeline.</summary>

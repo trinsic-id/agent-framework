@@ -150,17 +150,17 @@ namespace AgentFramework.Core.Tests
             _issuerWallet = new AgentContext
             {
                 Wallet = await Wallet.OpenWalletAsync(IssuerConfig, WalletCredentials),
-                Pool = _pool
+                Pool = PoolAwaitable.FromPool(_pool)
             };
             _holderWallet = new AgentContext
             {
                 Wallet = await Wallet.OpenWalletAsync(HolderConfig, WalletCredentials),
-                Pool = _pool
+                Pool = PoolAwaitable.FromPool(_pool)
             };
             _requestorWallet = new AgentContext
             {
                 Wallet = await Wallet.OpenWalletAsync(RequestorConfig, WalletCredentials),
-                Pool = _pool
+                Pool = PoolAwaitable.FromPool(_pool)
             };
 
 
@@ -198,7 +198,7 @@ namespace AgentFramework.Core.Tests
                 {
                     Name = "ProofReq",
                     Version = "1.0",
-                    Nonce = "123",
+                    Nonce = $"0{Guid.NewGuid().ToString("N")}",
                     RequestedAttributes = new Dictionary<string, ProofAttributeInfo>
                     {
                         {"first-name-requirement", new ProofAttributeInfo {Name = "first_name"}}
