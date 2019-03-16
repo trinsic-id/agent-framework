@@ -207,17 +207,17 @@ namespace AgentFramework.Core.Runtime
                         await AnonCreds.ProverGetCredentialAsync(agentContext.Wallet, credId)));
             }
 
-            var schemas = await BuildSchemasAsync(agentContext.Pool,
+            var schemas = await BuildSchemasAsync(await agentContext.Pool,
                 credentialObjects
                     .Select(x => x.SchemaId)
                     .Distinct());
 
-            var definitions = await BuildCredentialDefinitionsAsync(agentContext.Pool,
+            var definitions = await BuildCredentialDefinitionsAsync(await agentContext.Pool,
                 credentialObjects
                     .Select(x => x.CredentialDefinitionId)
                     .Distinct());
 
-            var revocationStates = await BuildRevocationStatesAsync(agentContext.Pool,
+            var revocationStates = await BuildRevocationStatesAsync(await agentContext.Pool,
                 credentialObjects,
                 requestedCredentials);
 
@@ -256,17 +256,17 @@ namespace AgentFramework.Core.Runtime
                         await AnonCreds.ProverGetCredentialAsync(agentContext.Wallet, credId)));
             }
 
-            var schemas = await BuildSchemasAsync(agentContext.Pool,
+            var schemas = await BuildSchemasAsync(await agentContext.Pool,
                 credentialObjects
                     .Select(x => x.SchemaId)
                     .Distinct());
 
-            var definitions = await BuildCredentialDefinitionsAsync(agentContext.Pool,
+            var definitions = await BuildCredentialDefinitionsAsync(await agentContext.Pool,
                 credentialObjects
                     .Select(x => x.CredentialDefinitionId)
                     .Distinct());
 
-            var revocationStates = await BuildRevocationStatesAsync(agentContext.Pool,
+            var revocationStates = await BuildRevocationStatesAsync(await agentContext.Pool,
                 credentialObjects,
                 requestedCredentials);
 
@@ -314,25 +314,25 @@ namespace AgentFramework.Core.Runtime
         {
             var proof = JsonConvert.DeserializeObject<PartialProof>(proofJson);
 
-            var schemas = await BuildSchemasAsync(agentContext.Pool,
+            var schemas = await BuildSchemasAsync(await agentContext.Pool,
                 proof.Identifiers
                     .Select(x => x.SchemaId)
                     .Where(x => x != null)
                     .Distinct());
 
-            var definitions = await BuildCredentialDefinitionsAsync(agentContext.Pool,
+            var definitions = await BuildCredentialDefinitionsAsync(await agentContext.Pool,
                 proof.Identifiers
                     .Select(x => x.CredentialDefintionId)
                     .Where(x => x != null)
                     .Distinct());
 
-            var revocationDefinitions = await BuildRevocationRegistryDefinitionsAsync(agentContext.Pool,
+            var revocationDefinitions = await BuildRevocationRegistryDefinitionsAsync(await agentContext.Pool,
                 proof.Identifiers
                     .Select(x => x.RevocationRegistryId)
                     .Where(x => x != null)
                     .Distinct());
 
-            var revocationRegistries = await BuildRevocationRegistryDetlasAsync(agentContext.Pool,
+            var revocationRegistries = await BuildRevocationRegistryDetlasAsync(await agentContext.Pool,
                 proof.Identifiers
                     .Where(x => x.RevocationRegistryId != null));
 

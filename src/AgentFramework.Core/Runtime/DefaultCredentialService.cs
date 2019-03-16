@@ -146,8 +146,8 @@ namespace AgentFramework.Core.Runtime
                     $"Credential state was invalid. Expected '{CredentialState.Offered}', found '{credential.State}'");
 
             var connection = await ConnectionService.GetAsync(agentContext, credential.ConnectionId);
-            
-            var definition = await LedgerService.LookupDefinitionAsync(agentContext.Pool, credential.CredentialDefinitionId);
+
+            var definition = await LedgerService.LookupDefinitionAsync(await agentContext.Pool, credential.CredentialDefinitionId);
             var provisioning = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
             
             var request = await AnonCreds.ProverCreateCredentialReqAsync(agentContext.Wallet, connection.MyDid, credential.OfferJson,
@@ -197,14 +197,14 @@ namespace AgentFramework.Core.Runtime
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                     $"Credential state was invalid. Expected '{CredentialState.Requested}', found '{credentialRecord.State}'");
 
-            var credentialDefinition = await LedgerService.LookupDefinitionAsync(agentContext.Pool, definitionId);
+            var credentialDefinition = await LedgerService.LookupDefinitionAsync(await agentContext.Pool, definitionId);
 
             string revocationRegistryDefinitionJson = null;
             if (!string.IsNullOrEmpty(revRegId))
             {
                 // If credential supports revocation, lookup registry definition
                 var revocationRegistry =
-                    await LedgerService.LookupRevocationRegistryDefinitionAsync(agentContext.Pool, revRegId);
+                    await LedgerService.LookupRevocationRegistryDefinitionAsync(await agentContext.Pool, revRegId);
                 revocationRegistryDefinitionJson = revocationRegistry.ObjectJson;
             }
 
@@ -380,7 +380,7 @@ namespace AgentFramework.Core.Runtime
 
             if (definitionRecord.SupportsRevocation)
             {
-                await LedgerService.SendRevocationRegistryEntryAsync(agentContext.Wallet, agentContext.Pool, issuerDid,
+                await LedgerService.SendRevocationRegistryEntryAsync(agentContext.Wallet, await agentContext.Pool, issuerDid,
                     revocationRegistryId,
                     "CL_ACCUM", issuedCredential.RevocRegDeltaJson);
                 credential.CredentialRevocationId = issuedCredential.RevocId;
@@ -425,7 +425,7 @@ namespace AgentFramework.Core.Runtime
                 revocationRecord.Id, credential.CredentialRevocationId);
 
             // Write the delta state on the ledger for the corresponding revocation registry
-            await LedgerService.SendRevocationRegistryEntryAsync(agentContext.Wallet, agentContext.Pool, issuerDid,
+            await LedgerService.SendRevocationRegistryEntryAsync(agentContext.Wallet, await agentContext.Pool, issuerDid,
                 revocationRecord.Id,
                 "CL_ACCUM", revocRegistryDeltaJson);
 
