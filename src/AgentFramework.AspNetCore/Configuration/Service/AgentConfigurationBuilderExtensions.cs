@@ -9,6 +9,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace AgentFramework.AspNetCore.Configuration.Service
 {
+    /// <summary>
+    /// Service builder extensions.
+    /// </summary>
     public static class ServiceBuilderExtensions
     {
         internal static AgentConfigurationBuilder AddDefaultServices(this AgentConfigurationBuilder builder)
@@ -33,6 +36,12 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the message handler.
+        /// </summary>
+        /// <returns>The message handler.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TMessageHandler">The 1st type parameter.</typeparam>
         public static AgentConfigurationBuilder AddMessageHandler<TMessageHandler>(this AgentConfigurationBuilder builder) where TMessageHandler : class,
             IMessageHandler
         {
@@ -41,12 +50,23 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Overrides the default message handlers.
+        /// </summary>
+        /// <returns>The default message handlers.</returns>
+        /// <param name="builder">Builder.</param>
         public static AgentConfigurationBuilder OverrideDefaultMessageHandlers(this AgentConfigurationBuilder builder)
         {
             builder.RegisterCoreMessageHandlers = false;
             return builder;
         }
 
+        /// <summary>
+        /// Adds the memory cache ledger service.
+        /// </summary>
+        /// <returns>The memory cache ledger service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <param name="options">Options.</param>
         public static AgentConfigurationBuilder AddMemoryCacheLedgerService(this AgentConfigurationBuilder builder, MemoryCacheEntryOptions options = null)
         {
             builder.AddExtendedLedgerService<MemoryCacheLedgerService>()
@@ -56,6 +76,12 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Overrides the default agent context provider.
+        /// </summary>
+        /// <returns>The default agent context provider.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TProvider">The 1st type parameter.</typeparam>
         public static AgentConfigurationBuilder OverrideDefaultAgentContextProvider<TProvider>(
             this AgentConfigurationBuilder builder)
             where TProvider : class, IAgentContextProvider
@@ -64,6 +90,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended connection service.
+        /// </summary>
+        /// <returns>The extended connection service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TService">The 1st type parameter.</typeparam>
+        /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedConnectionService<TService, TImplementation>(this AgentConfigurationBuilder builder)
             where TService : class, IConnectionService
             where TImplementation : class, TService, IConnectionService
@@ -74,6 +107,12 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended connection service.
+        /// </summary>
+        /// <returns>The extended connection service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedConnectionService<TImplementation>(this AgentConfigurationBuilder builder)
             where TImplementation : class, IConnectionService
         {
@@ -81,6 +120,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended credential service.
+        /// </summary>
+        /// <returns>The extended credential service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TService">The 1st type parameter.</typeparam>
+        /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedCredentialService<TService, TImplementation>(this AgentConfigurationBuilder builder)
             where TService : class, ICredentialService
             where TImplementation : class, TService, ICredentialService
@@ -91,6 +137,12 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended credential service.
+        /// </summary>
+        /// <returns>The extended credential service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedCredentialService<TImplementation>(this AgentConfigurationBuilder builder)
             where TImplementation : class, ICredentialService
         {
@@ -98,6 +150,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended ledger service.
+        /// </summary>
+        /// <returns>The extended ledger service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TService">The 1st type parameter.</typeparam>
+        /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedLedgerService<TService, TImplementation>(this AgentConfigurationBuilder builder)
             where TService : class, ILedgerService
             where TImplementation : class, TService, ILedgerService
@@ -108,6 +167,12 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended ledger service.
+        /// </summary>
+        /// <returns>The extended ledger service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedLedgerService<TImplementation>(this AgentConfigurationBuilder builder)
             where TImplementation : class, ILedgerService
         {
@@ -115,6 +180,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended pool service.
+        /// </summary>
+        /// <returns>The extended pool service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TService">The 1st type parameter.</typeparam>
+        /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedPoolService<TService, TImplementation>(this AgentConfigurationBuilder builder)
             where TService : class, IPoolService
             where TImplementation : class, TService, IPoolService
@@ -125,6 +197,12 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended pool service.
+        /// </summary>
+        /// <returns>The extended pool service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedPoolService<TImplementation>(this AgentConfigurationBuilder builder)
             where TImplementation : class, IPoolService
         {
@@ -132,6 +210,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended proof service.
+        /// </summary>
+        /// <returns>The extended proof service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TService">The 1st type parameter.</typeparam>
+        /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedProofService<TService, TImplementation>(this AgentConfigurationBuilder builder)
             where TService : class, IProofService
             where TImplementation : class, TService, IProofService
@@ -142,6 +227,12 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended proof service.
+        /// </summary>
+        /// <returns>The extended proof service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedProofService<TImplementation>(this AgentConfigurationBuilder builder)
             where TImplementation : class, IProofService
         {
@@ -149,6 +240,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended provisioning service.
+        /// </summary>
+        /// <returns>The extended provisioning service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TService">The 1st type parameter.</typeparam>
+        /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedProvisioningService<TService, TImplementation>(this AgentConfigurationBuilder builder)
             where TService : class, IProvisioningService
             where TImplementation : class, TService, IProvisioningService
@@ -159,6 +257,12 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended provisioning service.
+        /// </summary>
+        /// <returns>The extended provisioning service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedProvisioningService<TImplementation>(this AgentConfigurationBuilder builder)
             where TImplementation : class, IProvisioningService
         {
@@ -166,6 +270,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended message service.
+        /// </summary>
+        /// <returns>The extended message service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TService">The 1st type parameter.</typeparam>
+        /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedMessageService<TService, TImplementation>(this AgentConfigurationBuilder builder)
             where TService : class, IMessageService
             where TImplementation : class, TService, IMessageService
@@ -176,6 +287,12 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended message service.
+        /// </summary>
+        /// <returns>The extended message service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedMessageService<TImplementation>(this AgentConfigurationBuilder builder)
             where TImplementation : class, IMessageService
         {
@@ -183,6 +300,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended schema service.
+        /// </summary>
+        /// <returns>The extended schema service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TService">The 1st type parameter.</typeparam>
+        /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedSchemaService<TService, TImplementation>(this AgentConfigurationBuilder builder)
             where TService : class, ISchemaService
             where TImplementation : class, TService, ISchemaService
@@ -193,6 +317,12 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended schema service.
+        /// </summary>
+        /// <returns>The extended schema service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedSchemaService<TImplementation>(this AgentConfigurationBuilder builder)
             where TImplementation : class, ISchemaService
         {
@@ -200,6 +330,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended tails service.
+        /// </summary>
+        /// <returns>The extended tails service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TService">The 1st type parameter.</typeparam>
+        /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedTailsService<TService, TImplementation>(this AgentConfigurationBuilder builder)
             where TService : class, ITailsService
             where TImplementation : class, TService, ITailsService
@@ -210,6 +347,12 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended tails service.
+        /// </summary>
+        /// <returns>The extended tails service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedTailsService<TImplementation>(this AgentConfigurationBuilder builder)
             where TImplementation : class, ITailsService
         {
@@ -217,6 +360,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended wallet record service.
+        /// </summary>
+        /// <returns>The extended wallet record service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TService">The 1st type parameter.</typeparam>
+        /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedWalletRecordService<TService, TImplementation>(this AgentConfigurationBuilder builder)
             where TService : class, IWalletRecordService
             where TImplementation : class, TService, IWalletRecordService
@@ -227,6 +377,12 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended wallet record service.
+        /// </summary>
+        /// <returns>The extended wallet record service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedWalletRecordService<TImplementation>(this AgentConfigurationBuilder builder)
             where TImplementation : class, IWalletRecordService
         {
@@ -234,6 +390,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended wallet service.
+        /// </summary>
+        /// <returns>The extended wallet service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TService">The 1st type parameter.</typeparam>
+        /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedWalletService<TService, TImplementation>(this AgentConfigurationBuilder builder)
             where TService : class, IWalletService
             where TImplementation : class, TService, IWalletService
@@ -244,6 +407,12 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             return builder;
         }
 
+        /// <summary>
+        /// Adds the extended wallet service.
+        /// </summary>
+        /// <returns>The extended wallet service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
         public static AgentConfigurationBuilder AddExtendedWalletService<TImplementation>(this AgentConfigurationBuilder builder)
             where TImplementation : class, IWalletService
         {

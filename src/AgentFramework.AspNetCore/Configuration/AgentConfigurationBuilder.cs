@@ -1,5 +1,5 @@
 ﻿using System;
-using AgentFramework.AspNetCore.Options;
+using AgentFramework.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.AspNetCore.Configuration

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Wallets;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
