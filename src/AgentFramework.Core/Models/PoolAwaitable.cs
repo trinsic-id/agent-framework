@@ -12,9 +12,13 @@ namespace AgentFramework.Core.Models
     {
         private readonly Func<Task<Pool>> _initializer;
 
-        internal PoolAwaitable(Func<Task<Pool>> func)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PoolAwaitable"/> struct.
+        /// </summary>
+        /// <param name="initializer">Initializer.</param>
+        public PoolAwaitable(Func<Task<Pool>> initializer)
         {
-            this._initializer = func;
+            _initializer = initializer;
         }
 
         /// <summary>

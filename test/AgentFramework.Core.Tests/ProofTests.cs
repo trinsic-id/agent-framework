@@ -198,7 +198,7 @@ namespace AgentFramework.Core.Tests
                 {
                     Name = "ProofReq",
                     Version = "1.0",
-                    Nonce = "123",
+                    Nonce = $"0{Guid.NewGuid().ToString("N")}",
                     RequestedAttributes = new Dictionary<string, ProofAttributeInfo>
                     {
                         {"first-name-requirement", new ProofAttributeInfo {Name = "first_name"}}
