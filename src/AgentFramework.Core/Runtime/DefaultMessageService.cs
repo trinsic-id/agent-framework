@@ -44,17 +44,24 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public async Task<byte[]> PrepareAsync(Wallet wallet, AgentMessage message, string recipientKey, string[] routingKeys = null, string senderKey = null)
         {
+            if (message == null) throw new ArgumentNullException(nameof(message));
+            if (senderKey == null) throw new ArgumentNullException(nameof(senderKey));
+            if (recipientKey == null) throw new ArgumentNullException(nameof(recipientKey));
+
+            // Authpack
             var msg = await CryptoUtils.PackAsync(wallet, recipientKey, senderKey, message.ToByteArray());
 
             var previousKey = recipientKey;
 
             if (routingKeys != null)
             {
+                // TODO: In case of multiple key, should they each wrap a forward message
+                // or pass all keys to the PackAsync function as array?
                 foreach (var routingKey in routingKeys)
                 {
-                    msg = await CryptoUtils.PackAsync(
-                        wallet, routingKey, null,
-                        new ForwardMessage {Message = msg.GetUTF8String(), To = previousKey});
+                    // Anonpack
+                    msg = await CryptoUtils.PackAsync(wallet, routingKey, null,
+                        new ForwardMessage { Message = msg.GetUTF8String(), To = previousKey });
                     previousKey = routingKey;
                 }
             }
@@ -88,13 +95,10 @@ namespace AgentFramework.Core.Runtime
             if (string.IsNullOrEmpty(message.Type))
                 throw new AgentFrameworkException(ErrorCode.InvalidMessage, "@type field on message must be populated");
 
-            if (string.IsNullOrEmpty(recipientKey))
-                throw new ArgumentNullException(nameof(recipientKey));
-
             if (string.IsNullOrEmpty(endpointUri))
                 throw new ArgumentNullException(nameof(endpointUri));
 
-            var wireMsg = await PrepareAsync(wallet, message, recipientKey, routingKeys);
+            var wireMsg = await PrepareAsync(wallet, message, recipientKey, routingKeys, senderKey);
 
             var request = new HttpRequestMessage
             {
