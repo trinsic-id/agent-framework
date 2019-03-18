@@ -5,12 +5,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
-using AgentFramework.Core.Handlers.Internal;
-using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
+using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records.Search;
@@ -19,7 +17,6 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using WebAgent.Messages;
 using WebAgent.Models;
-using WebAgent.Protocols;
 using WebAgent.Protocols.BasicMessage;
 
 namespace WebAgent.Controllers
@@ -31,6 +28,7 @@ namespace WebAgent.Controllers
         private readonly IWalletService _walletService;
         private readonly IWalletRecordService _recordService;
         private readonly IProvisioningService _provisioningService;
+        private readonly IAgentContextProvider _agentContextProvider;
         private readonly IMessageService _messageService;
         private readonly WalletOptions _walletOptions;
 
@@ -40,6 +38,7 @@ namespace WebAgent.Controllers
             IWalletService walletService, 
             IWalletRecordService recordService,
             IProvisioningService provisioningService,
+            IAgentContextProvider agentContextProvider,
             IMessageService messageService,
             IOptions<WalletOptions> walletOptions)
         {
@@ -48,6 +47,7 @@ namespace WebAgent.Controllers
             _walletService = walletService;
             _recordService = recordService;
             _provisioningService = provisioningService;
+            _agentContextProvider = agentContextProvider;
             _messageService = messageService;
             _walletOptions = walletOptions.Value;
         }
@@ -55,11 +55,7 @@ namespace WebAgent.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var context = new AgentContext
-            {
-                Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
-                    _walletOptions.WalletCredentials)
-            };
+            var context = await _agentContextProvider.GetContextAsync();
 
             return View(new ConnectionsViewModel
             {
@@ -70,11 +66,7 @@ namespace WebAgent.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateInvitation()
         {
-            var context = new AgentContext
-            {
-                Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
-                    _walletOptions.WalletCredentials)
-            };
+            var context = await _agentContextProvider.GetContextAsync();
 
             var invitation = await _connectionService.CreateInvitationAsync(context, new InviteConfiguration { AutoAcceptConnection = true });
             ViewData["Invitation"] = EncodeInvitation(invitation.Invitation);
@@ -85,11 +77,7 @@ namespace WebAgent.Controllers
         [HttpPost]
         public async Task<IActionResult> AcceptInvitation(AcceptConnectionViewModel model)
         {
-            var context = new AgentContext
-            {
-                Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
-                    _walletOptions.WalletCredentials)
-            };
+            var context = await _agentContextProvider.GetContextAsync();
 
             string inviteRaw = null;
             try
@@ -136,43 +124,27 @@ namespace WebAgent.Controllers
         [HttpPost]
         public async Task<IActionResult> SendTrustPing(string connectionId)
         {
-            var context = new AgentContext
-            {
-                Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
-                    _walletOptions.WalletCredentials)
-            };
-
+            var context = await _agentContextProvider.GetContextAsync();
             var connection = await _connectionService.GetAsync(context, connectionId);
-
             var message = new TrustPingMessage
             {
                 ResponseRequested = true,
                 Comment = "Hello"
             };
 
-            bool responseRecieved = false;
+            var slim = new SemaphoreSlim(0, 1);
+            var success = false;
 
-            _eventAggregator.GetEventByType<ServiceMessageProcessingEvent>()
+            using (var subscription = _eventAggregator.GetEventByType<ServiceMessageProcessingEvent>()
                 .Where(_ => _.MessageType == CustomMessageTypes.TrustPingResponseMessageType)
-                .Subscribe(_ =>
-                {
-                    responseRecieved = true;
-                });
-
-            await _messageService.SendToConnectionAsync(context.Wallet, message, connection);
-
-
-            var task = Task.Factory.StartNew(() =>
+                .Subscribe(_ => { success = true; slim.Release(); }))
             {
-                while (!responseRecieved) { }
-                return true;
-            });
+                await _messageService.SendToConnectionAsync(context.Wallet, message, connection);
 
-            task.Wait(5000);
+                await slim.WaitAsync(TimeSpan.FromSeconds(5));
 
-            if (responseRecieved)
-                return RedirectToAction("Details", new { id = connectionId, trustPingSuccess = true });
-            return RedirectToAction("Details", new { id = connectionId, trustPingSuccess = false });
+                return RedirectToAction("Details", new { id = connectionId, trustPingSuccess = success });
+            }
         }
 
         [HttpGet]
