@@ -1,7 +1,5 @@
 using System;
-using System.IO;
 using AgentFramework.AspNetCore.Configuration.Service;
-using AgentFramework.AspNetCore.Options;
 using Jdenticon.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;

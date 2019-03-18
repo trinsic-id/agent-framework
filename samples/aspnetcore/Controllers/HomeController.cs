@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Threading.Tasks;
-using AgentFramework.AspNetCore.Options;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using WebAgent.Models;

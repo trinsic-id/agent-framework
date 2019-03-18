@@ -48,25 +48,28 @@ namespace WebAgent.Messages
         /// <param name="messagePayload">The agent message agentContext.</param>
         public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload)
         {
+            await Task.Yield();
+
             switch (messagePayload.GetMessageType())
             {
                 case CustomMessageTypes.TrustPingMessageType:
-                {
-                    var pingMessage = messagePayload.GetMessage<TrustPingMessage>();
-
-                    // if (pingMessage.ResponseRequested)
-                    // {
-                    return pingMessage.CreateThreadedReply<TrustPingResponseMessage>();
-                    // }
-                }
-                case CustomMessageTypes.TrustPingResponseMessageType:
-                {
-                    _eventAggregator.Publish(new ServiceMessageProcessingEvent
                     {
-                        MessageType = CustomMessageTypes.TrustPingResponseMessageType
-                    });
-                    break;
-                }
+                        var pingMessage = messagePayload.GetMessage<TrustPingMessage>();
+
+                        if (pingMessage.ResponseRequested)
+                        {
+                            return pingMessage.CreateThreadedReply<TrustPingResponseMessage>();
+                        }
+                        break;
+                    }
+                case CustomMessageTypes.TrustPingResponseMessageType:
+                    {
+                        _eventAggregator.Publish(new ServiceMessageProcessingEvent
+                        {
+                            MessageType = CustomMessageTypes.TrustPingResponseMessageType
+                        });
+                        break;
+                    }
             }
             return null;
         }
