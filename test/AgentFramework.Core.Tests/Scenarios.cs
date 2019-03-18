@@ -25,7 +25,7 @@ namespace AgentFramework.Core.Tests
             IProducerConsumerCollection<AgentMessage> _messages,
             IAgentContext firstContext,
             IAgentContext secondContext,
-            CreateInvitationResult initialInvitationResult = null,
+            ConnectionInvitationMessage inviteMessage = null,
             string inviteeconnectionId = null)
         {
             // Create invitation by the issuer
@@ -46,24 +46,20 @@ namespace AgentFramework.Core.Tests
                 }
             };
 
-            // Issuer creates an invitation
-            var invitationResult = initialInvitationResult ?? await connectionService.CreateInvitationAsync(firstContext, inviteConfig);
+            ConnectionRecord inviterConnection = null;
+
+            if (inviteMessage == null)
+                (inviteMessage, inviterConnection) = await connectionService.CreateInvitationAsync(firstContext, inviteConfig);
 
             var connectionFirst = await connectionService.GetAsync(firstContext, inviteeconnectionId ?? inviteConfig.ConnectionId);
             Assert.Equal(ConnectionState.Invited, connectionFirst.State);
             firstContext.Connection = connectionFirst;
 
-            if (initialInvitationResult == null)
-            { 
-                Assert.True(invitationResult.Invitation.Label == inviteConfig.MyAlias.Name &&
-                            invitationResult.Invitation.ImageUrl == inviteConfig.MyAlias.ImageUrl);
-            }
-
             // Holder accepts invitation and sends a message request
-            var acceptInvitationResult = await connectionService.AcceptInvitationAsync(secondContext, invitationResult.Invitation);
-            var connectionSecond = secondContext.Connection = acceptInvitationResult.Connection;
+            (var request, var inviteeConnection) = await connectionService.CreateRequestAsync(secondContext, inviteMessage);
+            var connectionSecond = secondContext.Connection = inviteeConnection;
 
-            _messages.TryAdd(acceptInvitationResult.Request);
+            _messages.TryAdd(request);
 
             Assert.Equal(ConnectionState.Negotiating, connectionSecond.State);
 
@@ -78,7 +74,7 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(ConnectionState.Negotiating, connectionFirst.State);
 
             // Issuer accepts the connection request
-            var response = await connectionService.AcceptRequestAsync(firstContext, connectionSecondId);
+            (var response, var _) = await connectionService.CreateResponseAsync(firstContext, connectionSecondId);
             _messages.TryAdd(response);
 
             firstContext.Connection = connectionFirst = await connectionService.GetAsync(firstContext, connectionSecondId);
@@ -135,7 +131,7 @@ namespace AgentFramework.Core.Tests
             await AnonCreds.ProverCreateMasterSecretAsync(holderContext.Wallet, proverMasterSecretId);
 
             // Holder accepts the credential offer and sends a credential request
-            var request = await credentialService.AcceptOfferAsync(holderContext, holderCredentialId,
+            (var request, var _) = await credentialService.CreateCredentialRequestAsync(holderContext, holderCredentialId,
                 new Dictionary<string, string>
                 {
                     {"first_name", "Jane"},
@@ -152,7 +148,7 @@ namespace AgentFramework.Core.Tests
                 await credentialService.ProcessCredentialRequestAsync(issuerContext, credentialRequest, issuerConnection);
 
             // Issuer accepts the credential requests and issues a credential
-            var credentialMessage = await credentialService.IssueCredentialAsync(issuerContext, issuer.Did, issuerCredentialId);
+            (var credentialMessage, var _) = await credentialService.CreateCredentialAsync(issuerContext, issuer.Did, issuerCredentialId);
             messages.TryAdd(credentialMessage);
 
             // Holder retrieves the credential from their cloud agent

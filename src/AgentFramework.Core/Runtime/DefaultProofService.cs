@@ -188,7 +188,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<ProofMessage> CreateProofAsync(IAgentContext agentContext, 
+        public virtual async Task<(ProofMessage, ProofRecord)> CreateProofAsync(IAgentContext agentContext, 
             string proofRequestId, RequestedCredentials requestedCredentials)
         {
             var record = await GetAsync(agentContext, proofRequestId);
@@ -239,7 +239,7 @@ namespace AgentFramework.Core.Runtime
 
             proofMsg.ThreadFrom(threadId);
 
-            return proofMsg;
+            return (proofMsg, record);
         }
 
         /// <inheritdoc />
@@ -275,25 +275,6 @@ namespace AgentFramework.Core.Runtime
                 revocationStates);
 
             return proofJson;
-        }
-
-        /// <inheritdoc />
-        public virtual async Task<ProofMessage> AcceptProofRequestAsync(IAgentContext agentContext,
-            string proofRequestId, RequestedCredentials requestedCredentials)
-        {
-            var request = await GetAsync(agentContext, proofRequestId);
-
-            if (request.State != ProofState.Requested)
-                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
-                    $"Proof record state was invalid. Expected '{ProofState.Requested}', found '{request.State}'");
-
-            var connection = await ConnectionService.GetAsync(agentContext, request.ConnectionId);
-
-            if (connection.State != ConnectionState.Connected)
-                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
-                    $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
-
-            return await CreateProofAsync(agentContext, proofRequestId, requestedCredentials);
         }
 
         /// <inheritdoc />

@@ -224,10 +224,10 @@ namespace AgentFramework.Core.Tests
 
             var id = await _ephemeralChallengeService.CreateChallengeConfigAsync(_holderWallet, config);
 
-            var result = await _ephemeralChallengeService.CreateChallengeAsync(_holderWallet, id);
+            (var challenge, var record) = await _ephemeralChallengeService.CreateChallengeAsync(_holderWallet, id);
 
-            Assert.True(!string.IsNullOrEmpty(result.ChallengeId));
-            Assert.True(result.Challenge != null);
+            Assert.True(!string.IsNullOrEmpty(record.Id));
+            Assert.True(challenge != null);
         }
 
         [Fact]
@@ -260,10 +260,10 @@ namespace AgentFramework.Core.Tests
 
                 var challengeConfigId = await _ephemeralChallengeService.CreateChallengeConfigAsync(_requestorWallet, challengeConfig);
 
-                var challengeResult = await _ephemeralChallengeService.CreateChallengeAsync(_requestorWallet, challengeConfigId);
-                _messages.Add(challengeResult.Challenge);
+                (var challenge, var record) = await _ephemeralChallengeService.CreateChallengeAsync(_requestorWallet, challengeConfigId);
+                _messages.Add(challenge);
 
-                var result = await _ephemeralChallengeService.GetChallengeStateAsync(_requestorWallet, challengeResult.ChallengeId);
+                var result = await _ephemeralChallengeService.GetChallengeStateAsync(_requestorWallet, record.Id);
                 Assert.True(result == ChallengeState.Challenged);
             }
 
@@ -303,7 +303,10 @@ namespace AgentFramework.Core.Tests
                         });
                 }
 
-                _messages.Add(await _ephemeralChallengeService.AcceptProofChallengeAsync(_holderWallet, challengeMessage, requestedCredentials));
+                var challenge = await _ephemeralChallengeService.CreateProofChallengeResponseAsync(
+                    _holderWallet, challengeMessage, requestedCredentials);
+
+                _messages.Add(challenge);
             }
 
             //Challenger recieves challenge response and verifies it

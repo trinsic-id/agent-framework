@@ -38,7 +38,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="agentContext">Agent Context.</param>
         /// <param name="config">An optional configuration object used to configure the resulting invitations presentation</param>
         /// <returns>The async.</returns>
-        Task<CreateInvitationResult> CreateInvitationAsync(IAgentContext agentContext, InviteConfiguration config = null);
+        Task<(ConnectionInvitationMessage, ConnectionRecord)> CreateInvitationAsync(IAgentContext agentContext, InviteConfiguration config = null);
 
         /// <summary>
         /// Revokes an invitation.
@@ -57,7 +57,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="offer">Offer.</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
         /// <returns>Connection identifier unique for this connection.</returns>
-        Task<AcceptInvitationResult> AcceptInvitationAsync(IAgentContext agentContext, ConnectionInvitationMessage offer);
+        Task<(ConnectionRequestMessage, ConnectionRecord)> CreateRequestAsync(IAgentContext agentContext, ConnectionInvitationMessage offer);
 
         /// <summary>
         /// Process the connection request for a given connection async.
@@ -77,7 +77,7 @@ namespace AgentFramework.Core.Contracts
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
         /// <returns>The response async.</returns>
-        Task<ConnectionResponseMessage> AcceptRequestAsync(IAgentContext agentContext, string connectionId);
+        Task<(ConnectionResponseMessage,ConnectionRecord)> CreateResponseAsync(IAgentContext agentContext, string connectionId);
 
         /// <summary>
         /// Processes the connection response for a given connection async.

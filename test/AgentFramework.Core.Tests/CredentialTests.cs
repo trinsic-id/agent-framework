@@ -225,7 +225,7 @@ namespace AgentFramework.Core.Tests
             await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
 
             // Holder accepts the credential offer and sends a credential request
-            var request = await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
+            (var request, _) = await _credentialService.CreateCredentialRequestAsync(_holderWallet, holderCredentialId,
                 new Dictionary<string, string>
                 {
                     {"dummy_attr", "dummyVal"}
@@ -338,7 +338,7 @@ namespace AgentFramework.Core.Tests
             await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
 
             // Holder accepts the credential offer and sends a credential request
-            var request = await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
+            (var request, var _) = await _credentialService.CreateCredentialRequestAsync(_holderWallet, holderCredentialId,
                 new Dictionary<string, string>
                 {
                     {"dummy_attr", "dummyVal"}
@@ -367,7 +367,7 @@ namespace AgentFramework.Core.Tests
             var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
                 new { seed = "000000000000000000000000Steward1" }.ToJson());
             
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.IssueCredentialAsync(_issuerWallet, issuer.Did, "bad-credential-id"));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.CreateCredentialAsync(_issuerWallet, issuer.Did, "bad-credential-id"));
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }
 
@@ -407,7 +407,7 @@ namespace AgentFramework.Core.Tests
             await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
 
             // Holder accepts the credential offer and sends a credential request
-            var request = await _credentialService.AcceptOfferAsync(_holderWallet, holderCredentialId,
+            (var request, var _) = await _credentialService.CreateCredentialRequestAsync(_holderWallet, holderCredentialId,
                 new Dictionary<string, string>
                 {
                     {"dummy_attr", "dummyVal"}
@@ -423,11 +423,11 @@ namespace AgentFramework.Core.Tests
                 await _credentialService.ProcessCredentialRequestAsync(_issuerWallet, credentialRequest, issuerConnection);
 
             // Issuer accepts the credential requests and issues a credential
-            var credentialMessage = await _credentialService.IssueCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId);
-            _messages.Add(credentialMessage);
+            (var credential, var _) = await _credentialService.CreateCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId);
+            _messages.Add(credential);
 
             //Try issue the credential again
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.IssueCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.CreateCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId));
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
         

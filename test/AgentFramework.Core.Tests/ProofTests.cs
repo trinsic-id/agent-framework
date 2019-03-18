@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Linq;
@@ -9,7 +8,6 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Handlers;
-using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Proofs;
 using AgentFramework.Core.Models;
@@ -254,7 +252,7 @@ namespace AgentFramework.Core.Tests
                 }
 
                 //Holder accepts the proof request and sends a proof
-                var proofMessage = await _proofService.AcceptProofRequestAsync(_holderWallet, holderProofRequestId, requestedCredentials);
+                (var proofMessage, var _) = await _proofService.CreateProofAsync(_holderWallet, holderProofRequestId, requestedCredentials);
                 _messages.Add(proofMessage);
             }
 
@@ -435,7 +433,7 @@ namespace AgentFramework.Core.Tests
                 }
 
                 //Holder accepts the proof request and sends a proof
-                var proofMessage = await _proofService.AcceptProofRequestAsync(_holderWallet, holderProofRequestId,
+                (var proofMessage, var _) = await _proofService.CreateProofAsync(_holderWallet, holderProofRequestId,
                     requestedCredentials);
                 _messages.Add(proofMessage);
             }
@@ -456,7 +454,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task AcceptProofRequestCredentialNotFound()
         {
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.AcceptProofRequestAsync(_issuerWallet, "bad-proof-id", null));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofAsync(_issuerWallet, "bad-proof-id", null));
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }
 
@@ -538,8 +536,8 @@ namespace AgentFramework.Core.Tests
             }
 
             //Holder accepts the proof request and sends a proof
-            await _proofService.AcceptProofRequestAsync(_holderWallet, holderProofRequestId, requestedCredentials);
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.AcceptProofRequestAsync(_holderWallet, holderProofRequestId,
+            await _proofService.CreateProofAsync(_holderWallet, holderProofRequestId, requestedCredentials);
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _proofService.CreateProofAsync(_holderWallet, holderProofRequestId,
                 requestedCredentials));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);

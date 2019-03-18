@@ -21,7 +21,7 @@ namespace AgentFramework.Core.Tests
             throw new System.NotImplementedException();
         }
 
-        public Task<CreateInvitationResult> CreateInvitationAsync(IAgentContext agentContext, InviteConfiguration config = null)
+        public Task<(ConnectionInvitationMessage, ConnectionRecord)> CreateInvitationAsync(IAgentContext agentContext, InviteConfiguration config = null)
         {
             throw new System.NotImplementedException();
         }
@@ -31,7 +31,7 @@ namespace AgentFramework.Core.Tests
             throw new System.NotImplementedException();
         }
 
-        public Task<AcceptInvitationResult> AcceptInvitationAsync(IAgentContext agentContext, ConnectionInvitationMessage offer)
+        public Task<(ConnectionRequestMessage, ConnectionRecord)> CreateRequestAsync(IAgentContext agentContext, ConnectionInvitationMessage offer)
         {
             throw new System.NotImplementedException();
         }
@@ -41,7 +41,7 @@ namespace AgentFramework.Core.Tests
             throw new System.NotImplementedException();
         }
 
-        public Task<ConnectionResponseMessage> AcceptRequestAsync(IAgentContext agentContext, string connectionId)
+        public Task<(ConnectionResponseMessage, ConnectionRecord)> CreateResponseAsync(IAgentContext agentContext, string connectionId)
         {
             throw new System.NotImplementedException();
         }
@@ -51,7 +51,7 @@ namespace AgentFramework.Core.Tests
             throw new System.NotImplementedException();
         }
 
-        Task<string> IConnectionService.ProcessResponseAsync(IAgentContext agentContext, ConnectionResponseMessage response)
+        public Task<string> ProcessResponseAsync(IAgentContext agentContext, ConnectionResponseMessage response)
         {
             throw new System.NotImplementedException();
         }
