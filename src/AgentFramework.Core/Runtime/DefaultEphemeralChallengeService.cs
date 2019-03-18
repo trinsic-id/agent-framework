@@ -126,7 +126,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<CreateChallengeResult> CreateChallengeAsync(IAgentContext agentContext,
+        public virtual async Task<(EphemeralChallengeMessage, EphemeralChallengeRecord)> CreateChallengeAsync(IAgentContext agentContext,
             string challengeConfigId)
         {
             var config = await GetChallengeConfigAsync(agentContext, challengeConfigId);
@@ -173,11 +173,8 @@ namespace AgentFramework.Core.Runtime
             challengeRecord.SetTag(TagConstants.LastThreadId, message.Id);
             await RecordService.AddAsync(agentContext.Wallet, challengeRecord);
 
-            return new CreateChallengeResult
-            {
-                ChallengeId = challengeRecord.Id,
-                Challenge = message
-            };
+            return (message,
+                    challengeRecord);
         }
 
         /// <inheritdoc />
@@ -239,7 +236,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<EphemeralChallengeResponseMessage> AcceptProofChallengeAsync(IAgentContext agentContext, EphemeralChallengeMessage message, RequestedCredentials credentials)
+        public virtual async Task<EphemeralChallengeResponseMessage> CreateProofChallengeResponseAsync(IAgentContext agentContext, EphemeralChallengeMessage message, RequestedCredentials credentials)
         {
             if (message.Challenge.Type != ChallengeType.Proof)
                 throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Challenge.Type != Proof");

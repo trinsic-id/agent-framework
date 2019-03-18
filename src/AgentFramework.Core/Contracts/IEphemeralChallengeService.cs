@@ -20,7 +20,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="message">The challenge message to accept.</param>
         /// <param name="credentials">The requested credentials.</param>
         /// <returns>The ephemeral challenge response message.</returns>
-        Task<EphemeralChallengeResponseMessage> AcceptProofChallengeAsync(IAgentContext agentContext, EphemeralChallengeMessage message, RequestedCredentials credentials);
+        Task<EphemeralChallengeResponseMessage> CreateProofChallengeResponseAsync(IAgentContext agentContext, EphemeralChallengeMessage message, RequestedCredentials credentials);
 
         /// <summary>
         /// Creates an ephemeral challenge.
@@ -28,7 +28,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="agentContext">The agent context.</param>
         /// <param name="challengeConfigId">Challenge configuration identifier.</param>
         /// <returns>Challenge configuration identifier.</returns>
-        Task<CreateChallengeResult> CreateChallengeAsync(IAgentContext agentContext, string challengeConfigId);
+        Task<(EphemeralChallengeMessage, EphemeralChallengeRecord)> CreateChallengeAsync(IAgentContext agentContext, string challengeConfigId);
 
         /// <summary>
         /// Creates a challenge configuration record.
