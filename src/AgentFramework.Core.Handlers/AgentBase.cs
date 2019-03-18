@@ -91,21 +91,15 @@ namespace AgentFramework.Core.Handlers
                 outgoingMessage = await ProcessMessage(agentContext, message);
             }
 
-            if (outgoingMessage != null) // && dont duplex????
+            if (outgoingMessage != null)
             {
-                //TODO what happens when I fail to transmit the message? need to roll back the state of the internal message?
+                //TODO error handling what happens when this message fails to transmit? #70
                 await MessageService.SendToConnectionAsync(agentContext.Wallet, outgoingMessage,
                     agentContext.Connection);
-                outgoingMessage = null;
             }
 
-            byte[] response = null;
-            if (outgoingMessage != null) // TODO: This statement is always False
-            {
-                response = await MessageService.PrepareAsync(agentContext.Wallet, outgoingMessage, "");
-            }
-
-            return response;
+            //TODO return a result when the request asked for duplex communication #123
+            return null;
         }
 
         private async Task<AgentMessage> ProcessMessage(IAgentContext agentContext, MessagePayload message)

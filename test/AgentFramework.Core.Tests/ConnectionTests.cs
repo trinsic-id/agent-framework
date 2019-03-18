@@ -178,19 +178,19 @@ namespace AgentFramework.Core.Tests
 
             // Invitation flow
             {
-                var invitation = await connectionService1.CreateInvitationAsync(context1,
+                (var invitation, var inviterConnection) = await connectionService1.CreateInvitationAsync(context1,
                     new InviteConfiguration { AutoAcceptConnection = true });
 
-                var acceptInvitation =
-                    await connectionService2.AcceptInvitationAsync(context2, invitation.Invitation);
-                await messageService2.SendToConnectionAsync(context2.Wallet, acceptInvitation.Request,
-                    acceptInvitation.Connection, invitation.Invitation.RecipientKeys.First());
+                (var request, var inviteeConnection) =
+                    await connectionService2.CreateRequestAsync(context2, invitation);
+                await messageService2.SendToConnectionAsync(context2.Wallet, request,
+                    inviteeConnection, invitation.RecipientKeys.First());
 
                 // Wait for connection to be established or continue after 30 sec timeout
                 await slim.WaitAsync(TimeSpan.FromSeconds(30));
 
-                var connectionRecord1 = await connectionService1.GetAsync(context1, invitation.Connection.Id);
-                var connectionRecord2 = await connectionService2.GetAsync(context2, acceptInvitation.Connection.Id);
+                var connectionRecord1 = await connectionService1.GetAsync(context1, inviterConnection.Id);
+                var connectionRecord2 = await connectionService2.GetAsync(context2, inviteeConnection.Id);
 
                 Assert.Equal(ConnectionState.Connected, connectionRecord1.State);
                 Assert.Equal(ConnectionState.Connected, connectionRecord2.State);
@@ -266,7 +266,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task AcceptRequestThrowsExceptionConnectionNotFound()
         {
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.AcceptRequestAsync(_issuerWallet, "bad-connection-id"));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.CreateResponseAsync(_issuerWallet, "bad-connection-id"));
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }
 
@@ -294,10 +294,10 @@ namespace AgentFramework.Core.Tests
             });
 
             //Accept the connection request
-            await _connectionService.AcceptRequestAsync(_issuerWallet, connectionId);
+            await _connectionService.CreateResponseAsync(_issuerWallet, connectionId);
 
             //Now try and accept it again
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.AcceptRequestAsync(_issuerWallet, connectionId));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.CreateResponseAsync(_issuerWallet, connectionId));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
         }
@@ -332,7 +332,7 @@ namespace AgentFramework.Core.Tests
             });
 
             //Accept the connection request
-            await _connectionService.AcceptRequestAsync(_issuerWallet, connectionId);
+            await _connectionService.CreateResponseAsync(_issuerWallet, connectionId);
 
             //Now try and revoke invitation
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.RevokeInvitationAsync(_issuerWallet, connectionId));
@@ -356,7 +356,7 @@ namespace AgentFramework.Core.Tests
 
             await _connectionService.RevokeInvitationAsync(_issuerWallet, connectionId);
 
-            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.AcceptRequestAsync(_issuerWallet, connectionId));
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.CreateResponseAsync(_issuerWallet, connectionId));
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }
 
@@ -391,16 +391,16 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CanEstablishConnectionsWithMultiPartyInvitationAsync()
         {
-            var invite = await _connectionService.CreateInvitationAsync(_issuerWallet,
+            (var invite, var record) = await _connectionService.CreateInvitationAsync(_issuerWallet,
                 new InviteConfiguration { MultiPartyInvitation = true });
 
             var (connectionIssuer, connectionHolderOne) = await Scenarios.EstablishConnectionAsync(
-                _connectionService, _messages, _issuerWallet, _holderWallet, invite, invite.Connection.Id);
+                _connectionService, _messages, _issuerWallet, _holderWallet, invite, record.Id);
 
             _messages.Clear();
 
             var (connectionIssuerTwo, connectionHolderTwo) = await Scenarios.EstablishConnectionAsync(
-                _connectionService, _messages, _issuerWallet, _holderWalletTwo, invite, invite.Connection.Id);
+                _connectionService, _messages, _issuerWallet, _holderWalletTwo, invite, record.Id);
 
             Assert.Equal(ConnectionState.Connected, connectionIssuer.State);
             Assert.Equal(ConnectionState.Connected, connectionHolderOne.State);

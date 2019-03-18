@@ -65,7 +65,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<CreateInvitationResult> CreateInvitationAsync(IAgentContext agentContext,
+        public virtual async Task<(ConnectionInvitationMessage, ConnectionRecord)> CreateInvitationAsync(IAgentContext agentContext,
             InviteConfiguration config = null)
         {
             var connectionId = !string.IsNullOrEmpty(config?.ConnectionId)
@@ -100,18 +100,14 @@ namespace AgentFramework.Core.Runtime
 
             await RecordService.AddAsync(agentContext.Wallet, connection);
 
-            return new CreateInvitationResult
-            {
-                Invitation = new ConnectionInvitationMessage
-                {
-                    ServiceEndpoint = provisioning.Endpoint.Uri,
-                    RoutingKeys = provisioning.Endpoint.Verkey != null ? new[] { provisioning.Endpoint.Verkey } : null,
-                    RecipientKeys = new [] { connectionKey },
-                    Label = config.MyAlias.Name ?? provisioning.Owner.Name,
-                    ImageUrl = config.MyAlias.ImageUrl ?? provisioning.Owner.ImageUrl
-                },
-                Connection = connection
-            };
+            return (new ConnectionInvitationMessage
+                    {
+                        ServiceEndpoint = provisioning.Endpoint.Uri,
+                        RoutingKeys = provisioning.Endpoint.Verkey != null ? new[] {provisioning.Endpoint.Verkey} : null,
+                        RecipientKeys = new[] {connectionKey},
+                        Label = config.MyAlias.Name ?? provisioning.Owner.Name,
+                        ImageUrl = config.MyAlias.ImageUrl ?? provisioning.Owner.ImageUrl
+                    }, connection);
         }
 
         /// <inheritdoc />
@@ -127,7 +123,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<AcceptInvitationResult> AcceptInvitationAsync(IAgentContext agentContext, ConnectionInvitationMessage invitation)
+        public virtual async Task<(ConnectionRequestMessage, ConnectionRecord)> CreateRequestAsync(IAgentContext agentContext, ConnectionInvitationMessage invitation)
         {
             Logger.LogInformation(LoggingEvents.AcceptInvitation, "Key {0}, Endpoint {1}",
                 invitation.RecipientKeys[0], invitation.ServiceEndpoint);
@@ -175,11 +171,9 @@ namespace AgentFramework.Core.Runtime
             }
             
             await RecordService.AddAsync(agentContext.Wallet, connection);
-            return new AcceptInvitationResult
-            {
-                Request = request,
-                Connection = connection
-            };
+
+            return (request,
+                    connection);
         }
 
         /// <inheritdoc />
@@ -279,7 +273,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<ConnectionResponseMessage> AcceptRequestAsync(IAgentContext agentContext, string connectionId)
+        public virtual async Task<(ConnectionResponseMessage, ConnectionRecord)> CreateResponseAsync(IAgentContext agentContext, string connectionId)
         {
             Logger.LogInformation(LoggingEvents.AcceptConnectionRequest, "ConnectionId {0}", connectionId);
 
@@ -309,7 +303,7 @@ namespace AgentFramework.Core.Runtime
             var response = new ConnectionResponseMessage { ConnectionSig = sigData };
             response.ThreadFrom(threadId);
             
-            return response;
+            return (response,connection);
         }
 
         /// <inheritdoc />

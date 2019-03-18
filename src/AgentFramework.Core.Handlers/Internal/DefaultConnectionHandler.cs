@@ -53,7 +53,7 @@ namespace AgentFramework.Core.Handlers.Internal
             {
                 case MessageTypes.ConnectionInvitation:
                     var invitation = messagePayload.GetMessage<ConnectionInvitationMessage>();
-                    await _connectionService.AcceptInvitationAsync(agentContext, invitation);
+                    await _connectionService.CreateRequestAsync(agentContext, invitation);
                     return null;
 
                 case MessageTypes.ConnectionRequest:
@@ -63,7 +63,7 @@ namespace AgentFramework.Core.Handlers.Internal
                     // Auto accept connection if set during invitation
                     if (agentContext.Connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
                     {
-                        var message = await _connectionService.AcceptRequestAsync(agentContext, connectionId);
+                        (var message, var _) = await _connectionService.CreateResponseAsync(agentContext, connectionId);
                         await _messageService.SendToConnectionAsync(agentContext.Wallet, message, agentContext.Connection);
                     }
                     return null;
