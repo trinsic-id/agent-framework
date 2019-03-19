@@ -53,6 +53,9 @@ namespace AgentFramework.Core.Handlers
         protected void AddCredentialHandler() => _handlers.Add(Provider.GetRequiredService<DefaultCredentialHandler>());
 
         /// <summary>Adds the handler for supporting default proof flow.</summary>
+        protected void AddTrustPingHandler() => _handlers.Add(Provider.GetRequiredService<DefaultTrustPingMessageHandler>());
+
+        /// <summary>Adds the handler for supporting default proof flow.</summary>
         protected void AddProofHandler() => _handlers.Add(Provider.GetRequiredService<DefaultProofHandler>());
 
         /// <summary>Adds a default forwarding handler.</summary>
