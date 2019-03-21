@@ -1,33 +1,78 @@
 ﻿namespace AgentFramework.Core.Messages
 {
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-
     /// <summary>
-    /// Represents the supported message types
+    /// Protocol message types
     /// </summary>
-    public class MessageTypes
+    public static class MessageTypes
     {
-        // Connection Messages
+        /// <summary>
+        /// The connection invitation.
+        /// </summary>
         public const string ConnectionInvitation = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/invitation";
+
+        /// <summary>
+        /// The connection request.
+        /// </summary>
         public const string ConnectionRequest = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/request";
+
+        /// <summary>
+        /// The connection response.
+        /// </summary>
         public const string ConnectionResponse = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/response";
 
-        //Credential Messages
+        /// <summary>
+        /// The credential offer.
+        /// </summary>
         public const string CredentialOffer = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/credential_offer";
+
+        /// <summary>
+        /// The credential request.
+        /// </summary>
         public const string CredentialRequest = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/credential_request";
+
+        /// <summary>
+        /// The credential.
+        /// </summary>
         public const string Credential = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/credential";
 
-        //Proof Messages
+        /// <summary>
+        /// The proof request.
+        /// </summary>
         public const string ProofRequest = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/proof_request";
+
+        /// <summary>
+        /// The disclosed proof.
+        /// </summary>
         public const string DisclosedProof = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/disclosed_proof";
 
-        //Ephemeral Challenge Messages
+        /// <summary>
+        /// Ephemeral Challenge Message
+        /// </summary>
         public const string EphemeralChallenge = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/ephemeral_challenge/1.0/challenge";
+
+        /// <summary>
+        /// The ephemeral challenge response.
+        /// </summary>
         public const string EphemeralChallengeResponse = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/ephemeral_challenge/1.0/challenge_response";
 
-        //Routing Messages
+        /// <summary>
+        /// Routing Messages
+        /// </summary>
         public const string Forward = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/routing/1.0/forward";
-    }
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
+        /// <summary>
+        /// Basic Message Type.
+        /// </summary>
+        public const string BasicMessageType = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message";
+
+        /// <summary>
+        /// Ping Message Type.
+        /// </summary>
+        public const string TrustPingMessageType = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping";
+
+        /// <summary>
+        /// Ping Response Message Type.
+        /// </summary>
+        public const string TrustPingResponseMessageType = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping_response";
+    }
 }

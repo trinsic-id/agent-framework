@@ -74,19 +74,7 @@ namespace AgentFramework.Core.Contracts
         /// <returns>
         /// The proof.
         /// </returns>
-        Task<ProofMessage> CreateProofAsync(IAgentContext agentContext, string proofRequestId,
-            RequestedCredentials requestedCredentials);
-
-        /// <summary>
-        /// Accepts a proof request by generating a proof and sending it to the requestor.
-        /// </summary>
-        /// <param name="agentContext">Agent Context.</param>
-        /// <param name="proofRequestId">Identifier of the proof request.</param>
-        /// <param name="requestedCredentials">The requested credentials.</param>
-        /// <returns>
-        /// The proof.
-        /// </returns>
-        Task<ProofMessage> AcceptProofRequestAsync(IAgentContext agentContext, string proofRequestId,
+        Task<(ProofMessage, ProofRecord)> CreateProofAsync(IAgentContext agentContext, string proofRequestId,
             RequestedCredentials requestedCredentials);
 
         /// <summary>

@@ -36,4 +36,7 @@
   <ItemGroup>
     <Reference Include="System.Runtime.Serialization" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Messages\Common\" />
+  </ItemGroup>
 </Project>

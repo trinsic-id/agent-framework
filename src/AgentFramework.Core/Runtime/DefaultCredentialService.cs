@@ -136,10 +136,10 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<CredentialRequestMessage> AcceptOfferAsync(IAgentContext agentContext, string credentialId,
+        public virtual async Task<(CredentialRequestMessage, CredentialRecord)> CreateCredentialRequestAsync(IAgentContext agentContext, string offerId,
             Dictionary<string, string> attributeValues = null)
         {
-            var credential = await GetAsync(agentContext, credentialId);
+            var credential = await GetAsync(agentContext, offerId);
 
             if (credential.State != CredentialState.Offered)
                 throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
@@ -168,7 +168,7 @@ namespace AgentFramework.Core.Runtime
 
             response.ThreadFrom(threadId);
 
-            return response;
+            return (response, credential);
         }
 
         /// <inheritdoc />
@@ -335,13 +335,13 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual Task<CredentialMessage> IssueCredentialAsync(IAgentContext agentContext, string issuerDid, string credentialId)
+        public virtual Task<(CredentialMessage, CredentialRecord)> CreateCredentialAsync(IAgentContext agentContext, string issuerDid, string credentialId)
         {
-            return IssueCredentialAsync(agentContext, issuerDid, credentialId, null);
+            return CreateCredentialAsync(agentContext, issuerDid, credentialId, null);
         }
 
         /// <inheritdoc />
-        public virtual async Task<CredentialMessage> IssueCredentialAsync(IAgentContext agentContext, string issuerDid, string credentialId,
+        public virtual async Task<(CredentialMessage, CredentialRecord)> CreateCredentialAsync(IAgentContext agentContext, string issuerDid, string credentialId,
            Dictionary<string, string> values)
         {
             var credential = await GetAsync(agentContext, credentialId);
@@ -398,7 +398,7 @@ namespace AgentFramework.Core.Runtime
 
             credentialMsg.ThreadFrom(threadId);
 
-            return credentialMsg;
+            return (credentialMsg, credential);
         }
 
         /// <inheritdoc />
