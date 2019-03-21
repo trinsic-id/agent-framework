@@ -3,6 +3,7 @@
   <PropertyGroup>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Authors>Agent Framework Contributors</Authors>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(OS)' == 'Unix'">
