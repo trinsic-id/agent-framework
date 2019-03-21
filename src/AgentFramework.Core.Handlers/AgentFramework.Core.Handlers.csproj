@@ -1,11 +1,5 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras/1.6.46">
 
-  <PropertyGroup>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <Authors>Agent Framework Contributors</Authors>
-  </PropertyGroup>
-  
   <PropertyGroup Condition="'$(OS)' == 'Unix'">
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
   </PropertyGroup>
@@ -19,6 +13,7 @@
     <FileVersion>3.0.0</FileVersion>
     <Description>Support for extending AgentFramework using message handlers</Description>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\AgentFramework.Core.Handlers.xml</DocumentationFile>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
   <ItemGroup>
