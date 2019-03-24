@@ -8,6 +8,8 @@
     <Version>3.0.0</Version>
 
     <Description>A Test Harness for testing the AgentFramework</Description>
+
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
