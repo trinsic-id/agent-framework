@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Linq;
@@ -18,7 +17,8 @@ using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Runtime;
-using AgentFramework.Core.Tests.Utils;
+using AgentFramework.TestHarness;
+using AgentFramework.TestHarness.Utils;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
@@ -27,7 +27,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
-namespace AgentFramework.Core.Tests
+namespace AgentFramework.Core.Tests.Protocols
 {
     public class CredentialTests : IAsyncLifetime
     {

@@ -8,12 +8,12 @@ namespace AgentFramework.TestHarness.Mock
 {
     public class MockAgentHttpHandler : HttpMessageHandler
     {
-        public MockAgentHttpHandler(Action<byte[]> callback)
+        public MockAgentHttpHandler(Action<string, byte[]> callback)
         {
             Callback = callback;
         }
 
-        public Action<byte[]> Callback { get; }
+        public Action<string, byte[]> Callback { get; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -21,7 +21,8 @@ namespace AgentFramework.TestHarness.Mock
             {
                 throw new Exception("Invalid http method");
             }
-            Callback(await request.Content.ReadAsByteArrayAsync());
+
+            Callback(request.RequestUri.Host, await request.Content.ReadAsByteArrayAsync());
             return new HttpResponseMessage(HttpStatusCode.OK);
         }
     }

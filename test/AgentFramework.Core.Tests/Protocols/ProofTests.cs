@@ -16,7 +16,8 @@ using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Proofs;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Runtime;
-using AgentFramework.Core.Tests.Utils;
+using AgentFramework.TestHarness;
+using AgentFramework.TestHarness.Utils;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
@@ -24,7 +25,7 @@ using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace AgentFramework.Core.Tests
+namespace AgentFramework.Core.Tests.Protocols
 {
     public class ProofTests : IAsyncLifetime
     {
@@ -59,11 +60,6 @@ namespace AgentFramework.Core.Tests
 
             _eventAggregator = new EventAggregator();
             _poolService = new DefaultPoolService();
-
-            var provisionMock = new Mock<IProvisioningService>();
-            provisionMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
-                .Returns(
-                    Task.FromResult<ProvisioningRecord>(new ProvisioningRecord {MasterSecretId = MasterSecretId}));
 
             var routingMock = new Mock<IMessageService>();
             routingMock.Setup(x =>
@@ -108,7 +104,7 @@ namespace AgentFramework.Core.Tests
                 _eventAggregator,
                 _connectionService,
                 recordService,
-                provisionMock.Object,
+                provisioningMock.Object,
                 ledgerService,
                 tailsService,
                 new Mock<ILogger<DefaultProofService>>().Object);

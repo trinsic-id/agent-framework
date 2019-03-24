@@ -11,14 +11,10 @@ namespace AgentFramework.TestHarness.Mock
 {
     public class MockUtils
     {
-        public static async Task<MockAgent> CreateAsync(WalletConfiguration configuration, WalletCredentials credentials)
+        public static async Task<MockAgent> CreateAsync(string agentName, WalletConfiguration configuration, WalletCredentials credentials, MockAgentHttpHandler handler)
         {
-            IAgentContext context = null;
-            MockAgentMessageProcessor agentMessageProcessor = null;
-
-            var handler = new MockAgentHttpHandler(data => agentMessageProcessor.HandleAsync(data, context));
-
             var container = new ServiceCollection();
+
             container.AddAgentFramework();
             container.AddLogging();
             container.AddSingleton<MockAgentMessageProcessor>();
@@ -27,15 +23,11 @@ namespace AgentFramework.TestHarness.Mock
             var provider = container.BuildServiceProvider();
 
             await provider.GetService<IProvisioningService>()
-                          .ProvisionAgentAsync(new ProvisioningConfiguration { WalletConfiguration = configuration, WalletCredentials = credentials, EndpointUri = new Uri("http://mock") });
+                          .ProvisionAgentAsync(new ProvisioningConfiguration { WalletConfiguration = configuration, WalletCredentials = credentials, EndpointUri = new Uri($"http://{agentName}") });
 
-            agentMessageProcessor = provider.GetService<MockAgentMessageProcessor>();
-
-            context = new AgentContext { Wallet = await provider.GetService<IWalletService>().GetWalletAsync(configuration, credentials) };
-
-            return new MockAgent
+            return new MockAgent(agentName, provider)
             {
-                Context = context,
+                Context = new AgentContext { Wallet = await provider.GetService<IWalletService>().GetWalletAsync(configuration, credentials) },
                 ServiceProvider = provider
             };
         }

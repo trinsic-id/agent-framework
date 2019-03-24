@@ -16,11 +16,11 @@ using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
 using Xunit;
 
-namespace AgentFramework.Core.Tests
+namespace AgentFramework.TestHarness
 {
-    internal static class Scenarios
+    public static class Scenarios
     {
-        internal static async Task<(ConnectionRecord firstParty, ConnectionRecord secondParty)> EstablishConnectionAsync(
+        public static async Task<(ConnectionRecord firstParty, ConnectionRecord secondParty)> EstablishConnectionAsync(
             IConnectionService connectionService,
             IProducerConsumerCollection<AgentMessage> _messages,
             IAgentContext firstContext,
@@ -93,8 +93,8 @@ namespace AgentFramework.Core.Tests
             
             return (connectionFirst, connectionSecond);
         }
-        
-        internal static async Task<(CredentialRecord issuerCredential, CredentialRecord holderCredential)> IssueCredentialAsync(
+
+        public static async Task<(CredentialRecord issuerCredential, CredentialRecord holderCredential)> IssueCredentialAsync(
             ISchemaService schemaService, ICredentialService credentialService,
             IProducerConsumerCollection<AgentMessage> messages,
             ConnectionRecord issuerConnection, ConnectionRecord holderConnection, 
@@ -165,7 +165,7 @@ namespace AgentFramework.Core.Tests
             return (issuerCredential, holderCredential);
         }
 
-        internal static async Task<(string,string)> CreateDummySchemaAndNonRevokableCredDef(IAgentContext context, ISchemaService schemaService, string issuerDid, string[] attributeValues)
+        public static async Task<(string,string)> CreateDummySchemaAndNonRevokableCredDef(IAgentContext context, ISchemaService schemaService, string issuerDid, string[] attributeValues)
         {
             // Create a schema and credential definition for this issuer
             var schemaId = await schemaService.CreateSchemaAsync(await context.Pool, context.Wallet, issuerDid,
