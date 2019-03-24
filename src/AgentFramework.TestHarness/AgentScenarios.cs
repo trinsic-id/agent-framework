@@ -22,7 +22,7 @@ namespace AgentFramework.TestHarness
         public static async Task<(ConnectionRecord inviteeConnection,ConnectionRecord inviterConnection)> EstablishConnectionAsync(MockAgent invitee, MockAgent inviter)
         {
             var slim = new SemaphoreSlim(0, 1);
-
+            
             var connectionService = invitee.GetService<IConnectionService>();
             var messsageService = invitee.GetService<IMessageService>();
 
