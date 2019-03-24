@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
-using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models;
@@ -14,6 +13,7 @@ using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Runtime;
 using AgentFramework.TestHarness;
+using AgentFramework.TestHarness.Utils;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -27,9 +27,6 @@ namespace AgentFramework.Core.Tests.Protocols
         private readonly string _holderConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private readonly string _holderConfigTwo = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
-        private const string MockEndpointUri = "http://mock";
-        
-        private readonly Mock<IProvisioningService> _provisioningMock;
 
         private IAgentContext _issuerWallet;
         private IAgentContext _holderWallet;
@@ -37,72 +34,26 @@ namespace AgentFramework.Core.Tests.Protocols
 
         private readonly IEventAggregator _eventAggregator;
         private readonly IConnectionService _connectionService;
+        private readonly IProvisioningService _provisioningService;
 
-        private bool _routeMessage = true;
         private readonly ConcurrentBag<AgentMessage> _messages = new ConcurrentBag<AgentMessage>();
 
         public ConnectionTests()
         {
             _eventAggregator = new EventAggregator();
-
-            var routingMock = new Mock<IMessageService>();
-            routingMock.Setup(x =>
-                    x.SendToConnectionAsync(It.IsAny<Wallet>(), It.IsAny<AgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
-                .Callback((Wallet _, AgentMessage content, ConnectionRecord __, string ___) =>
-                {
-                    if (_routeMessage)
-                        _messages.Add(content);
-                    else
-                        throw new AgentFrameworkException(ErrorCode.LedgerOperationRejected, "");
-                })
-                .Returns(Task.FromResult(false));
-
-            _provisioningMock = new Mock<IProvisioningService>();
-            _provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
-                .Returns(Task.FromResult(new ProvisioningRecord
-                {
-                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri}
-                }));
-
+            _provisioningService = ServiceUtils.GetDefaultMockProvisioningService();
             _connectionService = new DefaultConnectionService(
                 _eventAggregator,
                 new DefaultWalletRecordService(),
-                _provisioningMock.Object,
+                _provisioningService,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
         }
 
         public async Task InitializeAsync()
         {
-            try
-            {
-                await Wallet.CreateWalletAsync(_issuerConfig, Credentials);
-            }
-            catch (WalletExistsException)
-            {
-                // OK
-            }
-
-            try
-            {
-                await Wallet.CreateWalletAsync(_holderConfig, Credentials);
-            }
-            catch (WalletExistsException)
-            {
-                // OK
-            }
-
-            try
-            {
-                await Wallet.CreateWalletAsync(_holderConfigTwo, Credentials);
-            }
-            catch (WalletExistsException)
-            {
-                // OK
-            }
-
-            _issuerWallet = new AgentContext {Wallet = await Wallet.OpenWalletAsync(_issuerConfig, Credentials)};
-            _holderWallet = new AgentContext {Wallet = await Wallet.OpenWalletAsync(_holderConfig, Credentials)};
-            _holderWalletTwo = new AgentContext {Wallet = await Wallet.OpenWalletAsync(_holderConfigTwo, Credentials)};
+            _issuerWallet = await AgentUtils.Create(_issuerConfig, Credentials);
+            _holderWallet = await AgentUtils.Create(_holderConfig, Credentials);
+            _holderWalletTwo = await AgentUtils.Create(_holderConfigTwo, Credentials);
         }
 
         [Fact]
@@ -161,7 +112,7 @@ namespace AgentFramework.Core.Tests.Protocols
                     DidDoc = new ConnectionRecord
                     {
                         MyVk = "6vyxuqpe3UBcTmhF3Wmmye2UVroa51Lcd9smQKFB5QX1"
-                    }.MyDidDoc(await _provisioningMock.Object.GetProvisioningAsync(_issuerWallet.Wallet))
+                    }.MyDidDoc(await _provisioningService.GetProvisioningAsync(_issuerWallet.Wallet))
                 }
             });
 
@@ -199,7 +150,7 @@ namespace AgentFramework.Core.Tests.Protocols
                     DidDoc = new ConnectionRecord
                     {
                         MyVk = "6vyxuqpe3UBcTmhF3Wmmye2UVroa51Lcd9smQKFB5QX1"
-                    }.MyDidDoc(await _provisioningMock.Object.GetProvisioningAsync(_issuerWallet.Wallet))
+                    }.MyDidDoc(await _provisioningService.GetProvisioningAsync(_issuerWallet.Wallet))
                 }
             });
 
@@ -256,8 +207,8 @@ namespace AgentFramework.Core.Tests.Protocols
             Assert.Equal(connectionIssuer.MyDid, connectionHolder.TheirDid);
             Assert.Equal(connectionIssuer.TheirDid, connectionHolder.MyDid);
 
-            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
-            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
+            Assert.Equal(connectionIssuer.Endpoint.Uri, TestConstants.DefaultMockUri);
+            Assert.Equal(connectionIssuer.Endpoint.Uri, TestConstants.DefaultMockUri);
         }
 
         [Fact]
@@ -286,8 +237,8 @@ namespace AgentFramework.Core.Tests.Protocols
             Assert.Equal(connectionIssuerTwo.MyDid, connectionHolderTwo.TheirDid);
             Assert.Equal(connectionIssuerTwo.TheirDid, connectionHolderTwo.MyDid);
 
-            Assert.Equal(connectionIssuer.Endpoint.Uri, MockEndpointUri);
-            Assert.Equal(connectionIssuerTwo.Endpoint.Uri, MockEndpointUri);
+            Assert.Equal(connectionIssuer.Endpoint.Uri, TestConstants.DefaultMockUri);
+            Assert.Equal(connectionIssuerTwo.Endpoint.Uri, TestConstants.DefaultMockUri);
         }
         
         public async Task DisposeAsync()

@@ -1,5 +1,4 @@
-﻿using System.Net.Http;
-using AgentFramework.AspNetCore.Configuration.Service;
+﻿using AgentFramework.AspNetCore.Configuration.Service;
 using AgentFramework.Core.Contracts;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;

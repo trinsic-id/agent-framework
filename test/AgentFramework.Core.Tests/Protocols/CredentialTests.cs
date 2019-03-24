@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
-using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Credentials;
-using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Events;
@@ -21,7 +19,6 @@ using AgentFramework.TestHarness;
 using AgentFramework.TestHarness.Utils;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.DidApi;
-using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -31,26 +28,18 @@ namespace AgentFramework.Core.Tests.Protocols
 {
     public class CredentialTests : IAsyncLifetime
     {
-        private readonly string _poolName = $"DefaultPool";
         private readonly string _issuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private readonly string _holderConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
-        private const string MockEndpointUri = "http://mock";
-        private const string MasterSecretId = "DefaultMasterSecret";
         
         private IAgentContext _issuerWallet;
         private IAgentContext _holderWallet;
 
-        private Pool _pool;
-
         private readonly IEventAggregator _eventAggregator;
         private readonly IConnectionService _connectionService;
         private readonly ICredentialService _credentialService;
-
         private readonly ISchemaService _schemaService;
-        private readonly IPoolService _poolService;
 
-        private bool _routeMessage = true;
         private readonly ConcurrentBag<AgentMessage> _messages = new ConcurrentBag<AgentMessage>();
 
         public CredentialTests()
@@ -59,36 +48,16 @@ namespace AgentFramework.Core.Tests.Protocols
             var ledgerService = new DefaultLedgerService();
 
             _eventAggregator = new EventAggregator();
-            _poolService = new DefaultPoolService();
 
-            var routingMock = new Mock<IMessageService>();
-            routingMock.Setup(x =>
-                    x.SendToConnectionAsync(It.IsAny<Wallet>(), It.IsAny<AgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>()))
-                .Callback((Wallet _, AgentMessage content, ConnectionRecord __, string ___) =>
-                {
-                    if (_routeMessage)
-                        _messages.Add(content);
-                    else
-                        throw new AgentFrameworkException(ErrorCode.LedgerOperationRejected, "");
-                })
-                .Returns(Task.FromResult(false));
-
-            var provisioningMock = new Mock<IProvisioningService>();
-            provisioningMock.Setup(x => x.GetProvisioningAsync(It.IsAny<Wallet>()))
-                .Returns(Task.FromResult(new ProvisioningRecord
-                {
-                    Endpoint = new AgentEndpoint {Uri = MockEndpointUri},
-                    MasterSecretId = MasterSecretId,
-                    TailsBaseUri = MockEndpointUri
-                }));
+            var provisioning = ServiceUtils.GetDefaultMockProvisioningService();
 
             var tailsService = new DefaultTailsService(ledgerService, new HttpClientHandler());
-            _schemaService = new DefaultSchemaService(provisioningMock.Object, recordService, ledgerService, tailsService);
+            _schemaService = new DefaultSchemaService(provisioning, recordService, ledgerService, tailsService);
 
             _connectionService = new DefaultConnectionService(
                 _eventAggregator,
                 recordService,
-                provisioningMock.Object,
+                provisioning,
                 new Mock<ILogger<DefaultConnectionService>>().Object);
 
             _credentialService = new DefaultCredentialService(
@@ -98,42 +67,14 @@ namespace AgentFramework.Core.Tests.Protocols
                 recordService,
                 _schemaService,
                 tailsService,
-                provisioningMock.Object,
+                provisioning,
                 new Mock<ILogger<DefaultCredentialService>>().Object);
         }
 
         public async Task InitializeAsync()
         {
-            _pool = await PoolUtils.GetPoolAsync();
-
-            try
-            {
-                await Wallet.CreateWalletAsync(_issuerConfig, Credentials);
-            }
-            catch (WalletExistsException)
-            {
-                // OK
-            }
-
-            try
-            {
-                await Wallet.CreateWalletAsync(_holderConfig, Credentials);
-            }
-            catch (WalletExistsException)
-            {
-                // OK
-            }
-
-            _issuerWallet = new AgentContext
-            {
-                Wallet = await Wallet.OpenWalletAsync(_issuerConfig, Credentials), 
-                Pool = PoolAwaitable.FromPool(_pool)
-            };
-            _holderWallet = new AgentContext
-            {
-                Wallet = await Wallet.OpenWalletAsync(_holderConfig, Credentials), 
-                Pool = PoolAwaitable.FromPool(_pool)
-            };
+            _issuerWallet = await AgentUtils.Create(_issuerConfig, Credentials, true);
+            _holderWallet = await AgentUtils.Create(_holderConfig, Credentials, true);
         }
 
         /// <summary>
@@ -159,7 +100,7 @@ namespace AgentFramework.Core.Tests.Protocols
 
             var (issuerCredential, holderCredential) = await Scenarios.IssueCredentialAsync(
                 _schemaService, _credentialService, _messages, issuerConnection,
-                holderConnection, _issuerWallet, _holderWallet, _pool, MasterSecretId, false);
+                holderConnection, _issuerWallet, _holderWallet, await _holderWallet.Pool, TestConstants.DefaultMasterSecret, false);
 
             Assert.True(events == 3);
 
@@ -222,7 +163,7 @@ namespace AgentFramework.Core.Tests.Protocols
                 await _credentialService.ProcessOfferAsync(_holderWallet, credentialOffer, holderConnection);
 
             // Holder creates master secret. Will also be created during wallet agent provisioning
-            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
+            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, TestConstants.DefaultMasterSecret);
 
             // Holder accepts the credential offer and sends a credential request
             (var request, _) = await _credentialService.CreateCredentialRequestAsync(_holderWallet, holderCredentialId,
@@ -335,7 +276,7 @@ namespace AgentFramework.Core.Tests.Protocols
                 await _credentialService.ProcessOfferAsync(_holderWallet, credentialOffer, holderConnection);
 
             // Holder creates master secret. Will also be created during wallet agent provisioning
-            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
+            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, TestConstants.DefaultMasterSecret);
 
             // Holder accepts the credential offer and sends a credential request
             (var request, var _) = await _credentialService.CreateCredentialRequestAsync(_holderWallet, holderCredentialId,
@@ -404,7 +345,7 @@ namespace AgentFramework.Core.Tests.Protocols
                 await _credentialService.ProcessOfferAsync(_holderWallet, credentialOffer, holderConnection);
 
             // Holder creates master secret. Will also be created during wallet agent provisioning
-            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, MasterSecretId);
+            await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, TestConstants.DefaultMasterSecret);
 
             // Holder accepts the credential offer and sends a credential request
             (var request, var _) = await _credentialService.CreateCredentialRequestAsync(_holderWallet, holderCredentialId,

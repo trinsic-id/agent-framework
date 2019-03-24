@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
@@ -17,10 +16,8 @@ namespace AgentFramework.Core.Tests
 {
     public class SchemaServiceTests : IAsyncLifetime
     {
-        private readonly IPoolService _poolService;
         private readonly ISchemaService _schemaService;
 
-        private readonly string _poolName = $"DefaultPool";
         private readonly string _issuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private const string Credentials = "{\"key\":\"test_wallet_key\"}";
 
@@ -34,7 +31,6 @@ namespace AgentFramework.Core.Tests
             var tailsService = new DefaultTailsService(ledgerService, new HttpClientHandler());
 
             var provisioningMock = new Mock<IProvisioningService>();
-            _poolService = new DefaultPoolService();
             _schemaService = new DefaultSchemaService(provisioningMock.Object, walletService, ledgerService, tailsService);
         }
 
