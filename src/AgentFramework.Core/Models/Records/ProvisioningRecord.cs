@@ -41,7 +41,7 @@ namespace AgentFramework.Core.Models.Records
         /// Gets or sets the endpoint information for the provisioned agent.
         /// </summary>
         /// <returns>The endpoint information for the provisioned agent</returns>
-        public AgentEndpoint Endpoint
+        public virtual AgentEndpoint Endpoint
         {
             get;
             internal set;
@@ -51,7 +51,7 @@ namespace AgentFramework.Core.Models.Records
         /// Gets or sets the owner information for the provisioned agent.
         /// </summary>
         /// <returns>The owner information for the provisioned agent</returns>
-        public AgentOwner Owner
+        public virtual AgentOwner Owner
         {
             get;
             internal set;
@@ -62,7 +62,7 @@ namespace AgentFramework.Core.Models.Records
         /// </summary>
         /// <returns>The issuer did for the provisioned agent</returns>
         [JsonIgnore]
-        public string IssuerDid
+        public virtual string IssuerDid
         {
             get => _issuerDid;
             internal set => _issuerDid = value;
@@ -73,7 +73,7 @@ namespace AgentFramework.Core.Models.Records
         /// </summary>
         /// <returns>The issuer verkey for the provisioned agent</returns>
         [JsonIgnore]
-        public string IssuerVerkey
+        public virtual string IssuerVerkey
         {
             get => _issuerVerkey;
             internal set => _issuerVerkey = value;
@@ -84,7 +84,7 @@ namespace AgentFramework.Core.Models.Records
         /// </summary>
         /// <returns>The master key identifier for the provisioned agent</returns>
         [JsonIgnore]
-        public string MasterSecretId
+        public virtual string MasterSecretId
         {
             get => _masterSecretId;
             internal set => _masterSecretId = value;
@@ -95,7 +95,7 @@ namespace AgentFramework.Core.Models.Records
         /// </summary>
         /// <returns>The tails base uri for the provisioned agent</returns>
         [JsonIgnore]
-        public string TailsBaseUri
+        public virtual string TailsBaseUri
         {
             get => _tailsBaseUri;
             internal set => _tailsBaseUri = value;

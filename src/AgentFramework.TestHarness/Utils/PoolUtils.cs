@@ -1,11 +1,10 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Runtime;
 using Hyperledger.Indy.PoolApi;
 
-namespace AgentFramework.Core.Tests.Utils
+namespace AgentFramework.TestHarness.Utils
 {
     public class PoolUtils
     {

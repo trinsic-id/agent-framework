@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+
+    <Version>3.0.0</Version>
+
+    <Description>A Test Harness for testing the AgentFramework</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" Version="4.10.1" />
+    <PackageReference Include="xunit" Version="2.4.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AgentFramework.AspNetCore\AgentFramework.AspNetCore.csproj" />
+    <ProjectReference Include="..\AgentFramework.Core.Handlers\AgentFramework.Core.Handlers.csproj" />
+    <ProjectReference Include="..\AgentFramework.Core\AgentFramework.Core.csproj" />
+  </ItemGroup>
+
+</Project>

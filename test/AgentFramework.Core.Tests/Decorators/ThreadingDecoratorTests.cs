@@ -8,7 +8,7 @@ using AgentFramework.Core.Messages.Connections;
 using Hyperledger.Indy.WalletApi;
 using Xunit;
 
-namespace AgentFramework.Core.Tests
+namespace AgentFramework.Core.Tests.Decorators
 {
     public class ThreadingDecoratorTests : IAsyncLifetime
     {

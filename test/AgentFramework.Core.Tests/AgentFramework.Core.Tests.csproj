@@ -25,9 +25,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="4.3.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
-    <PackageReference Include="Moq" Version="4.9.0" />
+    <PackageReference Include="Moq" Version="4.10.1" />
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0">
       <PrivateAssets>all</PrivateAssets>
@@ -38,8 +38,6 @@
     <ProjectReference Include="..\..\src\AgentFramework.AspNetCore\AgentFramework.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\AgentFramework.Core.Handlers\AgentFramework.Core.Handlers.csproj" />
     <ProjectReference Include="..\..\src\AgentFramework.Core\AgentFramework.Core.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Utils\" />
+    <ProjectReference Include="..\..\src\AgentFramework.TestHarness\AgentFramework.TestHarness.csproj" />
   </ItemGroup>
 </Project>

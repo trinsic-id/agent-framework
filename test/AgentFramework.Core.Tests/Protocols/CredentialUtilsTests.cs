@@ -3,7 +3,7 @@ using AgentFramework.Core.Utils;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
-namespace AgentFramework.Core.Tests
+namespace AgentFramework.Core.Tests.Protocols
 {
     public class CredentialUtilsTests
     {
