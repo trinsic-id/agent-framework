@@ -5,9 +5,9 @@ using AgentFramework.TestHarness;
 using AgentFramework.TestHarness.Mock;
 using Xunit;
 
-namespace AgentFramework.Core.Tests.Protocols
+namespace AgentFramework.Core.Tests.Integration
 {
-    public class AgentConnectionTests : IAsyncLifetime
+    public class ConnectionTests : IAsyncLifetime
     {
         WalletConfiguration config1 = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
         WalletConfiguration config2 = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
@@ -26,7 +26,7 @@ namespace AgentFramework.Core.Tests.Protocols
         }
 
         [Fact]
-        public async Task ConnectUsingHttp()
+        public async Task CanConnect()
         {
             await AgentScenarios.EstablishConnectionAsync(_agent1, _agent2);
         }

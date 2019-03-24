@@ -24,5 +24,12 @@ namespace AgentFramework.TestHarness.Mock
         public Task HandleInboundAsync(byte[] data) => ProcessAsync(data, Context);
 
         public async Task Dispose() => await Context.Wallet.CloseAsync();
+
+        protected override void ConfigureHandlers()
+        {
+            AddConnectionHandler();
+            AddForwardHandler();
+            AddCredentialHandler();
+        }
     }
 }

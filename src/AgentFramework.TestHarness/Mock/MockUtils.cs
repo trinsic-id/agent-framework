@@ -4,14 +4,16 @@ using System.Threading.Tasks;
 using AgentFramework.AspNetCore.Configuration.Service;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
+using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Wallets;
+using AgentFramework.TestHarness.Utils;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.TestHarness.Mock
 {
     public class MockUtils
     {
-        public static async Task<MockAgent> CreateAsync(string agentName, WalletConfiguration configuration, WalletCredentials credentials, MockAgentHttpHandler handler)
+        public static async Task<MockAgent> CreateAsync(string agentName, WalletConfiguration configuration, WalletCredentials credentials, MockAgentHttpHandler handler, string issuerSeed = null)
         {
             var container = new ServiceCollection();
 
@@ -23,11 +25,11 @@ namespace AgentFramework.TestHarness.Mock
             var provider = container.BuildServiceProvider();
 
             await provider.GetService<IProvisioningService>()
-                          .ProvisionAgentAsync(new ProvisioningConfiguration { WalletConfiguration = configuration, WalletCredentials = credentials, EndpointUri = new Uri($"http://{agentName}") });
+                          .ProvisionAgentAsync(new ProvisioningConfiguration { WalletConfiguration = configuration, WalletCredentials = credentials, EndpointUri = new Uri($"http://{agentName}"), IssuerSeed = issuerSeed, CreateIssuer = issuerSeed != null });
 
             return new MockAgent(agentName, provider)
             {
-                Context = new AgentContext { Wallet = await provider.GetService<IWalletService>().GetWalletAsync(configuration, credentials) },
+                Context = new AgentContext { Wallet = await provider.GetService<IWalletService>().GetWalletAsync(configuration, credentials), Pool = new PoolAwaitable(PoolUtils.GetPoolAsync) },
                 ServiceProvider = provider
             };
         }
