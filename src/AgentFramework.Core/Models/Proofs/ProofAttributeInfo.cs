@@ -6,27 +6,31 @@ using Newtonsoft.Json.Converters;
 namespace AgentFramework.Core.Models.Proofs
 {
     /// <summary>Attribute filter</summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum AttributeFilter
+    public class AttributeFilter
     {
         /// <summary>The schema identifier</summary>
-        [EnumMember(Value = "schema_id")]
-        SchemaId,
+        [JsonProperty("schema_id", NullValueHandling = NullValueHandling.Ignore)]
+        public string SchemaId { get; set; }
+
         /// <summary>The schema issuer did</summary>
-        [EnumMember(Value = "schema_issuer_did")]
-        SchemaIssuerDid,
+        [JsonProperty("schema_issuer_did", NullValueHandling = NullValueHandling.Ignore)]
+        public string SchemaIssuerDid { get; set; }
+
         /// <summary>The schema name</summary>
-        [EnumMember(Value = "schema_name")]
-        SchemaName,
+        [JsonProperty("schema_name", NullValueHandling = NullValueHandling.Ignore)]
+        public string SchemaName { get; set; }
+
         /// <summary>The schema version</summary>
-        [EnumMember(Value = "schema_version")]
-        SchemaVersion,
+        [JsonProperty("schema_version", NullValueHandling = NullValueHandling.Ignore)]
+        public string SchemaVersion { get; set; }
+
         /// <summary>The issuer did</summary>
-        [EnumMember(Value = "issuer_did")]
-        IssuerDid,
+        [JsonProperty("issuer_did", NullValueHandling = NullValueHandling.Ignore)]
+        public string IssuerDid { get; set; }
+
         /// <summary>The credential definition identifier</summary>
-        [EnumMember(Value = "cred_def_id")]
-        CredentialDefinitionId
+        [JsonProperty("cred_def_id", NullValueHandling = NullValueHandling.Ignore)]
+        public string CredentialDefinitionId { get; set; }
     }
 
     /// <summary>
@@ -57,7 +61,7 @@ namespace AgentFramework.Core.Models.Proofs
         /// </summary>
         /// <value>The restrictions.</value>
         [JsonProperty("restrictions", NullValueHandling = NullValueHandling.Ignore)]
-        public Dictionary<AttributeFilter, string> Restrictions { get; set; }
+        public List<AttributeFilter> Restrictions { get; set; }
 
         /// <summary>
         /// Gets or sets the non revoked interval.
