@@ -42,7 +42,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<byte[]> PrepareAsync(Wallet wallet, AgentMessage message, string recipientKey, string[] routingKeys = null, string senderKey = null)
+        public virtual async Task<byte[]> PrepareAsync(Wallet wallet, AgentMessage message, string recipientKey, string[] routingKeys = null, string senderKey = null)
         {
             if (message == null) throw new ArgumentNullException(nameof(message));
             if (senderKey == null) throw new ArgumentNullException(nameof(senderKey));

@@ -22,7 +22,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<Pool> GetPoolAsync(string poolName)
+        public virtual async Task<Pool> GetPoolAsync(string poolName)
         {
             if (Pools.TryGetValue(poolName, out var pool))
             {
