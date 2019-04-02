@@ -104,7 +104,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task ProvisionAgentAsync(ProvisioningConfiguration configuration)
+        public virtual async Task ProvisionAgentAsync(ProvisioningConfiguration configuration)
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
@@ -175,7 +175,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task UpdateEndpointAsync(Wallet wallet, AgentEndpoint endpoint)
+        public virtual async Task UpdateEndpointAsync(Wallet wallet, AgentEndpoint endpoint)
         {
             var record = await GetProvisioningAsync(wallet);
             record.Endpoint = endpoint;

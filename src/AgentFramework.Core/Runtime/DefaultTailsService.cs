@@ -40,7 +40,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<BlobStorageReader> OpenTailsAsync(string filename)
+        public virtual async Task<BlobStorageReader> OpenTailsAsync(string filename)
         {
             var baseDir = EnvironmentUtils.GetTailsPath();
 
@@ -62,7 +62,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<BlobStorageWriter> CreateTailsAsync()
+        public virtual async Task<BlobStorageWriter> CreateTailsAsync()
         {
             var tailsWriterConfig = new
             {
@@ -75,7 +75,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<string> EnsureTailsExistsAsync(Pool pool, string revocationRegistryId)
+        public virtual async Task<string> EnsureTailsExistsAsync(Pool pool, string revocationRegistryId)
         {
             var revocationRegistry =
                 await LedgerService.LookupRevocationRegistryDefinitionAsync(pool, revocationRegistryId);

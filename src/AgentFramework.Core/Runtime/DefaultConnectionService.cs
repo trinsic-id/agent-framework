@@ -177,7 +177,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<string> ProcessRequestAsync(IAgentContext agentContext, ConnectionRequestMessage request)
+        public virtual async Task<string> ProcessRequestAsync(IAgentContext agentContext, ConnectionRequestMessage request)
         {
             Logger.LogInformation(LoggingEvents.ProcessConnectionRequest, "Did {0}", request.Connection.Did);
 
@@ -197,12 +197,15 @@ namespace AgentFramework.Core.Runtime
 
             agentContext.Connection.SetTag(TagConstants.LastThreadId, request.Id);
             
-            agentContext.Connection.Alias = new ConnectionAlias
-            {
-                Name = request.Label,
-                ImageUrl = request.ImageUrl
-            };
+            if (agentContext.Connection.Alias == null)
+                agentContext.Connection.Alias = new ConnectionAlias();
 
+            if (!string.IsNullOrEmpty(request.Label) && string.IsNullOrEmpty(agentContext.Connection.Alias.Name))
+                agentContext.Connection.Alias.Name = request.Label;
+
+            if (!string.IsNullOrEmpty(request.ImageUrl) && string.IsNullOrEmpty(agentContext.Connection.Alias.ImageUrl))
+                agentContext.Connection.Alias.ImageUrl = request.ImageUrl;
+            
             if (!agentContext.Connection.MultiPartyInvitation)
             {
                 await agentContext.Connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
@@ -237,7 +240,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public async Task<string> ProcessResponseAsync(IAgentContext agentContext, ConnectionResponseMessage response)
+        public virtual async Task<string> ProcessResponseAsync(IAgentContext agentContext, ConnectionResponseMessage response)
         {
             Logger.LogInformation(LoggingEvents.AcceptConnectionResponse, "To {1}", agentContext.Connection.MyDid);
 
