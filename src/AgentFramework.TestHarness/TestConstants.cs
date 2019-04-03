@@ -9,5 +9,7 @@ namespace AgentFramework.TestHarness
         public const string DefaultMockUri = "http://mock.com";
 
         public const string DefaultMasterSecret = "DefaultMasterSecret";
+
+        public const string DefaultVerkey = "~KQ5aMFDb5cmqkv3E98ctUg";
     }
 }
