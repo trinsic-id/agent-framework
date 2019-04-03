@@ -164,16 +164,11 @@ namespace AgentFramework.Core.Runtime
                 challengeMessage.Challenge = challengeRecord.Challenge;
             }
 
-            var message = new EphemeralChallengeMessage
-            {
-                Challenge = challengeRecord.Challenge,
-            };
-
             challengeRecord.SetTag(TagConstants.Role, TagConstants.Requestor);
-            challengeRecord.SetTag(TagConstants.LastThreadId, message.Id);
+            challengeRecord.SetTag(TagConstants.LastThreadId, challengeMessage.Id);
             await RecordService.AddAsync(agentContext.Wallet, challengeRecord);
 
-            return (message,
+            return (challengeMessage,
                     challengeRecord);
         }
 

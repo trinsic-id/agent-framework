@@ -203,6 +203,12 @@ namespace AgentFramework.Core.Tests.Protocols
                 var challengeConfigId = await _ephemeralChallengeService.CreateChallengeConfigAsync(_requestorWallet, challengeConfig);
 
                 (var challenge, var record) = await _ephemeralChallengeService.CreateChallengeAsync(_requestorWallet, challengeConfigId);
+
+                Assert.True(!string.IsNullOrEmpty(challenge.ChallengerName));
+                Assert.True(challenge.RecipientKeys.Count() == 1);
+                Assert.True(challenge.RecipientKeys.First() ==  TestConstants.DefaultVerkey);
+                Assert.True(challenge.ServiceEndpoint == TestConstants.DefaultMockUri);
+
                 _messages.Add(challenge);
 
                 var result = await _ephemeralChallengeService.GetChallengeStateAsync(_requestorWallet, record.Id);
