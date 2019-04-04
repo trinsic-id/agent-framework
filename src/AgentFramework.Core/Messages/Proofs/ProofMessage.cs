@@ -14,6 +14,15 @@ namespace AgentFramework.Core.Messages.Proofs
             Id = Guid.NewGuid().ToString();
             Type = MessageTypes.DisclosedProof;
         }
+
+        /// <summary>
+        /// Gets or sets the comment.
+        /// </summary>
+        /// <value>
+        /// The comment.
+        /// </value>
+        [JsonProperty("comment", NullValueHandling = NullValueHandling.Ignore)]
+        public string Comment { get; set; }
         
         /// <summary>
         /// Gets or sets the proof json.
@@ -21,22 +30,14 @@ namespace AgentFramework.Core.Messages.Proofs
         /// <value>
         /// The proof json.
         /// </value>
+        [JsonProperty("presentation")]
         public string ProofJson { get; set; }
-
-        /// <summary>
-        /// Gets or sets the proof request nonce.
-        /// </summary>
-        /// <value>
-        /// The request nonce.
-        /// </value>
-        public string RequestNonce { get; set; }
         
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +
             $"Id={Id}, " +
             $"Type={Type}, " +
-            $"ProofJson={(ProofJson?.Length > 0 ? "[hidden]" : null)}, " +
-            $"RequestNonce={RequestNonce}";
+            $"ProofJson={(ProofJson?.Length > 0 ? "[hidden]" : null)}";
     }
 }

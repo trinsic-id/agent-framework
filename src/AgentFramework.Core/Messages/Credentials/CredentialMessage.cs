@@ -21,6 +21,7 @@ namespace AgentFramework.Core.Messages.Credentials
         /// <value>
         /// The credential json.
         /// </value>
+        [JsonProperty("issue")]
         public string CredentialJson { get; set; }
 
         /// <summary>
@@ -29,6 +30,7 @@ namespace AgentFramework.Core.Messages.Credentials
         /// <value>
         /// The revocation registry identifier.
         /// </value>
+        [JsonProperty("rev_reg_id")]
         public string RevocationRegistryId { get; set; }
 
         /// <inheritdoc />

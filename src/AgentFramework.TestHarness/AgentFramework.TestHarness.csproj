@@ -8,6 +8,11 @@
     <Version>3.0.3</Version>
     <AssemblyVersion>3.0.3</AssemblyVersion>
     <FileVersion>3.0.3</FileVersion>
+    <PackageLicenseUrl>https://github.com/streetcred-id/agent-framework/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/streetcred-id/agent-framework</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/streetcred-id/agent-framework/blob/master/LICENSE</RepositoryUrl>
+    <Company>AgentFramework</Company>
+    <Authors>Tomislav Markovski, Tobias Looker</Authors>
   </PropertyGroup>
 
   <ItemGroup>

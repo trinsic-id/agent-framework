@@ -16,27 +16,28 @@ namespace AgentFramework.Core.Messages.Credentials
         }
 
         /// <summary>
+        /// Gets or sets the comment.
+        /// </summary>
+        /// <value>
+        /// The comment.
+        /// </value>
+        [JsonProperty("comment", NullValueHandling = NullValueHandling.Ignore)]
+        public string Comment { get; set; }
+
+        /// <summary>
         /// Gets or sets the credential request json.
         /// </summary>
         /// <value>
         /// The credential request json.
         /// </value>
+        [JsonProperty("request")]
         public string CredentialRequestJson { get; set; }
-
-        /// <summary>
-        /// Gets or sets the credential values json.
-        /// </summary>
-        /// <value>
-        /// The credential values json.
-        /// </value>
-        public string CredentialValuesJson { get; set; }
 
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +
             $"Id={Id}, " +
             $"Type={Type}, " +
-            $"CredentialRequestJson={(CredentialRequestJson?.Length > 0 ? "[hidden]" : null)}, " +
-            $"CredentialValuesJson={(CredentialValuesJson?.Length > 0 ? "[hidden]" : null)}";
+            $"CredentialRequestJson={(CredentialRequestJson?.Length > 0 ? "[hidden]" : null)}";
     }
 }

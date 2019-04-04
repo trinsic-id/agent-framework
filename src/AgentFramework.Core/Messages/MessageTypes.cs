@@ -23,27 +23,32 @@
         /// <summary>
         /// The credential offer.
         /// </summary>
-        public const string CredentialOffer = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/credential_offer";
+        public const string CredentialOffer = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/credential-issuance/0.1/credential-offer";
+
+        /// <summary>
+        /// The credential preview
+        /// </summary>
+        public const string CredentialPreview = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/credential-issuance/0.1/credential-preview";
 
         /// <summary>
         /// The credential request.
         /// </summary>
-        public const string CredentialRequest = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/credential_request";
+        public const string CredentialRequest = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/credential-issuance/0.1/credential-request";
 
         /// <summary>
         /// The credential.
         /// </summary>
-        public const string Credential = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/credential";
+        public const string Credential = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/credential-issuance/0.1/credential-issue";
 
         /// <summary>
         /// The proof request.
         /// </summary>
-        public const string ProofRequest = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/proof_request";
+        public const string ProofRequest = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/credential-presentation/0.1/presentation-request";
 
         /// <summary>
         /// The disclosed proof.
         /// </summary>
-        public const string DisclosedProof = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/connections/1.0/disclosed_proof";
+        public const string DisclosedProof = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/credential-presentation/0.1/credential-presentation";
 
         /// <summary>
         /// Ephemeral Challenge Message
