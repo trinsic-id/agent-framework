@@ -16,7 +16,7 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     <PackageLicenseUrl>https://github.com/streetcred-id/agent-framework/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/streetcred-id/agent-framework</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/streetcred-id/agent-framework/blob/master/LICENSE</RepositoryUrl>
+    <RepositoryUrl>https://github.com/streetcred-id/agent-framework</RepositoryUrl>
     <Company>AgentFramework</Company>
     <Authors>Tomislav Markovski, Tobias Looker</Authors>
   </PropertyGroup>
