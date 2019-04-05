@@ -218,9 +218,7 @@ namespace AgentFramework.Core.Tests
             var unpackMsg1 = JsonConvert.DeserializeObject<ConnectionInvitationMessage>(unpackRes1.Message);
 
             Assert.NotNull(unpackMsg1);
-
             Assert.True(unpackRes1.SenderVerkey == sender.VerKey);
-            Assert.True(string.IsNullOrEmpty(unpackRes1.SenderVerkey));
             Assert.True(unpackRes1.RecipientVerkey == recipient.VerKey);
             Assert.Equal("123", unpackMsg1.RecipientKeys[0]);
         }
