@@ -10,6 +10,7 @@ using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
+using AgentFramework.Core.Messages.Routing;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
@@ -21,6 +22,7 @@ using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -99,7 +101,7 @@ namespace AgentFramework.Core.Tests
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             
-            var packed = await CryptoUtils.PackAsync(_wallet, anotherMy.VerKey, null, message);
+            var packed = await CryptoUtils.PackAsync(_wallet, anotherMy.VerKey, message, null);
 
             Assert.NotNull(packed);
         }
@@ -113,7 +115,7 @@ namespace AgentFramework.Core.Tests
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             
-            var packed = await CryptoUtils.PackAsync(_wallet, anotherMy.VerKey, my.VerKey, message);
+            var packed = await CryptoUtils.PackAsync(_wallet, anotherMy.VerKey, message, my.VerKey);
 
             Assert.NotNull(packed);
         }
@@ -127,7 +129,7 @@ namespace AgentFramework.Core.Tests
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             
-            var packed = await CryptoUtils.PackAsync(_wallet, anotherMy.VerKey, null, message);
+            var packed = await CryptoUtils.PackAsync(_wallet, anotherMy.VerKey, message, null);
             var unpack = await CryptoUtils.UnpackAsync(_wallet, packed);
 
             Assert.NotNull(unpack);
@@ -145,7 +147,7 @@ namespace AgentFramework.Core.Tests
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             
-            var packed = await CryptoUtils.PackAsync(_wallet, anotherMy.VerKey, my.VerKey, message);
+            var packed = await CryptoUtils.PackAsync(_wallet, anotherMy.VerKey, message, my.VerKey);
             var unpack = await CryptoUtils.UnpackAsync(_wallet, packed);
 
             var jObject = JObject.Parse(unpack.Message);
@@ -167,7 +169,7 @@ namespace AgentFramework.Core.Tests
             var my = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
             var anotherMy = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
 
-            var packed = await CryptoUtils.PackAsync(_wallet, anotherMy.VerKey, null, message);
+            var packed = await CryptoUtils.PackAsync(_wallet, anotherMy.VerKey, message, null);
             var unpack = await CryptoUtils.UnpackAsync<ConnectionInvitationMessage>(_wallet, packed);
 
             Assert.NotNull(unpack);
@@ -175,7 +177,101 @@ namespace AgentFramework.Core.Tests
         }
 
         [Fact]
-        public async Task SendAsyncThrowsInvalidMessageNoId()
+        public async Task AuthPrepareMessageNoRoutingAsync()
+        {
+            var message = new ConnectionInvitationMessage { RecipientKeys = new[] { "123" } };
+
+            var recipient = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            var sender = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+
+            var encrypted = await _messagingService.PrepareAsync(_wallet, message, recipient.VerKey, new string[0], sender.VerKey);
+
+            var unpackRes = await CryptoUtils.UnpackAsync(_wallet, encrypted);
+            var unpackMsg = JsonConvert.DeserializeObject<ConnectionInvitationMessage>(unpackRes.Message);
+
+            Assert.NotNull(unpackMsg);
+            Assert.True(unpackRes.SenderVerkey == sender.VerKey);
+            Assert.True(unpackRes.RecipientVerkey == recipient.VerKey);
+            Assert.Equal("123", unpackMsg.RecipientKeys[0]);
+        }
+
+        [Fact]
+        public async Task AuthPrepareMessageRoutingAsync()
+        {
+            var message = new ConnectionInvitationMessage { RecipientKeys = new[] { "123" } };
+
+            var recipient = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            var sender = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            var routingRecipient = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+
+            var encrypted = await _messagingService.PrepareAsync(_wallet, message, recipient.VerKey, new[] { routingRecipient.VerKey }, sender.VerKey);
+
+            var unpackRes = await CryptoUtils.UnpackAsync(_wallet, encrypted);
+            var unpackMsg = JsonConvert.DeserializeObject<ForwardMessage>(unpackRes.Message);
+
+            Assert.NotNull(unpackMsg);
+            Assert.True(string.IsNullOrEmpty(unpackRes.SenderVerkey));
+            Assert.True(unpackRes.RecipientVerkey == routingRecipient.VerKey);
+            Assert.Equal(recipient.VerKey, unpackMsg.To);
+
+            var unpackRes1 = await CryptoUtils.UnpackAsync(_wallet, unpackMsg.Message.GetUTF8Bytes());
+            var unpackMsg1 = JsonConvert.DeserializeObject<ConnectionInvitationMessage>(unpackRes1.Message);
+
+            Assert.NotNull(unpackMsg1);
+
+            Assert.True(unpackRes1.SenderVerkey == sender.VerKey);
+            Assert.True(string.IsNullOrEmpty(unpackRes1.SenderVerkey));
+            Assert.True(unpackRes1.RecipientVerkey == recipient.VerKey);
+            Assert.Equal("123", unpackMsg1.RecipientKeys[0]);
+        }
+
+        [Fact]
+        public async Task AnonPrepareMessageNoRoutingAsync()
+        {
+            var message = new ConnectionInvitationMessage { RecipientKeys = new[] { "123" } };
+
+            var recipient = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+
+            var encrypted = await _messagingService.PrepareAsync(_wallet, message, recipient.VerKey);
+
+            var unpackRes = await CryptoUtils.UnpackAsync(_wallet, encrypted);
+            var unpackMsg = JsonConvert.DeserializeObject<ConnectionInvitationMessage>(unpackRes.Message);
+
+            Assert.NotNull(unpackMsg);
+            Assert.True(string.IsNullOrEmpty(unpackRes.SenderVerkey));
+            Assert.True(unpackRes.RecipientVerkey == recipient.VerKey);
+            Assert.Equal("123", unpackMsg.RecipientKeys[0]);
+        }
+
+        [Fact]
+        public async Task AnonPrepareMessageRoutingAsync()
+        {
+            var message = new ConnectionInvitationMessage { RecipientKeys = new[] { "123" } };
+
+            var recipient = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+            var routingRecipient = await Did.CreateAndStoreMyDidAsync(_wallet, "{}");
+
+            var encrypted = await _messagingService.PrepareAsync(_wallet, message, recipient.VerKey, new []{ routingRecipient.VerKey });
+
+            var unpackRes = await CryptoUtils.UnpackAsync(_wallet, encrypted);
+            var unpackMsg = JsonConvert.DeserializeObject<ForwardMessage>(unpackRes.Message);
+
+            Assert.NotNull(unpackMsg);
+            Assert.True(string.IsNullOrEmpty(unpackRes.SenderVerkey));
+            Assert.True(unpackRes.RecipientVerkey == routingRecipient.VerKey);
+            Assert.Equal(recipient.VerKey, unpackMsg.To);
+
+            var unpackRes1 = await CryptoUtils.UnpackAsync(_wallet, unpackMsg.Message.GetUTF8Bytes());
+            var unpackMsg1 = JsonConvert.DeserializeObject<ConnectionInvitationMessage>(unpackRes1.Message);
+
+            Assert.NotNull(unpackMsg1);
+            Assert.True(string.IsNullOrEmpty(unpackRes1.SenderVerkey));
+            Assert.True(unpackRes1.RecipientVerkey == recipient.VerKey);
+            Assert.Equal("123", unpackMsg1.RecipientKeys[0]);
+        }
+
+        [Fact]
+        public async Task SendToConnectionAsyncThrowsInvalidMessageNoId()
         {
             var connection = new ConnectionRecord
             {
@@ -196,7 +292,7 @@ namespace AgentFramework.Core.Tests
         }
 
         [Fact]
-        public async Task SendAsyncThrowsInvalidMessageNoType()
+        public async Task SendToConnectionAsyncThrowsInvalidMessageNoType()
         {
             var connection = new ConnectionRecord
             {
