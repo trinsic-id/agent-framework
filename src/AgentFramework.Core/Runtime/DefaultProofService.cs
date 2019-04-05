@@ -233,8 +233,7 @@ namespace AgentFramework.Core.Runtime
 
             var proofMsg = new ProofMessage
             {
-                ProofJson = proofJson,
-                RequestNonce = JsonConvert.DeserializeObject<ProofRequest>(record.RequestJson).Nonce
+                ProofJson = proofJson
             };
 
             proofMsg.ThreadFrom(threadId);

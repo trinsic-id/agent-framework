@@ -5,9 +5,14 @@
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>A Test Harness for testing AgentFramework</Description>
-    <Version>3.0.3</Version>
-    <AssemblyVersion>3.0.3</AssemblyVersion>
-    <FileVersion>3.0.3</FileVersion>
+    <Version>3.1.0</Version>
+    <AssemblyVersion>3.1.0</AssemblyVersion>
+    <FileVersion>3.1.0</FileVersion>
+    <PackageLicenseUrl>https://github.com/streetcred-id/agent-framework/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/streetcred-id/agent-framework</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/streetcred-id/agent-framework</RepositoryUrl>
+    <Company>AgentFramework</Company>
+    <Authors>Tomislav Markovski, Tobias Looker</Authors>
   </PropertyGroup>
 
   <ItemGroup>
