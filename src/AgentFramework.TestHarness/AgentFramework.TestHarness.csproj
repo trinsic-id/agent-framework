@@ -5,9 +5,9 @@
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>A Test Harness for testing AgentFramework</Description>
-    <Version>3.0.2</Version>
-    <AssemblyVersion>3.0.2</AssemblyVersion>
-    <FileVersion>3.0.2</FileVersion>
+    <Version>3.0.3</Version>
+    <AssemblyVersion>3.0.3</AssemblyVersion>
+    <FileVersion>3.0.3</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
