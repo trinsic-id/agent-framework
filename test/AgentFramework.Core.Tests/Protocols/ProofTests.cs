@@ -270,10 +270,7 @@ namespace AgentFramework.Core.Tests.Protocols
 
             _issuerWallet.Connection = issuerConnection;
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
-                await _proofService.ProcessProofAsync(_issuerWallet, new ProofMessage
-                {
-                    RequestNonce = "123"
-                }));
+                await _proofService.ProcessProofAsync(_issuerWallet, new ProofMessage()));
 
             Assert.True(ex.ErrorCode == ErrorCode.RecordNotFound);
         }

@@ -166,11 +166,7 @@ namespace AgentFramework.Core.Tests.Protocols
             await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, TestConstants.DefaultMasterSecret);
 
             // Holder accepts the credential offer and sends a credential request
-            (var request, _) = await _credentialService.CreateCredentialRequestAsync(_holderWallet, holderCredentialId,
-                new Dictionary<string, string>
-                {
-                    {"dummy_attr", "dummyVal"}
-                });
+            var (request, _) = await _credentialService.CreateCredentialRequestAsync(_holderWallet, holderCredentialId);
             _messages.Add(request);
 
             // Issuer retrieves credential request from cloud agent
@@ -279,11 +275,7 @@ namespace AgentFramework.Core.Tests.Protocols
             await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, TestConstants.DefaultMasterSecret);
 
             // Holder accepts the credential offer and sends a credential request
-            (var request, var _) = await _credentialService.CreateCredentialRequestAsync(_holderWallet, holderCredentialId,
-                new Dictionary<string, string>
-                {
-                    {"dummy_attr", "dummyVal"}
-                });
+            (var request, var _) = await _credentialService.CreateCredentialRequestAsync(_holderWallet, holderCredentialId);
             _messages.Add(request);
 
             // Issuer retrieves credential request from cloud agent
@@ -348,11 +340,7 @@ namespace AgentFramework.Core.Tests.Protocols
             await AnonCreds.ProverCreateMasterSecretAsync(_holderWallet.Wallet, TestConstants.DefaultMasterSecret);
 
             // Holder accepts the credential offer and sends a credential request
-            (var request, var _) = await _credentialService.CreateCredentialRequestAsync(_holderWallet, holderCredentialId,
-                new Dictionary<string, string>
-                {
-                    {"dummy_attr", "dummyVal"}
-                });
+            var (request, _) = await _credentialService.CreateCredentialRequestAsync(_holderWallet, holderCredentialId);
             _messages.Add(request);
 
             // Issuer retrieves credential request from cloud agent
@@ -364,7 +352,8 @@ namespace AgentFramework.Core.Tests.Protocols
                 await _credentialService.ProcessCredentialRequestAsync(_issuerWallet, credentialRequest, issuerConnection);
 
             // Issuer accepts the credential requests and issues a credential
-            (var credential, var _) = await _credentialService.CreateCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId);
+            var (credential, _) = await _credentialService.CreateCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId,
+                new Dictionary<string, string> { { "dummy_attr", "dummyVal" }});
             _messages.Add(credential);
 
             //Try issue the credential again

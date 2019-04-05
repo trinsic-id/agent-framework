@@ -131,12 +131,7 @@ namespace AgentFramework.TestHarness
             await AnonCreds.ProverCreateMasterSecretAsync(holderContext.Wallet, proverMasterSecretId);
 
             // Holder accepts the credential offer and sends a credential request
-            (var request, var _) = await credentialService.CreateCredentialRequestAsync(holderContext, holderCredentialId,
-                new Dictionary<string, string>
-                {
-                    {"first_name", "Jane"},
-                    {"last_name", "Doe"}
-                });
+            var (request, _) = await credentialService.CreateCredentialRequestAsync(holderContext, holderCredentialId);
             messages.TryAdd(request);
 
             // Issuer retrieves credential request from cloud agent
@@ -148,7 +143,12 @@ namespace AgentFramework.TestHarness
                 await credentialService.ProcessCredentialRequestAsync(issuerContext, credentialRequest, issuerConnection);
 
             // Issuer accepts the credential requests and issues a credential
-            (var credentialMessage, var _) = await credentialService.CreateCredentialAsync(issuerContext, issuer.Did, issuerCredentialId);
+            var (credentialMessage, _) = await credentialService.CreateCredentialAsync(issuerContext, issuer.Did, issuerCredentialId,
+                new Dictionary<string, string>
+                {
+                    {"first_name", "john"},
+                    {"last_name", "doe"}
+                });
             messages.TryAdd(credentialMessage);
 
             // Holder retrieves the credential from their cloud agent

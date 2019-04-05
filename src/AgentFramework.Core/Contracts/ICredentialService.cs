@@ -46,13 +46,11 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="agentContext">Agent Context.</param>
         /// <param name="offerId">The offer identifier.</param>
-        /// <param name="attributeValues">The attribute values.</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordNotFound.</exception>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.RecordInInvalidState.</exception>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
         /// <returns>The response async.</returns>
-        Task<(CredentialRequestMessage, CredentialRecord)> CreateCredentialRequestAsync(IAgentContext agentContext, string offerId,
-            Dictionary<string, string> attributeValues = null);
+        Task<(CredentialRequestMessage, CredentialRecord)> CreateCredentialRequestAsync(IAgentContext agentContext, string offerId);
 
         /// <summary>
         /// Rejects a credential offer asynchronous.
