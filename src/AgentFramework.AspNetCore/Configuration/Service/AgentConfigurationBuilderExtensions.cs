@@ -91,6 +91,23 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         }
 
         /// <summary>
+        /// Adds the extended ephemeral challenge service.
+        /// </summary>
+        /// <returns>The extended ephemeral challenge service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TService">The 1st type parameter.</typeparam>
+        /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
+        public static AgentConfigurationBuilder AddExtendedEphemeralChallengeService<TService, TImplementation>(this AgentConfigurationBuilder builder)
+            where TService : class, IEphemeralChallengeService
+            where TImplementation : class, TService, IEphemeralChallengeService
+        {
+            builder.Services.AddSingleton<TImplementation>();
+            builder.Services.AddSingleton<IEphemeralChallengeService>(x => x.GetService<TImplementation>());
+            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
+            return builder;
+        }
+
+        /// <summary>
         /// Adds the extended connection service.
         /// </summary>
         /// <returns>The extended connection service.</returns>

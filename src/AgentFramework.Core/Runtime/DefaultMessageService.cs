@@ -45,11 +45,10 @@ namespace AgentFramework.Core.Runtime
         public virtual async Task<byte[]> PrepareAsync(Wallet wallet, AgentMessage message, string recipientKey, string[] routingKeys = null, string senderKey = null)
         {
             if (message == null) throw new ArgumentNullException(nameof(message));
-            if (senderKey == null) throw new ArgumentNullException(nameof(senderKey));
             if (recipientKey == null) throw new ArgumentNullException(nameof(recipientKey));
 
-            // Authpack
-            var msg = await CryptoUtils.PackAsync(wallet, recipientKey, senderKey, message.ToByteArray());
+            // Pack application level message
+            var msg = await CryptoUtils.PackAsync(wallet, recipientKey, message.ToByteArray(), senderKey);
 
             var previousKey = recipientKey;
 
@@ -60,8 +59,7 @@ namespace AgentFramework.Core.Runtime
                 foreach (var routingKey in routingKeys)
                 {
                     // Anonpack
-                    msg = await CryptoUtils.PackAsync(wallet, routingKey, null,
-                        new ForwardMessage { Message = msg.GetUTF8String(), To = previousKey });
+                    msg = await CryptoUtils.PackAsync(wallet, routingKey, new ForwardMessage { Message = msg.GetUTF8String(), To = previousKey });
                     previousKey = routingKey;
                 }
             }

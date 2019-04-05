@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AgentFramework.Core.Extensions;
 using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.WalletApi;
@@ -14,43 +11,43 @@ namespace AgentFramework.Core.Utils
         /// <summary>Packs a message</summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="recipientKey">The recipient key.</param>
-        /// <param name="senderKey">The sender key.</param>
         /// <param name="message">The message.</param>
+        /// <param name="senderKey">The sender key.</param>
         /// <returns>Encrypted message formatted as JWE using UTF8 byte order</returns>
         public static Task<byte[]> PackAsync(
-            Wallet wallet, string recipientKey, string senderKey, byte[] message) =>
-            PackAsync(wallet, new[] {recipientKey}, senderKey, message);
+            Wallet wallet, string recipientKey, byte[] message, string senderKey = null) =>
+            PackAsync(wallet, new[] { recipientKey }, message, senderKey);
 
         /// <summary>Packs the asynchronous.</summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="recipientKeys">The recipient keys.</param>
-        /// <param name="senderKey">The sender key.</param>
         /// <param name="message">The message.</param>
+        /// <param name="senderKey">The sender key.</param>
         /// <returns>Encrypted message formatted as JWE using UTF8 byte order</returns>
         public static Task<byte[]> PackAsync(
-            Wallet wallet, string[] recipientKeys, string senderKey, byte[] message) =>
+            Wallet wallet, string[] recipientKeys, byte[] message, string senderKey = null) =>
             Crypto.PackMessageAsync(wallet, recipientKeys.ToJson(), senderKey, message);
 
         /// <summary>Packs the asynchronous.</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="wallet">The wallet.</param>
         /// <param name="recipientKey">The recipient key.</param>
-        /// <param name="senderKey">The sender key.</param>
         /// <param name="message">The message.</param>
+        /// <param name="senderKey">The sender key.</param>
         /// <returns>Encrypted message formatted as JWE using UTF8 byte order</returns>
         public static Task<byte[]> PackAsync<T>(
-            Wallet wallet, string recipientKey, string senderKey, T message) =>
-            PackAsync(wallet, new[] {recipientKey}, senderKey, message.ToByteArray());
+            Wallet wallet, string recipientKey, T message, string senderKey = null) =>
+            PackAsync(wallet, new[] { recipientKey }, message.ToByteArray(), senderKey);
 
         /// <summary>Packs the asynchronous.</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="wallet">The wallet.</param>
         /// <param name="recipientKeys">The recipient keys.</param>
-        /// <param name="senderKey">The sender key.</param>
         /// <param name="message">The message.</param>
+        /// <param name="senderKey">The sender key.</param>
         /// <returns>Encrypted message formatted as JWE using UTF8 byte order</returns>
         public static Task<byte[]> PackAsync<T>(
-            Wallet wallet, string[] recipientKeys, string senderKey, T message) =>
+            Wallet wallet, string[] recipientKeys, T message, string senderKey = null) =>
             Crypto.PackMessageAsync(wallet, recipientKeys.ToJson(), senderKey, message.ToByteArray());
 
         /// <summary>Unpacks the asynchronous.</summary>
