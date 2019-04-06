@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
@@ -19,6 +20,26 @@ namespace AgentFramework.Core.Runtime
         /// <inheritdoc />
         public virtual async Task<Wallet> GetWalletAsync(WalletConfiguration configuration, WalletCredentials credentials)
         {
+            var wallet = GetWalletFromCache(configuration);
+
+            if (wallet != null)
+                return wallet;
+
+            try
+            {
+                wallet = await Wallet.OpenWalletAsync(configuration.ToJson(), credentials.ToJson());
+                Wallets.TryAdd(configuration.Id, wallet);
+            }
+            catch (WalletAlreadyOpenedException)
+            {
+                wallet = GetWalletFromCache(configuration);
+            }
+
+            return wallet;
+        }
+
+        private Wallet GetWalletFromCache(WalletConfiguration configuration)
+        {
             if (Wallets.TryGetValue(configuration.Id, out var wallet))
             {
                 if (wallet.IsOpen)
@@ -26,12 +47,7 @@ namespace AgentFramework.Core.Runtime
 
                 Wallets.TryRemove(configuration.Id, out wallet);
             }
-
-            wallet = await Wallet.OpenWalletAsync(configuration.ToJson(), credentials.ToJson());
-
-            Wallets.TryAdd(configuration.Id, wallet);
-
-            return wallet;
+            return null;
         }
 
         /// <inheritdoc />
