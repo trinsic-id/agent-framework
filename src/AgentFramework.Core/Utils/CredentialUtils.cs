@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages.Credentials;
@@ -31,7 +33,7 @@ namespace AgentFramework.Core.Utils
                         result.Add(item.Name, FormatStringCredentialAttribute(item));
                         break;
                     default:
-                        throw new AgentFrameworkException(ErrorCode.InvalidParameterFormat, $"Mime Type of {item.MimeType} not supported");
+                        throw new AgentFrameworkException(ErrorCode.InvalidParameterFormat, $"{item.Name} mime type of {item.MimeType} not supported");
                 }
             }
             return result.ToJson();
@@ -58,7 +60,7 @@ namespace AgentFramework.Core.Utils
                 case CredentialMimeTypes.TextMimeType:
                     break;
                 default:
-                    throw new AgentFrameworkException(ErrorCode.InvalidParameterFormat, $"Mime Type of {attribute.MimeType} not supported");
+                    throw new AgentFrameworkException(ErrorCode.InvalidParameterFormat, $"{attribute.Name} mime type of {attribute.MimeType} not supported");
             }
         }
 
@@ -68,10 +70,22 @@ namespace AgentFramework.Core.Utils
         /// <param name="attributes">Credential preview attributes.</param>
         public static void ValidateCredentialPreviewAttributes(IEnumerable<CredentialPreviewAttribute> attributes)
         {
+            var validationErrors = new List<string>();
+
             foreach (var attribute in attributes)
             {
-                ValidateCredentialPreviewAttribute(attribute);
+                try
+                {
+                    ValidateCredentialPreviewAttribute(attribute);
+                }
+                catch (AgentFrameworkException e)
+                {
+                    validationErrors.Add(e.Message);
+                }
             }
+
+            if (validationErrors.Any())
+                throw new AgentFrameworkException(ErrorCode.InvalidParameterFormat, validationErrors.ToArray());
         }
 
         /// <summary>

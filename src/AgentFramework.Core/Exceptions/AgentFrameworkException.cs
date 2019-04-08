@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace AgentFramework.Core.Exceptions
 {
@@ -42,6 +43,16 @@ namespace AgentFramework.Core.Exceptions
         /// <param name="message">The message.</param>
         /// <param name="innerException">The inner exception.</param>
         public AgentFrameworkException(ErrorCode errorCode, string message, Exception innerException) : base(message, innerException)
+        {
+            ErrorCode = errorCode;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AgentFrameworkException"/> class.
+        /// </summary>
+        /// <param name="errorCode">The error code.</param>
+        /// <param name="messages">The message to concatenate together.</param>
+        public AgentFrameworkException(ErrorCode errorCode, string[] messages) : base(string.Join("\n",messages))
         {
             ErrorCode = errorCode;
         }

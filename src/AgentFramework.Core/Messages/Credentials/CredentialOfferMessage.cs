@@ -92,6 +92,11 @@ namespace AgentFramework.Core.Messages.Credentials
     public class CredentialPreviewAttribute
     {
         /// <summary>
+        /// Default Constructor.
+        /// </summary>
+        public CredentialPreviewAttribute() { }
+
+        /// <summary>
         /// String type credential attribute constructor.
         /// </summary>
         /// <param name="name">Name of the credential attribute.</param>

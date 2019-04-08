@@ -157,18 +157,11 @@ namespace AgentFramework.Core.Tests.Protocols
         }
 
         [Fact]
-        public async Task CreateCredentialOfferWithAttributeValuesThrowsException()
+        public async Task CreateCredentialOfferWithBadAttributeValuesThrowsException()
         {
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
-                new { seed = "000000000000000000000000Steward1" }.ToJson());
-
-            var result = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
-                new[] { "test-attr" });
-
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.CreateOfferAsync(_issuerWallet,
                 new OfferConfiguration
                 {
-                    CredentialDefinitionId = result.Item1,
                     CredentialAttributeValues = new List<CredentialPreviewAttribute>
                     {
                         new CredentialPreviewAttribute("test-attr","test-attr-value")
@@ -180,6 +173,30 @@ namespace AgentFramework.Core.Tests.Protocols
 
             Assert.True(ex.ErrorCode == ErrorCode.InvalidParameterFormat);
         }
+
+        [Fact]
+        public async Task CreateCredentialOfferWithMultipleBadAttributeValuesThrowsException()
+        {
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.CreateOfferAsync(_issuerWallet,
+                new OfferConfiguration
+                {
+                    CredentialAttributeValues = new List<CredentialPreviewAttribute>
+                    {
+                        new CredentialPreviewAttribute("test-attr","test-attr-value")
+                        {
+                            MimeType = "bad-mime-type"
+                        },
+                        new CredentialPreviewAttribute("test-attr1","test-attr-value1")
+                        {
+                            MimeType = "bad-mime-type"
+                        }
+                    }
+                }));
+
+            Assert.True(ex.ErrorCode == ErrorCode.InvalidParameterFormat);
+            Assert.True(ex.Message.Split('\n').Count() == 2);
+        }
+
 
         [Fact]
         public async Task RevokeCredentialOfferThrowsCredentialNotFound()
