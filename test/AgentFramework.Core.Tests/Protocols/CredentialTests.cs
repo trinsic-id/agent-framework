@@ -152,7 +152,7 @@ namespace AgentFramework.Core.Tests.Protocols
             var previewAttr = msg.Preview.Attributes.ToArray()[0];
 
             Assert.True(previewAttr.Name == "test-attr");
-            Assert.True(previewAttr.Name == CredentialMimeTypes.TextMimeType);
+            Assert.True(previewAttr.MimeType == CredentialMimeTypes.TextMimeType);
             Assert.True(previewAttr.Value == "test-attr-value");
         }
 

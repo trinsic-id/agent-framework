@@ -117,7 +117,7 @@ namespace AgentFramework.Core.Runtime
                 OfferJson = offerJson,
                 ConnectionId = connection.Id,
                 CredentialDefinitionId = definitionId,
-                CredentialAttributesValues = credentialOffer.Preview.Attributes,
+                CredentialAttributesValues = credentialOffer.Preview?.Attributes,
                 SchemaId = schemaId,
                 State = CredentialState.Offered
             };
