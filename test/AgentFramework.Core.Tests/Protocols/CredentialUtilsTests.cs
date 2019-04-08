@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Utils;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -10,10 +11,18 @@ namespace AgentFramework.Core.Tests.Protocols
         [Fact]
         public void CanFormatCredentialValues()
         {
-            var attributeValues = new Dictionary<string, string>
+            var attributeValues = new List<CredentialPreviewAttribute>
             {
-                {"first_name", "Test"},
-                {"last_name", "holder"}
+                new CredentialPreviewAttribute
+                {
+                    Name = "first_name",
+                    Value = "Test"
+                },
+                new CredentialPreviewAttribute
+                {
+                    Name = "last_name",
+                    Value = "holder"
+                }
             };
 
             var expectedResult =

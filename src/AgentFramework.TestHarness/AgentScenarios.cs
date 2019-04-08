@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
+using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Events;
@@ -79,10 +80,18 @@ namespace AgentFramework.TestHarness
             {
                 IssuerDid = issuerProv.IssuerDid,
                 CredentialDefinitionId = definitionId,
-                CredentialAttributeValues = new Dictionary<string, string>()
+                CredentialAttributeValues = new List<CredentialPreviewAttribute>
                 {
-                    { "first_name", "Test" },
-                    { "last_name", "Holder" }
+                    new CredentialPreviewAttribute
+                    {
+                        Name = "first_name",
+                        Value = "Test"
+                    },
+                    new CredentialPreviewAttribute
+                    {
+                        Name = "last_name",
+                        Value = "Holder"
+                    }
                 }
             }, issuerConnection.Id);
             await messsageService.SendToConnectionAsync(issuer.Context.Wallet, offer, issuerConnection);
@@ -101,6 +110,10 @@ namespace AgentFramework.TestHarness
                 .Subscribe(x => requestSlim.Release());
 
             (var request, var holderCredentialRecord) = await credentialService.CreateCredentialRequestAsync(holder.Context, offers[0].Id);
+
+            Assert.NotNull(holderCredentialRecord.CredentialAttributesValues);
+            Assert.True(holderCredentialRecord.CredentialAttributesValues.Count() == 2);
+
             await messsageService.SendToConnectionAsync(holder.Context.Wallet, request, holderConnection);
 
             await requestSlim.WaitAsync(TimeSpan.FromSeconds(30));

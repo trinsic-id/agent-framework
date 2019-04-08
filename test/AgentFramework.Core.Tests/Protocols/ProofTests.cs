@@ -25,9 +25,9 @@ namespace AgentFramework.Core.Tests.Protocols
 {
     public class ProofTests : IAsyncLifetime
     {
-        private const string IssuerConfig = "{\"id\":\"issuer_proof_test_wallet\"}";
-        private const string HolderConfig = "{\"id\":\"holder_proof_test_wallet\"}";
-        private const string RequestorConfig = "{\"id\":\"requestor_proof_test_wallet\"}";
+        private readonly string IssuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
+        private readonly string HolderConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
+        private readonly string RequestorConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
         private const string WalletCredentials = "{\"key\":\"test_wallet_key\"}";
 
         private IAgentContext _issuerWallet;

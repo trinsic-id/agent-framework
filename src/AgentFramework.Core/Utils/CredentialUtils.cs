@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Messages.Credentials;
 using Hyperledger.Indy.AnonCredsApi;
 using Newtonsoft.Json.Linq;
 
@@ -14,16 +16,16 @@ namespace AgentFramework.Core.Utils
         /// Formats the credential values into a JSON usable with the <see cref="AnonCreds"/> API
         /// </summary>
         /// <returns>The credential values.</returns>
-        /// <param name="values">Values.</param>
-        public static string FormatCredentialValues(Dictionary<string, string> values)
+        /// <param name="credentialAttributes">The credential attributes.</param>
+        public static string FormatCredentialValues(IEnumerable<CredentialPreviewAttribute> credentialAttributes)
         {
-            if (values == null)
+            if (credentialAttributes == null)
                 return null;
 
             var result = new Dictionary<string, Dictionary<string, string>>();
-            foreach (var item in values)
+            foreach (var item in credentialAttributes)
             {
-                result.Add(item.Key, new Dictionary<string, string>
+                result.Add(item.Name, new Dictionary<string, string>
                 {
                     { "raw", item.Value },
                     { "encoded", "1234567890" } // TODO: Add value encoding
