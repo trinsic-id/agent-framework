@@ -244,8 +244,15 @@ namespace AgentFramework.Core.Runtime
                 var connection = await ConnectionService.GetAsync(agentContext, connectionId);
 
                 if (connection.State != ConnectionState.Connected)
+                {
                     throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
                         $"Connection state was invalid. Expected '{ConnectionState.Connected}', found '{connection.State}'");
+                }
+            }
+
+            if (config.CredentialAttributeValues != null && config.CredentialAttributeValues.Any())
+            {
+                CredentialUtils.ValidateCredentialPreviewAttributes(config.CredentialAttributeValues);
             }
 
             var offerJson = await AnonCreds.IssuerCreateCredentialOfferAsync(

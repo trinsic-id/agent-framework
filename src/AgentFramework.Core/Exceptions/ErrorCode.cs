@@ -34,6 +34,10 @@
         /// <summary>
         /// The message unpack error
         /// </summary>
-        MessageUnpackError
+        MessageUnpackError,
+        /// <summary>
+        /// The parameter was in an invalid format
+        /// </summary>
+        InvalidParameterFormat
     }
 }

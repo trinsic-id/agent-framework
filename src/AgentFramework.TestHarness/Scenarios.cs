@@ -146,16 +146,8 @@ namespace AgentFramework.TestHarness
             var (credentialMessage, _) = await credentialService.CreateCredentialAsync(issuerContext, issuer.Did, issuerCredentialId,
                 new List<CredentialPreviewAttribute>
                 {
-                    new CredentialPreviewAttribute
-                    {
-                        Name = "first_name",
-                        Value = "john"
-                    },
-                    new CredentialPreviewAttribute
-                    {
-                        Name = "last_name",
-                        Value = "doe"
-                    }
+                    new CredentialPreviewAttribute("first_name", "john"),
+                    new CredentialPreviewAttribute("last_name", "doe")
                 });
             messages.TryAdd(credentialMessage);
 

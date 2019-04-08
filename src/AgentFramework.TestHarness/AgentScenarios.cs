@@ -82,16 +82,8 @@ namespace AgentFramework.TestHarness
                 CredentialDefinitionId = definitionId,
                 CredentialAttributeValues = new List<CredentialPreviewAttribute>
                 {
-                    new CredentialPreviewAttribute
-                    {
-                        Name = "first_name",
-                        Value = "Test"
-                    },
-                    new CredentialPreviewAttribute
-                    {
-                        Name = "last_name",
-                        Value = "Holder"
-                    }
+                    new CredentialPreviewAttribute("first_name", "Test"),
+                    new CredentialPreviewAttribute("last_name", "Holder")
                 }
             }, issuerConnection.Id);
             await messsageService.SendToConnectionAsync(issuer.Context.Wallet, offer, issuerConnection);

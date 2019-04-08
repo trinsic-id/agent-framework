@@ -92,6 +92,18 @@ namespace AgentFramework.Core.Messages.Credentials
     public class CredentialPreviewAttribute
     {
         /// <summary>
+        /// String type credential attribute constructor.
+        /// </summary>
+        /// <param name="name">Name of the credential attribute.</param>
+        /// <param name="value">Value of the credential attribute.</param>
+        public CredentialPreviewAttribute(string name, string value)
+        {
+            Name = name;
+            Value = value;
+            MimeType = CredentialMimeTypes.TextMimeType;
+        }
+
+        /// <summary>
         /// Gets or sets the name.
         /// </summary>
         /// <value>
@@ -116,6 +128,17 @@ namespace AgentFramework.Core.Messages.Credentials
         /// The value.
         /// </value>
         [JsonProperty("value")]
-        public string Value { get; set; }
+        public object Value { get; set; }
+    }
+
+    /// <summary>
+    /// Valid Mime types for credential attributes.
+    /// </summary>
+    public static class CredentialMimeTypes
+    {
+        /// <summary>
+        /// Text mime type attribute.
+        /// </summary>
+        public const string TextMimeType = "text/plain";
     }
 }

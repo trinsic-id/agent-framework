@@ -140,11 +140,7 @@ namespace AgentFramework.Core.Tests.Protocols
                     CredentialDefinitionId = result.Item1,
                     CredentialAttributeValues = new List<CredentialPreviewAttribute>
                     {
-                        new CredentialPreviewAttribute
-                        {
-                            Name = "test-attr",
-                            Value = "test-attr-value"
-                        }
+                        new CredentialPreviewAttribute("test-attr","test-attr-value")
                     }
                 });
 
@@ -156,7 +152,33 @@ namespace AgentFramework.Core.Tests.Protocols
             var previewAttr = msg.Preview.Attributes.ToArray()[0];
 
             Assert.True(previewAttr.Name == "test-attr");
+            Assert.True(previewAttr.Name == CredentialMimeTypes.TextMimeType);
             Assert.True(previewAttr.Value == "test-attr-value");
+        }
+
+        [Fact]
+        public async Task CreateCredentialOfferWithAttributeValuesThrowsException()
+        {
+            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
+                new { seed = "000000000000000000000000Steward1" }.ToJson());
+
+            var result = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
+                new[] { "test-attr" });
+
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.CreateOfferAsync(_issuerWallet,
+                new OfferConfiguration
+                {
+                    CredentialDefinitionId = result.Item1,
+                    CredentialAttributeValues = new List<CredentialPreviewAttribute>
+                    {
+                        new CredentialPreviewAttribute("test-attr","test-attr-value")
+                        {
+                            MimeType = "bad-mime-type"
+                        }
+                    }
+                }));
+
+            Assert.True(ex.ErrorCode == ErrorCode.InvalidParameterFormat);
         }
 
         [Fact]
@@ -389,11 +411,7 @@ namespace AgentFramework.Core.Tests.Protocols
 
             // Issuer accepts the credential requests and issues a credential
             var (credential, _) = await _credentialService.CreateCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId,
-                new List<CredentialPreviewAttribute> { new CredentialPreviewAttribute()
-                {
-                    Name = "dummy_attr",
-                    Value = "dummyVal"
-                }});
+                new List<CredentialPreviewAttribute> { new CredentialPreviewAttribute("dummy_attr","dummyVal")});
             _messages.Add(credential);
 
             //Try issue the credential again
