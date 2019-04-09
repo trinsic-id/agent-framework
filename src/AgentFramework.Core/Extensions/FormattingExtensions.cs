@@ -53,7 +53,7 @@ namespace AgentFramework.Core.Extensions
         /// to an equivalent 8-bit unsigned integer array.</summary>
         /// <param name="value">The value.</param>
         /// <returns></returns>
-        public static byte[] GetBytesFromBase64(this string value) => Convert.FromBase64String(value);
+        public static byte[] GetBytesFromBase64(this string value) => Convert.FromBase64String(DecodeUrlSafe(value));
 
         /// <summary>Converts an array of 8-bit unsigned integers to its equivalent string
         /// representation that is encoded with base-64 digits.</summary>
@@ -91,5 +91,7 @@ namespace AgentFramework.Core.Extensions
         /// <returns></returns>
         public static string ToBase58(this string value) =>
             Multibase.Base58.Encode(Encoding.UTF8.GetBytes(value));
+
+        private static string DecodeUrlSafe(string value) => value.Replace("-", "+").Replace("_", "/");
     }
 }
