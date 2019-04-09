@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AgentFramework.Core.Messages.Credentials;
+using AgentFramework.Core.Models.Credentials;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Stateless;

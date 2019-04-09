@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
-using AgentFramework.Core.Messages.Credentials;
+using AgentFramework.Core.Models.Credentials;
 using Hyperledger.Indy.AnonCredsApi;
 using Newtonsoft.Json.Linq;
 
@@ -48,7 +47,6 @@ namespace AgentFramework.Core.Utils
             };
         }
 
-
         /// <summary>
         /// Validates if the credential preview attribute is valid.
         /// </summary>
@@ -86,6 +84,40 @@ namespace AgentFramework.Core.Utils
 
             if (validationErrors.Any())
                 throw new AgentFrameworkException(ErrorCode.InvalidParameterFormat, validationErrors.ToArray());
+        }
+
+        /// <summary>
+        /// Casts an attribute value object to its respective type.
+        /// </summary>
+        /// <param name="attributeValue">Attribute value object.</param>
+        /// <param name="mimeType">Mime type to cast the attribute value to.</param>
+        /// <returns></returns>
+        public static object CastAttribute(object attributeValue, string mimeType)
+        {
+            switch (mimeType)
+            {
+                case CredentialMimeTypes.TextMimeType:
+                    return (string) attributeValue;
+                default:
+                    throw new AgentFrameworkException(ErrorCode.InvalidParameterFormat, $"Mime type of {mimeType} not supported");
+            }
+        }
+
+        /// <summary>
+        /// Casts an attribute value object to its respective type.
+        /// </summary>
+        /// <param name="attributeValue">Attribute value object.</param>
+        /// <param name="mimeType">Mime type to cast the attribute value to.</param>
+        /// <returns></returns>
+        public static object CastAttribute(JToken attributeValue, string mimeType)
+        {
+            switch (mimeType)
+            {
+                case CredentialMimeTypes.TextMimeType:
+                    return attributeValue.Value<string>();
+                default:
+                    throw new AgentFrameworkException(ErrorCode.InvalidParameterFormat, $"Mime type of {mimeType} not supported");
+            }
         }
 
         /// <summary>

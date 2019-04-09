@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using AgentFramework.Core.Exceptions;
-using AgentFramework.Core.Messages.Credentials;
+using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Utils;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -9,6 +10,32 @@ namespace AgentFramework.Core.Tests.Protocols
 {
     public class CredentialUtilsTests
     {
+        [Fact]
+        public void CanCastStringAttribute()
+        {
+            object attributeValue = "tester";
+
+            var output = CredentialUtils.CastAttribute(attributeValue, CredentialMimeTypes.TextMimeType);
+
+            Assert.IsType<string>(output);
+        }
+
+        [Fact]
+        public void CanSerializeDeserializeCredentialPreviewAttribute()
+        {
+            var credentialAttributePreview = new CredentialPreviewAttribute("test-attr", "testing");
+
+            var jsonPayload = JsonConvert.SerializeObject(credentialAttributePreview);
+
+            //TODO assert
+
+            var output = JsonConvert.DeserializeObject<CredentialPreviewAttribute>(jsonPayload);
+
+            Assert.Equal(output.Name, credentialAttributePreview.Name);
+            Assert.Equal(output.Value, credentialAttributePreview.Value);
+            Assert.Equal(output.MimeType, credentialAttributePreview.MimeType);
+        }
+
         [Fact]
         public void CanValidateCredentialAttribute()
         {
