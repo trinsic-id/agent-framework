@@ -125,7 +125,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="values">Values.</param>
         /// <returns>The response async.</returns>
         Task<(CredentialMessage, CredentialRecord)> CreateCredentialAsync(IAgentContext agentContext, string issuerDid, string credentialRequestId,
-            Dictionary<string, string> values);
+            IEnumerable<CredentialPreviewAttribute> values);
 
         /// <summary>
         /// Rejects a credential request asynchronous.

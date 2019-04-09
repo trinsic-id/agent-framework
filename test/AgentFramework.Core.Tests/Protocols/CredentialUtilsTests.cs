@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
+using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Utils;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -8,12 +11,68 @@ namespace AgentFramework.Core.Tests.Protocols
     public class CredentialUtilsTests
     {
         [Fact]
-        public void CanFormatCredentialValues()
+        public void CanCastStringAttribute()
         {
-            var attributeValues = new Dictionary<string, string>
+            object attributeValue = "tester";
+
+            var output = CredentialUtils.CastAttribute(attributeValue, CredentialMimeTypes.TextMimeType);
+
+            Assert.IsType<string>(output);
+        }
+
+        [Fact]
+        public void CanSerializeDeserializeCredentialPreviewAttribute()
+        {
+            var credentialAttributePreview = new CredentialPreviewAttribute("test-attr", "testing");
+
+            var jsonPayload = JsonConvert.SerializeObject(credentialAttributePreview);
+
+            //TODO assert
+
+            var output = JsonConvert.DeserializeObject<CredentialPreviewAttribute>(jsonPayload);
+
+            Assert.Equal(output.Name, credentialAttributePreview.Name);
+            Assert.Equal(output.Value, credentialAttributePreview.Value);
+            Assert.Equal(output.MimeType, credentialAttributePreview.MimeType);
+        }
+
+        [Fact]
+        public void CanValidateCredentialAttribute()
+        {
+            var attributeValue = new CredentialPreviewAttribute("first_name", "Test");
+            
+            CredentialUtils.ValidateCredentialPreviewAttribute(attributeValue);
+        }
+
+        [Fact]
+        public void CanDetectBadMimeTypeCredentialAttribute()
+        {
+            var attributeValue = new CredentialPreviewAttribute("first_name", "Test");
+
+            attributeValue.MimeType = "bad-mime-type";
+
+            var ex = Assert.Throws<AgentFrameworkException>(() => CredentialUtils.ValidateCredentialPreviewAttribute(attributeValue));
+            Assert.True(ex.ErrorCode == ErrorCode.InvalidParameterFormat);
+        }
+
+        [Fact]
+        public void CanDetectNoMimeTypeCredentialAttribute()
+        {
+            var attributeValue = new CredentialPreviewAttribute("first_name", "Test");
+
+            attributeValue.MimeType = null;
+
+            var ex = Assert.Throws<AgentFrameworkException>(() => CredentialUtils.ValidateCredentialPreviewAttribute(attributeValue));
+            Assert.True(ex.ErrorCode == ErrorCode.InvalidParameterFormat);
+        }
+
+        [Fact]
+        public void CanFormatStringCredentialValues()
+        {
+            var attributeValues = new List<CredentialPreviewAttribute>
             {
-                {"first_name", "Test"},
-                {"last_name", "holder"}
+                new CredentialPreviewAttribute("first_name","Test"),
+                new CredentialPreviewAttribute("last_name","holder")
             };
 
             var expectedResult =

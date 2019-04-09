@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using AgentFramework.Core.Models.Credentials;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Stateless;
@@ -65,7 +68,7 @@ namespace AgentFramework.Core.Models.Records
         /// Gets or sets the user values json.
         /// </summary>
         /// <value>The values json.</value>
-        public string ValuesJson
+        public IEnumerable<CredentialPreviewAttribute> CredentialAttributesValues
         {
             get;
             set;
@@ -181,7 +184,7 @@ namespace AgentFramework.Core.Models.Records
             $"CredentialDefinitionId={CredentialDefinitionId}, " +
             $"CredentialRevocationId={CredentialRevocationId}, " +
             $"RequestJson={(RequestJson?.Length > 0 ? "[hidden]" : null)}, " +
-            $"ValuesJson={(ValuesJson?.Length > 0 ? "[hidden]" : null)}, " +
+            $"CredentialAttributeValues={(CredentialAttributesValues?.Count() > 0 ? "[hidden]" : null)}, " +
             $"OfferJson={(OfferJson?.Length > 0 ? "[hidden]" : null)}, " +
             $"CredentialRequestMetadataJson={(CredentialRequestMetadataJson?.Length > 0 ? "[hidden]" : null)}, " +
             base.ToString(); 
