@@ -144,10 +144,10 @@ namespace AgentFramework.TestHarness
 
             // Issuer accepts the credential requests and issues a credential
             var (credentialMessage, _) = await credentialService.CreateCredentialAsync(issuerContext, issuer.Did, issuerCredentialId,
-                new Dictionary<string, string>
+                new List<CredentialPreviewAttribute>
                 {
-                    {"first_name", "john"},
-                    {"last_name", "doe"}
+                    new CredentialPreviewAttribute("first_name", "john"),
+                    new CredentialPreviewAttribute("last_name", "doe")
                 });
             messages.TryAdd(credentialMessage);
 

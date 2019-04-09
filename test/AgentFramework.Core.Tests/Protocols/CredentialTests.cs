@@ -117,11 +117,86 @@ namespace AgentFramework.Core.Tests.Protocols
             var result = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
                 new[] {"test-attr"});
 
-            var (_, credentialRecord) = await _credentialService.CreateOfferAsync(_issuerWallet,
+            var (msg, credentialRecord) = await _credentialService.CreateOfferAsync(_issuerWallet,
                 new OfferConfiguration { CredentialDefinitionId = result.Item1 });
 
             Assert.Equal(CredentialState.Offered, credentialRecord.State);
+            Assert.NotNull(msg);
+            Assert.Null(msg.Preview);
         }
+
+        [Fact]
+        public async Task CanCreateCredentialOfferWithPreview()
+        {
+            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet.Wallet,
+                new { seed = "000000000000000000000000Steward1" }.ToJson());
+
+            var result = await Scenarios.CreateDummySchemaAndNonRevokableCredDef(_issuerWallet, _schemaService, issuer.Did,
+                new[] { "test-attr" });
+
+            var (msg, credentialRecord) = await _credentialService.CreateOfferAsync(_issuerWallet,
+                new OfferConfiguration
+                {
+                    CredentialDefinitionId = result.Item1,
+                    CredentialAttributeValues = new List<CredentialPreviewAttribute>
+                    {
+                        new CredentialPreviewAttribute("test-attr","test-attr-value")
+                    }
+                });
+
+            Assert.Equal(CredentialState.Offered, credentialRecord.State);
+            Assert.NotNull(msg);
+            Assert.NotNull(msg.Preview);
+            Assert.True(msg.Preview.Attributes.Count() == 1);
+
+            var previewAttr = msg.Preview.Attributes.ToArray()[0];
+
+            Assert.True(previewAttr.Name == "test-attr");
+            Assert.True(previewAttr.MimeType == CredentialMimeTypes.TextMimeType);
+            Assert.True(previewAttr.Value == "test-attr-value");
+        }
+
+        [Fact]
+        public async Task CreateCredentialOfferWithBadAttributeValuesThrowsException()
+        {
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.CreateOfferAsync(_issuerWallet,
+                new OfferConfiguration
+                {
+                    CredentialAttributeValues = new List<CredentialPreviewAttribute>
+                    {
+                        new CredentialPreviewAttribute("test-attr","test-attr-value")
+                        {
+                            MimeType = "bad-mime-type"
+                        }
+                    }
+                }));
+
+            Assert.True(ex.ErrorCode == ErrorCode.InvalidParameterFormat);
+        }
+
+        [Fact]
+        public async Task CreateCredentialOfferWithMultipleBadAttributeValuesThrowsException()
+        {
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _credentialService.CreateOfferAsync(_issuerWallet,
+                new OfferConfiguration
+                {
+                    CredentialAttributeValues = new List<CredentialPreviewAttribute>
+                    {
+                        new CredentialPreviewAttribute("test-attr","test-attr-value")
+                        {
+                            MimeType = "bad-mime-type"
+                        },
+                        new CredentialPreviewAttribute("test-attr1","test-attr-value1")
+                        {
+                            MimeType = "bad-mime-type"
+                        }
+                    }
+                }));
+
+            Assert.True(ex.ErrorCode == ErrorCode.InvalidParameterFormat);
+            Assert.True(ex.Message.Split('\n').Count() == 2);
+        }
+
 
         [Fact]
         public async Task RevokeCredentialOfferThrowsCredentialNotFound()
@@ -353,7 +428,7 @@ namespace AgentFramework.Core.Tests.Protocols
 
             // Issuer accepts the credential requests and issues a credential
             var (credential, _) = await _credentialService.CreateCredentialAsync(_issuerWallet, issuer.Did, issuerCredentialId,
-                new Dictionary<string, string> { { "dummy_attr", "dummyVal" }});
+                new List<CredentialPreviewAttribute> { new CredentialPreviewAttribute("dummy_attr","dummyVal")});
             _messages.Add(credential);
 
             //Try issue the credential again

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AgentFramework.Core.Messages.Credentials;
 
 namespace AgentFramework.Core.Models.Credentials
 {
@@ -23,7 +24,7 @@ namespace AgentFramework.Core.Models.Credentials
         /// Note these attributes are not disclosed in the
         /// offer.
         /// </summary>
-        public Dictionary<string,string> CredentialAttributeValues { get; set; }
+        public IEnumerable<CredentialPreviewAttribute> CredentialAttributeValues { get; set; }
 
         /// <summary>
         /// Controls the tags that are persisted against the offer record.
