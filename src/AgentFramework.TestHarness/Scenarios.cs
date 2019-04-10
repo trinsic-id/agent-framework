@@ -8,12 +8,16 @@ using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Messages.Credentials;
+using AgentFramework.Core.Messages.Proofs;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Credentials;
+using AgentFramework.Core.Models.Proofs;
 using AgentFramework.Core.Models.Records;
+using AgentFramework.TestHarness.Utils;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace AgentFramework.TestHarness
@@ -100,15 +104,15 @@ namespace AgentFramework.TestHarness
             ConnectionRecord issuerConnection, ConnectionRecord holderConnection, 
             IAgentContext issuerContext, 
             IAgentContext holderContext,
-            Pool pool, string proverMasterSecretId, bool revocable, OfferConfiguration offerConfiguration = null)
+            Pool pool, string proverMasterSecretId, bool revocable, List<CredentialPreviewAttribute> credentialAttributes, OfferConfiguration offerConfiguration = null)
         {
             // Create an issuer DID/VK. Can also be created during provisioning
             var issuer = await Did.CreateAndStoreMyDidAsync(issuerContext.Wallet,
-                new { seed = "000000000000000000000000Steward1" }.ToJson());
+                new { seed = TestConstants.StewartDid }.ToJson());
 
             // Create a schema and credential definition for this issuer
             var (definitionId, _) = await CreateDummySchemaAndNonRevokableCredDef(issuerContext, schemaService,
-                issuer.Did, new[] {"first_name", "last_name"});
+                issuer.Did, credentialAttributes.Select(_ => _.Name).ToArray());
             
             var offerConfig = offerConfiguration ?? new OfferConfiguration
             {
@@ -143,12 +147,9 @@ namespace AgentFramework.TestHarness
                 await credentialService.ProcessCredentialRequestAsync(issuerContext, credentialRequest, issuerConnection);
 
             // Issuer accepts the credential requests and issues a credential
-            var (credentialMessage, _) = await credentialService.CreateCredentialAsync(issuerContext, issuer.Did, issuerCredentialId,
-                new List<CredentialPreviewAttribute>
-                {
-                    new CredentialPreviewAttribute("first_name", "john"),
-                    new CredentialPreviewAttribute("last_name", "doe")
-                });
+            var (credentialMessage, _) = await credentialService.CreateCredentialAsync(issuerContext, issuer.Did,
+                issuerCredentialId,
+                credentialAttributes);
             messages.TryAdd(credentialMessage);
 
             // Holder retrieves the credential from their cloud agent
@@ -163,6 +164,57 @@ namespace AgentFramework.TestHarness
             var holderCredential = await credentialService.GetAsync(holderContext, holderCredentialId);
 
             return (issuerCredential, holderCredential);
+        }
+
+        public static async Task<(ProofRecord holderProofRecord, ProofRecord RequestorProofRecord)> ProofProtocolAsync(
+            IProofService proofService,
+            IProducerConsumerCollection<AgentMessage> messages,
+            ConnectionRecord holderConnection, ConnectionRecord requestorConnection,
+            IAgentContext holderContext,
+            IAgentContext requestorContext, ProofRequest proofRequestObject)
+        {
+            
+            //Requestor sends a proof request
+            var (message, requestorProofRecord) = await proofService.CreateProofRequestAsync(requestorContext, proofRequestObject, requestorConnection.Id);
+            messages.TryAdd(message);
+
+            // Holder accepts the proof requests and builds a proof
+            var proofRequest = FindContentMessage<ProofRequestMessage>(messages);
+            Assert.NotNull(proofRequest);
+
+            holderContext.Connection = holderConnection;
+            //Holder stores the proof request
+            var holderProofRequestId = await proofService.ProcessProofRequestAsync(holderContext, proofRequest);
+            var holderProofRecord = await proofService.GetAsync(holderContext, holderProofRequestId);
+            var holderProofRequest = JsonConvert.DeserializeObject<ProofRequest>(holderProofRecord.RequestJson);
+
+            // Auto satify the proof with which ever credentials in the wallet are capable
+            var requestedCredentials =
+                await ProofServiceUtils.GetAutoRequestedCredentialsForProofCredentials(holderContext, proofService,
+                    holderProofRequest);
+
+            //Holder accepts the proof request and sends a proof
+            (var proofMessage, _) = await proofService.CreateProofAsync(holderContext, holderProofRequestId, requestedCredentials);
+            messages.TryAdd(proofMessage);
+
+            //Requestor retrives proof message from their cloud agent
+            var proof = FindContentMessage<ProofMessage>(messages);
+            Assert.NotNull(proof);
+
+            requestorContext.Connection = requestorConnection;
+            //Requestor stores proof
+            var requestorProofId = await proofService.ProcessProofAsync(requestorContext, proof);
+
+            //Requestor verifies proof
+            var requestorVerifyResult = await proofService.VerifyProofAsync(requestorContext, requestorProofId);
+
+            ////Verify the proof is valid
+            Assert.True(requestorVerifyResult);
+
+            var requestorProofRecordResult = await proofService.GetAsync(requestorContext, requestorProofRecord.Id);
+            var holderProofRecordResult = await proofService.GetAsync(holderContext, holderProofRecord.Id);
+
+            return (holderProofRecordResult, requestorProofRecordResult);
         }
 
         public static async Task<(string,string)> CreateDummySchemaAndNonRevokableCredDef(IAgentContext context, ISchemaService schemaService, string issuerDid, string[] attributeValues)
