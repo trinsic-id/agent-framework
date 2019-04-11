@@ -31,7 +31,6 @@ namespace AgentFramework.TestHarness.Mock
             AddForwardHandler();
             AddCredentialHandler();
             AddProofHandler();
-            AddEphemeralChallengeHandler();
         }
     }
 }
