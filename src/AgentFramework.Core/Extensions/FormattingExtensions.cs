@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AgentFramework.Core.Messages;
-using Microsoft.IdentityModel.Tokens;
+using AgentFramework.Core.Utils;
 using Multiformats.Base;
 using Newtonsoft.Json;
 
