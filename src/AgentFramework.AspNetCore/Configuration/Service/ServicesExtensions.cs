@@ -3,6 +3,7 @@ using AgentFramework.AspNetCore.Middleware;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Models;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.AspNetCore.Configuration.Service
@@ -57,8 +58,9 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="app">App.</param>
         /// <param name="endpointUri">The endpointUri.</param>
         /// <param name="agentOptions">Options.</param>
+        /// <param name="middlewareConfiguration">Middleware configuration.</param>
         public static void UseAgentFramework(this IApplicationBuilder app, string endpointUri,
-            Action<AgentBuilder> agentOptions = null) => UseAgentFramework<AgentMiddleware>(app, endpointUri, agentOptions);
+            Action<AgentBuilder> agentOptions = null, Func<HttpContext, bool> middlewareConfiguration = null) => UseAgentFramework<AgentMiddleware>(app, endpointUri, agentOptions, middlewareConfiguration);
 
         /// <summary>
         /// Allows agent configuration by specifying a custom middleware
@@ -66,8 +68,9 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="app">App.</param>
         /// <param name="endpointUri">The endpointUri.</param>
         /// <param name="agentOptions">Options.</param>
+        /// <param name="middlewareConfiguration">Middleware configuration.</param>
         public static void UseAgentFramework<T>(this IApplicationBuilder app, string endpointUri,
-            Action<AgentBuilder> agentOptions = null)
+            Action<AgentBuilder> agentOptions = null, Func<HttpContext,bool> middlewareConfiguration = null)
         {
             if (string.IsNullOrWhiteSpace(endpointUri)) throw new ArgumentNullException(nameof(endpointUri));
 
@@ -79,8 +82,12 @@ namespace AgentFramework.AspNetCore.Configuration.Service
 
             agentBuilder.Build(endpoint).GetAwaiter().GetResult();
 
+            if (middlewareConfiguration == null)
+                middlewareConfiguration = context =>
+                    context.Request.Path.Value.StartsWith(endpoint.AbsolutePath, StringComparison.Ordinal);
+
             app.MapWhen(
-                context => context.Request.Path.Value.StartsWith(endpoint.AbsolutePath, StringComparison.Ordinal),
+                middlewareConfiguration,
                 appBuilder => { appBuilder.UseMiddleware<T>(); });
 
             if (agentBuilder.TailsBaseUri != null)

@@ -63,7 +63,7 @@ namespace AgentFramework.Core.Runtime
             Logger = logger;
             RecordService = recordService;
         }
-
+        
         /// <inheritdoc />
         public virtual async Task<(ConnectionInvitationMessage, ConnectionRecord)> CreateInvitationAsync(IAgentContext agentContext,
             InviteConfiguration config = null)

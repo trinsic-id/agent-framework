@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.Core.Models.Credentials;
+using AgentFramework.Core.Models.Proofs;
 using AgentFramework.Core.Models.Wallets;
 using AgentFramework.TestHarness;
 using AgentFramework.TestHarness.Mock;
@@ -9,14 +10,16 @@ using Xunit;
 
 namespace AgentFramework.Core.Tests.Integration
 {
-    public class CredentialTests : IAsyncLifetime
+    public class ProofTests : IAsyncLifetime
     {
         WalletConfiguration config1 = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
         WalletConfiguration config2 = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
+        WalletConfiguration config3 = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
         WalletCredentials cred = new WalletCredentials { Key = "2" };
 
         private MockAgent _issuerAgent;
         private MockAgent _holderAgent;
+        private MockAgent _requestorAgent;
         private readonly MockAgentRouter _router = new MockAgentRouter();
 
         public async Task InitializeAsync()
@@ -25,17 +28,34 @@ namespace AgentFramework.Core.Tests.Integration
             _router.RegisterAgent(_issuerAgent);
             _holderAgent = await MockUtils.CreateAsync("holder", config2, cred, new MockAgentHttpHandler((name, data) => _router.RouteMessage(name, data)));
             _router.RegisterAgent(_holderAgent);
+            _requestorAgent = await MockUtils.CreateAsync("requestor", config3, cred, new MockAgentHttpHandler((name, data) => _router.RouteMessage(name, data)));
+            _router.RegisterAgent(_requestorAgent);
         }
 
         [Fact]
-        public async Task CanIssueCredential()
+        public async Task CanPerformProofProtocol()
         {
             (var issuerConnection, var holderConnection)  = await AgentScenarios.EstablishConnectionAsync(_issuerAgent, _holderAgent);
+
             await AgentScenarios.IssueCredential(_issuerAgent, _holderAgent, issuerConnection, holderConnection, new List<CredentialPreviewAttribute>
             {
                 new CredentialPreviewAttribute("first_name", "Test"),
                 new CredentialPreviewAttribute("last_name", "Holder")
             });
+
+            (var holderRequestorConnection, var requestorConnection) = await AgentScenarios.EstablishConnectionAsync(_holderAgent, _requestorAgent);
+
+            await AgentScenarios.ProofProtocol(_requestorAgent, _holderAgent, requestorConnection,
+                holderRequestorConnection, new ProofRequest()
+                {
+                    Name = "ProofReq",
+                    Version = "1.0",
+                    Nonce = $"0{Guid.NewGuid().ToString("N")}",
+                    RequestedAttributes = new Dictionary<string, ProofAttributeInfo>
+                    {
+                        {"first-name-requirement", new ProofAttributeInfo {Name = "first_name"}}
+                    }
+                });
         }
 
         public async Task DisposeAsync()

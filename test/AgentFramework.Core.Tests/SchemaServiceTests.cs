@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Runtime;
+using AgentFramework.TestHarness;
 using AgentFramework.TestHarness.Utils;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.PoolApi;
@@ -38,7 +39,7 @@ namespace AgentFramework.Core.Tests
         public async Task CanCreateAndResolveSchema()
         {
             var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
-                new { seed = "000000000000000000000000Steward1" }.ToJson());
+                new { seed = TestConstants.StewartDid }.ToJson());
 
             var schemaName = $"Test-Schema-{Guid.NewGuid().ToString("N")}";
             var schemaVersion = "1.0";
@@ -72,7 +73,7 @@ namespace AgentFramework.Core.Tests
         public async Task CanCreateAndResolveCredentialDefinitionAndSchema()
         {
             var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
-                new { seed = "000000000000000000000000Steward1" }.ToJson());
+                new { seed = TestConstants.StewartDid }.ToJson());
 
             var schemaName = $"Test-Schema-{Guid.NewGuid().ToString()}";
             var schemaVersion = "1.0";

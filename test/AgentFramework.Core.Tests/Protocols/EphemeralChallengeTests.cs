@@ -9,6 +9,7 @@ using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.EphemeralChallenge;
 using AgentFramework.Core.Models;
+using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.EphemeralChallenge;
 using AgentFramework.Core.Models.Proofs;
 using AgentFramework.Core.Models.Records;
@@ -181,7 +182,11 @@ namespace AgentFramework.Core.Tests.Protocols
 
             await Scenarios.IssueCredentialAsync(
                 _schemaService, _credentialService, _messages, issuerConnection,
-                holderConnection, _issuerWallet, _holderWallet, await _holderWallet.Pool, TestConstants.DefaultMasterSecret, true);
+                holderConnection, _issuerWallet, _holderWallet, await _holderWallet.Pool, TestConstants.DefaultMasterSecret, true, new List<CredentialPreviewAttribute>
+                {
+                    new CredentialPreviewAttribute("first_name", "Test"),
+                    new CredentialPreviewAttribute("last_name", "Holder")
+                });
 
             _messages.Clear();
 

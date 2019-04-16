@@ -30,6 +30,7 @@ namespace AgentFramework.TestHarness.Mock
             AddConnectionHandler();
             AddForwardHandler();
             AddCredentialHandler();
+            AddProofHandler();
         }
     }
 }
