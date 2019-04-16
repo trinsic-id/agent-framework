@@ -15,17 +15,23 @@ namespace AgentFramework.TestHarness.Mock
     {
         public static async Task<MockAgent> CreateAsync(string agentName, WalletConfiguration configuration, WalletCredentials credentials, MockAgentHttpHandler handler, string issuerSeed = null)
         {
-            var container = new ServiceCollection();
+            var services = new ServiceCollection();
 
-            container.AddAgentFramework();
-            container.AddLogging();
-            container.AddSingleton<MockAgentMessageProcessor>();
-            container.AddSingleton<HttpMessageHandler>(handler);
-            container.AddSingleton(p => new HttpClient(p.GetRequiredService<HttpMessageHandler>()));
-            var provider = container.BuildServiceProvider();
+            services.AddAgentFramework();
+            services.AddLogging();
+            services.AddSingleton<MockAgentMessageProcessor>();
+            services.AddSingleton<HttpMessageHandler>(handler);
+            services.AddSingleton(p => new HttpClient(p.GetRequiredService<HttpMessageHandler>()));
+
+            return await CreateAsync(agentName, configuration, credentials, services, issuerSeed);
+        }
+
+        public static async Task<MockAgent> CreateAsync(string agentName, WalletConfiguration configuration, WalletCredentials credentials, ServiceCollection services, string issuerSeed = null)
+        {
+            var provider = services.BuildServiceProvider();
 
             await provider.GetService<IProvisioningService>()
-                          .ProvisionAgentAsync(new ProvisioningConfiguration { WalletConfiguration = configuration, WalletCredentials = credentials, EndpointUri = new Uri($"http://{agentName}"), IssuerSeed = issuerSeed, CreateIssuer = issuerSeed != null });
+                .ProvisionAgentAsync(new ProvisioningConfiguration { WalletConfiguration = configuration, WalletCredentials = credentials, EndpointUri = new Uri($"http://{agentName}"), IssuerSeed = issuerSeed, CreateIssuer = issuerSeed != null });
 
             return new MockAgent(agentName, provider)
             {
