@@ -42,6 +42,6 @@ namespace AgentFramework.Core.Models.Records.Search
             $"Id={Id}, " +
             $"Type={Type}, " +
             $"Value={Value}, " +
-            $"Tags={string.Join(",", Tags)}";
+            $"Tags={string.Join(",", Tags ?? new Dictionary<string, string>())}";
     }
 }

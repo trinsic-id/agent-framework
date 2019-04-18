@@ -70,6 +70,6 @@ namespace AgentFramework.Core.Models.Credentials
             $"CredentialDefinitionId={CredentialDefinitionId}, " +
             $"RevocationRegistryId={RevocationRegistryId}, " +
             $"CredentialRevocationId={CredentialRevocationId}, " +
-            $"Attributes={string.Join(",", Attributes)}";
+            $"Attributes={string.Join(",", Attributes ?? new string[0])}";
     }
 }
