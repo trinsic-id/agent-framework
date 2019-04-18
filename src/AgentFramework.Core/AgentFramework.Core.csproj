@@ -1,10 +1,7 @@
-﻿<Project Sdk="MSBuild.Sdk.Extras/1.6.46">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup Condition="'$(OS)' == 'Unix'">
+  <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)' != 'Unix'">
-    <TargetFrameworks>netstandard2.0;xamarinios10</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -25,8 +22,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="Stateless" Version="4.2.1" />
     <PackageReference Include="Hyperledger.Indy.Sdk" Version="1.8.0" />
-    <PackageReference Include="Multiformats.Base" Version="2.0.1" />
-    <PackageReference Include="System.Reactive" Version="4.1.2" />
     <PackageReference Include="System.Reactive.Linq" Version="4.1.2" />
   </ItemGroup>
 </Project>

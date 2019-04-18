@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Utils;
-using Multiformats.Base;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Extensions
@@ -56,7 +55,7 @@ namespace AgentFramework.Core.Extensions
         /// to an equivalent 8-bit unsigned integer array.</summary>
         /// <param name="value">The value.</param>
         /// <returns></returns>
-        public static byte[] GetBytesFromBase64(this string value) => Encoding.UTF8.GetBytes(Base64UrlEncoder.Decode(value));
+        public static byte[] GetBytesFromBase64(this string value) => Base64UrlEncoder.DecodeBytes(value);
 
         /// <summary>
         /// Converts an array of 8-bit unsigned integers to its equivalent string
@@ -87,14 +86,6 @@ namespace AgentFramework.Core.Extensions
         /// <param name="settings">SerializerSettings.</param>
         public static string ToJson(this object obj, JsonSerializerSettings settings) =>
             JsonConvert.SerializeObject(obj, settings);
-
-        /// <summary>
-        /// Converts a string to base58 representation.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The value base58 encoded.</returns>
-        public static string ToBase58(this string value) =>
-            Multibase.Base58.Encode(Encoding.UTF8.GetBytes(value));
 
         /// <summary>
         /// Converts a string to base64 representation.
