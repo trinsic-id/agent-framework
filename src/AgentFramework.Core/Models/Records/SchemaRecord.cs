@@ -28,7 +28,7 @@
             $"{GetType().Name}: " +
             $"Name={Name}, " +
             $"Version={Version}, " +
-            $"AttributeNames={string.Join(",", AttributeNames)}, " +
+            $"AttributeNames={string.Join(",", AttributeNames ?? new string[0])}, " +
             base.ToString();
     }
 }

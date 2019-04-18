@@ -50,6 +50,6 @@ namespace AgentFramework.Core.Models.Connections
             $"TheirAlias={TheirAlias}, " +
             $"MyAlias={MyAlias}, " +
             $"AutoAcceptConnection={AutoAcceptConnection}, " +
-            $"Tags={string.Join(",", Tags)}";
+            $"Tags={string.Join(",", Tags ?? new Dictionary<string, string>())}";
     }
 }

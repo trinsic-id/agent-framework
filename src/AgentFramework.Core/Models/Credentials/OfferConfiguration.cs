@@ -36,7 +36,7 @@ namespace AgentFramework.Core.Models.Credentials
             $"{GetType().Name}: " +
             $"CredentialDefinitionId={CredentialDefinitionId}, " +
             $"IssuerDid={IssuerDid}, " +
-            $"CredentialAttributeValues={string.Join(",", CredentialAttributeValues)}, " +
+            $"CredentialAttributeValues={string.Join(",", CredentialAttributeValues ?? new List<CredentialPreviewAttribute>())}, " +
             $"Tags={string.Join(",", Tags)}";
     }
 }

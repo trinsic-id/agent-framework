@@ -76,7 +76,7 @@ namespace AgentFramework.Core.Models.Proofs
         public override string ToString() =>
             $"{GetType().Name}: " +
             $"Name={Name}, " +
-            $"Restrictions={string.Join(",", Restrictions)}, " +
+            $"Restrictions={string.Join(",", Restrictions ?? new List<AttributeFilter>())}, " +
             $"NonRevoked={NonRevoked}";
     }
 }

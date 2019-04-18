@@ -29,7 +29,7 @@ namespace AgentFramework.Core.Models.Proofs
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +
-            $"Identifiers={string.Join(",", Identifiers)}, " +
+            $"Identifiers={string.Join(",", Identifiers ?? new List<ProofIdentifier>())}, " +
             $"RequestedProof={RequestedProof}";
     }
 
@@ -109,8 +109,8 @@ namespace AgentFramework.Core.Models.Proofs
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +
-            $"RevealedAttributes={string.Join(",", RevealedAttributes)}, " +
-            $"SelfAttestedAttributes={string.Join(",", SelfAttestedAttributes)}";
+            $"RevealedAttributes={string.Join(",", RevealedAttributes ?? new Dictionary<string, ProofAttribute>())}, " +
+            $"SelfAttestedAttributes={string.Join(",", SelfAttestedAttributes ?? new Dictionary<string, ProofAttribute>())}";
     }
 
     /// <summary>

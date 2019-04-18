@@ -57,8 +57,8 @@ namespace AgentFramework.Core.Models.Proofs
             $"Name={Name}, " +
             $"Version={Version}, " +
             $"Nonce={Nonce}, " +
-            $"RequestedAttributes={string.Join(",", RequestedAttributes)}, " +
-            $"RequestedPredicates={string.Join(",", RequestedPredicates)}, " +
+            $"RequestedAttributes={string.Join(",", RequestedAttributes ?? new Dictionary<string, ProofAttributeInfo>())}, " +
+            $"RequestedPredicates={string.Join(",", RequestedPredicates ?? new Dictionary<string, ProofPredicateInfo>())}, " +
             $"NonRevoked={NonRevoked}";
     }
 }

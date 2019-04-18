@@ -68,6 +68,6 @@ namespace AgentFramework.Core.Messages.Connections
             $"Type={Type}, " +
             $"Name={Label}, " +
             $"ImageUrl={ImageUrl}, " +
-            $"RoutingKeys={string.Join(",", RoutingKeys)}, ";
+            $"RoutingKeys={string.Join(",", RoutingKeys ?? new string[0])}, ";
     }
 }
