@@ -49,9 +49,9 @@ namespace AgentFramework.Core.Models.Proofs
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +
-            $"RequestedAttributes={string.Join(",", RequestedAttributes)}, " +
-            $"SelfAttestedAttributes={string.Join(",", SelfAttestedAttributes)}, " +
-            $"RequestedPredicates={string.Join(",", RequestedPredicates)}, " +
+            $"RequestedAttributes={string.Join(",", RequestedAttributes ?? new Dictionary<string, RequestedAttribute>())}, " +
+            $"SelfAttestedAttributes={string.Join(",", SelfAttestedAttributes ?? new Dictionary<string, string>())}, " +
+            $"RequestedPredicates={string.Join(",", RequestedPredicates ?? new Dictionary<string, RequestedAttribute>())}, " +
             $"CredentialIdentifiers={string.Join(",", GetCredentialIdentifiers())}";
     }
 }

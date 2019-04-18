@@ -18,6 +18,6 @@ namespace AgentFramework.Core.Models.Records.Search
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +
-            $"Records={string.Join(",", Records)}";
+            $"Records={string.Join(",", Records ?? new List<SearchItem>())}";
     }
 }
