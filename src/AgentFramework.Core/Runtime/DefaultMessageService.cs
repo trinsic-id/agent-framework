@@ -128,9 +128,7 @@ namespace AgentFramework.Core.Runtime
                 response.EnsureSuccessStatusCode();
 
                 if (response.Content != null)
-                {
                     return await response.Content.ReadAsByteArrayAsync();
-                }
             }
             catch (Exception e)
             {
