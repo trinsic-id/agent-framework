@@ -35,17 +35,17 @@ namespace AgentFramework.Core.Handlers.Internal
         /// <param name="messagePayload">The agent message agentContext.</param>
         /// <returns></returns>
         /// <exception cref="AgentFrameworkException">Unsupported message type {messageType}</exception>
-        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload)
+        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessageContext messagePayload)
         {
             switch (messagePayload.GetMessageType())
             {
                 case MessageTypes.ProofRequest:
-                    var request = messagePayload.GetMessage<ProofRequestMessage>();
-                    await _proofService.ProcessProofRequestAsync(agentContext, request);
+                    var request = messagePayload.GetMessageAs<ProofRequestMessage>();
+                    await _proofService.ProcessProofRequestAsync(agentContext, request, messagePayload.Connection);
                     break;
 
                 case MessageTypes.DisclosedProof:
-                    var proof = messagePayload.GetMessage<ProofMessage>();
+                    var proof = messagePayload.GetMessageAs<ProofMessage>();
                     await _proofService.ProcessProofAsync(agentContext, proof);
                     break;
                 default:

@@ -35,7 +35,7 @@ namespace AgentFramework.Core.Handlers
         protected abstract Task<AgentMessage> ProcessAsync(T message, IAgentContext agentContext);
 
         /// <inheritdoc />
-        public Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload) =>
-            ProcessAsync(messagePayload.GetMessage<T>(), agentContext);
+        public Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessageContext messagePayload) =>
+            ProcessAsync(messagePayload.GetMessageAs<T>(), agentContext);
     }
 }

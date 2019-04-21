@@ -76,7 +76,7 @@ namespace AgentFramework.Core.Utils
     /// <summary>
     /// Result object from <see cref="Crypto.UnpackMessageAsync"/>
     /// </summary>
-    internal class UnpackResult
+    public class UnpackResult
     {
         /// <summary>Gets or sets the message encoded as UTF8 string.</summary>
         /// <value>The message.</value>

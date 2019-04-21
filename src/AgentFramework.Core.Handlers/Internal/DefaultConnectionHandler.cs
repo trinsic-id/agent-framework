@@ -45,32 +45,32 @@ namespace AgentFramework.Core.Handlers.Internal
         /// <param name="messagePayload">The agent message agentContext.</param>
         /// <returns></returns>
         /// <exception cref="AgentFrameworkException">Unsupported message type {message.Type}</exception>
-        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload)
+        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessageContext messagePayload)
         {
             switch (messagePayload.GetMessageType())
             {
                 case MessageTypes.ConnectionInvitation:
-                    var invitation = messagePayload.GetMessage<ConnectionInvitationMessage>();
+                    var invitation = messagePayload.GetMessageAs<ConnectionInvitationMessage>();
                     await _connectionService.CreateRequestAsync(agentContext, invitation);
                     return null;
 
                 case MessageTypes.ConnectionRequest:
                 {
-                    var request = messagePayload.GetMessage<ConnectionRequestMessage>();
-                    var connectionId = await _connectionService.ProcessRequestAsync(agentContext, request);
+                    var request = messagePayload.GetMessageAs<ConnectionRequestMessage>();
+                    var connectionId = await _connectionService.ProcessRequestAsync(agentContext, request, messagePayload.Connection);
                     // Auto accept connection if set during invitation
-                    if (agentContext.Connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
+                    if (messagePayload.Connection.GetTag(TagConstants.AutoAcceptConnection) == "true")
                     {
                         (var message, var _) = await _connectionService.CreateResponseAsync(agentContext, connectionId);
-                        await _messageService.SendToConnectionAsync(agentContext.Wallet, message, agentContext.Connection);
+                        return message;
                     }
                     return null;
                 }
 
                 case MessageTypes.ConnectionResponse:
                 {
-                    var response = messagePayload.GetMessage<ConnectionResponseMessage>();
-                    await _connectionService.ProcessResponseAsync(agentContext, response);
+                    var response = messagePayload.GetMessageAs<ConnectionResponseMessage>();
+                    await _connectionService.ProcessResponseAsync(agentContext, response, messagePayload.Connection);
                     return null;
                 }
                 default:

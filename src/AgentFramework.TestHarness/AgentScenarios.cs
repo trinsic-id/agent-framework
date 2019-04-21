@@ -61,6 +61,46 @@ namespace AgentFramework.TestHarness
             return (connectionRecord1, connectionRecord2);
         }
 
+        public static async Task<(ConnectionRecord inviteeConnection, ConnectionRecord inviterConnection)> EstablishConnectionWithReturnRoutingAsync(MockAgent invitee, MockAgent inviter)
+        {
+            var slim = new SemaphoreSlim(0, 1);
+
+            var connectionService = invitee.GetService<IConnectionService>();
+            var messsageService = invitee.GetService<IMessageService>();
+
+            // Hook into response message event of second runtime to release semaphore
+            inviter.GetService<IEventAggregator>().GetEventByType<ServiceMessageProcessingEvent>()
+                .Where(x => x.MessageType == MessageTypes.ConnectionResponse)
+                .Subscribe(x => slim.Release());
+
+            (var invitation, var inviterConnection) = await connectionService.CreateInvitationAsync(invitee.Context,
+                new InviteConfiguration { AutoAcceptConnection = true });
+
+            (var request, var inviteeConnection) =
+                await connectionService.CreateRequestAsync(inviter.Context, invitation);
+            var response = await messsageService.SendToConnectionAsync(inviter.Context.Wallet, request,
+                inviteeConnection, invitation.RecipientKeys.First(), true);
+
+            Assert.NotNull(response);
+            await inviter.HandleInboundAsync(response);
+
+            await slim.WaitAsync(TimeSpan.FromSeconds(30));
+
+            var connectionRecord1 = await connectionService.GetAsync(invitee.Context, inviterConnection.Id);
+            var connectionRecord2 = await connectionService.GetAsync(inviter.Context, inviteeConnection.Id);
+
+            Assert.Equal(ConnectionState.Connected, connectionRecord1.State);
+            Assert.Equal(ConnectionState.Connected, connectionRecord2.State);
+            Assert.Equal(connectionRecord1.MyDid, connectionRecord2.TheirDid);
+            Assert.Equal(connectionRecord1.TheirDid, connectionRecord2.MyDid);
+
+            Assert.Equal(
+                connectionRecord1.GetTag(TagConstants.LastThreadId),
+                connectionRecord2.GetTag(TagConstants.LastThreadId));
+
+            return (connectionRecord1, connectionRecord2);
+        }
+
         public static async Task IssueCredential(MockAgent issuer, MockAgent holder, ConnectionRecord issuerConnection, ConnectionRecord holderConnection, List<CredentialPreviewAttribute> credentialAttributes)
         {
             var credentialService = issuer.GetService<ICredentialService>();

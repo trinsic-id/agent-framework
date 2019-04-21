@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Decorators.Transport;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers.Internal;
@@ -86,65 +87,93 @@ namespace AgentFramework.Core.Handlers
             EnsureConfigured();
 
             var agentContext = context.ToHandlerAgentContext();
-            agentContext.AddNext(new MessagePayload(body, true));
+            agentContext.AddNext(new MessageContext(body, true));
 
-            AgentMessage outgoingMessage = null;
-            while (agentContext.TryGetNext(out var message) && outgoingMessage == null)
+            MessageContext outgoingMessageContext = null;
+            while (agentContext.TryGetNext(out var message) && outgoingMessageContext == null)
             {
-                outgoingMessage = await ProcessMessage(agentContext, message);
+                outgoingMessageContext = await ProcessMessage(agentContext, message);
             }
 
-            if (outgoingMessage != null)
-            {
-                //TODO error handling what happens when this message fails to transmit? #70
-                await MessageService.SendToConnectionAsync(agentContext.Wallet, outgoingMessage,
-                    agentContext.Connection);
+            if (outgoingMessageContext != null)
+            { 
+                var result = await MessageService.PrepareForConnectionAsync(agentContext.Wallet, outgoingMessageContext.GetAsAgentMessage(), outgoingMessageContext.Connection);
+                return result;
             }
 
-            //TODO return a result when the request asked for duplex communication #123
             return null;
         }
 
-        private async Task<AgentMessage> ProcessMessage(IAgentContext agentContext, MessagePayload message)
+        private async Task<MessageContext> ProcessMessage(IAgentContext agentContext, MessageContext inboundMessageContext)
         {
-            MessagePayload messagePayload;
-            if (message.Packed)
+            if (inboundMessageContext.Packed)
             {
-                var unpacked = await CryptoUtils.UnpackAsync(agentContext.Wallet, message.Payload);
-                Logger.LogInformation($"Agent Message Received : {unpacked.Message}");
-                messagePayload = new MessagePayload(unpacked.Message, false);
-                if (unpacked.SenderVerkey != null && agentContext.Connection == null)
-                {
-                    try
-                    {
-                        agentContext.Connection = await ConnectionService.ResolveByMyKeyAsync(
-                            agentContext, unpacked.RecipientVerkey);
-                    }
-                    catch (AgentFrameworkException ex) when (ex.ErrorCode == ErrorCode.RecordNotFound)
-                    {
-                        // OK if not resolved. Example: authpacked forward message in routing agent.
-                        // Downstream consumers should throw if Connection is required
-                    }
-                }
-            }
-            else
-            {
-                messagePayload = message;
+                inboundMessageContext = await UnpackAsync(agentContext, inboundMessageContext);
+                Logger.LogInformation($"Agent Message Received : {inboundMessageContext.ToJson()}");
             }
 
             if (_handlers.Where(handler => handler != null).FirstOrDefault(
                     handler => handler.SupportedMessageTypes.Any(
-                        type => type.Equals(messagePayload.GetMessageType(), StringComparison.OrdinalIgnoreCase))) is
+                        type => type.Equals(inboundMessageContext.GetMessageType(), StringComparison.OrdinalIgnoreCase))) is
                 IMessageHandler messageHandler)
             {
-                Logger.LogDebug("Processing message type {MessageType}, {MessageData}", messagePayload.GetMessageType(),
-                    messagePayload.Payload.GetUTF8String());
-                var outboundMessage = await messageHandler.ProcessAsync(agentContext, messagePayload);
-                return outboundMessage;
+                Logger.LogDebug("Processing message type {MessageType}, {MessageData}", 
+                    inboundMessageContext.GetMessageType(),
+                    inboundMessageContext.Payload.GetUTF8String());
+
+                var response = await messageHandler.ProcessAsync(agentContext, inboundMessageContext);
+
+                if (response != null)
+                {
+                    if (inboundMessageContext.ReturnRoutingRequested())
+                    {
+                        return new MessageContext(response, inboundMessageContext.Connection);
+                    }
+                    else
+                    {
+                        await MessageService.SendToConnectionAsync(agentContext.Wallet, response, inboundMessageContext.Connection);
+                    }
+                }
+                return null;
             }
 
             throw new AgentFrameworkException(ErrorCode.InvalidMessage,
-                $"Couldn't locate a message handler for type {messagePayload.GetMessageType()}");
+                $"Couldn't locate a message handler for type {inboundMessageContext.GetMessageType()}");
+        }
+
+        private async Task<MessageContext> UnpackAsync(IAgentContext agentContext, MessageContext message)
+        {
+            UnpackResult unpacked;
+
+            try
+            {
+                unpacked = await CryptoUtils.UnpackAsync(agentContext.Wallet, message.Payload);
+            }
+            catch(Exception e)
+            {
+                Logger.LogError("Failed to un-pack message", e);
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Failed to un-pack message", e);
+            }
+
+            if (unpacked.SenderVerkey != null && message.Connection == null)
+            {
+                try
+                {
+                    var connection = await ConnectionService.ResolveByMyKeyAsync(agentContext, unpacked.RecipientVerkey);
+                    message = new MessageContext(unpacked.Message, false, connection);
+                }
+                catch (AgentFrameworkException ex) when (ex.ErrorCode == ErrorCode.RecordNotFound)
+                {
+                    // OK if not resolved. Example: authpacked forward message in routing agent.
+                    // Downstream consumers should throw if Connection is required
+                }
+            }
+            else
+            {
+                message = new MessageContext(unpacked.Message, false, message.Connection);
+            }
+
+            return message;
         }
 
         private void EnsureConfigured()

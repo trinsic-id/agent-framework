@@ -12,8 +12,8 @@ namespace AgentFramework.Core.Handlers
         /// <summary>Wraps the message in payload.</summary>
         /// <param name="agentMessage">The agent message.</param>
         /// <returns></returns>
-        public static MessagePayload AsMessagePayload(this AgentMessage agentMessage) =>
-            new MessagePayload(agentMessage);
+        public static MessageContext AsMessagePayload(this AgentMessage agentMessage) =>
+            new MessageContext(agentMessage);
 
         /// <summary>Adds the default message handlers.</summary>
         /// <param name="collection">The collection.</param>
@@ -32,7 +32,6 @@ namespace AgentFramework.Core.Handlers
             {
                 Wallet = context.Wallet,
                 Pool = context.Pool,
-                Connection = context.Connection,
                 State = context.State
             };
         }

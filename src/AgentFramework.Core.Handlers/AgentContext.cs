@@ -9,14 +9,14 @@ namespace AgentFramework.Core.Handlers
     /// </summary>
     public class AgentContext : DefaultAgentContext
     {
-        private readonly ConcurrentQueue<MessagePayload> _queue = new ConcurrentQueue<MessagePayload>();
+        private readonly ConcurrentQueue<MessageContext> _queue = new ConcurrentQueue<MessageContext>();
         
         /// <summary>
         /// Adds a message to the current processing queue
         /// </summary>
         /// <param name="message"></param>
-        public void AddNext(MessagePayload message) => _queue.Enqueue(message);
+        public void AddNext(MessageContext message) => _queue.Enqueue(message);
 
-        internal bool TryGetNext(out MessagePayload message) => _queue.TryDequeue(out message);
+        internal bool TryGetNext(out MessageContext message) => _queue.TryDequeue(out message);
     }
 }

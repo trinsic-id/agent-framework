@@ -53,7 +53,7 @@ namespace AgentFramework.Core.Handlers.Internal
         /// </summary>
         /// <param name="agentContext"></param>
         /// <param name="messagePayload">The agent message agentContext.</param>
-        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload)
+        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessageContext messagePayload)
         {
             await Task.Yield();
 
@@ -61,7 +61,7 @@ namespace AgentFramework.Core.Handlers.Internal
             {
                 case MessageTypes.TrustPingMessageType:
                     {
-                        var pingMessage = messagePayload.GetMessage<TrustPingMessage>();
+                        var pingMessage = messagePayload.GetMessageAs<TrustPingMessage>();
 
                         _eventAggregator.Publish(new ServiceMessageProcessingEvent
                         {
@@ -77,7 +77,7 @@ namespace AgentFramework.Core.Handlers.Internal
                     }
                 case MessageTypes.TrustPingResponseMessageType:
                     {
-                        var pingMessage = messagePayload.GetMessage<TrustPingMessage>();
+                        var pingMessage = messagePayload.GetMessageAs<TrustPingMessage>();
 
                         _eventAggregator.Publish(new ServiceMessageProcessingEvent
                         {

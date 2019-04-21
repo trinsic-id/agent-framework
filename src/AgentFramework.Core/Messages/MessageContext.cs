@@ -1,6 +1,6 @@
-﻿using System;
-using AgentFramework.Core.Exceptions;
+﻿using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Models.Records;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -9,19 +9,15 @@ namespace AgentFramework.Core.Messages
     /// <summary>
     /// A message context object that surrounds an agent message
     /// </summary>
-    public class MessagePayload
+    public class MessageContext
     {
-        /// <summary>Gets a value indicating whether this <see cref="MessagePayload"/> is packed.</summary>
-        /// <value>
-        ///   <c>true</c> if packed; otherwise, <c>false</c>.</value>
-        public bool Packed { get; }
-
         private readonly JObject _messageJson;
+        private readonly AgentMessage _agentMessage;
 
-        /// <summary>Initializes a new instance of the <see cref="MessagePayload"/> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="MessageContext"/> class.</summary>
         /// <param name="message">The message.</param>
         /// <param name="packed">if set to <c>true</c> [packed].</param>
-        public MessagePayload(byte[] message, bool packed)
+        public MessageContext(byte[] message, bool packed)
         {
             Packed = packed;
             Payload = message;
@@ -29,21 +25,49 @@ namespace AgentFramework.Core.Messages
         }
 
         /// <inheritdoc />
-        public MessagePayload(string message, bool packed) : this(message.GetUTF8Bytes(), packed)
+        public MessageContext(string message, bool packed) : this(message.GetUTF8Bytes(), packed)
         {
         }
 
         /// <inheritdoc />
+        public MessageContext(string message, bool packed, ConnectionRecord connection) : this(message.GetUTF8Bytes(), packed)
+        {
+            Connection = connection;
+        }
+
+        /// <inheritdoc />
         /// <param name="message">The message.</param>
-        public MessagePayload(AgentMessage message)
+        public MessageContext(AgentMessage message)
         : this(message.ToJson(), false)
         {
+            _agentMessage = message;
         }
-        
+
+        /// <inheritdoc />
+        /// <param name="message">The message.</param>
+        /// <param name="connection">The connection.</param>
+        public MessageContext(AgentMessage message, ConnectionRecord connection)
+        : this(message.ToJson(), false)
+        {
+            _agentMessage = message;
+            Connection = connection;
+        }
+
         /// <summary>
         /// The raw format of the message.
         /// </summary>
         internal byte[] Payload { get; }
+
+        /// <summary>Gets a value indicating whether this <see cref="MessageContext"/> is packed.</summary>
+        /// <value>
+        ///   <c>true</c> if packed; otherwise, <c>false</c>.</value>
+        public bool Packed { get; }
+
+        /// <summary>
+        /// Gets the connection associated to the message.
+        /// </summary>
+        /// <returns>The associated connection to the message.</returns>
+        public ConnectionRecord Connection { get; }
 
         /// <summary>
         /// The message id of the current message.
@@ -62,20 +86,29 @@ namespace AgentFramework.Core.Messages
                 : _messageJson["@type"].Value<string>();
 
         /// <summary>
+        /// Gets the message as the underlying agent message type.
+        /// </summary>
+        /// <returns>The agent message.</returns>
+        public AgentMessage GetAsAgentMessage() =>
+            _agentMessage == null
+                ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot get message as AgentMessage")
+                : _agentMessage;
+
+        /// <summary>
         /// Gets the message cast to the expect message type.
         /// </summary>
         /// <typeparam name="T">The generic type the message will be cast to.</typeparam>
         /// <returns>The agent message.</returns>
-        public T GetMessage<T>() where T : AgentMessage, new() =>
+        public T GetMessageAs<T>() where T : AgentMessage, new() =>
             Packed
                 ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
                 : JsonConvert.DeserializeObject<T>(_messageJson.ToString(), new AgentMessageReader<T>());
-        
+
         /// <summary>
         /// Gets the message cast to the expect message type.
         /// </summary>
         /// <returns>The agent message.</returns>
-        public string GetMessage() =>
+        public string GetMessageJson() =>
             Packed
                 ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
                 : _messageJson.ToJson();

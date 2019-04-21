@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers;
+using AgentFramework.Core.Runtime;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -54,7 +55,10 @@ namespace AgentFramework.AspNetCore.Middleware
                 context.Response.StatusCode = 200;
 
                 if (result != null)
+                {
+                    context.Response.ContentType = DefaultMessageService.AgentWireMessageMimeType;
                     await context.Response.Body.WriteAsync(result, 0, result.Length);
+                }
                 else
                     await context.Response.WriteAsync(string.Empty);
             }

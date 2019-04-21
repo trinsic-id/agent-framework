@@ -43,33 +43,33 @@ namespace AgentFramework.Core.Handlers.Internal
         /// <param name="messagePayload">The agent message.</param>
         /// <returns></returns>
         /// <exception cref="AgentFrameworkException">Unsupported message type {messageType}</exception>
-        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload)
+        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessageContext messagePayload)
         {
             switch (messagePayload.GetMessageType())
             {
                 case MessageTypes.CredentialOffer:
                 {
-                    var offer = messagePayload.GetMessage<CredentialOfferMessage>();
+                    var offer = messagePayload.GetMessageAs<CredentialOfferMessage>();
                     await _credentialService.ProcessOfferAsync(
-                        agentContext, offer, agentContext.Connection);
+                        agentContext, offer, messagePayload.Connection);
 
                     return null;
                 }
 
                 case MessageTypes.CredentialRequest:
                 {
-                    var request = messagePayload.GetMessage<CredentialRequestMessage>();
+                    var request = messagePayload.GetMessageAs<CredentialRequestMessage>();
                     await _credentialService.ProcessCredentialRequestAsync(
-                        agentContext, request, agentContext.Connection);
+                        agentContext, request, messagePayload.Connection);
 
                     return null;
                 }
 
                 case MessageTypes.Credential:
                 {
-                    var credential = messagePayload.GetMessage<CredentialMessage>();
+                    var credential = messagePayload.GetMessageAs<CredentialMessage>();
                     await _credentialService.ProcessCredentialAsync(
-                        agentContext, credential, agentContext.Connection);
+                        agentContext, credential, messagePayload.Connection);
 
                     return null;
                 }

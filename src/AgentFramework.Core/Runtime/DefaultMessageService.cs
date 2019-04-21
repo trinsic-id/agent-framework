@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Decorators;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Routing;
@@ -13,6 +11,7 @@ using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
+using AgentFramework.Core.Decorators.Transport;
 
 namespace AgentFramework.Core.Runtime
 {
@@ -42,6 +41,19 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
+        public virtual Task<byte[]> PrepareForConnectionAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection, string recipientKey = null)
+        {
+            recipientKey = recipientKey
+                                ?? connection.TheirVk
+                                ?? throw new AgentFrameworkException(
+                                    ErrorCode.A2AMessageTransmissionError, "Cannot find encryption key");
+
+            var routingKeys = connection.Endpoint?.Verkey != null ? new[] { connection.Endpoint.Verkey } : new string[0];
+
+            return PrepareAsync(wallet, message, recipientKey, routingKeys, connection.MyVk);
+        }
+
+        /// <inheritdoc />
         public virtual async Task<byte[]> PrepareAsync(Wallet wallet, AgentMessage message, string recipientKey, string[] routingKeys = null, string senderKey = null)
         {
             if (message == null) throw new ArgumentNullException(nameof(message));
@@ -68,7 +80,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task SendToConnectionAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection, string recipientKey = null)
+        public virtual async Task<byte[]> SendToConnectionAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection, string recipientKey = null, bool requestResponse = false)
         {
             recipientKey = recipientKey
                                 ?? connection.TheirVk
@@ -77,12 +89,12 @@ namespace AgentFramework.Core.Runtime
 
             var routingKeys = connection.Endpoint?.Verkey != null ? new[] {connection.Endpoint.Verkey} : new string[0];
 
-            await SendToEndpoint(wallet, message, recipientKey, connection.Endpoint?.Uri, routingKeys, connection.MyVk);
+            return await SendToEndpoint(wallet, message, recipientKey, connection.Endpoint?.Uri, routingKeys, connection.MyVk, requestResponse);
         }
 
         /// <inheritdoc />
-        public virtual async Task SendToEndpoint(Wallet wallet, AgentMessage message, string recipientKey,
-            string endpointUri, string[] routingKeys = null, string senderKey = null)
+        public virtual async Task<byte[]> SendToEndpoint(Wallet wallet, AgentMessage message, string recipientKey,
+            string endpointUri, string[] routingKeys = null, string senderKey = null, bool requestResponse = false)
         {
             Logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0} Endpoint {1}", recipientKey,
                 endpointUri);
@@ -96,6 +108,9 @@ namespace AgentFramework.Core.Runtime
             if (string.IsNullOrEmpty(endpointUri))
                 throw new ArgumentNullException(nameof(endpointUri));
 
+            if (requestResponse)
+                message.AddReturnRouting();
+
             var wireMsg = await PrepareAsync(wallet, message, recipientKey, routingKeys, senderKey);
 
             var request = new HttpRequestMessage
@@ -104,18 +119,26 @@ namespace AgentFramework.Core.Runtime
                 Method = HttpMethod.Post,
                 Content = new ByteArrayContent(wireMsg)
             };
+
             request.Content.Headers.ContentType = new MediaTypeHeaderValue(AgentWireMessageMimeType);
 
             try
             {
                 var response = await HttpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
+
+                if (response.Content != null)
+                {
+                    return await response.Content.ReadAsByteArrayAsync();
+                }
             }
             catch (Exception e)
             {
                 throw new AgentFrameworkException(
                     ErrorCode.A2AMessageTransmissionError, "Failed to send A2A message", e);
             }
+
+            return null;
         }
     }
 }
