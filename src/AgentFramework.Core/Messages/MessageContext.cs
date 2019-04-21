@@ -99,7 +99,7 @@ namespace AgentFramework.Core.Messages
         /// </summary>
         /// <typeparam name="T">The generic type the message will be cast to.</typeparam>
         /// <returns>The agent message.</returns>
-        public T GetMessageAs<T>() where T : AgentMessage, new() =>
+        public T GetMessage<T>() where T : AgentMessage, new() =>
             Packed
                 ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
                 : JsonConvert.DeserializeObject<T>(_messageJson.ToString(), new AgentMessageReader<T>());

@@ -40,42 +40,42 @@ namespace AgentFramework.Core.Handlers.Internal
         /// Processes the agent message
         /// </summary>
         /// <param name="agentContext"></param>
-        /// <param name="messagePayload">The agent message.</param>
+        /// <param name="messageContext">The agent message.</param>
         /// <returns></returns>
         /// <exception cref="AgentFrameworkException">Unsupported message type {messageType}</exception>
-        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessageContext messagePayload)
+        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessageContext messageContext)
         {
-            switch (messagePayload.GetMessageType())
+            switch (messageContext.GetMessageType())
             {
                 case MessageTypes.CredentialOffer:
                 {
-                    var offer = messagePayload.GetMessageAs<CredentialOfferMessage>();
+                    var offer = messageContext.GetMessage<CredentialOfferMessage>();
                     await _credentialService.ProcessOfferAsync(
-                        agentContext, offer, messagePayload.Connection);
+                        agentContext, offer, messageContext.Connection);
 
                     return null;
                 }
 
                 case MessageTypes.CredentialRequest:
                 {
-                    var request = messagePayload.GetMessageAs<CredentialRequestMessage>();
+                    var request = messageContext.GetMessage<CredentialRequestMessage>();
                     await _credentialService.ProcessCredentialRequestAsync(
-                        agentContext, request, messagePayload.Connection);
+                        agentContext, request, messageContext.Connection);
 
                     return null;
                 }
 
                 case MessageTypes.Credential:
                 {
-                    var credential = messagePayload.GetMessageAs<CredentialMessage>();
+                    var credential = messageContext.GetMessage<CredentialMessage>();
                     await _credentialService.ProcessCredentialAsync(
-                        agentContext, credential, messagePayload.Connection);
+                        agentContext, credential, messageContext.Connection);
 
                     return null;
                 }
                 default:
                     throw new AgentFrameworkException(ErrorCode.InvalidMessage,
-                        $"Unsupported message type {messagePayload.GetMessageType()}");
+                        $"Unsupported message type {messageContext.GetMessageType()}");
             }
         }
     }
