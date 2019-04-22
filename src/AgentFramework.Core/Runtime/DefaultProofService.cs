@@ -160,7 +160,7 @@ namespace AgentFramework.Core.Runtime
 
         /// <inheritdoc />
         public virtual async Task<string> ProcessProofRequestAsync(IAgentContext agentContext,
-            ProofRequestMessage proofRequest)
+            ProofRequestMessage proofRequest, ConnectionRecord connection)
         {
             var requestJson = proofRequest.ProofRequestJson;
 
@@ -169,7 +169,7 @@ namespace AgentFramework.Core.Runtime
             {
                 Id = Guid.NewGuid().ToString(),
                 RequestJson = requestJson,
-                ConnectionId = agentContext.Connection.Id,
+                ConnectionId = connection.Id,
                 State = ProofState.Requested
             };
             proofRecord.SetTag(TagConstants.LastThreadId, proofRequest.GetThreadId());

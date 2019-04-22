@@ -177,7 +177,7 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessRequestAsync(IAgentContext agentContext, ConnectionRequestMessage request)
+        public virtual async Task<string> ProcessRequestAsync(IAgentContext agentContext, ConnectionRequestMessage request, ConnectionRecord connection)
         {
             Logger.LogInformation(LoggingEvents.ProcessConnectionRequest, "Did {0}", request.Connection.Did);
 
@@ -188,46 +188,44 @@ namespace AgentFramework.Core.Runtime
             await Did.StoreTheirDidAsync(agentContext.Wallet, new { did = request.Connection.Did, verkey = request.Connection.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
 
             if (request.Connection.DidDoc.Services[0] is IndyAgentDidDocService service)
-                agentContext.Connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys != null && service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
+                connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys != null && service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
 
-            agentContext.Connection.TheirDid = request.Connection.Did;
-            agentContext.Connection.TheirVk = request.Connection.DidDoc.Keys[0].PublicKeyBase58;
-            agentContext.Connection.MyDid = my.Did;
-            agentContext.Connection.MyVk = my.VerKey;
+            connection.TheirDid = request.Connection.Did;
+            connection.TheirVk = request.Connection.DidDoc.Keys[0].PublicKeyBase58;
+            connection.MyDid = my.Did;
+            connection.MyVk = my.VerKey;
 
-            agentContext.Connection.SetTag(TagConstants.LastThreadId, request.Id);
+            connection.SetTag(TagConstants.LastThreadId, request.Id);
             
-            if (agentContext.Connection.Alias == null)
-                agentContext.Connection.Alias = new ConnectionAlias();
+            if (connection.Alias == null)
+                connection.Alias = new ConnectionAlias();
 
-            if (!string.IsNullOrEmpty(request.Label) && string.IsNullOrEmpty(agentContext.Connection.Alias.Name))
-                agentContext.Connection.Alias.Name = request.Label;
+            if (!string.IsNullOrEmpty(request.Label) && string.IsNullOrEmpty(connection.Alias.Name))
+                connection.Alias.Name = request.Label;
 
-            if (!string.IsNullOrEmpty(request.ImageUrl) && string.IsNullOrEmpty(agentContext.Connection.Alias.ImageUrl))
-                agentContext.Connection.Alias.ImageUrl = request.ImageUrl;
+            if (!string.IsNullOrEmpty(request.ImageUrl) && string.IsNullOrEmpty(connection.Alias.ImageUrl))
+                connection.Alias.ImageUrl = request.ImageUrl;
             
-            if (!agentContext.Connection.MultiPartyInvitation)
+            if (!connection.MultiPartyInvitation)
             {
-                await agentContext.Connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
-                await RecordService.UpdateAsync(agentContext.Wallet, agentContext.Connection);
+                await connection.TriggerAsync(ConnectionTrigger.InvitationAccept);
+                await RecordService.UpdateAsync(agentContext.Wallet, connection);
 
                 EventAggregator.Publish(new ServiceMessageProcessingEvent
                 {
-                    RecordId = agentContext.Connection.Id,
+                    RecordId = connection.Id,
                     MessageType = request.Type,
                     ThreadId = request.GetThreadId()
                 });
 
-                return agentContext.Connection.Id;
+                return connection.Id;
             }
 
-            var newConnection = agentContext.Connection.DeepCopy();
+            var newConnection = connection.DeepCopy();
             newConnection.Id = Guid.NewGuid().ToString();
 
             await newConnection.TriggerAsync(ConnectionTrigger.InvitationAccept);
             await RecordService.AddAsync(agentContext.Wallet, newConnection);
-
-            agentContext.Connection = newConnection;
 
             EventAggregator.Publish(new ServiceMessageProcessingEvent
             {
@@ -240,39 +238,39 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> ProcessResponseAsync(IAgentContext agentContext, ConnectionResponseMessage response)
+        public virtual async Task<string> ProcessResponseAsync(IAgentContext agentContext, ConnectionResponseMessage response, ConnectionRecord connection)
         {
-            Logger.LogInformation(LoggingEvents.AcceptConnectionResponse, "To {1}", agentContext.Connection.MyDid);
+            Logger.LogInformation(LoggingEvents.AcceptConnectionResponse, "To {1}", connection.MyDid);
 
             //TODO throw exception or a problem report if the connection request features a did doc that has no indy agent did doc convention featured
             //i.e there is no way for this agent to respond to messages. And or no keys specified
-            var connection = SignatureUtils.UnpackAndVerifyData<Connection>(response.ConnectionSig);
+            var connectionObj = SignatureUtils.UnpackAndVerifyData<Connection>(response.ConnectionSig);
 
             await Did.StoreTheirDidAsync(agentContext.Wallet,
-                new { did = connection.Did, verkey = connection.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
+                new { did = connectionObj.Did, verkey = connectionObj.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
 
-            await Pairwise.CreateAsync(agentContext.Wallet, connection.Did, agentContext.Connection.MyDid,
-                connection.DidDoc.Services[0].ServiceEndpoint);
+            await Pairwise.CreateAsync(agentContext.Wallet, connectionObj.Did, connection.MyDid,
+                connectionObj.DidDoc.Services[0].ServiceEndpoint);
 
-            agentContext.Connection.TheirDid = connection.Did;
-            agentContext.Connection.TheirVk = connection.DidDoc.Keys[0].PublicKeyBase58;
+            connection.TheirDid = connectionObj.Did;
+            connection.TheirVk = connectionObj.DidDoc.Keys[0].PublicKeyBase58;
 
-            agentContext.Connection.SetTag(TagConstants.LastThreadId, response.GetThreadId());
+            connection.SetTag(TagConstants.LastThreadId, response.GetThreadId());
 
-            if (connection.DidDoc.Services[0] is IndyAgentDidDocService service)
-                agentContext.Connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys != null && service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
+            if (connectionObj.DidDoc.Services[0] is IndyAgentDidDocService service)
+                connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys != null && service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
 
-            await agentContext.Connection.TriggerAsync(ConnectionTrigger.Response);
-            await RecordService.UpdateAsync(agentContext.Wallet, agentContext.Connection);
+            await connection.TriggerAsync(ConnectionTrigger.Response);
+            await RecordService.UpdateAsync(agentContext.Wallet, connection);
 
             EventAggregator.Publish(new ServiceMessageProcessingEvent
             {
-                RecordId = agentContext.Connection.Id,
+                RecordId = connection.Id,
                 MessageType = response.Type,
                 ThreadId = response.GetThreadId()
             });
 
-            return agentContext.Connection.Id;
+            return connection.Id;
         }
 
         /// <inheritdoc />

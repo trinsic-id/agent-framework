@@ -200,7 +200,6 @@ namespace AgentFramework.Core.Tests.Protocols
             var (issuerConnection, _) = await Scenarios.EstablishConnectionAsync(
                 _connectionService, _messages, _issuerWallet, _holderWallet);
 
-            _issuerWallet.Connection = issuerConnection;
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () =>
                 await _proofService.ProcessProofAsync(_issuerWallet, new ProofMessage()));
 
@@ -252,9 +251,8 @@ namespace AgentFramework.Core.Tests.Protocols
                 var proofRequest = FindContentMessage<ProofRequestMessage>();
                 Assert.NotNull(proofRequest);
 
-                _holderWallet.Connection = holderConnection;
                 //Holder stores the proof request
-                var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest);
+                var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest, holderConnection);
                 var holderProofRecord = await _proofService.GetAsync(_holderWallet, holderProofRequestId);
                 var holderProofObject =
                     JsonConvert.DeserializeObject<ProofRequest>(holderProofRecord.RequestJson);
@@ -299,7 +297,6 @@ namespace AgentFramework.Core.Tests.Protocols
             var proof = FindContentMessage<ProofMessage>();
             Assert.NotNull(proof);
 
-            _requestorWallet.Connection = requestorConnection;
             //Requestor stores proof
             await _proofService.ProcessProofAsync(_requestorWallet, proof);
 
@@ -359,9 +356,8 @@ namespace AgentFramework.Core.Tests.Protocols
             var proofRequest = FindContentMessage<ProofRequestMessage>();
             Assert.NotNull(proofRequest);
 
-            _holderWallet.Connection = holderConnection;
             //Holder stores the proof request
-            var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest);
+            var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest, holderConnection);
             var holderProofRecord = await _proofService.GetAsync(_holderWallet, holderProofRequestId);
             var holderProofObject =
                 JsonConvert.DeserializeObject<ProofRequest>(holderProofRecord.RequestJson);
@@ -454,9 +450,8 @@ namespace AgentFramework.Core.Tests.Protocols
             var proofRequest = FindContentMessage<ProofRequestMessage>();
             Assert.NotNull(proofRequest);
 
-            _holderWallet.Connection = holderConnection;
             //Holder stores the proof request
-            var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest);
+            var holderProofRequestId = await _proofService.ProcessProofRequestAsync(_holderWallet, proofRequest, holderConnection);
 
             //Holder accepts the proof request and sends a proof
             await _proofService.RejectProofRequestAsync(_holderWallet, holderProofRequestId);

@@ -103,7 +103,6 @@ namespace AgentFramework.Core.Tests.Protocols
 
             //Process a connection request
             var connectionRecord = await _connectionService.GetAsync(_issuerWallet, connectionId);
-            _issuerWallet.Connection = connectionRecord;
 
             await _connectionService.ProcessRequestAsync(_issuerWallet, new ConnectionRequestMessage
             {
@@ -114,7 +113,7 @@ namespace AgentFramework.Core.Tests.Protocols
                         MyVk = "6vyxuqpe3UBcTmhF3Wmmye2UVroa51Lcd9smQKFB5QX1"
                     }.MyDidDoc(await _provisioningService.GetProvisioningAsync(_issuerWallet.Wallet))
                 }
-            });
+            }, connectionRecord);
 
             //Accept the connection request
             await _connectionService.CreateResponseAsync(_issuerWallet, connectionId);
@@ -142,7 +141,7 @@ namespace AgentFramework.Core.Tests.Protocols
 
             //Process a connection request
             var connectionRecord = await _connectionService.GetAsync(_issuerWallet, connectionId);
-            _issuerWallet.Connection = connectionRecord;
+
             await _connectionService.ProcessRequestAsync(_issuerWallet, new ConnectionRequestMessage
             {
                 Connection = new Connection { 
@@ -152,7 +151,7 @@ namespace AgentFramework.Core.Tests.Protocols
                         MyVk = "6vyxuqpe3UBcTmhF3Wmmye2UVroa51Lcd9smQKFB5QX1"
                     }.MyDidDoc(await _provisioningService.GetProvisioningAsync(_issuerWallet.Wallet))
                 }
-            });
+            }, connectionRecord);
 
             //Accept the connection request
             await _connectionService.CreateResponseAsync(_issuerWallet, connectionId);

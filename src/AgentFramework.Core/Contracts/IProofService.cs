@@ -41,8 +41,9 @@ namespace AgentFramework.Core.Contracts
         /// <returns>The identifier for the stored proof request.</returns>
         /// <param name="agentContext">Agent Context.</param>
         /// <param name="proofRequest">A proof request.</param>
+        /// <param name="connection">Connection.</param>
         /// <returns>Proof identifier.</returns>
-        Task<string> ProcessProofRequestAsync(IAgentContext agentContext, ProofRequestMessage proofRequest);
+        Task<string> ProcessProofRequestAsync(IAgentContext agentContext, ProofRequestMessage proofRequest, ConnectionRecord connection);
 
         /// <summary>
         /// Processes a proof and stores it for a given connection.

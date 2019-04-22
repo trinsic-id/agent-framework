@@ -5,7 +5,6 @@ using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
-using Hyperledger.Indy.WalletApi;
 
 namespace AgentFramework.Core.Tests
 {
@@ -36,7 +35,7 @@ namespace AgentFramework.Core.Tests
             throw new System.NotImplementedException();
         }
 
-        public Task<string> ProcessRequestAsync(IAgentContext agentContext, ConnectionRequestMessage request)
+        public Task<string> ProcessRequestAsync(IAgentContext agentContext, ConnectionRequestMessage request, ConnectionRecord connection)
         {
             throw new System.NotImplementedException();
         }
@@ -51,7 +50,7 @@ namespace AgentFramework.Core.Tests
             throw new System.NotImplementedException();
         }
 
-        public Task<string> ProcessResponseAsync(IAgentContext agentContext, ConnectionResponseMessage response)
+        public Task<string> ProcessResponseAsync(IAgentContext agentContext, ConnectionResponseMessage response, ConnectionRecord connection)
         {
             throw new System.NotImplementedException();
         }

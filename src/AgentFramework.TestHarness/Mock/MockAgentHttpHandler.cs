@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AgentFramework.Core.Runtime;
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -8,12 +9,12 @@ namespace AgentFramework.TestHarness.Mock
 {
     public class MockAgentHttpHandler : HttpMessageHandler
     {
-        public MockAgentHttpHandler(Action<string, byte[]> callback)
+        public MockAgentHttpHandler(Func<(string name, byte[] data), Task<byte[]>> callback)
         {
             Callback = callback;
         }
 
-        public Action<string, byte[]> Callback { get; }
+        public Func<(string, byte[]), Task<byte[]>> Callback { get; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -22,8 +23,16 @@ namespace AgentFramework.TestHarness.Mock
                 throw new Exception("Invalid http method");
             }
 
-            Callback(request.RequestUri.Host, await request.Content.ReadAsByteArrayAsync());
-            return new HttpResponseMessage(HttpStatusCode.OK);
+            var response = await Callback((request.RequestUri.Host, await request.Content.ReadAsByteArrayAsync()));
+            var responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
+
+            if (response != null)
+            {
+                responseMessage.Content = new ByteArrayContent(response);
+                responseMessage.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DefaultMessageService.AgentWireMessageMimeType);
+            }
+
+            return responseMessage;
         }
     }
 }
