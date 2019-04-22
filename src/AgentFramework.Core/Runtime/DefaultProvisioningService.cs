@@ -108,8 +108,6 @@ namespace AgentFramework.Core.Runtime
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
-            if (configuration.EndpointUri == null)
-                throw new ArgumentNullException(nameof(configuration.EndpointUri));
             if (configuration.WalletConfiguration == null ||
                 configuration.WalletCredentials == null)
                 throw new ArgumentNullException(nameof(configuration),
@@ -121,23 +119,27 @@ namespace AgentFramework.Core.Runtime
                 await WalletService.GetWalletAsync(configuration.WalletConfiguration, configuration.WalletCredentials);
 
             // Configure agent endpoint
-            var endpoint = new AgentEndpoint { Uri = configuration.EndpointUri.ToString() };
-            if (configuration.AgentSeed != null)
+            AgentEndpoint endpoint = null;
+            if (configuration.EndpointUri != null)
             {
-                var agent = await Did.CreateAndStoreMyDidAsync(wallet, new {seed = configuration.AgentSeed}.ToJson());
-                endpoint.Did = agent.Did;
-                endpoint.Verkey = agent.VerKey;
-            }
-            else if (configuration.AgentDid != null && configuration.AgentVerkey != null)
-            {
-                endpoint.Did = configuration.AgentDid;
-                endpoint.Verkey = configuration.AgentVerkey;
-            }
-            else
-            {
-                var agent = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
-                endpoint.Did = agent.Did;
-                endpoint.Verkey = agent.VerKey;
+                endpoint = new AgentEndpoint { Uri = configuration.EndpointUri?.ToString() };
+                if (configuration.AgentSeed != null)
+                {
+                    var agent = await Did.CreateAndStoreMyDidAsync(wallet, new { seed = configuration.AgentSeed }.ToJson());
+                    endpoint.Did = agent.Did;
+                    endpoint.Verkey = agent.VerKey;
+                }
+                else if (configuration.AgentDid != null && configuration.AgentVerkey != null)
+                {
+                    endpoint.Did = configuration.AgentDid;
+                    endpoint.Verkey = configuration.AgentVerkey;
+                }
+                else
+                {
+                    var agent = await Did.CreateAndStoreMyDidAsync(wallet, "{}");
+                    endpoint.Did = agent.Did;
+                    endpoint.Verkey = agent.VerKey;
+                }
             }
 
             var masterSecretId = await AnonCreds.ProverCreateMasterSecretAsync(wallet, null);
