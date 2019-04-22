@@ -87,6 +87,42 @@ namespace AgentFramework.Core.Tests.Protocols
         }
 
         [Fact]
+        public async Task CreateInvitiationThrowsInvalidStateNoEndpoint()
+        {
+            var provisioningService = ServiceUtils.GetDefaultMockProvisioningService(null, "DefaultMasterSecret", null);
+
+            var connectionService = new DefaultConnectionService(
+                _eventAggregator,
+                new DefaultWalletRecordService(),
+                provisioningService,
+                new Mock<ILogger<DefaultConnectionService>>().Object);
+
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await connectionService.CreateInvitationAsync(_issuerWallet,
+                new InviteConfiguration()));
+
+            Assert.True(ex.ErrorCode == ErrorCode.RecordInInvalidState);
+        }
+
+        [Fact]
+        public async Task CanCreateRequestWithoutEndpoint()
+        {
+            var provisioningService = ServiceUtils.GetDefaultMockProvisioningService(null, "DefaultMasterSecret", null);
+
+            var connectionService = new DefaultConnectionService(
+                _eventAggregator,
+                new DefaultWalletRecordService(),
+                provisioningService,
+                new Mock<ILogger<DefaultConnectionService>>().Object);
+
+            var (invite, _) = await _connectionService.CreateInvitationAsync(_issuerWallet,
+                new InviteConfiguration());
+
+            var (request, _) = await connectionService.CreateRequestAsync(_holderWallet, invite);
+
+            Assert.Null(request.Connection.DidDoc.Services);
+        }
+
+        [Fact]
         public async Task AcceptRequestThrowsExceptionConnectionNotFound()
         {
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.CreateResponseAsync(_issuerWallet, "bad-connection-id"));

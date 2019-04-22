@@ -22,7 +22,7 @@ namespace AgentFramework.Core.Extensions
         /// <returns>DID Doc</returns>
         public static DidDoc MyDidDoc(this ConnectionRecord connection, ProvisioningRecord provisioningRecord)
         {
-            return new DidDoc
+            var doc = new DidDoc
             {
                 Keys = new List<DidDocKey>
                 {
@@ -33,8 +33,12 @@ namespace AgentFramework.Core.Extensions
                         Controller = connection.MyDid,
                         PublicKeyBase58 = connection.MyVk
                     }
-                },
-                Services = new List<IDidDocServiceEndpoint>
+                }
+            };
+
+            if (!string.IsNullOrEmpty(provisioningRecord.Endpoint.Uri))
+            {
+                doc.Services = new List<IDidDocServiceEndpoint>
                 {
                     new IndyAgentDidDocService
                     {
@@ -43,8 +47,10 @@ namespace AgentFramework.Core.Extensions
                         RecipientKeys = connection.MyVk != null ? new[] { connection.MyVk } : new string[0],
                         RoutingKeys = provisioningRecord.Endpoint?.Verkey != null ? new[] { provisioningRecord.Endpoint.Verkey } : new string[0]
                     }
-                }
-            };
+                };
+            }
+
+            return doc;
         }
 
         /// <summary>
