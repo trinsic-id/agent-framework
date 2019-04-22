@@ -50,18 +50,15 @@ namespace AgentFramework.TestHarness
                 }
             };
 
-            ConnectionRecord inviterConnection = null;
-
             if (inviteMessage == null)
-                (inviteMessage, inviterConnection) = await connectionService.CreateInvitationAsync(firstContext, inviteConfig);
+                (inviteMessage, _) = await connectionService.CreateInvitationAsync(firstContext, inviteConfig);
 
             var connectionFirst = await connectionService.GetAsync(firstContext, inviteeconnectionId ?? inviteConfig.ConnectionId);
             Assert.Equal(ConnectionState.Invited, connectionFirst.State);
-            firstContext.Connection = connectionFirst;
 
             // Holder accepts invitation and sends a message request
             (var request, var inviteeConnection) = await connectionService.CreateRequestAsync(secondContext, inviteMessage);
-            var connectionSecond = secondContext.Connection = inviteeConnection;
+            var connectionSecond = inviteeConnection;
 
             _messages.TryAdd(request);
 
@@ -72,16 +69,16 @@ namespace AgentFramework.TestHarness
             Assert.NotNull(issuerMessage);
 
             // Issuer processes the connection request by storing it and accepting it if auto connection flow is enabled
-            connectionSecondId = await connectionService.ProcessRequestAsync(firstContext, issuerMessage);
+            connectionSecondId = await connectionService.ProcessRequestAsync(firstContext, issuerMessage, connectionFirst);
             
-            firstContext.Connection = connectionFirst = await connectionService.GetAsync(firstContext, connectionSecondId);
+            connectionFirst = await connectionService.GetAsync(firstContext, connectionSecondId);
             Assert.Equal(ConnectionState.Negotiating, connectionFirst.State);
 
             // Issuer accepts the connection request
             (var response, var _) = await connectionService.CreateResponseAsync(firstContext, connectionSecondId);
             _messages.TryAdd(response);
 
-            firstContext.Connection = connectionFirst = await connectionService.GetAsync(firstContext, connectionSecondId);
+            connectionFirst = await connectionService.GetAsync(firstContext, connectionSecondId);
             Assert.Equal(ConnectionState.Connected, connectionFirst.State);
 
             // Holder processes incoming message
@@ -89,7 +86,7 @@ namespace AgentFramework.TestHarness
             Assert.NotNull(holderMessage);
 
             // Holder processes the response message by accepting it
-            await connectionService.ProcessResponseAsync(secondContext, holderMessage);
+            await connectionService.ProcessResponseAsync(secondContext, holderMessage, connectionSecond);
 
             // Retrieve updated connection state for both issuer and holder
             connectionFirst = await connectionService.GetAsync(firstContext, connectionFirst.Id);
@@ -182,9 +179,8 @@ namespace AgentFramework.TestHarness
             var proofRequest = FindContentMessage<ProofRequestMessage>(messages);
             Assert.NotNull(proofRequest);
 
-            holderContext.Connection = holderConnection;
             //Holder stores the proof request
-            var holderProofRequestId = await proofService.ProcessProofRequestAsync(holderContext, proofRequest);
+            var holderProofRequestId = await proofService.ProcessProofRequestAsync(holderContext, proofRequest, holderConnection);
             var holderProofRecord = await proofService.GetAsync(holderContext, holderProofRequestId);
             var holderProofRequest = JsonConvert.DeserializeObject<ProofRequest>(holderProofRecord.RequestJson);
 
@@ -201,7 +197,6 @@ namespace AgentFramework.TestHarness
             var proof = FindContentMessage<ProofMessage>(messages);
             Assert.NotNull(proof);
 
-            requestorContext.Connection = requestorConnection;
             //Requestor stores proof
             var requestorProofId = await proofService.ProcessProofAsync(requestorContext, proof);
 

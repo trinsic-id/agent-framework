@@ -64,9 +64,10 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="agentContext">Agent Context.</param>
         /// <param name="request">Request.</param>
+        /// <param name="connection">Connection.</param>
         /// <exception cref="AgentFrameworkException">Throws with ErrorCode.A2AMessageTransmissionError.</exception>
         /// <returns>Connection identifier this request is related to.</returns>
-        Task<string> ProcessRequestAsync(IAgentContext agentContext, ConnectionRequestMessage request);
+        Task<string> ProcessRequestAsync(IAgentContext agentContext, ConnectionRequestMessage request, ConnectionRecord connection);
 
         /// <summary>
         /// Accepts the connection request and sends a connection response
@@ -84,8 +85,9 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="agentContext">Agent Context.</param>
         /// <param name="response">Response.</param>
+        /// <param name="connection">Connection.</param>
         /// <returns>Connection identifier this request is related to.</returns>
-        Task<string> ProcessResponseAsync(IAgentContext agentContext, ConnectionResponseMessage response);
+        Task<string> ProcessResponseAsync(IAgentContext agentContext, ConnectionResponseMessage response, ConnectionRecord connection);
 
         /// <summary>
         /// Deletes a connection from the local store

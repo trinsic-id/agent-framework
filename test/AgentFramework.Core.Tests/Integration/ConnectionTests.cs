@@ -19,9 +19,9 @@ namespace AgentFramework.Core.Tests.Integration
 
         public async Task InitializeAsync()
         {
-            _agent1 = await MockUtils.CreateAsync("agent1", config1, cred, new MockAgentHttpHandler((name, data) => _router.RouteMessage(name, data)));
+            _agent1 = await MockUtils.CreateAsync("agent1", config1, cred, new MockAgentHttpHandler((cb) => _router.RouteMessage(cb.name, cb.data)));
             _router.RegisterAgent(_agent1);
-            _agent2 = await MockUtils.CreateAsync("agent2", config2, cred, new MockAgentHttpHandler((name, data) => _router.RouteMessage(name, data)));
+            _agent2 = await MockUtils.CreateAsync("agent2", config2, cred, new MockAgentHttpHandler((cb) => _router.RouteMessage(cb.name, cb.data)));
             _router.RegisterAgent(_agent2);
         }
 
@@ -29,6 +29,12 @@ namespace AgentFramework.Core.Tests.Integration
         public async Task CanConnect()
         {
             await AgentScenarios.EstablishConnectionAsync(_agent1, _agent2);
+        }
+
+        [Fact]
+        public async Task CanConnectWithReturnRouting()
+        {
+            await AgentScenarios.EstablishConnectionWithReturnRoutingAsync(_agent1, _agent2);
         }
 
         public async Task DisposeAsync()

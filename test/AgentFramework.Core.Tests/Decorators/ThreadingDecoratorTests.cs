@@ -10,44 +10,8 @@ using Xunit;
 
 namespace AgentFramework.Core.Tests.Decorators
 {
-    public class ThreadingDecoratorTests : IAsyncLifetime
+    public class ThreadingDecoratorTests
     {
-        private readonly string _walletConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
-        private const string Credentials = "{\"key\":\"test_wallet_key\"}";
-        private IAgentContext _agent;
-
-        public async Task InitializeAsync()
-        {
-            try
-            {
-                await Wallet.CreateWalletAsync(_walletConfig, Credentials);
-            }
-            catch (WalletExistsException)
-            {
-                // OK
-            }
-
-            try
-            {
-                await Wallet.CreateWalletAsync(_walletConfig, Credentials);
-            }
-            catch (WalletExistsException)
-            {
-                // OK
-            }
-
-            _agent = new AgentContext
-            {
-                Wallet = await Wallet.OpenWalletAsync(_walletConfig, Credentials),
-            };
-        }
-
-        public async Task DisposeAsync()
-        {
-            if (_agent != null) await _agent.Wallet.CloseAsync();
-            await Wallet.DeleteWalletAsync(_walletConfig, Credentials);
-        }
-
         [Fact]
         public void CreatesNewThreadFromUnthreadedInboundMessage()
         {

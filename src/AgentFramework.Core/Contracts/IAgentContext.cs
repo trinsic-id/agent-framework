@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Records;
-using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 
 namespace AgentFramework.Core.Contracts
@@ -23,10 +22,5 @@ namespace AgentFramework.Core.Contracts
         /// along the execution pipeline.</summary>
         /// <value>The state.</value>
         Dictionary<string, string> State { get; set; }
-
-        /// <summary>If present, gets the connection associated
-        /// with the processed message.</summary>
-        /// <value>The connection.</value>
-        ConnectionRecord Connection { get; set; }
     }
 }
