@@ -38,7 +38,7 @@ namespace AgentFramework.Core.Runtime
             if (string.IsNullOrEmpty(query))
                 throw new ArgumentNullException(nameof(query));
 
-            //TODO valid this is a valid query????
+            //TODO validate this is a valid query????
 
             return new DiscoveryQueryMessage
             {
@@ -52,7 +52,7 @@ namespace AgentFramework.Core.Runtime
             if (string.IsNullOrEmpty(message.Query))
                 throw new ArgumentNullException(nameof(message.Query));
 
-            //TODO valid this is a valid query????
+            //TODO validate this is a valid query????
 
             var test = message.Query.TrimEnd('*');
 
