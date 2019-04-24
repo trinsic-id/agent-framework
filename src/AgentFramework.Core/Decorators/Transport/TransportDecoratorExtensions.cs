@@ -1,5 +1,5 @@
 ﻿using System;
-using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 
@@ -48,7 +48,7 @@ namespace AgentFramework.Core.Decorators.Transport
         /// Adds return routing to message
         /// </summary>
         /// <param name="message">The message to add return routing</param>
-        public static bool ReturnRoutingRequested(this MessageContext message)
+        public static bool ReturnRoutingRequested(this IMessageContext message)
         {
             try
             {

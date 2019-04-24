@@ -65,6 +65,9 @@ namespace AgentFramework.Core.Handlers
         /// <summary>Adds a default forwarding handler.</summary>
         protected void AddEphemeralChallengeHandler() => _handlers.Add(Provider.GetRequiredService<DefaultEphemeralChallengeHandler>());
 
+        /// <summary>Adds a default forwarding handler.</summary>
+        protected void AddDiscoveryHandler() => _handlers.Add(Provider.GetRequiredService<DefaultDiscoveryHandler>());
+
         /// <summary>Adds a custom the handler using dependency injection.</summary>
         /// <typeparam name="T"></typeparam>
         protected void AddHandler<T>() where T : IMessageHandler => _handlers.Add(Provider.GetRequiredService<T>());
@@ -77,17 +80,20 @@ namespace AgentFramework.Core.Handlers
         /// <summary>
         /// Invoke the handler pipeline and process the passed message.
         /// </summary>
-        /// <param name="body">The body.</param>
         /// <param name="context">The agent context.</param>
+        /// <param name="messageContext">The message context.</param>
         /// <returns></returns>
         /// <exception cref="Exception">Expected inner message to be of type 'ForwardMessage'</exception>
         /// <exception cref="AgentFrameworkException">Couldn't locate a message handler for type {messageType}</exception>
-        protected async Task<byte[]> ProcessAsync(byte[] body, IAgentContext context)
+        /// TODO should recieve a message context and return a message context.
+        protected async Task<byte[]> ProcessAsync(IAgentContext context, IMessageContext messageContext)
         {
             EnsureConfigured();
 
+            context.SupportedMessages = GetSupportedMessageTypes();
+
             var agentContext = context.ToHandlerAgentContext();
-            agentContext.AddNext(new MessageContext(body, true));
+            agentContext.AddNext(messageContext);
 
             MessageContext outgoingMessageContext = null;
             while (agentContext.TryGetNext(out var message) && outgoingMessageContext == null)
@@ -95,16 +101,10 @@ namespace AgentFramework.Core.Handlers
                 outgoingMessageContext = await ProcessMessage(agentContext, message);
             }
 
-            if (outgoingMessageContext != null)
-            { 
-                var result = await MessageService.PrepareForConnectionAsync(agentContext.Wallet, outgoingMessageContext.GetAsAgentMessage(), outgoingMessageContext.Connection);
-                return result;
-            }
-
-            return null;
+            return outgoingMessageContext?.Payload;
         }
 
-        private async Task<MessageContext> ProcessMessage(IAgentContext agentContext, MessageContext inboundMessageContext)
+        private async Task<MessageContext> ProcessMessage(IAgentContext agentContext, IMessageContext inboundMessageContext)
         {
             if (inboundMessageContext.Packed)
             {
@@ -127,7 +127,8 @@ namespace AgentFramework.Core.Handlers
                 {
                     if (inboundMessageContext.ReturnRoutingRequested())
                     {
-                        return new MessageContext(response, inboundMessageContext.Connection);
+                        var result = await MessageService.PrepareForConnectionAsync(agentContext.Wallet, response, inboundMessageContext.Connection, null, false);
+                        return new MessageContext(result, true, inboundMessageContext.Connection);
                     }
                     else
                     {
@@ -141,7 +142,7 @@ namespace AgentFramework.Core.Handlers
                 $"Couldn't locate a message handler for type {inboundMessageContext.GetMessageType()}");
         }
 
-        private async Task<MessageContext> UnpackAsync(IAgentContext agentContext, MessageContext message)
+        private async Task<IMessageContext> UnpackAsync(IAgentContext agentContext, IMessageContext message)
         {
             UnpackResult unpacked;
 
@@ -175,6 +176,8 @@ namespace AgentFramework.Core.Handlers
 
             return message;
         }
+
+        private IList<IMessageType> GetSupportedMessageTypes() => _handlers.SelectMany(_ => _.SupportedMessageTypes, (parent, child) => new MessageType(child) as IMessageType).ToList();
 
         private void EnsureConfigured()
         {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Models;
 
@@ -9,14 +10,14 @@ namespace AgentFramework.Core.Handlers
     /// </summary>
     public class AgentContext : DefaultAgentContext
     {
-        private readonly ConcurrentQueue<MessageContext> _queue = new ConcurrentQueue<MessageContext>();
+        private readonly ConcurrentQueue<IMessageContext> _queue = new ConcurrentQueue<IMessageContext>();
         
         /// <summary>
         /// Adds a message to the current processing queue
         /// </summary>
         /// <param name="message"></param>
-        public void AddNext(MessageContext message) => _queue.Enqueue(message);
+        public void AddNext(IMessageContext message) => _queue.Enqueue(message);
 
-        internal bool TryGetNext(out MessageContext message) => _queue.TryDequeue(out message);
+        internal bool TryGetNext(out IMessageContext message) => _queue.TryDequeue(out message);
     }
 }

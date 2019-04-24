@@ -8,6 +8,7 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Credentials;
+using AgentFramework.Core.Messages.Discovery;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Events;
@@ -101,7 +102,7 @@ namespace AgentFramework.TestHarness
             return (connectionRecord1, connectionRecord2);
         }
 
-        public static async Task IssueCredential(MockAgent issuer, MockAgent holder, ConnectionRecord issuerConnection, ConnectionRecord holderConnection, List<CredentialPreviewAttribute> credentialAttributes)
+        public static async Task IssueCredentialAsync(MockAgent issuer, MockAgent holder, ConnectionRecord issuerConnection, ConnectionRecord holderConnection, List<CredentialPreviewAttribute> credentialAttributes)
         {
             var credentialService = issuer.GetService<ICredentialService>();
             var messsageService = issuer.GetService<IMessageService>();
@@ -173,7 +174,7 @@ namespace AgentFramework.TestHarness
                 holderCredRecord.GetTag(TagConstants.LastThreadId));
         }
 
-        public static async Task ProofProtocol(MockAgent requestor, MockAgent holder,
+        public static async Task ProofProtocolAsync(MockAgent requestor, MockAgent holder,
             ConnectionRecord requestorConnection, ConnectionRecord holderConnection, ProofRequest proofRequest)
         {
             var proofService = requestor.GetService<IProofService>();
@@ -222,6 +223,24 @@ namespace AgentFramework.TestHarness
             var isProofValid = await proofService.VerifyProofAsync(requestor.Context, requestorProofRecord.Id);
 
             Assert.True(isProofValid);
+        }
+
+        public static async Task<DiscoveryDiscloseMessage> DiscoveryProtocolWithReturnRoutingAsync(MockAgent requestor, MockAgent holder, ConnectionRecord requestorConnection, ConnectionRecord holderConnection)
+        {
+            var discoveryService = requestor.GetService<IDiscoveryService>();
+            var messageService = requestor.GetService<IMessageService>();
+
+            //Ask for all protocols
+            var msg = discoveryService.CreateQuery(requestor.Context, "*");
+            var rsp = await messageService.SendToConnectionAsync(requestor.Context.Wallet, msg, requestorConnection, null, true);
+
+            Assert.NotNull(rsp);
+
+            var discoveryMsg = rsp.GetMessage<DiscoveryDiscloseMessage>();
+
+            Assert.NotNull(discoveryMsg);
+
+            return discoveryMsg;
         }
     }
 }

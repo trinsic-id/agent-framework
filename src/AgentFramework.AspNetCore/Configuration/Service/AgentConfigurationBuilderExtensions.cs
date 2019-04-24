@@ -25,6 +25,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             builder.Services.TryAddSingleton<IPoolService, DefaultPoolService>();
             builder.Services.TryAddSingleton<IProofService, DefaultProofService>();
             builder.Services.TryAddSingleton<IEphemeralChallengeService, DefaultEphemeralChallengeService>();
+            builder.Services.TryAddSingleton<IDiscoveryService, DefaultDiscoveryService>();
             builder.Services.TryAddSingleton<IProvisioningService, DefaultProvisioningService>();
             builder.Services.TryAddSingleton<IMessageService, DefaultMessageService>();
             builder.Services.TryAddSingleton<HttpMessageHandler, HttpClientHandler>();
@@ -87,6 +88,23 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             where TProvider : class, IAgentContextProvider
         {
             builder.Services.AddSingleton<IAgentContextProvider,TProvider>();
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds the extended protocol discovery service.
+        /// </summary>
+        /// <returns>The extended ephemeral challenge service.</returns>
+        /// <param name="builder">Builder.</param>
+        /// <typeparam name="TService">The 1st type parameter.</typeparam>
+        /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
+        public static AgentConfigurationBuilder AddExtendedDiscoveryService<TService, TImplementation>(this AgentConfigurationBuilder builder)
+            where TService : class, IDiscoveryService
+            where TImplementation : class, TService, IDiscoveryService
+        {
+            builder.Services.AddSingleton<TImplementation>();
+            builder.Services.AddSingleton<IDiscoveryService>(x => x.GetService<TImplementation>());
+            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 

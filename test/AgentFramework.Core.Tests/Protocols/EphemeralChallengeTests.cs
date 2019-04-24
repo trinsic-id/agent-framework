@@ -61,7 +61,7 @@ namespace AgentFramework.Core.Tests.Protocols
                     else
                         throw new AgentFrameworkException(ErrorCode.LedgerOperationRejected, "");
                 })
-                .Returns(Task.FromResult<byte[]>(null));
+                .Returns(Task.FromResult<MessageContext>(null));
 
             var provisioningMock = ServiceUtils.GetDefaultMockProvisioningService();
 

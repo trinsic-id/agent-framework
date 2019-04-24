@@ -1,4 +1,5 @@
-﻿using AgentFramework.Core.Exceptions;
+﻿using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -18,7 +19,7 @@ namespace AgentFramework.Core.Extensions
         /// <param name="messageContext">Message Context.</param>
         /// <param name="name">The name.</param>
         /// <returns>The requested decorator or null</returns>
-        public static T FindDecorator<T>(this MessageContext messageContext, string name) where T : class
+        public static T FindDecorator<T>(this IMessageContext messageContext, string name) where T : class
         {
             if (messageContext.Packed)
                 throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot fetch decorator from packed message.");

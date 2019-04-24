@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
+using AgentFramework.Core.Messages;
 
 namespace AgentFramework.TestHarness.Mock
 {
@@ -12,6 +13,6 @@ namespace AgentFramework.TestHarness.Mock
         {
         }
 
-        internal Task HandleAsync(byte[] data, IAgentContext context) => ProcessAsync(data, context);
+        internal Task HandleAsync(MessageContext msg, IAgentContext context) => ProcessAsync(context, msg);
     }
 }
