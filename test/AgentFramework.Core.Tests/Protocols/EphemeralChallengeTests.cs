@@ -53,7 +53,7 @@ namespace AgentFramework.Core.Tests.Protocols
 
             var routingMock = new Mock<IMessageService>();
             routingMock.Setup(x =>
-                    x.SendToConnectionAsync(It.IsAny<Wallet>(), It.IsAny<AgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>(), It.IsAny<bool>()))
+                    x.SendAsync(It.IsAny<Wallet>(), It.IsAny<AgentMessage>(), It.IsAny<ConnectionRecord>(), It.IsAny<string>(), It.IsAny<bool>()))
                 .Callback((Wallet _, AgentMessage content, ConnectionRecord __, string ___, bool ____) =>
                 {
                     if (_routeMessage)
@@ -61,7 +61,7 @@ namespace AgentFramework.Core.Tests.Protocols
                     else
                         throw new AgentFrameworkException(ErrorCode.LedgerOperationRejected, "");
                 })
-                .Returns(Task.FromResult<byte[]>(null));
+                .Returns(Task.FromResult<MessageContext>(null));
 
             var provisioningMock = ServiceUtils.GetDefaultMockProvisioningService();
 

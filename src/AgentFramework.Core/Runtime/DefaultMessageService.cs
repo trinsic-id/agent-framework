@@ -41,14 +41,14 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public virtual Task<byte[]> PrepareForConnectionAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection, string recipientKey = null)
+        public virtual Task<byte[]> PrepareAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection, string recipientKey = null, bool useRoutingKeys = true)
         {
             recipientKey = recipientKey
                                 ?? connection.TheirVk
                                 ?? throw new AgentFrameworkException(
                                     ErrorCode.A2AMessageTransmissionError, "Cannot find encryption key");
 
-            var routingKeys = connection.Endpoint?.Verkey != null ? new[] { connection.Endpoint.Verkey } : new string[0];
+            var routingKeys = useRoutingKeys && connection.Endpoint?.Verkey != null ? new[] { connection.Endpoint.Verkey } : new string[0];
 
             return PrepareAsync(wallet, message, recipientKey, routingKeys, connection.MyVk);
         }
@@ -78,22 +78,48 @@ namespace AgentFramework.Core.Runtime
 
             return msg;
         }
+        
+        private async Task<MessageContext> UnpackAsync(Wallet wallet, MessageContext message, ConnectionRecord connection)
+        {
+            UnpackResult unpacked;
+
+            try
+            {
+                unpacked = await CryptoUtils.UnpackAsync(wallet, message.Payload);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError("Failed to un-pack message", e);
+                throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Failed to un-pack message", e);
+            }
+
+            message = new MessageContext(unpacked.Message, false, connection);
+
+            return message;
+        }
 
         /// <inheritdoc />
-        public virtual async Task<byte[]> SendToConnectionAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection, string recipientKey = null, bool requestResponse = false)
+        public virtual async Task<MessageContext> SendAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection, string recipientKey = null, bool requestResponse = false)
         {
             recipientKey = recipientKey
                                 ?? connection.TheirVk
                                 ?? throw new AgentFrameworkException(
                                     ErrorCode.A2AMessageTransmissionError, "Cannot find encryption key");
 
-            var routingKeys = connection.Endpoint?.Verkey != null ? new[] {connection.Endpoint.Verkey} : new string[0];
+            var routingKeys = connection.Endpoint?.Verkey != null ? new[] { connection.Endpoint.Verkey } : new string[0];
 
-            return await SendToEndpoint(wallet, message, recipientKey, connection.Endpoint?.Uri, routingKeys, connection.MyVk, requestResponse);
+            var response = await SendAsync(wallet, message, recipientKey, connection.Endpoint?.Uri, routingKeys, connection.MyVk, requestResponse);
+
+            if (response?.Packed != null)
+            {
+                response = await UnpackAsync(wallet, response, connection);
+            }
+
+            return response;
         }
 
         /// <inheritdoc />
-        public virtual async Task<byte[]> SendToEndpoint(Wallet wallet, AgentMessage message, string recipientKey,
+        public virtual async Task<MessageContext> SendAsync(Wallet wallet, AgentMessage message, string recipientKey,
             string endpointUri, string[] routingKeys = null, string senderKey = null, bool requestResponse = false)
         {
             Logger.LogInformation(LoggingEvents.SendMessage, "Recipient {0} Endpoint {1}", recipientKey,
@@ -122,18 +148,25 @@ namespace AgentFramework.Core.Runtime
 
             request.Content.Headers.ContentType = new MediaTypeHeaderValue(AgentWireMessageMimeType);
 
-            try
-            {
-                var response = await HttpClient.SendAsync(request);
-                response.EnsureSuccessStatusCode();
+            var response = await HttpClient.SendAsync(request);
 
-                if (response.Content != null)
-                    return await response.Content.ReadAsByteArrayAsync();
-            }
-            catch (Exception e)
+            if (!response.IsSuccessStatusCode)
             {
+                var responseBody = await response.Content.ReadAsStringAsync();
                 throw new AgentFrameworkException(
-                    ErrorCode.A2AMessageTransmissionError, "Failed to send A2A message", e);
+                    ErrorCode.A2AMessageTransmissionError, $"Failed to send A2A message with an HTTP status code of {response.StatusCode} and content {responseBody}");
+            }
+
+            if(response.Content != null && 
+               response.Content.Headers.ContentType.ToString() == AgentWireMessageMimeType)
+            {
+                var rawContent = await response.Content.ReadAsByteArrayAsync();
+
+                //TODO this assumes all messages are packed
+                if (rawContent.Length > 0)
+                {
+                    return new MessageContext(rawContent, true);
+                }
             }
 
             return null;

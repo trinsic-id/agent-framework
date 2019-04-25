@@ -1,5 +1,5 @@
 ﻿using System;
-using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 

@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
+using AgentFramework.Core.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.TestHarness.Mock
@@ -21,7 +22,7 @@ namespace AgentFramework.TestHarness.Mock
 
         public T GetService<T>() => ServiceProvider.GetRequiredService<T>();
 
-        public Task<byte[]> HandleInboundAsync(byte[] data) => ProcessAsync(data, Context);
+        public Task<byte[]> HandleInboundAsync(MessageContext messageContext) => ProcessAsync(Context, messageContext);
 
         public async Task Dispose() => await Context.Wallet.CloseAsync();
 
@@ -31,6 +32,7 @@ namespace AgentFramework.TestHarness.Mock
             AddForwardHandler();
             AddCredentialHandler();
             AddProofHandler();
+            AddDiscoveryHandler();
         }
     }
 }

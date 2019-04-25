@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Messages;
 using Hyperledger.Indy.WalletApi;
 
 namespace AgentFramework.Core.Models
@@ -27,5 +28,11 @@ namespace AgentFramework.Core.Models
         /// The agent context state.
         /// </summary>
         public Dictionary<string, string> State { get; set; }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// A list of supported messages for the current agent.
+        /// </summary>
+        public IList<MessageType> SupportedMessages { get; set; }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Text.RegularExpressions;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 
@@ -9,6 +11,8 @@ namespace AgentFramework.Core.Utils
     /// </summary>
     public static class MessageUtils
     {
+        private const string MessageTypeRegex = @"^(did:[a-z]+:[a-zA-z\d]+;spec)\/([a-z\S]+)\/([0-9].[0-9])\/([a-z\S]+)";
+
         /// <summary>
         /// Encodes a message to a valid URL based format.
         /// </summary>
@@ -74,6 +78,24 @@ namespace AgentFramework.Core.Utils
             }
 
             return messageBase64.FromBase64();
+        }
+
+        /// <summary>
+        /// Decodes a message type into its composing elements.
+        /// </summary>
+        /// <param name="messageType">A message type in string representation.</param>
+        /// <returns>A tuple of the elements composing a message type string representation.</returns>
+        public static (string uri, string messageFamilyName, string messageVersion, string messageName) DecodeMessageTypeUri(string messageType)
+        {
+            if (string.IsNullOrEmpty(messageType))
+                throw new ArgumentNullException(nameof(messageType));
+
+            var regExMatches = Regex.Matches(messageType, MessageTypeRegex);
+
+            if (regExMatches.Count != 1 || regExMatches[0].Groups.Count != 5)
+                throw new AgentFrameworkException(ErrorCode.InvalidParameterFormat, $"{messageType} is an invalid message type");
+
+            return (regExMatches[0].Groups[1].Value, regExMatches[0].Groups[2].Value, regExMatches[0].Groups[3].Value, regExMatches[0].Groups[4].Value);
         }
     }
 }
