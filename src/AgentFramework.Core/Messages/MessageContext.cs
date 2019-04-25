@@ -1,5 +1,4 @@
-﻿using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Exceptions;
+﻿using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Models.Records;
 using Newtonsoft.Json;
@@ -10,7 +9,7 @@ namespace AgentFramework.Core.Messages
     /// <summary>
     /// A message context object that surrounds an agent message
     /// </summary>
-    public class MessageContext : IMessageContext
+    public sealed class MessageContext
     {
         private readonly JObject _messageJson;
 

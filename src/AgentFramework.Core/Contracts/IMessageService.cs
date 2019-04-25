@@ -11,7 +11,9 @@ namespace AgentFramework.Core.Contracts
     public interface IMessageService
     {
         /// <summary>
-        /// Prepares a wire level message from the application level agent message for a connection asynchronously.
+        /// Prepares a wire level message from the application level agent message for a connection asynchronously 
+        /// this includes packing the message and wrapping it in required forward messages
+        /// if the message requires it.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="message">The message context.</param>
@@ -19,10 +21,12 @@ namespace AgentFramework.Core.Contracts
         /// <param name="recipientKey">The recipients verkey to encrypt the message for.</param>
         /// <param name="routing">Prepare the message with routing, i.e pack the message with embedded forward messages.</param>
         /// <returns>The response async.</returns>
-        Task<byte[]> PrepareForConnectionAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection, string recipientKey = null, bool routing = true);
+        Task<byte[]> PrepareAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection, string recipientKey = null, bool routing = true);
 
         /// <summary>
-        /// Prepares a wire level message from the application level agent message asynchronously.
+        /// Prepares a wire level message from the application level agent message asynchronously 
+        /// this includes packing the message and wrapping it in required forward messages
+        /// if the message requires it.
         /// </summary>
         /// <param name="wallet">The wallet.</param>
         /// <param name="message">The message context.</param>
@@ -42,7 +46,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="recipientKey">The recipients verkey to encrypt the message for.</param>
         /// <param name="requestResponse">Request response message.</param>
         /// <returns>The response as a message context object if return routing requested async.</returns>
-        Task<MessageContext> SendToConnectionAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection, string recipientKey = null, bool requestResponse = false);
+        Task<MessageContext> SendAsync(Wallet wallet, AgentMessage message, ConnectionRecord connection, string recipientKey = null, bool requestResponse = false);
 
         /// <summary>
         /// Sends the agent message to the endpoint asynchronously.
@@ -55,7 +59,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="senderKey">The senders key.</param>
         /// <param name="requestResponse">Request response message.</param>
         /// <returns>The response as a message context object if return routing requested async.</returns>
-        Task<MessageContext> SendToEndpoint(Wallet wallet, AgentMessage message, string recipientKey,
+        Task<MessageContext> SendAsync(Wallet wallet, AgentMessage message, string recipientKey,
             string endpointUri, string[] routingKeys = null, string senderKey = null, bool requestResponse = false);
 
     }

@@ -11,7 +11,7 @@ namespace AgentFramework.TestHarness.Utils
 {
     public class AgentUtils
     {
-        public static async Task<AgentContext> Create(string config, string credentials, bool withPool = false, IList<IMessageType> messageTypes = null)
+        public static async Task<AgentContext> Create(string config, string credentials, bool withPool = false, IList<MessageType> messageTypes = null)
         {
             try
             {
@@ -31,9 +31,9 @@ namespace AgentFramework.TestHarness.Utils
                 SupportedMessages = messageTypes };
         }
 
-        public static IList<IMessageType> GetDefaultMessageTypes()
+        public static IList<MessageType> GetDefaultMessageTypes()
         {
-            return new List<IMessageType>
+            return new List<MessageType>
             {
                 //Connection Protocol
                 new MessageType(MessageTypes.ConnectionInvitation),

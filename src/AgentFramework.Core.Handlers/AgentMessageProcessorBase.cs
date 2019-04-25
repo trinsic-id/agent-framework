@@ -86,7 +86,7 @@ namespace AgentFramework.Core.Handlers
         /// <exception cref="Exception">Expected inner message to be of type 'ForwardMessage'</exception>
         /// <exception cref="AgentFrameworkException">Couldn't locate a message handler for type {messageType}</exception>
         /// TODO should recieve a message context and return a message context.
-        protected async Task<byte[]> ProcessAsync(IAgentContext context, IMessageContext messageContext)
+        protected async Task<byte[]> ProcessAsync(IAgentContext context, MessageContext messageContext)
         {
             EnsureConfigured();
 
@@ -104,7 +104,7 @@ namespace AgentFramework.Core.Handlers
             return outgoingMessageContext?.Payload;
         }
 
-        private async Task<MessageContext> ProcessMessage(IAgentContext agentContext, IMessageContext inboundMessageContext)
+        private async Task<MessageContext> ProcessMessage(IAgentContext agentContext, MessageContext inboundMessageContext)
         {
             if (inboundMessageContext.Packed)
             {
@@ -127,12 +127,12 @@ namespace AgentFramework.Core.Handlers
                 {
                     if (inboundMessageContext.ReturnRoutingRequested())
                     {
-                        var result = await MessageService.PrepareForConnectionAsync(agentContext.Wallet, response, inboundMessageContext.Connection, null, false);
+                        var result = await MessageService.PrepareAsync(agentContext.Wallet, response, inboundMessageContext.Connection, null, false);
                         return new MessageContext(result, true, inboundMessageContext.Connection);
                     }
                     else
                     {
-                        await MessageService.SendToConnectionAsync(agentContext.Wallet, response, inboundMessageContext.Connection);
+                        await MessageService.SendAsync(agentContext.Wallet, response, inboundMessageContext.Connection);
                     }
                 }
                 return null;
@@ -142,7 +142,7 @@ namespace AgentFramework.Core.Handlers
                 $"Couldn't locate a message handler for type {inboundMessageContext.GetMessageType()}");
         }
 
-        private async Task<IMessageContext> UnpackAsync(IAgentContext agentContext, IMessageContext message)
+        private async Task<MessageContext> UnpackAsync(IAgentContext agentContext, MessageContext message)
         {
             UnpackResult unpacked;
 
@@ -177,7 +177,7 @@ namespace AgentFramework.Core.Handlers
             return message;
         }
 
-        private IList<IMessageType> GetSupportedMessageTypes() => _handlers.SelectMany(_ => _.SupportedMessageTypes, (parent, child) => new MessageType(child) as IMessageType).ToList();
+        private IList<MessageType> GetSupportedMessageTypes() => _handlers.SelectMany(_ => _.SupportedMessageTypes, (parent, child) => new MessageType(child)).ToList();
 
         private void EnsureConfigured()
         {

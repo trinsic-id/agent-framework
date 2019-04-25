@@ -41,7 +41,7 @@ namespace AgentFramework.TestHarness
 
             (var request, var inviteeConnection) =
                 await connectionService.CreateRequestAsync(inviter.Context, invitation);
-            await messsageService.SendToConnectionAsync(inviter.Context.Wallet, request,
+            await messsageService.SendAsync(inviter.Context.Wallet, request,
                 inviteeConnection, invitation.RecipientKeys.First());
 
             // Wait for connection to be established or continue after 30 sec timeout
@@ -79,7 +79,7 @@ namespace AgentFramework.TestHarness
 
             (var request, var inviteeConnection) =
                 await connectionService.CreateRequestAsync(inviter.Context, invitation);
-            var response = await messsageService.SendToConnectionAsync(inviter.Context.Wallet, request,
+            var response = await messsageService.SendAsync(inviter.Context.Wallet, request,
                 inviteeConnection, invitation.RecipientKeys.First(), true);
 
             Assert.NotNull(response);
@@ -126,7 +126,7 @@ namespace AgentFramework.TestHarness
                 CredentialDefinitionId = definitionId,
                 CredentialAttributeValues = credentialAttributes,
             }, issuerConnection.Id);
-            await messsageService.SendToConnectionAsync(issuer.Context.Wallet, offer, issuerConnection);
+            await messsageService.SendAsync(issuer.Context.Wallet, offer, issuerConnection);
 
             await offerSlim.WaitAsync(TimeSpan.FromSeconds(30));
 
@@ -147,7 +147,7 @@ namespace AgentFramework.TestHarness
             
             Assert.True(holderCredentialRecord.CredentialAttributesValues.Count() == 2);
 
-            await messsageService.SendToConnectionAsync(holder.Context.Wallet, request, holderConnection);
+            await messsageService.SendAsync(holder.Context.Wallet, request, holderConnection);
 
             await requestSlim.WaitAsync(TimeSpan.FromSeconds(30));
 
@@ -159,7 +159,7 @@ namespace AgentFramework.TestHarness
 
             (var cred, _) = await credentialService.CreateCredentialAsync(issuer.Context, issuerProv.IssuerDid,
                 issuerCredentialRecord.Id);
-            await messsageService.SendToConnectionAsync(issuer.Context.Wallet, cred, issuerConnection);
+            await messsageService.SendAsync(issuer.Context.Wallet, cred, issuerConnection);
 
             await credentialSlim.WaitAsync(TimeSpan.FromSeconds(30));
 
@@ -187,7 +187,7 @@ namespace AgentFramework.TestHarness
                 .Subscribe(x => requestSlim.Release());
 
             var (requestMsg, requestorRecord) = await proofService.CreateProofRequestAsync(requestor.Context, proofRequest, requestorConnection.Id);
-            await messageService.SendToConnectionAsync(requestor.Context.Wallet, requestMsg, requestorConnection);
+            await messageService.SendAsync(requestor.Context.Wallet, requestMsg, requestorConnection);
 
             await requestSlim.WaitAsync(TimeSpan.FromSeconds(30));
 
@@ -210,7 +210,7 @@ namespace AgentFramework.TestHarness
                     request);
 
             var (proofMsg, holderRecord) = await proofService.CreateProofAsync(holder.Context, record.Id, requestedCredentials);
-            await messageService.SendToConnectionAsync(holder.Context.Wallet, proofMsg, holderConnection);
+            await messageService.SendAsync(holder.Context.Wallet, proofMsg, holderConnection);
 
             await proofSlim.WaitAsync(TimeSpan.FromSeconds(30));
 
@@ -232,7 +232,7 @@ namespace AgentFramework.TestHarness
 
             //Ask for all protocols
             var msg = discoveryService.CreateQuery(requestor.Context, "*");
-            var rsp = await messageService.SendToConnectionAsync(requestor.Context.Wallet, msg, requestorConnection, null, true);
+            var rsp = await messageService.SendAsync(requestor.Context.Wallet, msg, requestorConnection, null, true);
 
             Assert.NotNull(rsp);
 

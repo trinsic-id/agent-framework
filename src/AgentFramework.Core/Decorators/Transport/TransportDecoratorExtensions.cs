@@ -48,7 +48,7 @@ namespace AgentFramework.Core.Decorators.Transport
         /// Adds return routing to message
         /// </summary>
         /// <param name="message">The message to add return routing</param>
-        public static bool ReturnRoutingRequested(this IMessageContext message)
+        public static bool ReturnRoutingRequested(this MessageContext message)
         {
             try
             {

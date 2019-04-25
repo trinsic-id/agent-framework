@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Discovery;
 using Microsoft.Extensions.Logging;
 
@@ -56,7 +57,7 @@ namespace AgentFramework.Core.Runtime
 
             var test = message.Query.TrimEnd('*');
 
-            IList<IMessageType> supportedMessages = new List<IMessageType>();
+            IList<MessageType> supportedMessages = new List<MessageType>();
             if (message.Query == "*")
                 supportedMessages = agentContext.SupportedMessages;
             else if (message.Query.EndsWith("*"))
@@ -64,7 +65,7 @@ namespace AgentFramework.Core.Runtime
             else
                 supportedMessages = agentContext.SupportedMessages?.Where(_ => _.MessageTypeUri == message.Query).ToList();
 
-            supportedMessages = supportedMessages ?? new List<IMessageType>();
+            supportedMessages = supportedMessages ?? new List<MessageType>();
 
             DiscoveryDiscloseMessage disclosureMessage = new DiscoveryDiscloseMessage();
             foreach (var supportedMessage in supportedMessages.GroupBy(_ => _.MessageFamilyUri).Select(g => g.First()))
