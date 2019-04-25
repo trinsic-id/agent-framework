@@ -6,7 +6,7 @@ namespace AgentFramework.Core.Messages
     /// <summary>
     /// A representaiton of a message type.
     /// </summary>
-    public class MessageType
+    public sealed class MessageType
     {
         /// <summary>
         /// Constructor for creating the representation from a message type uri.
