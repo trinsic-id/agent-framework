@@ -98,6 +98,9 @@ namespace AgentFramework.Core.Runtime
 
             var provisioning = await ProvisioningService.GetProvisioningAsync(agentContext.Wallet);
 
+            if (string.IsNullOrEmpty(provisioning.Endpoint.Uri))
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, "Provision record has no endpoint information specified");
+
             await RecordService.AddAsync(agentContext.Wallet, connection);
 
             return (new ConnectionInvitationMessage
