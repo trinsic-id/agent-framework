@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Models;
 

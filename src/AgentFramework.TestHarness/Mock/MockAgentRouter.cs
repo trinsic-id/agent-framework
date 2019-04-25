@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AgentFramework.Core.Messages;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace AgentFramework.TestHarness.Mock
     {
         public void RegisterAgent(MockAgent agent)
         {
-            Func<(string name, byte[] data), Task<byte[]>> function = async (cb) => await agent.HandleInboundAsync(cb.data);
+            Func<(string name, byte[] data), Task<byte[]>> function = async (cb) => await agent.HandleInboundAsync(new MessageContext(cb.data, true));
             _agentInBoundCallBacks.Add((agent.Name, function));
         }
 

@@ -9,15 +9,25 @@ namespace AgentFramework.Core.Messages
     /// <summary>
     /// A message context object that surrounds an agent message
     /// </summary>
-    public class MessageContext
+    public sealed class MessageContext
     {
         private readonly JObject _messageJson;
-        private readonly AgentMessage _agentMessage;
 
         /// <summary>Initializes a new instance of the <see cref="MessageContext"/> class.</summary>
         /// <param name="message">The message.</param>
         /// <param name="packed">if set to <c>true</c> [packed].</param>
         public MessageContext(byte[] message, bool packed)
+        {
+            Packed = packed;
+            Payload = message;
+            if (!Packed) _messageJson = JObject.Parse(Payload.GetUTF8String());
+        }
+
+        /// <summary>Initializes a new instance of the <see cref="MessageContext"/> class.</summary>
+        /// <param name="message">The message.</param>
+        /// <param name="packed">if set to <c>true</c> [packed].</param>
+        /// <param name="connection">The connection.</param>
+        public MessageContext(byte[] message, bool packed, ConnectionRecord connection)
         {
             Packed = packed;
             Payload = message;
@@ -39,9 +49,7 @@ namespace AgentFramework.Core.Messages
         /// <param name="message">The message.</param>
         public MessageContext(AgentMessage message)
         : this(message.ToJson(), false)
-        {
-            _agentMessage = message;
-        }
+        { }
 
         /// <inheritdoc />
         /// <param name="message">The message.</param>
@@ -49,14 +57,13 @@ namespace AgentFramework.Core.Messages
         public MessageContext(AgentMessage message, ConnectionRecord connection)
         : this(message.ToJson(), false)
         {
-            _agentMessage = message;
             Connection = connection;
         }
 
         /// <summary>
         /// The raw format of the message.
         /// </summary>
-        internal byte[] Payload { get; }
+        public byte[] Payload { get; }
 
         /// <summary>Gets a value indicating whether this <see cref="MessageContext"/> is packed.</summary>
         /// <value>
@@ -84,15 +91,6 @@ namespace AgentFramework.Core.Messages
             Packed
                 ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot deserialize packed message.")
                 : _messageJson["@type"].Value<string>();
-
-        /// <summary>
-        /// Gets the message as the underlying agent message type.
-        /// </summary>
-        /// <returns>The agent message.</returns>
-        public AgentMessage GetAsAgentMessage() =>
-            _agentMessage == null
-                ? throw new AgentFrameworkException(ErrorCode.InvalidMessage, "Cannot get message as AgentMessage")
-                : _agentMessage;
 
         /// <summary>
         /// Gets the message cast to the expect message type.

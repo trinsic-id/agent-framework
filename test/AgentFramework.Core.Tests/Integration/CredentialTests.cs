@@ -31,7 +31,7 @@ namespace AgentFramework.Core.Tests.Integration
         public async Task CanIssueCredential()
         {
             (var issuerConnection, var holderConnection)  = await AgentScenarios.EstablishConnectionAsync(_issuerAgent, _holderAgent);
-            await AgentScenarios.IssueCredential(_issuerAgent, _holderAgent, issuerConnection, holderConnection, new List<CredentialPreviewAttribute>
+            await AgentScenarios.IssueCredentialAsync(_issuerAgent, _holderAgent, issuerConnection, holderConnection, new List<CredentialPreviewAttribute>
             {
                 new CredentialPreviewAttribute("first_name", "Test"),
                 new CredentialPreviewAttribute("last_name", "Holder")

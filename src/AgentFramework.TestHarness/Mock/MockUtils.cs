@@ -35,7 +35,12 @@ namespace AgentFramework.TestHarness.Mock
 
             return new MockAgent(agentName, provider)
             {
-                Context = new AgentContext { Wallet = await provider.GetService<IWalletService>().GetWalletAsync(configuration, credentials), Pool = new PoolAwaitable(PoolUtils.GetPoolAsync) },
+                Context = new AgentContext
+                {
+                    Wallet = await provider.GetService<IWalletService>().GetWalletAsync(configuration, credentials),
+                    Pool = new PoolAwaitable(PoolUtils.GetPoolAsync),
+                    SupportedMessages = AgentUtils.GetDefaultMessageTypes()
+                },
                 ServiceProvider = provider
             };
         }

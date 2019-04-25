@@ -24,6 +24,7 @@ namespace AgentFramework.Core.Handlers
             collection.AddTransient<DefaultProofHandler>();
             collection.AddTransient<DefaultForwardHandler>();
             collection.AddTransient<DefaultTrustPingMessageHandler>();
+            collection.AddTransient<DefaultDiscoveryHandler>();
         }
 
         internal static AgentContext ToHandlerAgentContext(this IAgentContext context)
@@ -32,6 +33,7 @@ namespace AgentFramework.Core.Handlers
             {
                 Wallet = context.Wallet,
                 Pool = context.Pool,
+                SupportedMessages = context.SupportedMessages,
                 State = context.State
             };
         }

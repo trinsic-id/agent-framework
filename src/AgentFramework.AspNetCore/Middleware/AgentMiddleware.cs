@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers;
+using AgentFramework.Core.Messages;
 using AgentFramework.Core.Runtime;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,8 +50,8 @@ namespace AgentFramework.AspNetCore.Middleware
                 var body = await stream.ReadToEndAsync();
 
                 var result = await ProcessAsync(
-                    body: body.GetUTF8Bytes(), 
-                    context: await _contextProvider.GetContextAsync());
+                    context: await _contextProvider.GetContextAsync(), //TODO assumes all recieved messages are packed 
+                    messageContext: new MessageContext(body.GetUTF8Bytes(), true));
 
                 context.Response.StatusCode = 200;
 
