@@ -15,14 +15,14 @@ namespace WebAgent.Protocols.BasicMessage
             _recordService = recordService;
         }
 
-        protected override async Task<AgentMessage> ProcessAsync(BasicMessage message, IAgentContext context)
+        protected override async Task<AgentMessage> ProcessAsync(BasicMessage message, IAgentContext agentContext)
         {
-            Console.WriteLine($"Processing message by {context.Connection.Id}");
+            Console.WriteLine($"Processing message by {agentContext.Connection.Id}");
 
-            await _recordService.AddAsync(context.Wallet, new BasicMessageRecord
+            await _recordService.AddAsync(agentContext.Wallet, new BasicMessageRecord
             {
                 Id = Guid.NewGuid().ToString(),
-                ConnectionId = context.Connection.Id,
+                ConnectionId = agentContext.Connection.Id,
                 Text = message.Content,
                 SentTime = DateTime.TryParse(message.SentTime, out var dateTime) ? dateTime : DateTime.UtcNow,
                 Direction = MessageDirection.Incoming
