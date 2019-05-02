@@ -68,8 +68,8 @@ namespace WebAgent.Controllers
         {
             var context = await _agentContextProvider.GetContextAsync();
 
-            var invitation = await _connectionService.CreateInvitationAsync(context, new InviteConfiguration { AutoAcceptConnection = true });
-            ViewData["Invitation"] = EncodeInvitation(invitation.Invitation);
+            var (invitation, _) = await _connectionService.CreateInvitationAsync(context, new InviteConfiguration { AutoAcceptConnection = true });
+            ViewData["Invitation"] = EncodeInvitation(invitation);
             ViewData["DefaultUri"] = $"{(await _provisioningService.GetProvisioningAsync(context.Wallet)).Endpoint.Uri}?c_i=";
             return View();
         }
@@ -91,8 +91,8 @@ namespace WebAgent.Controllers
             }
 
             var invite = DecodeInvitation(inviteRaw);
-            var invitationResult = await _connectionService.AcceptInvitationAsync(context, invite);
-            await _messageService.SendToConnectionAsync(context.Wallet, invitationResult.Request, invitationResult.Connection, invite.RecipientKeys[0]);
+            var (request, record) = await _connectionService.CreateRequestAsync(context, invite);
+            await _messageService.SendToConnectionAsync(context.Wallet, request, record, invite.RecipientKeys[0]);
 
             return RedirectToAction("Index");
         }
