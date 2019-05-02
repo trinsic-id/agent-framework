@@ -15,7 +15,7 @@ namespace AgentFramework.Core.Handlers.Internal
             _connectionService = connectionService;
         }
 
-        protected override async Task<AgentMessage> ProcessAsync(ForwardMessage message, IAgentContext agentContext)
+        protected override async Task<AgentMessage> ProcessAsync(ForwardMessage message, IAgentContext agentContext, MessageContext messageContext)
         {
             var connectionRecord = await _connectionService.ResolveByMyKeyAsync(agentContext, message.To);
 
