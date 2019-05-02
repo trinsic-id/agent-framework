@@ -16,7 +16,7 @@ namespace AgentFramework.Core.Handlers.Internal
             _ephemeralChallengeService = ephemeralChallengeService;
         }
 
-        protected override async Task<AgentMessage> ProcessAsync(EphemeralChallengeResponseMessage message, IAgentContext agentContext)
+        protected override async Task<AgentMessage> ProcessAsync(EphemeralChallengeResponseMessage message, IAgentContext agentContext, MessageContext messageContext)
         {
             await _ephemeralChallengeService.ProcessChallengeResponseAsync(agentContext, message);
             return null;
