@@ -10,7 +10,7 @@ A sample agent running in ASP.NET Core that runs the default agent middleware ca
 
 .. code-block:: bash
 
-    ddotnet run --project samples/aspnetcore/WebAgent.csproj
+    dotnet run --project samples/aspnetcore/WebAgent.csproj
 
 Running multiple instances
 --------------------------
