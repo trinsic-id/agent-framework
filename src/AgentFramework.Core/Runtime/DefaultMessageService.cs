@@ -108,7 +108,10 @@ namespace AgentFramework.Core.Runtime
 
             var routingKeys = connection.Endpoint?.Verkey != null ? new[] { connection.Endpoint.Verkey } : new string[0];
 
-            var response = await SendAsync(wallet, message, recipientKey, connection.Endpoint?.Uri, routingKeys, connection.MyVk, requestResponse);
+            if (connection.Endpoint?.Uri == null)
+                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, "Cannot send to connection that does not have endpoint information specified");
+
+            var response = await SendAsync(wallet, message, recipientKey, connection.Endpoint.Uri, routingKeys, connection.MyVk, requestResponse);
 
             if (response?.Packed != null)
             {
