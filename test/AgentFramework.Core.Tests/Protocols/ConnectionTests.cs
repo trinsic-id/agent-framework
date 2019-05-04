@@ -123,6 +123,30 @@ namespace AgentFramework.Core.Tests.Protocols
         }
 
         [Fact]
+        public async Task CanRecieveRequestWithoutEndpoint()
+        {
+            var provisioningService = ServiceUtils.GetDefaultMockProvisioningService(null, "DefaultMasterSecret", null);
+
+            var connectionService = new DefaultConnectionService(
+                _eventAggregator,
+                new DefaultWalletRecordService(),
+                provisioningService,
+                new Mock<ILogger<DefaultConnectionService>>().Object);
+
+            var (invite, inviteeConnection) = await _connectionService.CreateInvitationAsync(_issuerWallet,
+                new InviteConfiguration());
+
+            var (request, _) = await connectionService.CreateRequestAsync(_holderWallet, invite);
+
+            var id = await _connectionService.ProcessRequestAsync(_issuerWallet, request, inviteeConnection);
+
+            inviteeConnection = await _connectionService.GetAsync(_issuerWallet, id);
+
+            Assert.True(inviteeConnection.State == ConnectionState.Negotiating);
+            Assert.Null(request.Connection.DidDoc.Services);
+        }
+
+        [Fact]
         public async Task AcceptRequestThrowsExceptionConnectionNotFound()
         {
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>(async () => await _connectionService.CreateResponseAsync(_issuerWallet, "bad-connection-id"));

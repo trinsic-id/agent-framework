@@ -190,7 +190,9 @@ namespace AgentFramework.Core.Runtime
             //i.e there is no way for this agent to respond to messages. And or no keys specified
             await Did.StoreTheirDidAsync(agentContext.Wallet, new { did = request.Connection.Did, verkey = request.Connection.DidDoc.Keys[0].PublicKeyBase58 }.ToJson());
 
-            if (request.Connection.DidDoc.Services[0] is IndyAgentDidDocService service)
+            if (request.Connection.DidDoc.Services != null && 
+                request.Connection.DidDoc.Services.Count > 0 && 
+                request.Connection.DidDoc.Services[0] is IndyAgentDidDocService service)
                 connection.Endpoint = new AgentEndpoint(service.ServiceEndpoint, null, service.RoutingKeys != null && service.RoutingKeys.Count > 0 ? service.RoutingKeys[0] : null);
 
             connection.TheirDid = request.Connection.Did;
