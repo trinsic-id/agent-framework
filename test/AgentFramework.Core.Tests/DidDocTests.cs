@@ -34,5 +34,26 @@ namespace AgentFramework.Core.Tests
             Assert.True(result.Keys.Count == 1);
             Assert.True(result.Services.Count == 1);
         }
+
+        [Fact]
+        public void CanDeserializeDidDocWithoutServices()
+        {
+            var jsonDidDoc = "{\r\n    " +
+                                "   \"@context\": \"https://w3id.org/did/v1\",\r\n    " +
+                                "   \"publicKey\": [\r\n      " +
+                                "   {\r\n        " +
+                                "       \"id\": \"did:sov:8fgY2SmLQBwcsqZ8tMHRre#keys-1\",\r\n        " +
+                                "       \"type\": \"Ed25519VerificationKey2018\",\r\n        " +
+                                "       \"controller\": \"did:sov:8fgY2SmLQBwcsqZ8tMHRre\",\r\n        " +
+                                "       \"publicKeyBase58\": \"5BNGGHwZ5oserT2UvDS7BmqNp5W3edNsGdm3DRHDynr5\"\r\n      " +
+                                "   }\r\n],\r\n    " +
+                                "   \"service\": []\r\n  }";
+
+            var result = JsonConvert.DeserializeObject<DidDoc>(jsonDidDoc);
+
+            Assert.True(result.Context == "https://w3id.org/did/v1");
+            Assert.True(result.Keys.Count == 1);
+            Assert.True(result.Services.Count == 0);
+        }
     }
 }

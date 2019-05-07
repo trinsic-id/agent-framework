@@ -119,7 +119,7 @@ namespace AgentFramework.Core.Tests.Protocols
 
             var (request, _) = await connectionService.CreateRequestAsync(_holderWallet, invite);
 
-            Assert.Null(request.Connection.DidDoc.Services);
+            Assert.True(request.Connection.DidDoc.Services.Count == 0);
         }
 
         [Fact]
@@ -143,7 +143,7 @@ namespace AgentFramework.Core.Tests.Protocols
             inviteeConnection = await _connectionService.GetAsync(_issuerWallet, id);
 
             Assert.True(inviteeConnection.State == ConnectionState.Negotiating);
-            Assert.Null(request.Connection.DidDoc.Services);
+            Assert.True(request.Connection.DidDoc.Services.Count == 0);
         }
 
         [Fact]
