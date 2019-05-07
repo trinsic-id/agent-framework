@@ -52,7 +52,7 @@ namespace AgentFramework.Core.Utils
             if (message == null)
                 throw new ArgumentNullException(nameof(message));
 
-            return $"{baseUrl}?m={Base64UrlEncoder.Encode(message.ToJson())}";
+            return $"{baseUrl}?m={message.ToJson().ToBase64()}";
         }
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace AgentFramework.Core.Utils
                 throw new ArgumentException("Unable to find expected query parameter", (nameof(encodedMessage)));
             }
 
-            return Base64UrlEncoder.Decode(messageBase64);
+            return messageBase64.FromBase64();
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace AgentFramework.Core.Utils
                 throw new ArgumentException("Unable to find expected query parameter", (nameof(encodedMessage)));
             }
 
-            var json = Base64UrlEncoder.Decode(messageBase64);
+            var json = messageBase64.FromBase64();
 
             return JsonConvert.DeserializeObject<T>(json);
         }
