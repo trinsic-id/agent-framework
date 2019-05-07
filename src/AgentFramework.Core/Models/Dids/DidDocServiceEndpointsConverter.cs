@@ -25,6 +25,10 @@ namespace AgentFramework.Core.Models.Dids
             var items = JArray.Load(reader);
 
             IList<IDidDocServiceEndpoint> serviceEndpoints = new List<IDidDocServiceEndpoint>();
+
+            if (items == null)
+                return serviceEndpoints;
+
             foreach (var item in items)
             {
                 IDidDocServiceEndpoint serviceEndpoint;

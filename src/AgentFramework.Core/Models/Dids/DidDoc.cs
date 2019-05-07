@@ -25,6 +25,6 @@ namespace AgentFramework.Core.Models.Dids
         /// </summary>
         [JsonProperty("service")]
         [JsonConverter(typeof(DidDocServiceEndpointsConverter))]
-        public IList<IDidDocServiceEndpoint> Services { get; set; }
+        public IList<IDidDocServiceEndpoint> Services { get; set; } = new List<IDidDocServiceEndpoint>();
     }
 }
