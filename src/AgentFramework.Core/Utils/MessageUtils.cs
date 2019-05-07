@@ -97,32 +97,7 @@ namespace AgentFramework.Core.Utils
         /// <returns>The agent message as a object.</returns>
         public static T DecodeMessageFromUrlFormat<T>(string encodedMessage)
         {
-            if (string.IsNullOrEmpty(encodedMessage))
-                throw new ArgumentNullException(nameof(encodedMessage));
-
-            if (!Uri.IsWellFormedUriString(encodedMessage, UriKind.Absolute))
-                throw new ArgumentException("Not a valid URI", (nameof(encodedMessage)));
-
-            var uri = new Uri(encodedMessage);
-
-            string messageBase64 = null;
-
-            foreach (var queryParam in ValidQueryParameters)
-            {
-                try
-                {
-                    messageBase64 = uri.DecodeQueryParameters()[queryParam];
-                    break;
-                }
-                catch (Exception) { }
-            }
-
-            if (messageBase64 == null)
-            {
-                throw new ArgumentException("Unable to find expected query parameter", (nameof(encodedMessage)));
-            }
-
-            var json = messageBase64.FromBase64();
+            var json = DecodeMessageFromUrlFormat(encodedMessage);
 
             return JsonConvert.DeserializeObject<T>(json);
         }
