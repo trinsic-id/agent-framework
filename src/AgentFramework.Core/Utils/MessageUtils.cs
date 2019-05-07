@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
+using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Utils
 {
@@ -12,6 +13,8 @@ namespace AgentFramework.Core.Utils
     public static class MessageUtils
     {
         private const string MessageTypeRegex = @"^(did:[a-z]+:[a-zA-z\d]+;spec)\/([a-z\S]+)\/([0-9].[0-9])\/([a-z\S]+)";
+
+        public static string[] ValidQueryParameters = new string[] { "m", "c_i" };
 
         /// <summary>
         /// Encodes a message to a valid URL based format.
@@ -49,7 +52,7 @@ namespace AgentFramework.Core.Utils
             if (message == null)
                 throw new ArgumentNullException(nameof(message));
 
-            return $"{baseUrl}?m={message.ToJson().ToBase64()}";
+            return $"{baseUrl}?m={Base64UrlEncoder.Encode(message.ToJson())}";
         }
 
         /// <summary>
@@ -67,17 +70,61 @@ namespace AgentFramework.Core.Utils
 
             var uri = new Uri(encodedMessage);
             
-            string messageBase64;
-            try
+            string messageBase64 = null;
+
+            foreach(var queryParam in ValidQueryParameters)
             {
-                messageBase64 = uri.DecodeQueryParameters()["m"];
-            }
-            catch (Exception)
-            {
-                throw new ArgumentException("Unable to find expected query parameter of `m`", (nameof(encodedMessage)));
+                try
+                {
+                    messageBase64 = uri.DecodeQueryParameters()[queryParam];
+                    break;
+                }
+                catch (Exception) { }
             }
 
-            return messageBase64.FromBase64();
+            if (messageBase64 == null)
+            {
+                throw new ArgumentException("Unable to find expected query parameter", (nameof(encodedMessage)));
+            }
+
+            return Base64UrlEncoder.Decode(messageBase64);
+        }
+
+        /// <summary>
+        /// Decodes a message from a valid URL based format.
+        /// </summary>
+        /// <param name="encodedMessage">Encoded message.</param>
+        /// <returns>The agent message as a object.</returns>
+        public static T DecodeMessageFromUrlFormat<T>(string encodedMessage)
+        {
+            if (string.IsNullOrEmpty(encodedMessage))
+                throw new ArgumentNullException(nameof(encodedMessage));
+
+            if (!Uri.IsWellFormedUriString(encodedMessage, UriKind.Absolute))
+                throw new ArgumentException("Not a valid URI", (nameof(encodedMessage)));
+
+            var uri = new Uri(encodedMessage);
+
+            string messageBase64 = null;
+
+            foreach (var queryParam in ValidQueryParameters)
+            {
+                try
+                {
+                    messageBase64 = uri.DecodeQueryParameters()[queryParam];
+                    break;
+                }
+                catch (Exception) { }
+            }
+
+            if (messageBase64 == null)
+            {
+                throw new ArgumentException("Unable to find expected query parameter", (nameof(encodedMessage)));
+            }
+
+            var json = Base64UrlEncoder.Decode(messageBase64);
+
+            return JsonConvert.DeserializeObject<T>(json);
         }
 
         /// <summary>
