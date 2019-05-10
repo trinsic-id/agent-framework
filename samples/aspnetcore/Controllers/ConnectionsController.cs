@@ -12,6 +12,7 @@ using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records.Search;
+using AgentFramework.Core.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -69,7 +70,7 @@ namespace WebAgent.Controllers
             var context = await _agentContextProvider.GetContextAsync();
 
             var (invitation, _) = await _connectionService.CreateInvitationAsync(context, new InviteConfiguration { AutoAcceptConnection = true });
-            ViewData["Invitation"] = EncodeInvitation(invitation);
+            ViewData["Invitation"] = MessageUtils.EncodeMessageToUrlFormat((await _provisioningService.GetProvisioningAsync(context.Wallet)).Endpoint.Uri, invitation);
             ViewData["DefaultUri"] = $"{(await _provisioningService.GetProvisioningAsync(context.Wallet)).Endpoint.Uri}?c_i=";
             return View();
         }
@@ -92,7 +93,7 @@ namespace WebAgent.Controllers
 
             var invite = DecodeInvitation(inviteRaw);
             var (request, record) = await _connectionService.CreateRequestAsync(context, invite);
-            await _messageService.SendToConnectionAsync(context.Wallet, request, record, invite.RecipientKeys[0]);
+            await _messageService.SendAsync(context.Wallet, request, record, invite.RecipientKeys[0]);
 
             return RedirectToAction("Index");
         }
@@ -139,7 +140,7 @@ namespace WebAgent.Controllers
                 .Where(_ => _.MessageType == CustomMessageTypes.TrustPingResponseMessageType)
                 .Subscribe(_ => { success = true; slim.Release(); }))
             {
-                await _messageService.SendToConnectionAsync(context.Wallet, message, connection);
+                await _messageService.SendAsync(context.Wallet, message, connection);
 
                 await slim.WaitAsync(TimeSpan.FromSeconds(5));
 
@@ -198,7 +199,7 @@ namespace WebAgent.Controllers
             await _recordService.AddAsync(context.Wallet, messageRecord);
 
             // Send an agent message using the secure connection
-            await _messageService.SendToConnectionAsync(context.Wallet, message, connection);
+            await _messageService.SendAsync(context.Wallet, message, connection);
 
             return RedirectToAction("Details", new {id = connectionId});
         }
