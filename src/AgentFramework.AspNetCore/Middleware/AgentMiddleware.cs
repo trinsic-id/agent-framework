@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
@@ -37,7 +38,8 @@ namespace AgentFramework.AspNetCore.Middleware
         /// <exception cref="Exception">Empty content length</exception>
         public async Task InvokeAsync(HttpContext context)
         {
-            if (!context.Request.Method.Equals("POST", StringComparison.OrdinalIgnoreCase))
+            if (!HttpMethods.IsPost(context.Request.Method)
+                && !context.Request.ContentType.Equals(DefaultMessageService.AgentWireMessageMimeType))
             {
                 await _next(context);
                 return;

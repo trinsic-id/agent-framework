@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Models.Records;
 
 namespace AgentFramework.Core.Models.Wallets
 {
     /// <summary>
     /// A configuration object for controlling the provisioning of a new agent.
     /// </summary>
-    public class ProvisioningConfiguration
+    public abstract class ProvisioningConfiguration
     {
         /// <summary>
         /// Gets or sets the name of the owner of the agent
@@ -58,29 +61,6 @@ namespace AgentFramework.Core.Models.Wallets
         public Uri EndpointUri { get; set; }
 
         /// <summary>
-        /// Gets or sets the issuer seed used to generate deterministic DID and Verkey. (32 characters)
-        /// <remarks>Leave <c>null</c> to generate random issuer did and verkey</remarks>
-        /// </summary>
-        /// <value>
-        /// The issuer seed.
-        /// </value>
-        public string IssuerSeed { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether an issuer did and verkey should be generated.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [create issuer]; otherwise, <c>false</c>.
-        /// </value>
-        public bool CreateIssuer { get; set; }
-
-        /// <summary>
-        /// Gets or sets the tails service base URI.
-        /// </summary>
-        /// <value>The tails base URI.</value>
-        public Uri TailsBaseUri { get; set; }
-
-        /// <summary>
         /// Gets or sets the wallet configuration.
         /// </summary>
         /// <value>
@@ -103,6 +83,14 @@ namespace AgentFramework.Core.Models.Wallets
         /// The tags.
         /// </value>
         public Dictionary<string, string> Tags { get; set; }
+
+        /// <summary>
+        /// Configures the agent wallet.
+        /// </summary>
+        /// <returns>The async.</returns>
+        /// <param name="record">Record.</param>
+        /// <param name="context">Context.</param>
+        public abstract Task ConfigureAsync(ProvisioningRecord record, IAgentContext context);
         
         /// <inheritdoc />
         public override string ToString() =>
@@ -113,9 +101,6 @@ namespace AgentFramework.Core.Models.Wallets
             $"AgentDid={AgentDid}, " +
             $"AgentVerkey={(AgentVerkey?.Length > 0 ? "[hidden]" : null)}, " +
             $"EndpointUri={EndpointUri}, " +
-            $"IssuerSeed={(IssuerSeed?.Length > 0 ? "[hidden]" : null)}, " +
-            $"CreateIssuer={CreateIssuer}, " +
-            $"TailsBaseUri={TailsBaseUri}, " +
             $"WalletConfiguration={WalletConfiguration}, " +
             $"WalletCredentials={WalletCredentials}";
     }

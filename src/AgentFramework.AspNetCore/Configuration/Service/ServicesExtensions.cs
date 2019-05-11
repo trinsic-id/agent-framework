@@ -82,13 +82,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
 
             agentBuilder.Build(endpoint).GetAwaiter().GetResult();
 
-            if (middlewareConfiguration == null)
-                middlewareConfiguration = context =>
-                    context.Request.Path.Value.StartsWith(endpoint.AbsolutePath, StringComparison.Ordinal);
-
-            app.MapWhen(
-                middlewareConfiguration,
-                appBuilder => { appBuilder.UseMiddleware<T>(); });
+            app.UseMiddleware<AgentMiddleware>();
 
             if (agentBuilder.TailsBaseUri != null)
             {

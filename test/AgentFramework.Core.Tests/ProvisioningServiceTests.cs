@@ -29,7 +29,7 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task ProvisionNewWalletWithEndpoint()
         {
-            await _provisioningService.ProvisionAgentAsync(new ProvisioningConfiguration
+            await _provisioningService.ProvisionAgentAsync(new BasicProvisioningConfiguration
             {
                 WalletConfiguration = _config,
                 WalletCredentials = _creds,
@@ -54,7 +54,7 @@ namespace AgentFramework.Core.Tests
             var provisioningService = new DefaultProvisioningService(
                 new DefaultWalletRecordService(), walletService);
 
-            await provisioningService.ProvisionAgentAsync(new ProvisioningConfiguration
+            await provisioningService.ProvisionAgentAsync(new BasicProvisioningConfiguration
             {
                 WalletConfiguration = _config,
                 WalletCredentials = _creds
@@ -76,7 +76,7 @@ namespace AgentFramework.Core.Tests
             var provisioningService = new DefaultProvisioningService(
                 new DefaultWalletRecordService(), walletService);
 
-            await provisioningService.ProvisionAgentAsync(new ProvisioningConfiguration
+            await provisioningService.ProvisionAgentAsync(new BasicProvisioningConfiguration
             {
                 WalletConfiguration = _config,
                 WalletCredentials = _creds

@@ -27,6 +27,7 @@ namespace AgentFramework.AspNetCore.Configuration
         private readonly IProvisioningService _provisioningService;
         private readonly WalletOptions _walletOptions;
         private readonly PoolOptions _poolOptions;
+        private ProvisioningConfiguration _provisioningConfiguration;
         private bool _createIssuer;
 
         /// <summary>
@@ -99,6 +100,13 @@ namespace AgentFramework.AspNetCore.Configuration
             return this;
         }
 
+        public AgentBuilder ConfigureProvisioning(Func<ProvisioningConfiguration> action)
+        {
+            _provisioningConfiguration = action?.Invoke() ?? new BasicProvisioningConfiguration();
+
+            return this;
+        }
+
         internal async Task Build(Uri endpointUri)
         {
             try
@@ -114,15 +122,12 @@ namespace AgentFramework.AspNetCore.Configuration
             try
             {
                 await _provisioningService.ProvisionAgentAsync(
-                    new ProvisioningConfiguration
+                    new BasicProvisioningConfiguration
                     {
                         AgentSeed = _agentSeed,
                         EndpointUri = endpointUri,
-                        CreateIssuer = _createIssuer,
-                        IssuerSeed = _issuerSeed,
                         OwnerName = _agentOwnerName,
                         OwnerImageUrl = _agentOwnerImageUrl,
-                        TailsBaseUri = TailsBaseUri ?? new Uri(endpointUri, "tails"),
                         WalletConfiguration = _walletOptions.WalletConfiguration,
                         WalletCredentials = _walletOptions.WalletCredentials
                     });
