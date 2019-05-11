@@ -161,6 +161,7 @@ namespace AgentFramework.Core.Runtime
             }
 
             if(response.Content != null && 
+               response.Content.Headers.ContentType != null &&
                response.Content.Headers.ContentType.ToString() == AgentWireMessageMimeType)
             {
                 var rawContent = await response.Content.ReadAsByteArrayAsync();
