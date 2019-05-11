@@ -71,7 +71,6 @@ namespace WebAgent.Controllers
 
             var (invitation, _) = await _connectionService.CreateInvitationAsync(context, new InviteConfiguration { AutoAcceptConnection = true });
             ViewData["Invitation"] = MessageUtils.EncodeMessageToUrlFormat((await _provisioningService.GetProvisioningAsync(context.Wallet)).Endpoint.Uri, invitation);
-            ViewData["DefaultUri"] = $"{(await _provisioningService.GetProvisioningAsync(context.Wallet)).Endpoint.Uri}?c_i=";
             return View();
         }
 
@@ -80,18 +79,7 @@ namespace WebAgent.Controllers
         {
             var context = await _agentContextProvider.GetContextAsync();
 
-            string inviteRaw = null;
-            try
-            {
-                var uri = new Uri(model.InvitationDetails);
-                inviteRaw = HttpUtility.ParseQueryString(uri.Query).Get("c_i");
-            }
-            catch (Exception)
-            {
-                inviteRaw = model.InvitationDetails;
-            }
-
-            var invite = DecodeInvitation(inviteRaw);
+            var invite = MessageUtils.DecodeMessageFromUrlFormat<ConnectionInvitationMessage>(model.InvitationDetails);
             var (request, record) = await _connectionService.CreateRequestAsync(context, invite);
             await _messageService.SendAsync(context.Wallet, request, record, invite.RecipientKeys[0]);
 
@@ -108,18 +96,9 @@ namespace WebAgent.Controllers
 
             ViewData["InvitationDetails"] = model.InvitationDetails;
 
-            string inviteRaw = null;
-            try
-            {
-                var uri = new Uri(model.InvitationDetails);
-                inviteRaw = HttpUtility.ParseQueryString(uri.Query).Get("c_i");
-            }
-            catch (Exception)
-            {
-                inviteRaw = model.InvitationDetails;
-            }
+            var invite = MessageUtils.DecodeMessageFromUrlFormat<ConnectionInvitationMessage>(model.InvitationDetails);
 
-            return View(DecodeInvitation(inviteRaw));
+            return View(invite);
         }
 
         [HttpPost]
