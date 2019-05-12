@@ -149,7 +149,8 @@ namespace AgentFramework.Core.Runtime
                 Content = new ByteArrayContent(wireMsg)
             };
 
-            request.Content.Headers.ContentType = new MediaTypeHeaderValue(AgentWireMessageMimeType);
+            var agentContentType = new MediaTypeHeaderValue(AgentWireMessageMimeType);
+            request.Content.Headers.ContentType = agentContentType;
 
             var response = await HttpClient.SendAsync(request);
 
@@ -160,8 +161,7 @@ namespace AgentFramework.Core.Runtime
                     ErrorCode.A2AMessageTransmissionError, $"Failed to send A2A message with an HTTP status code of {response.StatusCode} and content {responseBody}");
             }
 
-            if(response.Content != null && 
-               response.Content.Headers.ContentType.ToString() == AgentWireMessageMimeType)
+            if (response.Content?.Headers.ContentType?.Equals(agentContentType) ?? false)
             {
                 var rawContent = await response.Content.ReadAsByteArrayAsync();
 
