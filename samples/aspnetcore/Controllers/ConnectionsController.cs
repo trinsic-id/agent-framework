@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models;
@@ -70,7 +71,7 @@ namespace WebAgent.Controllers
             var context = await _agentContextProvider.GetContextAsync();
 
             var (invitation, _) = await _connectionService.CreateInvitationAsync(context, new InviteConfiguration { AutoAcceptConnection = true });
-            ViewData["Invitation"] = MessageUtils.EncodeMessageToUrlFormat((await _provisioningService.GetProvisioningAsync(context.Wallet)).Endpoint.Uri, invitation);
+            ViewData["Invitation"] = $"{(await _provisioningService.GetProvisioningAsync(context.Wallet)).Endpoint.Uri}?c_i={EncodeInvitation(invitation)}";
             return View();
         }
 
@@ -196,7 +197,7 @@ namespace WebAgent.Controllers
         /// <param name="invitation">Invitation.</param>
         public string EncodeInvitation(ConnectionInvitationMessage invitation)
         {
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(invitation)));
+            return invitation.ToJson().ToBase64();
         }
 
         /// <summary>
