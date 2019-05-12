@@ -12,6 +12,8 @@ using AgentFramework.Core.Utils;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using AgentFramework.Core.Decorators.Transport;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace AgentFramework.Core.Runtime
 {
@@ -26,18 +28,18 @@ namespace AgentFramework.Core.Runtime
         protected readonly ILogger<DefaultMessageService> Logger;
 
         /// <summary>The HTTP client</summary>
-        protected readonly HttpClient HttpClient;
+        protected readonly IEnumerable<IMessageDispatcher> MessageDispatchers;
         // ReSharper restore InconsistentNaming
 
         /// <summary>Initializes a new instance of the <see cref="DefaultMessageService"/> class.</summary>
         /// <param name="logger">The logger.</param>
-        /// <param name="httpMessageHandler">The HTTP message handler.</param>
+        /// <param name="messageDispatchers">The message handler.</param>
         public DefaultMessageService(
             ILogger<DefaultMessageService> logger, 
-            HttpMessageHandler httpMessageHandler)
+            IEnumerable<IMessageDispatcher> messageDispatchers)
         {
             Logger = logger;
-            HttpClient = new HttpClient(httpMessageHandler);
+            MessageDispatchers = messageDispatchers;
         }
 
         /// <inheritdoc />
@@ -137,42 +139,21 @@ namespace AgentFramework.Core.Runtime
             if (string.IsNullOrEmpty(endpointUri))
                 throw new ArgumentNullException(nameof(endpointUri));
 
+            var uri = new Uri(endpointUri);
+
+            var dispatcher = GetDispatcher(uri.Scheme);
+
+            if (dispatcher == null)
+                throw new AgentFrameworkException(ErrorCode.A2AMessageTransmissionError, $"No registered dispatcher for transport scheme : {uri.Scheme}");
+
             if (requestResponse)
                 message.AddReturnRouting();
 
             var wireMsg = await PrepareAsync(wallet, message, recipientKey, routingKeys, senderKey);
 
-            var request = new HttpRequestMessage
-            {
-                RequestUri = new Uri(endpointUri),
-                Method = HttpMethod.Post,
-                Content = new ByteArrayContent(wireMsg)
-            };
-
-            var agentContentType = new MediaTypeHeaderValue(AgentWireMessageMimeType);
-            request.Content.Headers.ContentType = agentContentType;
-
-            var response = await HttpClient.SendAsync(request);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var responseBody = await response.Content.ReadAsStringAsync();
-                throw new AgentFrameworkException(
-                    ErrorCode.A2AMessageTransmissionError, $"Failed to send A2A message with an HTTP status code of {response.StatusCode} and content {responseBody}");
-            }
-
-            if (response.Content?.Headers.ContentType?.Equals(agentContentType) ?? false)
-            {
-                var rawContent = await response.Content.ReadAsByteArrayAsync();
-
-                //TODO this assumes all messages are packed
-                if (rawContent.Length > 0)
-                {
-                    return new MessageContext(rawContent, true);
-                }
-            }
-
-            return null;
+            return await dispatcher.SendAsync(uri, new MessageContext(wireMsg, true));
         }
+
+        private IMessageDispatcher GetDispatcher(string scheme) => MessageDispatchers.FirstOrDefault(_ => _.TransportSchemes.Contains(scheme));
     }
 }
