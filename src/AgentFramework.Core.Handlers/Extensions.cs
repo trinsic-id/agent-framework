@@ -27,7 +27,7 @@ namespace AgentFramework.Core.Handlers
             collection.AddTransient<DefaultDiscoveryHandler>();
         }
 
-        internal static AgentContext ToHandlerAgentContext(this IAgentContext context)
+        internal static AgentContext AsAgentContext(this IAgentContext context)
         {
             return new AgentContext
             {

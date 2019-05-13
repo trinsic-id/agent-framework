@@ -14,25 +14,25 @@ namespace AgentFramework.AspNetCore.Configuration.Service
     /// </summary>
     public static class ServiceBuilderExtensions
     {
-        internal static AgentConfigurationBuilder AddDefaultServices(this AgentConfigurationBuilder builder)
+        internal static IServiceCollection AddDefaultServices(this IServiceCollection builder)
         {
-            builder.Services.TryAddSingleton<IEventAggregator, EventAggregator>();
-            builder.Services.TryAddSingleton<IAgentContextProvider, DefaultAgentContextProvider>();
+            builder.TryAddSingleton<IEventAggregator, EventAggregator>();
+            builder.TryAddSingleton<IAgentContextProvider, DefaultAgentContextProvider>();
 
-            builder.Services.TryAddSingleton<IConnectionService, DefaultConnectionService>();
-            builder.Services.TryAddSingleton<ICredentialService, DefaultCredentialService>();
-            builder.Services.TryAddSingleton<ILedgerService, DefaultLedgerService>();
-            builder.Services.TryAddSingleton<IPoolService, DefaultPoolService>();
-            builder.Services.TryAddSingleton<IProofService, DefaultProofService>();
-            builder.Services.TryAddSingleton<IEphemeralChallengeService, DefaultEphemeralChallengeService>();
-            builder.Services.TryAddSingleton<IDiscoveryService, DefaultDiscoveryService>();
-            builder.Services.TryAddSingleton<IProvisioningService, DefaultProvisioningService>();
-            builder.Services.TryAddSingleton<IMessageService, DefaultMessageService>();
-            builder.Services.TryAddSingleton<HttpMessageHandler, HttpClientHandler>();
-            builder.Services.TryAddSingleton<ISchemaService, DefaultSchemaService>();
-            builder.Services.TryAddSingleton<ITailsService, DefaultTailsService>();
-            builder.Services.TryAddSingleton<IWalletRecordService, DefaultWalletRecordService>();
-            builder.Services.TryAddSingleton<IWalletService, DefaultWalletService>();
+            builder.TryAddSingleton<IConnectionService, DefaultConnectionService>();
+            builder.TryAddSingleton<ICredentialService, DefaultCredentialService>();
+            builder.TryAddSingleton<ILedgerService, DefaultLedgerService>();
+            builder.TryAddSingleton<IPoolService, DefaultPoolService>();
+            builder.TryAddSingleton<IProofService, DefaultProofService>();
+            builder.TryAddSingleton<IEphemeralChallengeService, DefaultEphemeralChallengeService>();
+            builder.TryAddSingleton<IDiscoveryService, DefaultDiscoveryService>();
+            builder.TryAddSingleton<IProvisioningService, DefaultProvisioningService>();
+            builder.TryAddSingleton<IMessageService, DefaultMessageService>();
+            builder.TryAddSingleton<HttpMessageHandler, HttpClientHandler>();
+            builder.TryAddSingleton<ISchemaService, DefaultSchemaService>();
+            builder.TryAddSingleton<ITailsService, DefaultTailsService>();
+            builder.TryAddSingleton<IWalletRecordService, DefaultWalletRecordService>();
+            builder.TryAddSingleton<IWalletService, DefaultWalletService>();
 
             return builder;
         }
@@ -43,37 +43,11 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <returns>The message handler.</returns>
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TMessageHandler">The 1st type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddMessageHandler<TMessageHandler>(this AgentConfigurationBuilder builder) where TMessageHandler : class,
+        public static IServiceCollection AddMessageHandler<TMessageHandler>(this IServiceCollection builder) where TMessageHandler : class,
             IMessageHandler
         {
-            builder.Services.AddSingleton<IMessageHandler, TMessageHandler>();
-            builder.Services.TryAddSingleton<TMessageHandler>();
-            return builder;
-        }
-
-        /// <summary>
-        /// Overrides the default message handlers.
-        /// </summary>
-        /// <returns>The default message handlers.</returns>
-        /// <param name="builder">Builder.</param>
-        public static AgentConfigurationBuilder OverrideDefaultMessageHandlers(this AgentConfigurationBuilder builder)
-        {
-            builder.RegisterCoreMessageHandlers = false;
-            return builder;
-        }
-
-        /// <summary>
-        /// Adds the memory cache ledger service.
-        /// </summary>
-        /// <returns>The memory cache ledger service.</returns>
-        /// <param name="builder">Builder.</param>
-        /// <param name="options">Options.</param>
-        public static AgentConfigurationBuilder AddMemoryCacheLedgerService(this AgentConfigurationBuilder builder, MemoryCacheEntryOptions options = null)
-        {
-            builder.AddExtendedLedgerService<MemoryCacheLedgerService>()
-                   .Services.AddMemoryCache()
-                            .AddSingleton(_ => options);
-
+            builder.AddSingleton<IMessageHandler, TMessageHandler>();
+            builder.TryAddSingleton<TMessageHandler>();
             return builder;
         }
 
@@ -83,11 +57,11 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <returns>The default agent context provider.</returns>
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TProvider">The 1st type parameter.</typeparam>
-        public static AgentConfigurationBuilder OverrideDefaultAgentContextProvider<TProvider>(
-            this AgentConfigurationBuilder builder)
+        public static IServiceCollection OverrideDefaultAgentContextProvider<TProvider>(
+            this IServiceCollection builder)
             where TProvider : class, IAgentContextProvider
         {
-            builder.Services.AddSingleton<IAgentContextProvider,TProvider>();
+            builder.AddSingleton<IAgentContextProvider,TProvider>();
             return builder;
         }
 
@@ -98,13 +72,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TService">The 1st type parameter.</typeparam>
         /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedDiscoveryService<TService, TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedDiscoveryService<TService, TImplementation>(this IServiceCollection builder)
             where TService : class, IDiscoveryService
             where TImplementation : class, TService, IDiscoveryService
         {
-            builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<IDiscoveryService>(x => x.GetService<TImplementation>());
-            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TImplementation>();
+            builder.AddSingleton<IDiscoveryService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 
@@ -115,13 +89,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TService">The 1st type parameter.</typeparam>
         /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedEphemeralChallengeService<TService, TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedEphemeralChallengeService<TService, TImplementation>(this IServiceCollection builder)
             where TService : class, IEphemeralChallengeService
             where TImplementation : class, TService, IEphemeralChallengeService
         {
-            builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<IEphemeralChallengeService>(x => x.GetService<TImplementation>());
-            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TImplementation>();
+            builder.AddSingleton<IEphemeralChallengeService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 
@@ -132,13 +106,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TService">The 1st type parameter.</typeparam>
         /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedConnectionService<TService, TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedConnectionService<TService, TImplementation>(this IServiceCollection builder)
             where TService : class, IConnectionService
             where TImplementation : class, TService, IConnectionService
         {
-            builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<IConnectionService>(x => x.GetService<TImplementation>());
-            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TImplementation>();
+            builder.AddSingleton<IConnectionService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 
@@ -148,10 +122,10 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <returns>The extended connection service.</returns>
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedConnectionService<TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedConnectionService<TImplementation>(this IServiceCollection builder)
             where TImplementation : class, IConnectionService
         {
-            builder.Services.AddSingleton<IConnectionService, TImplementation>();
+            builder.AddSingleton<IConnectionService, TImplementation>();
             return builder;
         }
 
@@ -162,13 +136,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TService">The 1st type parameter.</typeparam>
         /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedCredentialService<TService, TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedCredentialService<TService, TImplementation>(this IServiceCollection builder)
             where TService : class, ICredentialService
             where TImplementation : class, TService, ICredentialService
         {
-            builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<ICredentialService>(x => x.GetService<TImplementation>());
-            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TImplementation>();
+            builder.AddSingleton<ICredentialService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 
@@ -178,10 +152,10 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <returns>The extended credential service.</returns>
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedCredentialService<TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedCredentialService<TImplementation>(this IServiceCollection builder)
             where TImplementation : class, ICredentialService
         {
-            builder.Services.AddSingleton<ICredentialService, TImplementation>();
+            builder.AddSingleton<ICredentialService, TImplementation>();
             return builder;
         }
 
@@ -192,13 +166,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TService">The 1st type parameter.</typeparam>
         /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedLedgerService<TService, TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedLedgerService<TService, TImplementation>(this IServiceCollection builder)
             where TService : class, ILedgerService
             where TImplementation : class, TService, ILedgerService
         {
-            builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<ILedgerService>(x => x.GetService<TImplementation>());
-            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TImplementation>();
+            builder.AddSingleton<ILedgerService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 
@@ -208,10 +182,10 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <returns>The extended ledger service.</returns>
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedLedgerService<TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedLedgerService<TImplementation>(this IServiceCollection builder)
             where TImplementation : class, ILedgerService
         {
-            builder.Services.AddSingleton<ILedgerService, TImplementation>();
+            builder.AddSingleton<ILedgerService, TImplementation>();
             return builder;
         }
 
@@ -222,13 +196,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TService">The 1st type parameter.</typeparam>
         /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedPoolService<TService, TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedPoolService<TService, TImplementation>(this IServiceCollection builder)
             where TService : class, IPoolService
             where TImplementation : class, TService, IPoolService
         {
-            builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<IPoolService>(x => x.GetService<TImplementation>());
-            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TImplementation>();
+            builder.AddSingleton<IPoolService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 
@@ -238,10 +212,10 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <returns>The extended pool service.</returns>
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedPoolService<TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedPoolService<TImplementation>(this IServiceCollection builder)
             where TImplementation : class, IPoolService
         {
-            builder.Services.AddSingleton<IPoolService, TImplementation>();
+            builder.AddSingleton<IPoolService, TImplementation>();
             return builder;
         }
 
@@ -252,13 +226,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TService">The 1st type parameter.</typeparam>
         /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedProofService<TService, TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedProofService<TService, TImplementation>(this IServiceCollection builder)
             where TService : class, IProofService
             where TImplementation : class, TService, IProofService
         {
-            builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<IProofService>(x => x.GetService<TImplementation>());
-            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TImplementation>();
+            builder.AddSingleton<IProofService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 
@@ -268,10 +242,10 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <returns>The extended proof service.</returns>
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedProofService<TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedProofService<TImplementation>(this IServiceCollection builder)
             where TImplementation : class, IProofService
         {
-            builder.Services.AddSingleton<IProofService, TImplementation>();
+            builder.AddSingleton<IProofService, TImplementation>();
             return builder;
         }
 
@@ -282,13 +256,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TService">The 1st type parameter.</typeparam>
         /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedProvisioningService<TService, TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedProvisioningService<TService, TImplementation>(this IServiceCollection builder)
             where TService : class, IProvisioningService
             where TImplementation : class, TService, IProvisioningService
         {
-            builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<IProvisioningService>(x => x.GetService<TImplementation>());
-            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TImplementation>();
+            builder.AddSingleton<IProvisioningService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 
@@ -298,10 +272,10 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <returns>The extended provisioning service.</returns>
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedProvisioningService<TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedProvisioningService<TImplementation>(this IServiceCollection builder)
             where TImplementation : class, IProvisioningService
         {
-            builder.Services.AddSingleton<IProvisioningService, TImplementation>();
+            builder.AddSingleton<IProvisioningService, TImplementation>();
             return builder;
         }
 
@@ -312,13 +286,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TService">The 1st type parameter.</typeparam>
         /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedMessageService<TService, TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedMessageService<TService, TImplementation>(this IServiceCollection builder)
             where TService : class, IMessageService
             where TImplementation : class, TService, IMessageService
         {
-            builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<IMessageService>(x => x.GetService<TImplementation>());
-            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TImplementation>();
+            builder.AddSingleton<IMessageService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 
@@ -328,10 +302,10 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <returns>The extended message service.</returns>
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedMessageService<TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedMessageService<TImplementation>(this IServiceCollection builder)
             where TImplementation : class, IMessageService
         {
-            builder.Services.AddSingleton<IMessageService, TImplementation>();
+            builder.AddSingleton<IMessageService, TImplementation>();
             return builder;
         }
 
@@ -342,13 +316,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TService">The 1st type parameter.</typeparam>
         /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedSchemaService<TService, TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedSchemaService<TService, TImplementation>(this IServiceCollection builder)
             where TService : class, ISchemaService
             where TImplementation : class, TService, ISchemaService
         {
-            builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<ISchemaService>(x => x.GetService<TImplementation>());
-            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TImplementation>();
+            builder.AddSingleton<ISchemaService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 
@@ -358,10 +332,10 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <returns>The extended schema service.</returns>
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedSchemaService<TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedSchemaService<TImplementation>(this IServiceCollection builder)
             where TImplementation : class, ISchemaService
         {
-            builder.Services.AddSingleton<ISchemaService, TImplementation>();
+            builder.AddSingleton<ISchemaService, TImplementation>();
             return builder;
         }
 
@@ -372,13 +346,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TService">The 1st type parameter.</typeparam>
         /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedTailsService<TService, TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedTailsService<TService, TImplementation>(this IServiceCollection builder)
             where TService : class, ITailsService
             where TImplementation : class, TService, ITailsService
         {
-            builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<ITailsService>(x => x.GetService<TImplementation>());
-            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TImplementation>();
+            builder.AddSingleton<ITailsService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 
@@ -388,10 +362,10 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <returns>The extended tails service.</returns>
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedTailsService<TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedTailsService<TImplementation>(this IServiceCollection builder)
             where TImplementation : class, ITailsService
         {
-            builder.Services.AddSingleton<ITailsService, TImplementation>();
+            builder.AddSingleton<ITailsService, TImplementation>();
             return builder;
         }
 
@@ -402,13 +376,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TService">The 1st type parameter.</typeparam>
         /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedWalletRecordService<TService, TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedWalletRecordService<TService, TImplementation>(this IServiceCollection builder)
             where TService : class, IWalletRecordService
             where TImplementation : class, TService, IWalletRecordService
         {
-            builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<IWalletRecordService>(x => x.GetService<TImplementation>());
-            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TImplementation>();
+            builder.AddSingleton<IWalletRecordService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 
@@ -418,10 +392,10 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <returns>The extended wallet record service.</returns>
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedWalletRecordService<TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedWalletRecordService<TImplementation>(this IServiceCollection builder)
             where TImplementation : class, IWalletRecordService
         {
-            builder.Services.AddSingleton<IWalletRecordService, TImplementation>();
+            builder.AddSingleton<IWalletRecordService, TImplementation>();
             return builder;
         }
 
@@ -432,13 +406,13 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TService">The 1st type parameter.</typeparam>
         /// <typeparam name="TImplementation">The 2nd type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedWalletService<TService, TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedWalletService<TService, TImplementation>(this IServiceCollection builder)
             where TService : class, IWalletService
             where TImplementation : class, TService, IWalletService
         {
-            builder.Services.AddSingleton<TImplementation>();
-            builder.Services.AddSingleton<IWalletService>(x => x.GetService<TImplementation>());
-            builder.Services.AddSingleton<TService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TImplementation>();
+            builder.AddSingleton<IWalletService>(x => x.GetService<TImplementation>());
+            builder.AddSingleton<TService>(x => x.GetService<TImplementation>());
             return builder;
         }
 
@@ -448,10 +422,10 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <returns>The extended wallet service.</returns>
         /// <param name="builder">Builder.</param>
         /// <typeparam name="TImplementation">The 1st type parameter.</typeparam>
-        public static AgentConfigurationBuilder AddExtendedWalletService<TImplementation>(this AgentConfigurationBuilder builder)
+        public static IServiceCollection AddExtendedWalletService<TImplementation>(this IServiceCollection builder)
             where TImplementation : class, IWalletService
         {
-            builder.Services.AddSingleton<IWalletService, TImplementation>();
+            builder.AddSingleton<IWalletService, TImplementation>();
             return builder;
         }
     }

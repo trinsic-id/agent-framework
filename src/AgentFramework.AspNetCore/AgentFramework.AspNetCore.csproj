@@ -37,4 +37,7 @@
     <ProjectReference Include="..\AgentFramework.Core\AgentFramework.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Hosting\" />
+  </ItemGroup>
 </Project>

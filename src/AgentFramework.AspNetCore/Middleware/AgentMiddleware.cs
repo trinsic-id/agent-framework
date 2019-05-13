@@ -20,21 +20,20 @@ namespace AgentFramework.AspNetCore.Middleware
         private readonly IAgentFactory _agentFactory;
         private readonly IAgentContextProvider _contextProvider;
 
-        /// <summary>Initializes a new instance of the <see cref="AgentMiddleware"/> class.</summary>
-        /// <param name="next">The next.</param>
-        /// <param name="serviceProvider">The service provider.</param>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:AgentFramework.AspNetCore.Middleware.AgentMiddleware"/> class.
+        /// </summary>
+        /// <param name="agentFactory">Agent factory.</param>
+        /// <param name="contextProvider">Context provider.</param>
         public AgentMiddleware(
-            IAgentFactory agentFactory,
-            IAgentContextProvider contextProvider)
+             IAgentFactory agentFactory,
+             IAgentContextProvider contextProvider)
         {
             _agentFactory = agentFactory;
             _contextProvider = contextProvider;
         }
 
-        /// <summary>Called by the ASPNET Core runtime</summary>
-        /// <param name="context">The context.</param>
-        /// <returns></returns>
-        /// <exception cref="Exception">Empty content length</exception>
+        /// <inheritdoc />
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             if (!HttpMethods.IsPost(context.Request.Method)
@@ -61,7 +60,7 @@ namespace AgentFramework.AspNetCore.Middleware
                 if (result != null)
                 {
                     context.Response.ContentType = DefaultMessageService.AgentWireMessageMimeType;
-                    await result.ResponseStream.CopyToAsync(context.Response.Body);
+                    await result.Stream.CopyToAsync(context.Response.Body);
                 }
                 else
                     await context.Response.WriteAsync(string.Empty);

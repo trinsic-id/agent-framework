@@ -92,7 +92,7 @@ namespace AgentFramework.Core.Handlers
 
             context.SupportedMessages = GetSupportedMessageTypes();
 
-            var agentContext = context.ToHandlerAgentContext();
+            var agentContext = context.AsAgentContext();
             agentContext.AddNext(messageContext);
 
             MessageContext outgoingMessageContext = null;

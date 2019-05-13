@@ -2,9 +2,11 @@
 using AgentFramework.AspNetCore.Middleware;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Models;
+using AgentFramework.Core.Models.Wallets;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace AgentFramework.AspNetCore.Configuration.Service
 {
@@ -13,42 +15,52 @@ namespace AgentFramework.AspNetCore.Configuration.Service
     /// </summary>
     public static class ServicesExtensions
     {
-        private static void RegisterCoreServices(this IServiceCollection services)
+        /// <summary>
+        /// Registers the agent framework required services with basic provisioning configuration
+        /// </summary>
+        /// <param name="services">The services.</param>
+        public static void AddAgentFramework(this IServiceCollection services)
         {
-            services.AddTransient<AgentBuilder>();
-            services.AddOptions<WalletOptions>();
-            services.AddOptions<PoolOptions>();
+            AddAgentFramework(services, () => new BasicProvisioningConfiguration());
+        }
+
+        public static void AddAgentFramework(this IServiceCollection services, 
+            Action<AgentConfigurationBuilder> builder, 
+            Func<ProvisioningConfiguration> configurationDelegate = null)
+        {
+            AddAgentFramework(services, configurationDelegate ?? (() => new BasicProvisioningConfiguration()));
+            builder?.Invoke(new AgentConfigurationBuilder(services));
         }
 
         /// <summary>
-        /// Adds a Sovrin issuer agent with the provided configuration
+        /// Registers the agent framework required services with custom provisioning configuration
         /// </summary>
-        /// <param name="services">The services.</param>
-        /// <param name="agentConfiguration">The agent configuration.</param>
-        public static void AddAgentFramework(this IServiceCollection services,
-            Action<AgentConfigurationBuilder> agentConfiguration = null)
+        /// <param name="services">Services.</param>
+        /// <param name="configurationDelegate">Configuration delegate.</param>
+        public static void AddAgentFramework(this IServiceCollection services, Func<ProvisioningConfiguration> configurationDelegate)
         {
-            RegisterCoreServices(services);
+            services.AddOptions<WalletOptions>();
+            services.AddOptions<PoolOptions>();
+            services.AddSingleton<IHostedService, AgentHostedService>();
             services.AddDefaultMessageHandlers();
             services.AddLogging();
 
-            var serviceBuilder = new AgentConfigurationBuilder(services);
-            agentConfiguration?.Invoke(serviceBuilder);
+            var configuration = configurationDelegate?.Invoke() ?? new BasicProvisioningConfiguration();
+            services.AddSingleton(configuration);
 
-            serviceBuilder.AddDefaultServices();
-
-            services = serviceBuilder.Services;
+            services.AddDefaultServices();
+            services.AddDefaultMessageHandlers();
 
             services.Configure<WalletOptions>(obj =>
             {
-                obj.WalletConfiguration = serviceBuilder.WalletOptions.WalletConfiguration;
-                obj.WalletCredentials = serviceBuilder.WalletOptions.WalletCredentials;
+                obj.WalletConfiguration = configuration.WalletConfiguration;
+                obj.WalletCredentials = configuration.WalletCredentials;
             });
 
             services.Configure<PoolOptions>(obj =>
             {
-                obj.PoolName = serviceBuilder.PoolOptions.PoolName;
-                obj.GenesisFilename = serviceBuilder.PoolOptions.GenesisFilename;
+                obj.PoolName = configuration.PoolName;
+                obj.GenesisFilename = configuration.GenesisFilename;
             });
         }
 
@@ -56,40 +68,12 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// Allows default agent configuration
         /// </summary>
         /// <param name="app">App.</param>
-        /// <param name="endpointUri">The endpointUri.</param>
-        /// <param name="agentOptions">Options.</param>
-        /// <param name="middlewareConfiguration">Middleware configuration.</param>
-        public static void UseAgentFramework(this IApplicationBuilder app, string endpointUri,
-            Action<AgentBuilder> agentOptions = null, Func<HttpContext, bool> middlewareConfiguration = null) => UseAgentFramework<AgentMiddleware>(app, endpointUri, agentOptions, middlewareConfiguration);
+        public static void UseAgentFramework(this IApplicationBuilder app) => UseAgentFramework<AgentMiddleware>(app);
 
         /// <summary>
         /// Allows agent configuration by specifying a custom middleware
         /// </summary>
         /// <param name="app">App.</param>
-        /// <param name="endpointUri">The endpointUri.</param>
-        /// <param name="agentOptions">Options.</param>
-        /// <param name="middlewareConfiguration">Middleware configuration.</param>
-        public static void UseAgentFramework<T>(this IApplicationBuilder app, string endpointUri,
-            Action<AgentBuilder> agentOptions = null, Func<HttpContext,bool> middlewareConfiguration = null)
-        {
-            if (string.IsNullOrWhiteSpace(endpointUri)) throw new ArgumentNullException(nameof(endpointUri));
-
-            var agentBuilder = app.ApplicationServices.GetService<AgentBuilder>();
-
-            agentOptions?.Invoke(agentBuilder);
-
-            var endpoint = new Uri(endpointUri);
-
-            agentBuilder.Build(endpoint).GetAwaiter().GetResult();
-
-            app.UseMiddleware<AgentMiddleware>();
-
-            if (agentBuilder.TailsBaseUri != null)
-            {
-                app.MapWhen(
-                    context => context.Request.Path.Value.StartsWith(agentBuilder.TailsBaseUri.AbsolutePath, StringComparison.Ordinal),
-                    appBuilder => { appBuilder.UseMiddleware<TailsMiddleware>(); });
-            }
-        }
+        public static void UseAgentFramework<T>(this IApplicationBuilder app) => app.UseMiddleware<T>();
     }
 }

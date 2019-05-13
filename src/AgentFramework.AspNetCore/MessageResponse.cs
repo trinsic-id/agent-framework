@@ -1,23 +1,53 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace AgentFramework.AspNetCore.Middleware
 {
-    public class MessageResponse
+    public class MessageResponse : IDisposable
     {
-        private BinaryWriter writer;
+        private readonly BinaryWriter _writer;
 
-        public Stream ResponseStream { get; }
+        /// <summary>
+        /// Gets the stream.
+        /// </summary>
+        /// <value>The stream.</value>
+        public Stream Stream { get; }
 
         public MessageResponse()
         {
-            ResponseStream = new MemoryStream();
-            writer = new BinaryWriter(ResponseStream);
+            Stream = new MemoryStream();
+            _writer = new BinaryWriter(Stream);
         }
 
+        /// <summary>
+        /// Write the specified data to the response stream.
+        /// </summary>
+        /// <param name="data">Data.</param>
         public void Write(byte[] data)
         {
-            ResponseStream.Position = ResponseStream.Seek(0, SeekOrigin.End);
-            writer.Write(data);
+            Stream.Seek(0, SeekOrigin.End);
+            _writer.Write(data);
         }
+
+        #region IDisposable Support
+        private bool disposedValue;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    Stream.Flush();
+                    Stream.Dispose();
+                }
+                disposedValue = true;
+            }
+        }
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 }

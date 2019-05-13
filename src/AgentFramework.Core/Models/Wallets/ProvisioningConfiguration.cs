@@ -83,6 +83,8 @@ namespace AgentFramework.Core.Models.Wallets
         /// The tags.
         /// </value>
         public Dictionary<string, string> Tags { get; set; }
+        public string PoolName { get; set; }
+        public string GenesisFilename { get; set; }
 
         /// <summary>
         /// Configures the agent wallet.
