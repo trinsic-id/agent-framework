@@ -15,43 +15,44 @@ namespace AgentFramework.AspNetCore.Middleware
     /// <summary>
     /// An agent middleware
     /// </summary>
-    public class AgentMiddleware : AgentMessageProcessorBase
+    public class AgentMiddleware : IMiddleware
     {
-        private readonly RequestDelegate _next;
+        private readonly IAgentFactory _agentFactory;
         private readonly IAgentContextProvider _contextProvider;
 
         /// <summary>Initializes a new instance of the <see cref="AgentMiddleware"/> class.</summary>
         /// <param name="next">The next.</param>
         /// <param name="serviceProvider">The service provider.</param>
         public AgentMiddleware(
-            RequestDelegate next,
-            IServiceProvider serviceProvider)
-            : base(serviceProvider)
+            IAgentFactory agentFactory,
+            IAgentContextProvider contextProvider)
         {
-            _next = next;
-            _contextProvider = serviceProvider.GetRequiredService<IAgentContextProvider>();
+            _agentFactory = agentFactory;
+            _contextProvider = contextProvider;
         }
 
         /// <summary>Called by the ASPNET Core runtime</summary>
         /// <param name="context">The context.</param>
         /// <returns></returns>
         /// <exception cref="Exception">Empty content length</exception>
-        public async Task InvokeAsync(HttpContext context)
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             if (!HttpMethods.IsPost(context.Request.Method)
                 && !context.Request.ContentType.Equals(DefaultMessageService.AgentWireMessageMimeType))
             {
-                await _next(context);
+                await next(context);
                 return;
             }
 
             if (context.Request.ContentLength == null) throw new Exception("Empty content length");
 
+            var agent = _agentFactory.Create<IAgent>();
+
             using (var stream = new StreamReader(context.Request.Body))
             {
                 var body = await stream.ReadToEndAsync();
 
-                var result = await ProcessAsync(
+                var result = await agent.ProcessAsync(
                     context: await _contextProvider.GetContextAsync(), //TODO assumes all recieved messages are packed 
                     messageContext: new MessageContext(body.GetUTF8Bytes(), true));
 
@@ -60,7 +61,7 @@ namespace AgentFramework.AspNetCore.Middleware
                 if (result != null)
                 {
                     context.Response.ContentType = DefaultMessageService.AgentWireMessageMimeType;
-                    await context.Response.Body.WriteAsync(result, 0, result.Length);
+                    await result.ResponseStream.CopyToAsync(context.Response.Body);
                 }
                 else
                     await context.Response.WriteAsync(string.Empty);

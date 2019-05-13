@@ -19,7 +19,7 @@ namespace AgentFramework.Core.Handlers
     /// </summary>
     public abstract class AgentMessageProcessorBase
     {
-        private readonly IList<IMessageHandler> _handlers;
+        protected readonly IList<IMessageHandler> _handlers;
 
         /// <summary>Gets the provider.</summary>
         /// <value>The provider.</value>
@@ -86,7 +86,7 @@ namespace AgentFramework.Core.Handlers
         /// <exception cref="Exception">Expected inner message to be of type 'ForwardMessage'</exception>
         /// <exception cref="AgentFrameworkException">Couldn't locate a message handler for type {messageType}</exception>
         /// TODO should recieve a message context and return a message context.
-        protected async Task<byte[]> ProcessAsync(IAgentContext context, MessageContext messageContext)
+        public async Task<byte[]> ProcessAsync(IAgentContext context, MessageContext messageContext)
         {
             EnsureConfigured();
 
