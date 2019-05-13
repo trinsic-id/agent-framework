@@ -37,7 +37,7 @@ namespace AgentFramework.AspNetCore.Middleware
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             if (!HttpMethods.IsPost(context.Request.Method)
-                && !context.Request.ContentType.Equals(DefaultMessageService.AgentWireMessageMimeType))
+                || !context.Request.ContentType.Equals(DefaultMessageService.AgentWireMessageMimeType))
             {
                 await next(context);
                 return;

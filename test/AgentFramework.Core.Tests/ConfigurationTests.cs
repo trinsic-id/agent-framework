@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using AgentFramework.AspNetCore;
 using AgentFramework.AspNetCore.Configuration.Service;
-using AgentFramework.AspNetCore.Runtime;
+using AgentFramework.AspNetCore.Middleware;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Models.Wallets;
@@ -12,11 +15,15 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using FluentAssertions;
 using Hyperledger.Indy.WalletApi;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moq;
 using Xunit;
+using System.Net;
+using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Messages;
 
 namespace AgentFramework.Core.Tests
 {
@@ -68,7 +75,7 @@ namespace AgentFramework.Core.Tests
 
             // Build the final container
             var container = builder.Build();
-            
+
             var result = container.Resolve<IConnectionService>();
 
             Assert.True(result.GetType() == typeof(MockExtendedConnectionService));
@@ -96,8 +103,8 @@ namespace AgentFramework.Core.Tests
             Assert.True(result.GetType() == typeof(MockMessageHandler));
         }
 
-        [Fact]
-        public async Task RunHostingServiceCheckProvisioning()
+        [Fact(DisplayName = "Verify the hosting service executed and provisioning completed")]
+        public async Task RunHostingServiceEnsureProvisioningInvoked()
         {
             var slim = new SemaphoreSlim(0, 1);
             var provisioned = false;
@@ -126,8 +133,8 @@ namespace AgentFramework.Core.Tests
             provisioned.Should().BeTrue();
         }
 
-        [Fact]
-        public async Task RunHostingServiceIssuerProvisioning()
+        [Fact(DisplayName = "Provisioning completed with issuer configuration")]
+        public async Task RunHostingServiceWithIssuerProvisioning()
         {
             var walletConfiguration = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
             var walletCredentials = new WalletCredentials { Key = "key" };
@@ -150,7 +157,7 @@ namespace AgentFramework.Core.Tests
             var walletService = hostBuilder.Services.GetService<IWalletService>();
             var wallet = await walletService.GetWalletAsync(walletConfiguration, walletCredentials);
 
-            Assert.NotNull(wallet); 
+            Assert.NotNull(wallet);
 
             var provisioningService = hostBuilder.Services.GetService<IProvisioningService>();
             var record = await provisioningService.GetProvisioningAsync(wallet);
@@ -162,6 +169,70 @@ namespace AgentFramework.Core.Tests
 
             await wallet.CloseAsync();
             await walletService.DeleteWalletAsync(walletConfiguration, walletCredentials);
+        }
+
+        [Fact(DisplayName = "Agent middleware executed successfully with default agent")]
+        public async Task AgentMiddlewareExecutedSuccessfully()
+        {
+            var serviceProvider = new ServiceCollection();
+            serviceProvider.AddAgentFramework();
+
+            var mockedContext = new Mock<IAgentContextProvider>();
+            var mockedFactory = new Mock<IAgentFactory>();
+            var agentMock = new Mock<DefaultAgent>(serviceProvider.BuildServiceProvider());
+
+            agentMock.As<IAgent>().Setup(x => x.ProcessAsync(It.IsAny<IAgentContext>(), It.IsAny<MessageContext>()))
+                .ReturnsAsync(new MessageResponse());
+
+            mockedFactory.Setup(x => x.Create<DefaultAgent>(It.IsAny<object>()))
+                .Returns(agentMock.Object);
+
+            // Arrange
+            var middleware = new AgentMiddleware(mockedFactory.Object, mockedContext.Object);
+
+            var context = new DefaultHttpContext();
+            context.Request.Body = new MemoryStream();
+            context.Request.Method = HttpMethod.Post.Method;
+            context.Request.ContentType = DefaultMessageService.AgentWireMessageMimeType;
+            context.Request.ContentLength = 1;
+
+            await context.Request.Body.WriteAsync(new ReadOnlyMemory<byte>(new { dummy = "dummy" }.ToJson().GetUTF8Bytes()));
+            context.Request.Body.Seek(0, SeekOrigin.Begin);
+
+            //Act
+            await middleware.InvokeAsync(context, next => Task.CompletedTask);
+
+            //Assert
+            context.Response.StatusCode
+            .Should()
+            .Be((int)HttpStatusCode.OK);
+        }
+
+        [Fact(DisplayName = "Agent middleware calls next gelegate if invalid http method")]
+        public async Task AgentMiddlewareCallsNextDelegateOnInvalidHttpMethod()
+        {
+            var mockedContext = new Mock<IAgentContextProvider>();
+            var mockedFactory = new Mock<IAgentFactory>();
+            var nextInvoked = false;
+
+            // Arrange
+            var middleware = new AgentMiddleware(mockedFactory.Object, mockedContext.Object);
+
+            var context = new DefaultHttpContext();
+            context.Request.Body = new MemoryStream();
+            context.Request.Method = HttpMethod.Put.Method;
+
+            await context.Response.Body.WriteAsync(new ReadOnlyMemory<byte>(new { dummy = "dummy" }.ToJson().GetUTF8Bytes()));
+
+            //Act
+            Func<Task> act = async () => await middleware.InvokeAsync(context, next =>
+            {
+                nextInvoked = true;
+                return Task.CompletedTask;
+            });
+
+            await act.Should().NotThrowAsync();
+            nextInvoked.Should().BeTrue();
         }
     }
 }

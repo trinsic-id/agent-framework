@@ -186,10 +186,6 @@ namespace AgentFramework.Core.Handlers
         }
 
         /// <summary>Configures the handlers.</summary>
-        protected virtual void ConfigureHandlers()
-        {
-            AddConnectionHandler();
-            AddForwardHandler();
-        }
+        protected abstract void ConfigureHandlers();
     }
 }

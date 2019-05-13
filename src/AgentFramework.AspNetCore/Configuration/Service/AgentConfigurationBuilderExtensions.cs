@@ -20,7 +20,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             builder.TryAddSingleton<IEventAggregator, EventAggregator>();
             builder.TryAddSingleton<IAgentContextProvider, DefaultAgentContextProvider>();
             builder.TryAddSingleton<IAgentFactory, AgentFactory>();
-            builder.TryAddSingleton<IAgent, DefaultAgent>();
+            builder.TryAddSingleton<DefaultAgent>();
             builder.TryAddSingleton<IConnectionService, DefaultConnectionService>();
             builder.TryAddSingleton<ICredentialService, DefaultCredentialService>();
             builder.TryAddSingleton<ILedgerService, DefaultLedgerService>();

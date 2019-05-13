@@ -13,6 +13,12 @@ namespace AgentFramework.TestHarness.Mock
         {
         }
 
+        protected override void ConfigureHandlers()
+        {
+            AddConnectionHandler();
+            AddForwardHandler();
+        }
+
         internal Task HandleAsync(MessageContext msg, IAgentContext context) => ProcessAsync(context, msg);
     }
 }
