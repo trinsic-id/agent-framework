@@ -1,13 +1,19 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using AgentFramework.AspNetCore.Configuration.Service;
 using AgentFramework.AspNetCore.Runtime;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
+using AgentFramework.Core.Models.Wallets;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Moq;
 using Xunit;
 
 namespace AgentFramework.Core.Tests
@@ -50,7 +56,8 @@ namespace AgentFramework.Core.Tests
             IServiceCollection services = new ServiceCollection();
 
             services.AddLogging();
-            services.AddAgentFramework(_ => _.AddExtendedConnectionService<MockExtendedConnectionService>());
+            services.AddAgentFramework();
+            services.AddExtendedConnectionService<MockExtendedConnectionService>();
 
             // Initialize Autofac
             var builder = new ContainerBuilder();
@@ -71,8 +78,8 @@ namespace AgentFramework.Core.Tests
             IServiceCollection services = new ServiceCollection();
 
             services.AddLogging();
-            services.AddAgentFramework(_ => _.OverrideDefaultMessageHandlers()
-                .AddMessageHandler<MockMessageHandler>());
+            services.AddAgentFramework();
+            services.AddMessageHandler<MockMessageHandler>();
 
             // Initialize Autofac
             var builder = new ContainerBuilder();
@@ -88,26 +95,33 @@ namespace AgentFramework.Core.Tests
         }
 
         [Fact]
-        public void AddAgentframeworkWithMemoryCacheLedgerServiceResolves()
+        public async Task RunHostingService()
         {
-            IServiceCollection services = new ServiceCollection();
+            var slim = new SemaphoreSlim(0, 1);
+            var provisioned = false;
 
-            services.AddLogging();
-            services.AddAgentFramework(_ => _.AddMemoryCacheLedgerService(
-                new MemoryCacheEntryOptions()
-                    .SetSlidingExpiration(new TimeSpan(0, 10, 0))));
+            var provisioningMock = new Mock<IProvisioningService>();
+            provisioningMock
+                .Setup(x => x.ProvisionAgentAsync(It.IsAny<ProvisioningConfiguration>()))
+                .Callback(() => { slim.Release(); provisioned = true; })
+                .Returns(Task.CompletedTask);
 
-            // Initialize Autofac
-            var builder = new ContainerBuilder();
+            var hostBuilder = new HostBuilder()
+                .ConfigureServices(services =>
+                {
+                    services.AddAgentFramework();
+                    services.AddSingleton(provisioningMock.Object);
+                })
+                .Build();
 
-            builder.Populate(services);
+            // Start the host
+            await hostBuilder.StartAsync();
 
-            // Build the final container
-            var container = builder.Build();
+            // Wait for semaphore
+            await slim.WaitAsync();
 
-            var result = container.Resolve<ILedgerService>();
-
-            Assert.True(result.GetType() == typeof(MemoryCacheLedgerService));
+            // Assert
+            Assert.True(provisioned);
         }
     }
 }
