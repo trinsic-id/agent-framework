@@ -6,12 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records.Search;
+using AgentFramework.Core.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -69,8 +71,7 @@ namespace WebAgent.Controllers
             var context = await _agentContextProvider.GetContextAsync();
 
             var (invitation, _) = await _connectionService.CreateInvitationAsync(context, new InviteConfiguration { AutoAcceptConnection = true });
-            ViewData["Invitation"] = EncodeInvitation(invitation);
-            ViewData["DefaultUri"] = $"{(await _provisioningService.GetProvisioningAsync(context.Wallet)).Endpoint.Uri}?c_i=";
+            ViewData["Invitation"] = $"{(await _provisioningService.GetProvisioningAsync(context.Wallet)).Endpoint.Uri}?c_i={EncodeInvitation(invitation)}";
             return View();
         }
 
@@ -79,20 +80,9 @@ namespace WebAgent.Controllers
         {
             var context = await _agentContextProvider.GetContextAsync();
 
-            string inviteRaw = null;
-            try
-            {
-                var uri = new Uri(model.InvitationDetails);
-                inviteRaw = HttpUtility.ParseQueryString(uri.Query).Get("c_i");
-            }
-            catch (Exception)
-            {
-                inviteRaw = model.InvitationDetails;
-            }
-
-            var invite = DecodeInvitation(inviteRaw);
+            var invite = MessageUtils.DecodeMessageFromUrlFormat<ConnectionInvitationMessage>(model.InvitationDetails);
             var (request, record) = await _connectionService.CreateRequestAsync(context, invite);
-            await _messageService.SendToConnectionAsync(context.Wallet, request, record, invite.RecipientKeys[0]);
+            await _messageService.SendAsync(context.Wallet, request, record, invite.RecipientKeys[0]);
 
             return RedirectToAction("Index");
         }
@@ -107,18 +97,9 @@ namespace WebAgent.Controllers
 
             ViewData["InvitationDetails"] = model.InvitationDetails;
 
-            string inviteRaw = null;
-            try
-            {
-                var uri = new Uri(model.InvitationDetails);
-                inviteRaw = HttpUtility.ParseQueryString(uri.Query).Get("c_i");
-            }
-            catch (Exception)
-            {
-                inviteRaw = model.InvitationDetails;
-            }
+            var invite = MessageUtils.DecodeMessageFromUrlFormat<ConnectionInvitationMessage>(model.InvitationDetails);
 
-            return View(DecodeInvitation(inviteRaw));
+            return View(invite);
         }
 
         [HttpPost]
@@ -139,7 +120,7 @@ namespace WebAgent.Controllers
                 .Where(_ => _.MessageType == CustomMessageTypes.TrustPingResponseMessageType)
                 .Subscribe(_ => { success = true; slim.Release(); }))
             {
-                await _messageService.SendToConnectionAsync(context.Wallet, message, connection);
+                await _messageService.SendAsync(context.Wallet, message, connection);
 
                 await slim.WaitAsync(TimeSpan.FromSeconds(5));
 
@@ -198,7 +179,7 @@ namespace WebAgent.Controllers
             await _recordService.AddAsync(context.Wallet, messageRecord);
 
             // Send an agent message using the secure connection
-            await _messageService.SendToConnectionAsync(context.Wallet, message, connection);
+            await _messageService.SendAsync(context.Wallet, message, connection);
 
             return RedirectToAction("Details", new {id = connectionId});
         }
@@ -216,7 +197,7 @@ namespace WebAgent.Controllers
         /// <param name="invitation">Invitation.</param>
         public string EncodeInvitation(ConnectionInvitationMessage invitation)
         {
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(invitation)));
+            return invitation.ToJson().ToBase64();
         }
 
         /// <summary>
