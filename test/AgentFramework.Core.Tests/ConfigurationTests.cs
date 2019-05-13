@@ -10,6 +10,8 @@ using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Models.Wallets;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using FluentAssertions;
+using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -95,7 +97,7 @@ namespace AgentFramework.Core.Tests
         }
 
         [Fact]
-        public async Task RunHostingService()
+        public async Task RunHostingServiceCheckProvisioning()
         {
             var slim = new SemaphoreSlim(0, 1);
             var provisioned = false;
@@ -121,7 +123,45 @@ namespace AgentFramework.Core.Tests
             await slim.WaitAsync();
 
             // Assert
-            Assert.True(provisioned);
+            provisioned.Should().BeTrue();
+        }
+
+        [Fact]
+        public async Task RunHostingServiceIssuerProvisioning()
+        {
+            var walletConfiguration = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
+            var walletCredentials = new WalletCredentials { Key = "key" };
+
+            var hostBuilder = new HostBuilder()
+                .ConfigureServices(services =>
+                {
+                    services.AddAgentFramework(() => new IssuerProvisioningConfiguration
+                    {
+                        WalletCredentials = walletCredentials,
+                        WalletConfiguration = walletConfiguration,
+                        EndpointUri = new Uri("http://example.com")
+                    });
+                })
+                .Build();
+
+            // Start the host
+            await hostBuilder.StartAsync();
+
+            var walletService = hostBuilder.Services.GetService<IWalletService>();
+            var wallet = await walletService.GetWalletAsync(walletConfiguration, walletCredentials);
+
+            Assert.NotNull(wallet); 
+
+            var provisioningService = hostBuilder.Services.GetService<IProvisioningService>();
+            var record = await provisioningService.GetProvisioningAsync(wallet);
+
+            record.Should().NotBeNull();
+            record.IssuerVerkey.Should().NotBeNull();
+            record.Endpoint.Should().NotBeNull();
+            record.Endpoint.Verkey.Should().NotBeNull();
+
+            await wallet.CloseAsync();
+            await walletService.DeleteWalletAsync(walletConfiguration, walletCredentials);
         }
     }
 }
