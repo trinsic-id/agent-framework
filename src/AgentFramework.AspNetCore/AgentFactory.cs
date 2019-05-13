@@ -16,7 +16,7 @@ namespace AgentFramework.AspNetCore
 
         public IDictionary<object, object> Properties { get; set; } = new Dictionary<object, object>();
 
-        public T Create<T>() where T : IAgent
+        public T Create<T>(object param) where T : IAgent
         {
             return (T)ServiceProvider.GetService(typeof(T));
         }

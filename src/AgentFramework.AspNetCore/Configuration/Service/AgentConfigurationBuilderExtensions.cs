@@ -1,4 +1,5 @@
 ﻿using System.Net.Http;
+using AgentFramework.AspNetCore.Middleware;
 using AgentFramework.AspNetCore.Runtime;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
@@ -18,7 +19,8 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         {
             builder.TryAddSingleton<IEventAggregator, EventAggregator>();
             builder.TryAddSingleton<IAgentContextProvider, DefaultAgentContextProvider>();
-
+            builder.TryAddSingleton<IAgentFactory, AgentFactory>();
+            builder.TryAddSingleton<IAgent, DefaultAgent>();
             builder.TryAddSingleton<IConnectionService, DefaultConnectionService>();
             builder.TryAddSingleton<ICredentialService, DefaultCredentialService>();
             builder.TryAddSingleton<ILedgerService, DefaultLedgerService>();

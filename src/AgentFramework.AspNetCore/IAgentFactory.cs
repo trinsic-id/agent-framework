@@ -6,7 +6,7 @@ namespace AgentFramework.AspNetCore
 {
     public interface IAgentFactory
     {
-        T Create<T>() where T : IAgent;
+        T Create<T>(object param) where T : IAgent;
 
         IDictionary<object,object> Properties { get; set; }
     }

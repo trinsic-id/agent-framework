@@ -45,22 +45,21 @@ namespace AgentFramework.AspNetCore.Middleware
 
             if (context.Request.ContentLength == null) throw new Exception("Empty content length");
 
-            var agent = _agentFactory.Create<IAgent>();
-
             using (var stream = new StreamReader(context.Request.Body))
             {
                 var body = await stream.ReadToEndAsync();
 
-                var result = await agent.ProcessAsync(
+                IAgent agent = _agentFactory.Create<DefaultAgent>(null);
+                var response = await agent.ProcessAsync(
                     context: await _contextProvider.GetContextAsync(), //TODO assumes all recieved messages are packed 
                     messageContext: new MessageContext(body.GetUTF8Bytes(), true));
 
                 context.Response.StatusCode = 200;
 
-                if (result != null)
+                if (response != null)
                 {
                     context.Response.ContentType = DefaultMessageService.AgentWireMessageMimeType;
-                    await result.Stream.CopyToAsync(context.Response.Body);
+                    await response.Stream.CopyToAsync(context.Response.Body);
                 }
                 else
                     await context.Response.WriteAsync(string.Empty);
