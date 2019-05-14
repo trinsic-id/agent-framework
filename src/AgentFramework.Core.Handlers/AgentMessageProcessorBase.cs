@@ -114,7 +114,7 @@ namespace AgentFramework.Core.Handlers
 
             if (_handlers.Where(handler => handler != null).FirstOrDefault(
                     handler => handler.SupportedMessageTypes.Any(
-                        type => type.Equals(inboundMessageContext.GetMessageType(), StringComparison.OrdinalIgnoreCase))) is
+                        type => type.MessageTypeUri.Equals(inboundMessageContext.GetMessageType(), StringComparison.OrdinalIgnoreCase))) is
                 IMessageHandler messageHandler)
             {
                 Logger.LogDebug("Processing message type {MessageType}, {MessageData}", 
@@ -177,7 +177,7 @@ namespace AgentFramework.Core.Handlers
             return message;
         }
 
-        private IList<MessageType> GetSupportedMessageTypes() => _handlers.SelectMany(_ => _.SupportedMessageTypes, (parent, child) => new MessageType(child)).ToList();
+        private IList<MessageType> GetSupportedMessageTypes() => _handlers.SelectMany(_ => _.SupportedMessageTypes).ToList();
 
         private void EnsureConfigured()
         {

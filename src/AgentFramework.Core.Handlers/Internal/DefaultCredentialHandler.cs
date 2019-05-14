@@ -29,11 +29,11 @@ namespace AgentFramework.Core.Handlers.Internal
         /// <value>
         /// The supported message types.
         /// </value>
-        public IEnumerable<string> SupportedMessageTypes => new[]
+        public IEnumerable<MessageType> SupportedMessageTypes => new[]
         {
-            MessageTypes.CredentialOffer,
-            MessageTypes.CredentialRequest,
-            MessageTypes.Credential
+            new MessageType(MessageTypes.CredentialOffer),
+            new MessageType(MessageTypes.CredentialRequest),
+            new MessageType(MessageTypes.Credential)
         };
 
         /// <summary>
