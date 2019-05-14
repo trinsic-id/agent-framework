@@ -13,7 +13,7 @@ using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Proofs;
-using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.TestHarness;
 using AgentFramework.TestHarness.Utils;
 using Hyperledger.Indy.WalletApi;

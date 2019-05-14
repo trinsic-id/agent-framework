@@ -6,7 +6,7 @@ using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Models.Wallets;
 using Hyperledger.Indy.WalletApi;
 
-namespace AgentFramework.Core.Runtime
+namespace AgentFramework.Core.Handlers.Agents
 {
     /// <inheritdoc />
     public class DefaultWalletService : IWalletService

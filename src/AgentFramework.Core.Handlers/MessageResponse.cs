@@ -25,6 +25,8 @@ namespace AgentFramework.Core.Handlers
         /// <param name="data">Data.</param>
         public void Write(byte[] data)
         {
+            if (data == null) return;
+
             Stream.Seek(0, SeekOrigin.End);
             _writer.Write(data);
         }

@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using AgentFramework.Core.Handlers.Agents;
+using AgentFramework.Core.Contracts;
 
-namespace AgentFramework.Core.Contracts
+namespace AgentFramework.Core.Handlers.Agents
 {
     /// <summary>
     /// Agent Context Provider.
@@ -13,13 +13,13 @@ namespace AgentFramework.Core.Contracts
         /// </summary>
         /// <param name="agentId">Identifier of the agent to resolve.</param>
         /// <returns>The agent context async.</returns>
-        Task<IAgentContext> GetContextAsync(string agentId = null);
+        Task<IAgentContext> GetContextAsync(params object[] args);
 
         /// <summary>
         /// Returns an instance of <see cref="IAgent" />
         /// </summary>
         /// <returns>The agent instance.</returns>
         /// <param name="agentId">Agent identifier.</param>
-        Task<IAgent> GetAgentAsync(string agentId = null);
+        Task<IAgent> GetAgentAsync(params object[] args);
     }
 }

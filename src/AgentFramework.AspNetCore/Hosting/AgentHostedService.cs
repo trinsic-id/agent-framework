@@ -25,6 +25,8 @@ namespace AgentFramework.AspNetCore
         /// </summary>
         /// <param name="provisioningService">Provisioning service.</param>
         /// <param name="provisioningConfiguration">Provisioning configuration.</param>
+        /// <param name="poolService">Pool service.</param>
+        /// <param name="poolOptions">Pool options.</param>
         public AgentHostedService(
             IProvisioningService provisioningService,
             ProvisioningConfiguration provisioningConfiguration,

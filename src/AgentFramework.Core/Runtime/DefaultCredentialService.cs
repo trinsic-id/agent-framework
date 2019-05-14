@@ -17,7 +17,7 @@ using Hyperledger.Indy.BlobStorageApi;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
-namespace AgentFramework.Core.Runtime
+namespace AgentFramework.Core.Handlers.Agents
 {
     /// <inheritdoc />
     public class DefaultCredentialService : ICredentialService

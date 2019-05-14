@@ -1,4 +1,4 @@
-﻿using AgentFramework.AspNetCore.Configuration.Service;
+﻿using AgentFramework.AspNetCore;
 using AgentFramework.Core.Contracts;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;

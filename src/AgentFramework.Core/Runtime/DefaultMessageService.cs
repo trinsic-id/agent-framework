@@ -13,7 +13,7 @@ using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using AgentFramework.Core.Decorators.Transport;
 
-namespace AgentFramework.Core.Runtime
+namespace AgentFramework.Core.Handlers.Agents
 {
     /// <inheritdoc />
     public class DefaultMessageService : IMessageService
