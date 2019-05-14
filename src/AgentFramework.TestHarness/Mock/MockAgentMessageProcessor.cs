@@ -6,7 +6,7 @@ using AgentFramework.Core.Messages;
 
 namespace AgentFramework.TestHarness.Mock
 {
-    public class MockAgentMessageProcessor : AgentMessageProcessorBase
+    public class MockAgentMessageProcessor : AgentBase
     {
         public MockAgentMessageProcessor(
             IServiceProvider provider) : base(provider)

@@ -3,6 +3,7 @@ using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Utils;
+using FluentAssertions;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -86,6 +87,68 @@ namespace AgentFramework.Core.Tests
             Assert.True(messageType.MessageFamilyName == "examplefamily");
             Assert.True(messageType.MessageVersion == "1.0");
             Assert.True(messageType.MessageName == "exampletype");
+        }
+
+        [Fact(DisplayName = "Compare message type to string must pass equality ==")]
+        public void CompareMessageTypeAndStringSuccess()
+        {
+            var act = new MessageType(MessageTypes.ConnectionRequest) == MessageTypes.ConnectionRequest;
+
+            act.Should().BeTrue();
+        }
+
+        [Fact(DisplayName = "Compare message type to string must pass equality !=")]
+        public void CompareMessageTypeAndStringSuccessNotEqual()
+        {
+            var act = new MessageType(MessageTypes.ConnectionRequest) != MessageTypes.ConnectionInvitation;
+
+            act.Should().BeTrue();
+        }
+
+        [Fact(DisplayName = "Compare message types must pass equality ==")]
+        public void CompareMessageTypesSuccess()
+        {
+#pragma warning disable RECS0088 // Comparing equal expression for equality is usually useless
+            var act = new MessageType(MessageTypes.ConnectionRequest) == new MessageType(MessageTypes.ConnectionRequest);
+#pragma warning restore RECS0088 // Comparing equal expression for equality is usually useless
+
+            act.Should().BeTrue();
+        }
+
+        [Fact(DisplayName = "Compare message types must fail equality ==")]
+        public void CompareMessageTypesFail()
+        {
+            var act = new MessageType(MessageTypes.ConnectionRequest) == new MessageType(MessageTypes.ConnectionInvitation);
+
+            act.Should().BeFalse();
+        }
+
+        [Fact(DisplayName = "Compare message types must pass equality !=")]
+        public void CompareMessageTypesSuccessNotEqual()
+        {
+            var act = new MessageType(MessageTypes.ConnectionRequest) != new MessageType(MessageTypes.ConnectionInvitation);
+
+            act.Should().BeTrue();
+        }
+
+        [Fact(DisplayName = "Compare message types must pass equality IEquatable")]
+        public void CompareMessageTypesSuccessEquatable()
+        {
+#pragma warning disable RECS0088 // Comparing equal expression for equality is usually useless
+            var act = new MessageType(MessageTypes.ConnectionRequest)
+                .Equals(new MessageType(MessageTypes.ConnectionRequest));
+#pragma warning restore RECS0088 // Comparing equal expression for equality is usually useless
+
+            act.Should().BeTrue();
+        }
+
+        [Fact(DisplayName = "Compare message types must pass equality IEquatable for different types")]
+        public void CompareMessageTypesFailEquatable()
+        {
+            var act = new MessageType(MessageTypes.ConnectionRequest)
+                .Equals(new MessageType(MessageTypes.ConnectionInvitation));
+
+            act.Should().BeFalse();
         }
     }
 }

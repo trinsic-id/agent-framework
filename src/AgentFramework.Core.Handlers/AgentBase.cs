@@ -17,7 +17,7 @@ namespace AgentFramework.Core.Handlers
     /// <summary>
     /// Base agent implementation
     /// </summary>
-    public abstract class AgentMessageProcessorBase
+    public abstract class AgentBase
     {
         protected readonly IList<IMessageHandler> _handlers;
 
@@ -35,15 +35,15 @@ namespace AgentFramework.Core.Handlers
 
         /// <summary>Gets the logger.</summary>
         /// <value>The logger.</value>
-        protected ILogger<AgentMessageProcessorBase> Logger { get; }
+        protected ILogger<AgentBase> Logger { get; }
 
-        /// <summary>Initializes a new instance of the <see cref="AgentMessageProcessorBase"/> class.</summary>
-        protected AgentMessageProcessorBase(IServiceProvider provider)
+        /// <summary>Initializes a new instance of the <see cref="AgentBase"/> class.</summary>
+        protected AgentBase(IServiceProvider provider)
         {
             Provider = provider;
             ConnectionService = provider.GetRequiredService<IConnectionService>();
             MessageService = provider.GetRequiredService<IMessageService>();
-            Logger = provider.GetRequiredService<ILogger<AgentMessageProcessorBase>>();
+            Logger = provider.GetRequiredService<ILogger<AgentBase>>();
             _handlers = new List<IMessageHandler>();
         }
 
@@ -114,7 +114,7 @@ namespace AgentFramework.Core.Handlers
 
             if (_handlers.Where(handler => handler != null).FirstOrDefault(
                     handler => handler.SupportedMessageTypes.Any(
-                        type => type.MessageTypeUri.Equals(inboundMessageContext.GetMessageType(), StringComparison.OrdinalIgnoreCase))) is
+                        type => type == inboundMessageContext.GetMessageType())) is
                 IMessageHandler messageHandler)
             {
                 Logger.LogDebug("Processing message type {MessageType}, {MessageData}", 
@@ -177,7 +177,7 @@ namespace AgentFramework.Core.Handlers
             return message;
         }
 
-        private IList<MessageType> GetSupportedMessageTypes() => _handlers.SelectMany(_ => _.SupportedMessageTypes).ToList();
+        private IList<MessageType> GetSupportedMessageTypes() => _handlers.SelectMany(x => x.SupportedMessageTypes).ToList();
 
         private void EnsureConfigured()
         {

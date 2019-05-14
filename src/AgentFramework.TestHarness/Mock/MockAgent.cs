@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.TestHarness.Mock
 {
-    public class MockAgent : AgentMessageProcessorBase
+    public class MockAgent : AgentBase
     {
         public MockAgent(string name, IServiceProvider provider) : base(provider)
         {

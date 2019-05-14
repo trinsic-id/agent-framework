@@ -11,7 +11,7 @@ namespace AgentFramework.AspNetCore
     /// <summary>
     /// Default agent.
     /// </summary>
-    public class DefaultAgent : AgentMessageProcessorBase, IAgent
+    public class DefaultAgent : AgentBase, IAgent
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AgentFramework.AspNetCore.DefaultAgent"/> class.
