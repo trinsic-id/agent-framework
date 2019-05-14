@@ -1,5 +1,6 @@
 using System;
-using AgentFramework.AspNetCore.Configuration.Service;
+using AgentFramework.AspNetCore;
+using AgentFramework.Core.Models.Wallets;
 using Jdenticon.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -28,8 +29,18 @@ namespace WebAgent
             services.AddLogging();
 
             // Register agent framework dependency services and handlers
-            services.AddAgentFramework();
+            services.AddAgentFramework(builder =>
+            {
+                builder.AddBasicAgent<SimpleWebAgent>(c =>
+                {
+                    c.OwnerName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? NameGenerator.GetRandomName();
+                    c.EndpointUri = new Uri(Environment.GetEnvironmentVariable("ENDPOINT_HOST") ?? Environment.GetEnvironmentVariable("ASPNETCORE_URLS"));
+                    c.WalletConfiguration = new WalletConfiguration { Id = "WebAgentWallet" };
+                    c.WalletCredentials = new WalletCredentials { Key = "MyWalletKey" };
+                });
+            });
 
+            // Register custom handlers with DI pipeline
             services.AddSingleton<BasicMessageHandler>();
             services.AddSingleton<TrustPingMessageHandler>();
         }
@@ -48,16 +59,9 @@ namespace WebAgent
             }
 
             app.UseStaticFiles();
-            
-            // Add agent middleware
-            var agentBaseUrl = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ENDPOINT_HOST")) ? Environment.GetEnvironmentVariable("ASPNETCORE_URLS") : Environment.GetEnvironmentVariable("ENDPOINT_HOST");
-            var agentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? NameGenerator.GetRandomName();
 
-            app.UseAgentFramework<WebAgentMiddleware>($"{new Uri(new Uri(agentBaseUrl), "/agent")}",
-                obj =>
-                {
-                    obj.AddOwnershipInfo(agentName, null);
-                });
+            // Register agend middleware
+            app.UseAgentFramework();
 
             // fun identicons
             app.UseJdenticon();

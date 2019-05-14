@@ -6,7 +6,7 @@ using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Discovery;
 using Microsoft.Extensions.Logging;
 
-namespace AgentFramework.Core.Runtime
+namespace AgentFramework.Core.Handlers.Agents
 {
     /// <inheritdoc />
     public class DefaultDiscoveryService : IDiscoveryService

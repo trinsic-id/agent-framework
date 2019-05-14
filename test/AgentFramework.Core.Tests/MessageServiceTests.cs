@@ -15,7 +15,7 @@ using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
-using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.WalletApi;

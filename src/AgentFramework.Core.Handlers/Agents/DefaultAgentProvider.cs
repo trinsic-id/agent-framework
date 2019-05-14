@@ -1,10 +1,9 @@
 ﻿using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Models;
 using Microsoft.Extensions.Options;
 
-namespace AgentFramework.Core.Runtime
+namespace AgentFramework.Core.Handlers.Agents
 {
     /// <inheritdoc />
     public class DefaultAgentProvider : IAgentProvider
@@ -16,17 +15,19 @@ namespace AgentFramework.Core.Runtime
         private readonly IPoolService _poolService;
 
         /// <summary>
-        /// Default Agent Context Provider.
+        /// Initializes a new instance of the <see cref="DefaultAgentProvider"/> class.
         /// </summary>
-        /// <param name="walletOptions">The wallet options provider.</param>
-        /// <param name="poolOptions">The pool options provider/</param>
-        /// <param name="walletService">The wallet service.</param>
-        /// <param name="poolService">The pool service.</param>
-        public DefaultAgentProvider(IOptions<WalletOptions> walletOptions,
-                                          IOptions<PoolOptions> poolOptions,
-                                          IAgent serviceProvider,
-                                          IWalletService walletService,
-                                          IPoolService poolService)
+        /// <param name="walletOptions">Wallet options.</param>
+        /// <param name="poolOptions">Pool options.</param>
+        /// <param name="serviceProvider">Service provider.</param>
+        /// <param name="walletService">Wallet service.</param>
+        /// <param name="poolService">Pool service.</param>
+        public DefaultAgentProvider(
+            IOptions<WalletOptions> walletOptions,
+            IOptions<PoolOptions> poolOptions,
+            IAgent serviceProvider,
+            IWalletService walletService,
+            IPoolService poolService)
         {
             _walletOptions = walletOptions.Value;
             _poolOptions = poolOptions.Value;
@@ -36,13 +37,13 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public Task<IAgent> GetAgentAsync(string agentId = null)
+        public Task<IAgent> GetAgentAsync(params object[] args)
         {
             return Task.FromResult(_defaultAgent);
         }
 
         /// <inheritdoc />
-        public async Task<IAgentContext> GetContextAsync(string agentId = null)
+        public async Task<IAgentContext> GetContextAsync(params object[] args)
         {
             return new DefaultAgentContext
             {

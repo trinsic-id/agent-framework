@@ -33,10 +33,10 @@ namespace WebAgent.Messages
         /// <value>
         /// The supported message types.
         /// </value>
-        public IEnumerable<string> SupportedMessageTypes => new[]
+        public IEnumerable<MessageType> SupportedMessageTypes => new[]
         {
-            CustomMessageTypes.TrustPingMessageType,
-            CustomMessageTypes.TrustPingResponseMessageType
+            MessageType.FromUri(CustomMessageTypes.TrustPingMessageType),
+            MessageType.FromUri(CustomMessageTypes.TrustPingResponseMessageType)
         };
 
         /// <summary>

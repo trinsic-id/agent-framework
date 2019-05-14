@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using AgentFramework.AspNetCore.Configuration.Service;
+using AgentFramework.AspNetCore;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Models;

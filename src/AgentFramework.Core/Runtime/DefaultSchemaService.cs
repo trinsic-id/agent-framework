@@ -11,7 +11,7 @@ using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json.Linq;
 
-namespace AgentFramework.Core.Runtime
+namespace AgentFramework.Core.Handlers.Agents
 {
     /// <inheritdoc />
     public class DefaultSchemaService : ISchemaService

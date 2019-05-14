@@ -1,18 +1,46 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
+using AgentFramework.AspNetCore.Middleware;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Handlers.Agents;
-using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace AgentFramework.AspNetCore.Configuration.Service
+namespace AgentFramework.AspNetCore
 {
     /// <summary>
     /// Service builder extensions.
     /// </summary>
-    public static class ServiceBuilderExtensions
+    public static class ServiceCollectionExtensions
     {
+        /// <summary>
+        /// Registers the agent framework required services
+        /// </summary>
+        /// <param name="services">Services.</param>
+        public static void AddAgentFramework(this IServiceCollection services)
+        {
+            services.AddOptions<WalletOptions>();
+            services.AddOptions<PoolOptions>();
+            services.AddSingleton<AgentMiddleware>();
+            services.AddLogging();
+
+            services.AddDefaultServices();
+            services.AddDefaultMessageHandlers();
+        }
+
+        /// <summary>
+        /// Registers the agent framework required services and invokes an agent builder
+        /// </summary>
+        /// <param name="services">Services.</param>
+        /// <param name="builder">Builder.</param>
+        public static void AddAgentFramework(this IServiceCollection services, Action<AgentBuilder> builder)
+        {
+            AddAgentFramework(services);
+            builder.Invoke(new AgentBuilder(services));
+        }
+
         internal static IServiceCollection AddDefaultServices(this IServiceCollection builder)
         {
             builder.TryAddSingleton<IEventAggregator, EventAggregator>();
@@ -60,7 +88,7 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             this IServiceCollection builder)
             where TProvider : class, IAgentProvider
         {
-            builder.AddSingleton<IAgentProvider,TProvider>();
+            builder.AddSingleton<IAgentProvider, TProvider>();
             return builder;
         }
 

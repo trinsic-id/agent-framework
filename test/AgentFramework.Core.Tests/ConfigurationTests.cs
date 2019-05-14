@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using AgentFramework.AspNetCore;
-using AgentFramework.AspNetCore.Configuration.Service;
 using AgentFramework.AspNetCore.Middleware;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Contracts;
@@ -14,17 +12,14 @@ using AgentFramework.Core.Models.Wallets;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using FluentAssertions;
-using Hyperledger.Indy.WalletApi;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moq;
 using Xunit;
 using System.Net;
-using AgentFramework.Core.Runtime;
-using AgentFramework.Core.Messages;
 using AgentFramework.Core.Handlers.Agents;
+using AgentFramework.Core.Messages;
 
 namespace AgentFramework.Core.Tests
 {
@@ -143,12 +138,12 @@ namespace AgentFramework.Core.Tests
             var hostBuilder = new HostBuilder()
                 .ConfigureServices(services =>
                 {
-                    services.AddAgentFramework(() => new IssuerProvisioningConfiguration
+                    services.AddAgentFramework(b => b.AddIssuerAgent(c =>
                     {
-                        WalletCredentials = walletCredentials,
-                        WalletConfiguration = walletConfiguration,
-                        EndpointUri = new Uri("http://example.com")
-                    });
+                        c.WalletCredentials = walletCredentials;
+                        c.WalletConfiguration = walletConfiguration;
+                        c.EndpointUri = new Uri("http://example.com");
+                    }));
                 })
                 .Build();
 
