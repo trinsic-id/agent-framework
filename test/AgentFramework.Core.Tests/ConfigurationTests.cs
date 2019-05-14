@@ -124,6 +124,7 @@ namespace AgentFramework.Core.Tests
 
             // Wait for semaphore
             await slim.WaitAsync();
+            await hostBuilder.StopAsync();
 
             // Assert
             provisioned.Should().BeTrue();
