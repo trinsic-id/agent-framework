@@ -17,19 +17,15 @@ namespace AgentFramework.AspNetCore.Middleware
     /// </summary>
     public class AgentMiddleware : IMiddleware
     {
-        private readonly IAgentFactory _agentFactory;
-        private readonly IAgentContextProvider _contextProvider;
+        private readonly IAgentProvider _contextProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AgentFramework.AspNetCore.Middleware.AgentMiddleware"/> class.
         /// </summary>
         /// <param name="agentFactory">Agent factory.</param>
         /// <param name="contextProvider">Context provider.</param>
-        public AgentMiddleware(
-             IAgentFactory agentFactory,
-             IAgentContextProvider contextProvider)
+        public AgentMiddleware(IAgentProvider contextProvider)
         {
-            _agentFactory = agentFactory;
             _contextProvider = contextProvider;
         }
 
@@ -49,7 +45,7 @@ namespace AgentFramework.AspNetCore.Middleware
             {
                 var body = await stream.ReadToEndAsync();
 
-                IAgent agent = _agentFactory.Create<DefaultAgent>(null);
+                var agent = await _contextProvider.GetAgentAsync();
                 var response = await agent.ProcessAsync(
                     context: await _contextProvider.GetContextAsync(), //TODO assumes all recieved messages are packed 
                     messageContext: new MessageContext(body.GetUTF8Bytes(), true));

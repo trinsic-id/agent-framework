@@ -1,10 +1,8 @@
 ﻿using System.Net.Http;
-using AgentFramework.AspNetCore.Middleware;
-using AgentFramework.AspNetCore.Runtime;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
+using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Runtime;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -18,9 +16,8 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         internal static IServiceCollection AddDefaultServices(this IServiceCollection builder)
         {
             builder.TryAddSingleton<IEventAggregator, EventAggregator>();
-            builder.TryAddSingleton<IAgentContextProvider, DefaultAgentContextProvider>();
-            builder.TryAddSingleton<IAgentFactory, AgentFactory>();
-            builder.TryAddSingleton<DefaultAgent>();
+            builder.TryAddSingleton<IAgentProvider, DefaultAgentProvider>();
+            builder.TryAddSingleton<IAgent, DefaultAgent>();
             builder.TryAddSingleton<IConnectionService, DefaultConnectionService>();
             builder.TryAddSingleton<ICredentialService, DefaultCredentialService>();
             builder.TryAddSingleton<ILedgerService, DefaultLedgerService>();
@@ -61,9 +58,9 @@ namespace AgentFramework.AspNetCore.Configuration.Service
         /// <typeparam name="TProvider">The 1st type parameter.</typeparam>
         public static IServiceCollection OverrideDefaultAgentContextProvider<TProvider>(
             this IServiceCollection builder)
-            where TProvider : class, IAgentContextProvider
+            where TProvider : class, IAgentProvider
         {
-            builder.AddSingleton<IAgentContextProvider,TProvider>();
+            builder.AddSingleton<IAgentProvider,TProvider>();
             return builder;
         }
 

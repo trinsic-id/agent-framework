@@ -1,19 +1,18 @@
 ﻿using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Models;
 using Microsoft.Extensions.Options;
 
 namespace AgentFramework.Core.Runtime
 {
     /// <inheritdoc />
-    public class DefaultAgentContextProvider : IAgentContextProvider
+    public class DefaultAgentProvider : IAgentProvider
     {
         private readonly WalletOptions _walletOptions;
-
         private readonly PoolOptions _poolOptions;
-
+        private readonly IAgent _defaultAgent;
         private readonly IWalletService _walletService;
-
         private readonly IPoolService _poolService;
 
         /// <summary>
@@ -23,20 +22,27 @@ namespace AgentFramework.Core.Runtime
         /// <param name="poolOptions">The pool options provider/</param>
         /// <param name="walletService">The wallet service.</param>
         /// <param name="poolService">The pool service.</param>
-        public DefaultAgentContextProvider(IOptions<WalletOptions> walletOptions,
+        public DefaultAgentProvider(IOptions<WalletOptions> walletOptions,
                                           IOptions<PoolOptions> poolOptions,
+                                          IAgent serviceProvider,
                                           IWalletService walletService,
                                           IPoolService poolService)
         {
             _walletOptions = walletOptions.Value;
             _poolOptions = poolOptions.Value;
-
+            _defaultAgent = serviceProvider;
             _walletService = walletService;
             _poolService = poolService;
         }
 
         /// <inheritdoc />
-        public virtual async Task<IAgentContext> GetContextAsync(string agentId = null)
+        public Task<IAgent> GetAgentAsync(string agentId = null)
+        {
+            return Task.FromResult(_defaultAgent);
+        }
+
+        /// <inheritdoc />
+        public async Task<IAgentContext> GetContextAsync(string agentId = null)
         {
             return new DefaultAgentContext
             {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace AgentFramework.AspNetCore.Middleware
+namespace AgentFramework.Core.Handlers
 {
     public class MessageResponse : IDisposable
     {

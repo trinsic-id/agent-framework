@@ -24,6 +24,7 @@ using Xunit;
 using System.Net;
 using AgentFramework.Core.Runtime;
 using AgentFramework.Core.Messages;
+using AgentFramework.Core.Handlers.Agents;
 
 namespace AgentFramework.Core.Tests
 {
@@ -174,21 +175,16 @@ namespace AgentFramework.Core.Tests
         [Fact(DisplayName = "Agent middleware executed successfully with default agent")]
         public async Task AgentMiddlewareExecutedSuccessfully()
         {
-            var serviceProvider = new ServiceCollection();
-            serviceProvider.AddAgentFramework();
+            var mockedContext = new Mock<IAgentProvider>();
+            var agentMock = new Mock<IAgent>();
 
-            var mockedContext = new Mock<IAgentContextProvider>();
-            var mockedFactory = new Mock<IAgentFactory>();
-            var agentMock = new Mock<DefaultAgent>(serviceProvider.BuildServiceProvider());
-
-            agentMock.As<IAgent>().Setup(x => x.ProcessAsync(It.IsAny<IAgentContext>(), It.IsAny<MessageContext>()))
+            mockedContext.Setup(x => x.GetAgentAsync(It.IsAny<string>()))
+                .ReturnsAsync(agentMock.Object);
+            agentMock.Setup(x => x.ProcessAsync(It.IsAny<IAgentContext>(), It.IsAny<MessageContext>()))
                 .ReturnsAsync(new MessageResponse());
 
-            mockedFactory.Setup(x => x.Create<DefaultAgent>(It.IsAny<object>()))
-                .Returns(agentMock.Object);
-
             // Arrange
-            var middleware = new AgentMiddleware(mockedFactory.Object, mockedContext.Object);
+            var middleware = new AgentMiddleware(mockedContext.Object);
 
             var context = new DefaultHttpContext();
             context.Request.Body = new MemoryStream();
@@ -211,12 +207,11 @@ namespace AgentFramework.Core.Tests
         [Fact(DisplayName = "Agent middleware calls next gelegate if invalid http method")]
         public async Task AgentMiddlewareCallsNextDelegateOnInvalidHttpMethod()
         {
-            var mockedContext = new Mock<IAgentContextProvider>();
-            var mockedFactory = new Mock<IAgentFactory>();
+            var mockedContext = new Mock<IAgentProvider>();
             var nextInvoked = false;
 
             // Arrange
-            var middleware = new AgentMiddleware(mockedFactory.Object, mockedContext.Object);
+            var middleware = new AgentMiddleware(mockedContext.Object);
 
             var context = new DefaultHttpContext();
             context.Request.Body = new MemoryStream();
