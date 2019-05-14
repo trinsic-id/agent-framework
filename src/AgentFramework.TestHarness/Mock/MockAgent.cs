@@ -22,7 +22,7 @@ namespace AgentFramework.TestHarness.Mock
 
         public T GetService<T>() => ServiceProvider.GetRequiredService<T>();
 
-        public Task<byte[]> HandleInboundAsync(MessageContext messageContext) => ProcessAsync(Context, messageContext);
+        public Task<MessageResponse> HandleInboundAsync(MessageContext messageContext) => ProcessAsync(Context, messageContext);
 
         public async Task Dispose() => await Context.Wallet.CloseAsync();
 

@@ -6,6 +6,7 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Decorators.Transport;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Utils;
@@ -17,7 +18,7 @@ namespace AgentFramework.Core.Handlers
     /// <summary>
     /// Base agent implementation
     /// </summary>
-    public abstract class AgentBase
+    public abstract class AgentBase : IAgent
     {
         protected readonly IList<IMessageHandler> _handlers;
 
@@ -36,6 +37,12 @@ namespace AgentFramework.Core.Handlers
         /// <summary>Gets the logger.</summary>
         /// <value>The logger.</value>
         protected ILogger<AgentBase> Logger { get; }
+
+        /// <summary>
+        /// Gets the handlers.
+        /// </summary>
+        /// <value>The handlers.</value>
+        public IList<IMessageHandler> Handlers => _handlers;
 
         /// <summary>Initializes a new instance of the <see cref="AgentBase"/> class.</summary>
         protected AgentBase(IServiceProvider provider)
@@ -86,7 +93,7 @@ namespace AgentFramework.Core.Handlers
         /// <exception cref="Exception">Expected inner message to be of type 'ForwardMessage'</exception>
         /// <exception cref="AgentFrameworkException">Couldn't locate a message handler for type {messageType}</exception>
         /// TODO should recieve a message context and return a message context.
-        public async Task<byte[]> ProcessAsync(IAgentContext context, MessageContext messageContext)
+        public async Task<MessageResponse> ProcessAsync(IAgentContext context, MessageContext messageContext)
         {
             EnsureConfigured();
 
@@ -101,7 +108,10 @@ namespace AgentFramework.Core.Handlers
                 outgoingMessageContext = await ProcessMessage(agentContext, message);
             }
 
-            return outgoingMessageContext?.Payload;
+            var response = new MessageResponse();
+            response.Write(outgoingMessageContext?.Payload);
+
+            return response;
         }
 
         private async Task<MessageContext> ProcessMessage(IAgentContext agentContext, MessageContext inboundMessageContext)

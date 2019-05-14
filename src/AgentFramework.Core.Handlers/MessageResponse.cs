@@ -29,6 +29,12 @@ namespace AgentFramework.Core.Handlers
             _writer.Write(data);
         }
 
+        /// <summary>
+        /// Writes the stream contents to a byte array, regardless of the Position property.
+        /// </summary>
+        /// <returns>The data.</returns>
+        public byte[] GetData() => (Stream as MemoryStream).ToArray();
+
         #region IDisposable Support
         private bool disposedValue;
 
