@@ -4,6 +4,7 @@ using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Wallets;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace AgentFramework.AspNetCore
@@ -60,7 +61,7 @@ namespace AgentFramework.AspNetCore
             });
 
             builder.Services.AddSingleton<IAgent, TAgent>();
-            builder.Services.AddSingleton(s => new AgentHostedService(
+            builder.Services.AddSingleton<IHostedService>(s => new AgentHostedService(
                 s.GetRequiredService<IProvisioningService>(),
                 configuration,
                 s.GetRequiredService<IPoolService>(),
