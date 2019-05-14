@@ -5,8 +5,6 @@ using AgentFramework.Core.Handlers;
 using System.Threading.Tasks;
 using AgentFramework.Core.Decorators.Threading;
 using AgentFramework.Core.Messages;
-using AgentFramework.Core.Extensions;
-using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Models.Events;
 
 namespace WebAgent.Messages
@@ -44,17 +42,17 @@ namespace WebAgent.Messages
         /// <summary>
         /// Processes the agent message
         /// </summary>
-        /// <param name="agentContext"></param>
-        /// <param name="messagePayload">The agent message agentContext.</param>
-        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessagePayload messagePayload)
+        /// <param name="agentContext">The agent context.</param>
+        /// <param name="messageContext">The agent message context.</param>
+        public async Task<AgentMessage> ProcessAsync(IAgentContext agentContext, MessageContext messageContext)
         {
             await Task.Yield();
 
-            switch (messagePayload.GetMessageType())
+            switch (messageContext.GetMessageType())
             {
                 case CustomMessageTypes.TrustPingMessageType:
                     {
-                        var pingMessage = messagePayload.GetMessage<TrustPingMessage>();
+                        var pingMessage = messageContext.GetMessage<TrustPingMessage>();
 
                         if (pingMessage.ResponseRequested)
                         {

@@ -19,6 +19,7 @@ services:
     environment:
       - ASPNETCORE_URLS=http://10.0.0.11:7000
       - ASPNETCORE_ENVIRONMENT=Development
+      - ENDPOINT_HOST=$HOST1
     ports:
       - "7000:7000"
     depends_on:
@@ -36,6 +37,7 @@ services:
     environment:
       - ASPNETCORE_URLS=http://10.0.0.12:8000
       - ASPNETCORE_ENVIRONMENT=Development
+      - ENDPOINT_HOST=$HOST2
     ports:
       - "8000:8000"
     depends_on:
