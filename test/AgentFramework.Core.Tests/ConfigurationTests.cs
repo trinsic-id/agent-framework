@@ -114,7 +114,7 @@ namespace AgentFramework.Core.Tests
             var hostBuilder = new HostBuilder()
                 .ConfigureServices(services =>
                 {
-                    services.AddAgentFramework();
+                    services.AddAgentFramework(b => b.AddBasicAgent(c => { }));
                     services.AddSingleton(provisioningMock.Object);
                 })
                 .Build();
@@ -123,7 +123,7 @@ namespace AgentFramework.Core.Tests
             await hostBuilder.StartAsync();
 
             // Wait for semaphore
-            await slim.WaitAsync();
+            await slim.WaitAsync(TimeSpan.FromSeconds(30));
             await hostBuilder.StopAsync();
 
             // Assert
@@ -150,6 +150,7 @@ namespace AgentFramework.Core.Tests
 
             // Start the host
             await hostBuilder.StartAsync();
+            await hostBuilder.StopAsync();
 
             var walletService = hostBuilder.Services.GetService<IWalletService>();
             var wallet = await walletService.GetWalletAsync(walletConfiguration, walletCredentials);
@@ -174,10 +175,10 @@ namespace AgentFramework.Core.Tests
             var mockedContext = new Mock<IAgentProvider>();
             var agentMock = new Mock<IAgent>();
 
-            mockedContext.Setup(x => x.GetAgentAsync(It.IsAny<string>()))
+            mockedContext.Setup(x => x.GetAgentAsync())
                 .ReturnsAsync(agentMock.Object);
             agentMock.Setup(x => x.ProcessAsync(It.IsAny<IAgentContext>(), It.IsAny<MessageContext>()))
-                .ReturnsAsync(new MessageResponse());
+                .Returns(Task.FromResult<MessageResponse>(null));
 
             // Arrange
             var middleware = new AgentMiddleware(mockedContext.Object);
