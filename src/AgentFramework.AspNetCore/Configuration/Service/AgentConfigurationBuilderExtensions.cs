@@ -3,6 +3,7 @@ using AgentFramework.AspNetCore.Runtime;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Runtime.Transport;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -33,6 +34,8 @@ namespace AgentFramework.AspNetCore.Configuration.Service
             builder.Services.TryAddSingleton<ITailsService, DefaultTailsService>();
             builder.Services.TryAddSingleton<IWalletRecordService, DefaultWalletRecordService>();
             builder.Services.TryAddSingleton<IWalletService, DefaultWalletService>();
+
+            builder.Services.TryAddSingleton<IMessageDispatcher, HttpMessageDispatcher>();
 
             return builder;
         }

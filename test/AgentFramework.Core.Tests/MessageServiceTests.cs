@@ -16,6 +16,7 @@ using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Runtime.Transport;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.WalletApi;
@@ -68,8 +69,10 @@ namespace AgentFramework.Core.Tests
             mockConnectionService.Setup(_ => _.ListAsync(It.IsAny<IAgentContext>(), It.IsAny<ISearchQuery>(), It.IsAny<int>()))
                 .Returns(Task.FromResult(new List<ConnectionRecord> {new ConnectionRecord()}));
 
+            var httpMessageDispatcher = new HttpMessageDispatcher(handlerMock.Object);
+
             _messagingService =
-                new DefaultMessageService(new Mock<ILogger<DefaultMessageService>>().Object, handlerMock.Object);
+                new DefaultMessageService(new Mock<ILogger<DefaultMessageService>>().Object, new[] { httpMessageDispatcher });
         }
 
         public async Task InitializeAsync()
