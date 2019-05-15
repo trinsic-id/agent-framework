@@ -46,14 +46,14 @@ namespace AgentFramework.Core.Handlers.Agents
         /// <inheritdoc />
         public async Task<IAgentContext> GetContextAsync(params object[] args)
         {
-            var agent = await GetAgentAsync();
+            var agent = await GetAgentAsync(args);
             return new DefaultAgentContext
             {
                 Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
                     _walletOptions.WalletCredentials),
                 Pool = new PoolAwaitable(() => _poolService.GetPoolAsync(
                     _poolOptions.PoolName, _poolOptions.ProtocolVersion)),
-                SupportedMessages = agent.Handlers.SelectMany(x => x.SupportedMessageTypes).ToList()
+                SupportedMessages = agent.GetSupportedMessageTypes()
             };
         }
     }

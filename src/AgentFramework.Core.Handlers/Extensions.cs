@@ -1,4 +1,7 @@
-﻿using AgentFramework.Core.Contracts;
+﻿using System.Collections.Generic;
+using System.Linq;
+using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Models;
@@ -37,5 +40,8 @@ namespace AgentFramework.Core.Handlers
                 State = context.State
             };
         }
+
+        public static IList<MessageType> GetSupportedMessageTypes(this IAgent agent) => 
+            agent.Handlers.SelectMany(x => x.SupportedMessageTypes).ToList();
     }
 }
