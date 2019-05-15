@@ -151,7 +151,7 @@ namespace AgentFramework.Core.Runtime
 
             var wireMsg = await PrepareAsync(wallet, message, recipientKey, routingKeys, senderKey);
 
-            return await dispatcher.SendAsync(uri, new MessageContext(wireMsg, true));
+            return await dispatcher.DispatchAsync(uri, new MessageContext(wireMsg, true));
         }
 
         private IMessageDispatcher GetDispatcher(string scheme) => MessageDispatchers.FirstOrDefault(_ => _.TransportSchemes.Contains(scheme));

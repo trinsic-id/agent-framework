@@ -23,9 +23,11 @@ namespace AgentFramework.Core.Runtime.Transport
             HttpClient = new HttpClient(httpMessageHandler);
         }
 
+        /// <inheritdoc />
         public string[] TransportSchemes => new[] { "http", "https" };
-
-        public async Task<MessageContext> SendAsync(Uri endpointUri, MessageContext message)
+        
+        /// <inheritdoc />
+        public async Task<MessageContext> DispatchAsync(Uri endpointUri, MessageContext message)
         {
             var request = new HttpRequestMessage
             {
