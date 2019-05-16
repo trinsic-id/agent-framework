@@ -5,6 +5,7 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Models;
+using AgentFramework.Core.Runtime.Transport;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -55,6 +56,7 @@ namespace AgentFramework.AspNetCore
             builder.TryAddSingleton<IDiscoveryService, DefaultDiscoveryService>();
             builder.TryAddSingleton<IProvisioningService, DefaultProvisioningService>();
             builder.TryAddSingleton<IMessageService, DefaultMessageService>();
+            builder.TryAddSingleton<IMessageDispatcher, HttpMessageDispatcher>();
             builder.TryAddSingleton<HttpMessageHandler, HttpClientHandler>();
             builder.TryAddSingleton<ISchemaService, DefaultSchemaService>();
             builder.TryAddSingleton<ITailsService, DefaultTailsService>();
