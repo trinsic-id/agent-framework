@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace AgentFramework.Core.Runtime.Transport
 {
+    /// <summary>
+    /// Http message dispatcher.
+    /// </summary>
     public class HttpMessageDispatcher : IMessageDispatcher
     {
         /// <summary>The HTTP client</summary>

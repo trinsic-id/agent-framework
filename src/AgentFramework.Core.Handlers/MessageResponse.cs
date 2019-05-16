@@ -3,6 +3,9 @@ using System.IO;
 
 namespace AgentFramework.Core.Handlers
 {
+    /// <summary>
+    /// Message response.
+    /// </summary>
     public class MessageResponse : IDisposable
     {
         private readonly BinaryWriter _writer;
@@ -13,6 +16,9 @@ namespace AgentFramework.Core.Handlers
         /// <value>The stream.</value>
         public Stream Stream { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:AgentFramework.Core.Handlers.MessageResponse"/> class.
+        /// </summary>
         public MessageResponse()
         {
             Stream = new MemoryStream();
@@ -40,6 +46,7 @@ namespace AgentFramework.Core.Handlers
         #region IDisposable Support
         private bool disposedValue;
 
+        /// <inheritdoc />
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
@@ -52,6 +59,8 @@ namespace AgentFramework.Core.Handlers
                 disposedValue = true;
             }
         }
+
+        /// <inheritdoc />
         public void Dispose()
         {
             Dispose(true);

@@ -19,11 +19,13 @@ namespace AgentFramework.Core.Tests
             await _walletService.DeleteWalletAsync(_config, _creds);
         }
 
-        public async Task InitializeAsync()
+        public Task InitializeAsync()
         {
             _walletService = new DefaultWalletService();
             _provisioningService = new DefaultProvisioningService(
                 new DefaultWalletRecordService(), _walletService);
+
+            return Task.CompletedTask;
         }
 
         [Fact]

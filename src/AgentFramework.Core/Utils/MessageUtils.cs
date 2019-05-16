@@ -14,7 +14,10 @@ namespace AgentFramework.Core.Utils
     {
         private const string MessageTypeRegex = @"^(did:[a-z]+:[a-zA-z\d]+;spec)\/([a-z\S]+)\/([0-9].[0-9])\/([a-z\S]+)";
 
-        public static string[] ValidQueryParameters = new string[] { "m", "c_i" };
+        /// <summary>
+        /// The valid query parameters.
+        /// </summary>
+        public static string[] ValidQueryParameters = { "m", "c_i" };
 
         /// <summary>
         /// Encodes a message to a valid URL based format.

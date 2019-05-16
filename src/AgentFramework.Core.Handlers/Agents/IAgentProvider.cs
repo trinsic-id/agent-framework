@@ -11,15 +11,15 @@ namespace AgentFramework.Core.Handlers.Agents
         /// <summary>
         /// Retrieves an agent context.
         /// </summary>
-        /// <param name="agentId">Identifier of the agent to resolve.</param>
+        /// <param name="args">Arguments</param>
         /// <returns>The agent context async.</returns>
         Task<IAgentContext> GetContextAsync(params object[] args);
 
         /// <summary>
-        /// Returns an instance of <see cref="IAgent" />
+        /// Retrieves an agent instance.
         /// </summary>
-        /// <returns>The agent instance.</returns>
-        /// <param name="agentId">Agent identifier.</param>
+        /// <returns>The agent async.</returns>
+        /// <param name="args">Arguments.</param>
         Task<IAgent> GetAgentAsync(params object[] args);
     }
 }

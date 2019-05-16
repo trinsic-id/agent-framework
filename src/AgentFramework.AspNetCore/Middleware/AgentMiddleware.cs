@@ -22,7 +22,6 @@ namespace AgentFramework.AspNetCore.Middleware
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AgentFramework.AspNetCore.Middleware.AgentMiddleware"/> class.
         /// </summary>
-        /// <param name="agentFactory">Agent factory.</param>
         /// <param name="contextProvider">Context provider.</param>
         public AgentMiddleware(IAgentProvider contextProvider)
         {

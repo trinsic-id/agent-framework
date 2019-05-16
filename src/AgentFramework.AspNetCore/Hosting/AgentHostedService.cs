@@ -28,13 +28,13 @@ namespace AgentFramework.AspNetCore
         /// <param name="poolService">Pool service.</param>
         /// <param name="poolOptions">Pool options.</param>
         public AgentHostedService(
-            IProvisioningService provisioningService,
             ProvisioningConfiguration provisioningConfiguration,
+            IProvisioningService provisioningService,
             IPoolService poolService,
             IOptions<PoolOptions> poolOptions)
         {
-            _provisioningService = provisioningService;
             ProvisioningConfiguration = provisioningConfiguration;
+            _provisioningService = provisioningService;
             _poolService = poolService;
             _poolOptions = poolOptions.Value;
         }

@@ -41,6 +41,11 @@ namespace AgentFramework.Core.Handlers
             };
         }
 
+        /// <summary>
+        /// Gets the supported message types.
+        /// </summary>
+        /// <returns>The supported message types.</returns>
+        /// <param name="agent">Agent.</param>
         public static IList<MessageType> GetSupportedMessageTypes(this IAgent agent) => 
             agent.Handlers.SelectMany(x => x.SupportedMessageTypes).ToList();
     }
