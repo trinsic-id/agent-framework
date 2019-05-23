@@ -20,19 +20,19 @@ namespace AgentFramework.Core.Handlers.Agents
         /// </summary>
         /// <param name="walletOptions">Wallet options.</param>
         /// <param name="poolOptions">Pool options.</param>
-        /// <param name="serviceProvider">Service provider.</param>
+        /// <param name="defaultAgent">Default agent.</param>
         /// <param name="walletService">Wallet service.</param>
         /// <param name="poolService">Pool service.</param>
         public DefaultAgentProvider(
             IOptions<WalletOptions> walletOptions,
             IOptions<PoolOptions> poolOptions,
-            IAgent serviceProvider,
+            IAgent defaultAgent,
             IWalletService walletService,
             IPoolService poolService)
         {
             _walletOptions = walletOptions.Value;
             _poolOptions = poolOptions.Value;
-            _defaultAgent = serviceProvider;
+            _defaultAgent = defaultAgent;
             _walletService = walletService;
             _poolService = poolService;
         }
