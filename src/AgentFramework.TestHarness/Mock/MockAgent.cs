@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.TestHarness.Mock
 {
-    public class MockAgent : AgentMessageProcessorBase
+    public class MockAgent : AgentBase
     {
         public MockAgent(string name, IServiceProvider provider) : base(provider)
         {
@@ -22,7 +22,7 @@ namespace AgentFramework.TestHarness.Mock
 
         public T GetService<T>() => ServiceProvider.GetRequiredService<T>();
 
-        public Task<byte[]> HandleInboundAsync(MessageContext messageContext) => ProcessAsync(Context, messageContext);
+        public Task<MessageResponse> HandleInboundAsync(MessageContext messageContext) => ProcessAsync(Context, messageContext);
 
         public async Task Dispose() => await Context.Wallet.CloseAsync();
 

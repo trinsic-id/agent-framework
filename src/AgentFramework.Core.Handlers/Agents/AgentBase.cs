@@ -6,6 +6,7 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Decorators.Transport;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Utils;
@@ -17,10 +18,8 @@ namespace AgentFramework.Core.Handlers
     /// <summary>
     /// Base agent implementation
     /// </summary>
-    public abstract class AgentMessageProcessorBase
+    public abstract class AgentBase : IAgent
     {
-        private readonly IList<IMessageHandler> _handlers;
-
         /// <summary>Gets the provider.</summary>
         /// <value>The provider.</value>
         protected IServiceProvider Provider { get; }
@@ -35,47 +34,53 @@ namespace AgentFramework.Core.Handlers
 
         /// <summary>Gets the logger.</summary>
         /// <value>The logger.</value>
-        protected ILogger<AgentMessageProcessorBase> Logger { get; }
+        protected ILogger<AgentBase> Logger { get; }
 
-        /// <summary>Initializes a new instance of the <see cref="AgentMessageProcessorBase"/> class.</summary>
-        protected AgentMessageProcessorBase(IServiceProvider provider)
+        /// <summary>
+        /// Gets the handlers.
+        /// </summary>
+        /// <value>The handlers.</value>
+        public IList<IMessageHandler> Handlers { get; }
+
+        /// <summary>Initializes a new instance of the <see cref="AgentBase"/> class.</summary>
+        protected AgentBase(IServiceProvider provider)
         {
             Provider = provider;
             ConnectionService = provider.GetRequiredService<IConnectionService>();
             MessageService = provider.GetRequiredService<IMessageService>();
-            Logger = provider.GetRequiredService<ILogger<AgentMessageProcessorBase>>();
-            _handlers = new List<IMessageHandler>();
+            Logger = provider.GetRequiredService<ILogger<AgentBase>>();
+            Handlers = new List<IMessageHandler>();
         }
 
         /// <summary>Adds a handler for supporting default connection flow.</summary>
-        protected void AddConnectionHandler() => _handlers.Add(Provider.GetRequiredService<DefaultConnectionHandler>());
+        protected void AddConnectionHandler() => Handlers.Add(Provider.GetRequiredService<DefaultConnectionHandler>());
 
         /// <summary>Adds a handler for supporting default credential flow.</summary>
-        protected void AddCredentialHandler() => _handlers.Add(Provider.GetRequiredService<DefaultCredentialHandler>());
+        protected void AddCredentialHandler() => Handlers.Add(Provider.GetRequiredService<DefaultCredentialHandler>());
 
         /// <summary>Adds the handler for supporting default proof flow.</summary>
-        protected void AddTrustPingHandler() => _handlers.Add(Provider.GetRequiredService<DefaultTrustPingMessageHandler>());
+        protected void AddTrustPingHandler() => Handlers.Add(Provider.GetRequiredService<DefaultTrustPingMessageHandler>());
 
         /// <summary>Adds the handler for supporting default proof flow.</summary>
-        protected void AddProofHandler() => _handlers.Add(Provider.GetRequiredService<DefaultProofHandler>());
+        protected void AddProofHandler() => Handlers.Add(Provider.GetRequiredService<DefaultProofHandler>());
 
         /// <summary>Adds a default forwarding handler.</summary>
-        protected void AddForwardHandler() => _handlers.Add(Provider.GetRequiredService<DefaultForwardHandler>());
+        protected void AddForwardHandler() => Handlers.Add(Provider.GetRequiredService<DefaultForwardHandler>());
 
         /// <summary>Adds a default forwarding handler.</summary>
-        protected void AddEphemeralChallengeHandler() => _handlers.Add(Provider.GetRequiredService<DefaultEphemeralChallengeHandler>());
+        protected void AddEphemeralChallengeHandler() => Handlers.Add(Provider.GetRequiredService<DefaultEphemeralChallengeHandler>());
 
         /// <summary>Adds a default forwarding handler.</summary>
-        protected void AddDiscoveryHandler() => _handlers.Add(Provider.GetRequiredService<DefaultDiscoveryHandler>());
+        protected void AddDiscoveryHandler() => Handlers.Add(Provider.GetRequiredService<DefaultDiscoveryHandler>());
 
         /// <summary>Adds a custom the handler using dependency injection.</summary>
         /// <typeparam name="T"></typeparam>
-        protected void AddHandler<T>() where T : IMessageHandler => _handlers.Add(Provider.GetRequiredService<T>());
+        protected void AddHandler<T>() where T : IMessageHandler => Handlers.Add(Provider.GetRequiredService<T>());
 
         /// <summary>Adds an instance of a custom handler.</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="instance">The instance.</param>
-        protected void AddHandler<T>(T instance) where T : IMessageHandler => _handlers.Add(instance);
+        protected void AddHandler<T>(T instance) where T : IMessageHandler => Handlers.Add(instance);
 
         /// <summary>
         /// Invoke the handler pipeline and process the passed message.
@@ -86,13 +91,11 @@ namespace AgentFramework.Core.Handlers
         /// <exception cref="Exception">Expected inner message to be of type 'ForwardMessage'</exception>
         /// <exception cref="AgentFrameworkException">Couldn't locate a message handler for type {messageType}</exception>
         /// TODO should recieve a message context and return a message context.
-        protected async Task<byte[]> ProcessAsync(IAgentContext context, MessageContext messageContext)
+        public async Task<MessageResponse> ProcessAsync(IAgentContext context, MessageContext messageContext)
         {
             EnsureConfigured();
 
-            context.SupportedMessages = GetSupportedMessageTypes();
-
-            var agentContext = context.ToHandlerAgentContext();
+            var agentContext = context.AsAgentContext();
             agentContext.AddNext(messageContext);
 
             MessageContext outgoingMessageContext = null;
@@ -101,7 +104,10 @@ namespace AgentFramework.Core.Handlers
                 outgoingMessageContext = await ProcessMessage(agentContext, message);
             }
 
-            return outgoingMessageContext?.Payload;
+            var response = new MessageResponse();
+            response.Write(outgoingMessageContext?.Payload);
+
+            return response;
         }
 
         private async Task<MessageContext> ProcessMessage(IAgentContext agentContext, MessageContext inboundMessageContext)
@@ -112,9 +118,9 @@ namespace AgentFramework.Core.Handlers
                 Logger.LogInformation($"Agent Message Received : {inboundMessageContext.ToJson()}");
             }
 
-            if (_handlers.Where(handler => handler != null).FirstOrDefault(
+            if (Handlers.Where(handler => handler != null).FirstOrDefault(
                     handler => handler.SupportedMessageTypes.Any(
-                        type => type.Equals(inboundMessageContext.GetMessageType(), StringComparison.OrdinalIgnoreCase))) is
+                        type => type == inboundMessageContext.GetMessageType())) is
                 IMessageHandler messageHandler)
             {
                 Logger.LogDebug("Processing message type {MessageType}, {MessageData}", 
@@ -177,19 +183,13 @@ namespace AgentFramework.Core.Handlers
             return message;
         }
 
-        private IList<MessageType> GetSupportedMessageTypes() => _handlers.SelectMany(_ => _.SupportedMessageTypes, (parent, child) => new MessageType(child)).ToList();
-
         private void EnsureConfigured()
         {
-            if (_handlers == null || !_handlers.Any())
+            if (Handlers == null || !Handlers.Any())
                 ConfigureHandlers();
         }
 
         /// <summary>Configures the handlers.</summary>
-        protected virtual void ConfigureHandlers()
-        {
-            AddConnectionHandler();
-            AddForwardHandler();
-        }
+        protected abstract void ConfigureHandlers();
     }
 }

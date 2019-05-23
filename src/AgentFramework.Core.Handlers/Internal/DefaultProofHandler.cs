@@ -22,10 +22,10 @@ namespace AgentFramework.Core.Handlers.Internal
         /// <value>
         /// The supported message types.
         /// </value>
-        public IEnumerable<string> SupportedMessageTypes => new[]
+        public IEnumerable<MessageType> SupportedMessageTypes => new[]
         {
-            MessageTypes.ProofRequest,
-            MessageTypes.DisclosedProof
+            new MessageType(MessageTypes.ProofRequest),
+            new MessageType(MessageTypes.DisclosedProof)
         };
 
         /// <summary>

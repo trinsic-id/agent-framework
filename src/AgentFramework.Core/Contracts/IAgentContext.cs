@@ -23,7 +23,9 @@ namespace AgentFramework.Core.Contracts
         /// <value>The state.</value>
         Dictionary<string, string> State { get; set; }
 
-        /// <summary>Gets or sets the supported messages of the current agent.</summary>
+        /// <summary>
+        /// Gets or sets the supported messages of the current agent.
+        /// </summary>
         IList<MessageType> SupportedMessages { get; set; }
     }
 }

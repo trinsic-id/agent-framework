@@ -42,10 +42,10 @@ namespace AgentFramework.Core.Handlers.Internal
         /// <value>
         /// The supported message types.
         /// </value>
-        public IEnumerable<string> SupportedMessageTypes => new[]
+        public IEnumerable<MessageType> SupportedMessageTypes => new[]
         {
-            MessageTypes.TrustPingMessageType,
-            MessageTypes.TrustPingResponseMessageType
+            new MessageType(MessageTypes.TrustPingMessageType),
+            new MessageType(MessageTypes.TrustPingResponseMessageType)
         };
 
         /// <summary>

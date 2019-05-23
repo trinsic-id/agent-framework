@@ -1,5 +1,5 @@
 ﻿using AgentFramework.Core.Models.Wallets;
-using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Handlers.Agents;
 using System;
 using System.Threading.Tasks;
 using Xunit;
@@ -19,17 +19,19 @@ namespace AgentFramework.Core.Tests
             await _walletService.DeleteWalletAsync(_config, _creds);
         }
 
-        public async Task InitializeAsync()
+        public Task InitializeAsync()
         {
             _walletService = new DefaultWalletService();
             _provisioningService = new DefaultProvisioningService(
                 new DefaultWalletRecordService(), _walletService);
+
+            return Task.CompletedTask;
         }
 
         [Fact]
         public async Task ProvisionNewWalletWithEndpoint()
         {
-            await _provisioningService.ProvisionAgentAsync(new ProvisioningConfiguration
+            await _provisioningService.ProvisionAgentAsync(new BasicProvisioningConfiguration
             {
                 WalletConfiguration = _config,
                 WalletCredentials = _creds,
@@ -54,7 +56,7 @@ namespace AgentFramework.Core.Tests
             var provisioningService = new DefaultProvisioningService(
                 new DefaultWalletRecordService(), walletService);
 
-            await provisioningService.ProvisionAgentAsync(new ProvisioningConfiguration
+            await provisioningService.ProvisionAgentAsync(new BasicProvisioningConfiguration
             {
                 WalletConfiguration = _config,
                 WalletCredentials = _creds
@@ -76,7 +78,7 @@ namespace AgentFramework.Core.Tests
             var provisioningService = new DefaultProvisioningService(
                 new DefaultWalletRecordService(), walletService);
 
-            await provisioningService.ProvisionAgentAsync(new ProvisioningConfiguration
+            await provisioningService.ProvisionAgentAsync(new BasicProvisioningConfiguration
             {
                 WalletConfiguration = _config,
                 WalletCredentials = _creds

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using AgentFramework.AspNetCore.Configuration.Service;
+using AgentFramework.AspNetCore;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Models;
@@ -31,7 +31,7 @@ namespace AgentFramework.TestHarness.Mock
             var provider = services.BuildServiceProvider();
 
             await provider.GetService<IProvisioningService>()
-                .ProvisionAgentAsync(new ProvisioningConfiguration { WalletConfiguration = configuration, WalletCredentials = credentials, EndpointUri = new Uri($"http://{agentName}"), IssuerSeed = issuerSeed, CreateIssuer = issuerSeed != null });
+                .ProvisionAgentAsync(new IssuerProvisioningConfiguration { WalletConfiguration = configuration, WalletCredentials = credentials, EndpointUri = new Uri($"http://{agentName}"), IssuerSeed = issuerSeed });
 
             return new MockAgent(agentName, provider)
             {

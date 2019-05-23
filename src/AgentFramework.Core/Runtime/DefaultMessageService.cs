@@ -15,7 +15,7 @@ using AgentFramework.Core.Decorators.Transport;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AgentFramework.Core.Runtime
+namespace AgentFramework.Core.Handlers.Agents
 {
     /// <inheritdoc />
     public class DefaultMessageService : IMessageService

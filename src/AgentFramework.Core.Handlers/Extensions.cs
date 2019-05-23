@@ -1,4 +1,7 @@
-﻿using AgentFramework.Core.Contracts;
+﻿using System.Collections.Generic;
+using System.Linq;
+using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Models;
@@ -27,7 +30,7 @@ namespace AgentFramework.Core.Handlers
             collection.AddTransient<DefaultDiscoveryHandler>();
         }
 
-        internal static AgentContext ToHandlerAgentContext(this IAgentContext context)
+        internal static AgentContext AsAgentContext(this IAgentContext context)
         {
             return new AgentContext
             {
@@ -37,5 +40,13 @@ namespace AgentFramework.Core.Handlers
                 State = context.State
             };
         }
+
+        /// <summary>
+        /// Gets the supported message types.
+        /// </summary>
+        /// <returns>The supported message types.</returns>
+        /// <param name="agent">Agent.</param>
+        public static IList<MessageType> GetSupportedMessageTypes(this IAgent agent) => 
+            agent.Handlers.SelectMany(x => x.SupportedMessageTypes).ToList();
     }
 }

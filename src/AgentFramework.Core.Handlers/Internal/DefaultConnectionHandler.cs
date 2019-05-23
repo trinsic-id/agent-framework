@@ -31,11 +31,11 @@ namespace AgentFramework.Core.Handlers.Internal
         /// <value>
         /// The supported message types.
         /// </value>
-        public IEnumerable<string> SupportedMessageTypes => new[]
+        public IEnumerable<MessageType> SupportedMessageTypes => new[]
         {
-            MessageTypes.ConnectionInvitation,
-            MessageTypes.ConnectionRequest,
-            MessageTypes.ConnectionResponse
+            new MessageType(MessageTypes.ConnectionInvitation),
+            new MessageType(MessageTypes.ConnectionRequest),
+            new MessageType(MessageTypes.ConnectionResponse)
         };
 
         /// <summary>

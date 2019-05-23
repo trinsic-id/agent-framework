@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Messages;
-using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Handlers.Agents;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,32 +15,26 @@ namespace AgentFramework.AspNetCore.Middleware
     /// <summary>
     /// An agent middleware
     /// </summary>
-    public class AgentMiddleware : AgentMessageProcessorBase
+    public class AgentMiddleware : IMiddleware
     {
-        private readonly RequestDelegate _next;
-        private readonly IAgentContextProvider _contextProvider;
+        private readonly IAgentProvider _contextProvider;
 
-        /// <summary>Initializes a new instance of the <see cref="AgentMiddleware"/> class.</summary>
-        /// <param name="next">The next.</param>
-        /// <param name="serviceProvider">The service provider.</param>
-        public AgentMiddleware(
-            RequestDelegate next,
-            IServiceProvider serviceProvider)
-            : base(serviceProvider)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:AgentFramework.AspNetCore.Middleware.AgentMiddleware"/> class.
+        /// </summary>
+        /// <param name="contextProvider">Context provider.</param>
+        public AgentMiddleware(IAgentProvider contextProvider)
         {
-            _next = next;
-            _contextProvider = serviceProvider.GetRequiredService<IAgentContextProvider>();
+            _contextProvider = contextProvider;
         }
 
-        /// <summary>Called by the ASPNET Core runtime</summary>
-        /// <param name="context">The context.</param>
-        /// <returns></returns>
-        /// <exception cref="Exception">Empty content length</exception>
-        public async Task InvokeAsync(HttpContext context)
+        /// <inheritdoc />
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            if (!context.Request.Method.Equals("POST", StringComparison.OrdinalIgnoreCase))
+            if (!HttpMethods.IsPost(context.Request.Method)
+                || !context.Request.ContentType.Equals(DefaultMessageService.AgentWireMessageMimeType))
             {
-                await _next(context);
+                await next(context);
                 return;
             }
 
@@ -49,16 +44,17 @@ namespace AgentFramework.AspNetCore.Middleware
             {
                 var body = await stream.ReadToEndAsync();
 
-                var result = await ProcessAsync(
+                var agent = await _contextProvider.GetAgentAsync();
+                var response = await agent.ProcessAsync(
                     context: await _contextProvider.GetContextAsync(), //TODO assumes all recieved messages are packed 
                     messageContext: new MessageContext(body.GetUTF8Bytes(), true));
 
                 context.Response.StatusCode = 200;
 
-                if (result != null)
+                if (response != null)
                 {
                     context.Response.ContentType = DefaultMessageService.AgentWireMessageMimeType;
-                    await context.Response.Body.WriteAsync(result, 0, result.Length);
+                    await response.Stream.CopyToAsync(context.Response.Body);
                 }
                 else
                     await context.Response.WriteAsync(string.Empty);

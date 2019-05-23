@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
-using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.TestHarness;
 using AgentFramework.TestHarness.Utils;
 using Hyperledger.Indy.DidApi;

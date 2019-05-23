@@ -16,7 +16,7 @@ namespace AgentFramework.Core.Handlers
         /// <value>
         /// The supported message types.
         /// </value>
-        IEnumerable<string> SupportedMessageTypes { get; }
+        IEnumerable<MessageType> SupportedMessageTypes { get; }
 
         /// <summary>
         /// Processes the agent message

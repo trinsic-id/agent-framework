@@ -4,7 +4,7 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
 using Hyperledger.Indy.PoolApi;
 
-namespace AgentFramework.Core.Runtime
+namespace AgentFramework.Core.Handlers.Agents
 {
     /// <inheritdoc />
     public class DefaultPoolService : IPoolService

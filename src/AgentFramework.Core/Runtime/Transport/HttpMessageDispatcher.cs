@@ -1,5 +1,6 @@
 ﻿using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Messages;
 using System;
 using System.Net.Http;
@@ -9,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace AgentFramework.Core.Runtime.Transport
 {
+    /// <summary>
+    /// Http message dispatcher.
+    /// </summary>
     public class HttpMessageDispatcher : IMessageDispatcher
     {
         /// <summary>The HTTP client</summary>
