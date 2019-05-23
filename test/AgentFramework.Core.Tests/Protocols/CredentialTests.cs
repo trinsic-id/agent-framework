@@ -14,7 +14,7 @@ using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records;
-using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.TestHarness;
 using AgentFramework.TestHarness.Utils;
 using Hyperledger.Indy.AnonCredsApi;
@@ -157,7 +157,7 @@ namespace AgentFramework.Core.Tests.Protocols
 
             Assert.True(previewAttr.Name == "test-attr");
             Assert.True(previewAttr.MimeType == CredentialMimeTypes.TextMimeType);
-            Assert.True(previewAttr.Value == "test-attr-value");
+            Assert.True((string)previewAttr.Value == "test-attr-value");
         }
 
         [Fact]

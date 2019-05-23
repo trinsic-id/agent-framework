@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Runtime;
+using AgentFramework.Core.Handlers.Agents;
 using Hyperledger.Indy.PoolApi;
 
 namespace AgentFramework.TestHarness.Utils

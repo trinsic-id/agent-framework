@@ -1,4 +1,5 @@
-﻿using AgentFramework.Core.Runtime;
+﻿using AgentFramework.Core.Handlers;
+using AgentFramework.Core.Handlers.Agents;
 using System;
 using System.Net;
 using System.Net.Http;
@@ -9,12 +10,12 @@ namespace AgentFramework.TestHarness.Mock
 {
     public class MockAgentHttpHandler : HttpMessageHandler
     {
-        public MockAgentHttpHandler(Func<(string name, byte[] data), Task<byte[]>> callback)
+        public MockAgentHttpHandler(Func<(string name, byte[] data), Task<MessageResponse>> callback)
         {
             Callback = callback;
         }
 
-        public Func<(string, byte[]), Task<byte[]>> Callback { get; }
+        public Func<(string, byte[]), Task<MessageResponse>> Callback { get; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -28,7 +29,7 @@ namespace AgentFramework.TestHarness.Mock
 
             if (response != null)
             {
-                responseMessage.Content = new ByteArrayContent(response);
+                responseMessage.Content = new ByteArrayContent(response.GetData());
                 responseMessage.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(DefaultMessageService.AgentWireMessageMimeType);
             }
 

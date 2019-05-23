@@ -23,7 +23,7 @@ using Hyperledger.Indy.PairwiseApi;
 using Microsoft.Extensions.Logging;
 using ConnectionState = AgentFramework.Core.Models.Records.ConnectionState;
 
-namespace AgentFramework.Core.Runtime
+namespace AgentFramework.Core.Handlers.Agents
 {
     /// <inheritdoc />
     public class DefaultConnectionService : IConnectionService

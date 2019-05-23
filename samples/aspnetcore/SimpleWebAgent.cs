@@ -1,17 +1,18 @@
 ﻿using System;
-using AgentFramework.AspNetCore.Middleware;
-using Microsoft.AspNetCore.Http;
+using AgentFramework.Core.Handlers;
 using WebAgent.Messages;
 using WebAgent.Protocols.BasicMessage;
 
 namespace WebAgent
 {
-    public class WebAgentMiddleware : AgentMiddleware
+    public class SimpleWebAgent : AgentBase
     {
-        public WebAgentMiddleware(
-            RequestDelegate next,
-            IServiceProvider serviceProvider)
-            : base(next, serviceProvider)
+        public SimpleWebAgent(IServiceProvider serviceProvider)
+            : base(serviceProvider)
+        {
+        }
+
+        protected override void ConfigureHandlers()
         {
             AddConnectionHandler();
             AddForwardHandler();

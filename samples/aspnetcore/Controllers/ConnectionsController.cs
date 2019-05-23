@@ -8,6 +8,7 @@ using System.Web;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Handlers;
+using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
@@ -30,7 +31,7 @@ namespace WebAgent.Controllers
         private readonly IWalletService _walletService;
         private readonly IWalletRecordService _recordService;
         private readonly IProvisioningService _provisioningService;
-        private readonly IAgentContextProvider _agentContextProvider;
+        private readonly IAgentProvider _agentContextProvider;
         private readonly IMessageService _messageService;
         private readonly WalletOptions _walletOptions;
 
@@ -40,7 +41,7 @@ namespace WebAgent.Controllers
             IWalletService walletService, 
             IWalletRecordService recordService,
             IProvisioningService provisioningService,
-            IAgentContextProvider agentContextProvider,
+            IAgentProvider agentContextProvider,
             IMessageService messageService,
             IOptions<WalletOptions> walletOptions)
         {

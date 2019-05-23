@@ -11,7 +11,7 @@ using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.WalletApi;
 
-namespace AgentFramework.Core.Runtime
+namespace AgentFramework.Core.Handlers.Agents
 {
     /// <inheritdoc />
     public class DefaultProvisioningService : IProvisioningService
@@ -88,17 +88,7 @@ namespace AgentFramework.Core.Runtime
                 }
             };
 
-            if (provisioningConfiguration.CreateIssuer)
-            {
-                var issuer = await Did.CreateAndStoreMyDidAsync(wallet,
-                    provisioningConfiguration.IssuerSeed != null
-                        ? new {seed = provisioningConfiguration.IssuerSeed}.ToJson()
-                        : "{}");
-
-                record.IssuerDid = issuer.Did;
-                record.IssuerVerkey = issuer.VerKey;
-                record.TailsBaseUri = provisioningConfiguration.TailsBaseUri?.ToString();
-            }
+            await provisioningConfiguration.ConfigureAsync(record, new DefaultAgentContext { Wallet = wallet });
 
             await RecordService.AddAsync(wallet, record);
         }
@@ -161,17 +151,7 @@ namespace AgentFramework.Core.Runtime
                     record.Tags.Add(item.Key, item.Value);
 
             // Create issuer
-            if (configuration.CreateIssuer)
-            {
-                var issuer = await Did.CreateAndStoreMyDidAsync(wallet,
-                    configuration.IssuerSeed != null
-                        ? new { seed = configuration.IssuerSeed }.ToJson()
-                        : "{}");
-
-                record.IssuerDid = issuer.Did;
-                record.IssuerVerkey = issuer.VerKey;
-                record.TailsBaseUri = configuration.TailsBaseUri?.ToString();
-            }
+            await configuration.ConfigureAsync(record, new DefaultAgentContext { Wallet = wallet });
 
             await RecordService.AddAsync(wallet, record);
         }
