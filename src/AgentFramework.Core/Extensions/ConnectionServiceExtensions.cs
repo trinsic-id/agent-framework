@@ -83,11 +83,24 @@ namespace AgentFramework.Core.Extensions
             if (agentContext == null)
                 throw new ArgumentNullException(nameof(agentContext));
 
-            var record = (await connectionService.ListAsync(agentContext,
-                             SearchQuery.Equal(nameof(ConnectionRecord.MyVk), myKey), 5)).SingleOrDefault()
-                         ?? (await connectionService.ListAsync(agentContext,
-                             SearchQuery.Equal(TagConstants.ConnectionKey, myKey), 5)).SingleOrDefault();
-            
+            var record =
+                // Check if key is part of a connection
+                (await connectionService.ListAsync(agentContext,
+                SearchQuery.Equal(nameof(ConnectionRecord.MyVk), myKey), 5))
+                .SingleOrDefault()
+
+                // Check if key is part of a multiparty invitation
+                ?? (await connectionService.ListAsync(agentContext,
+                SearchQuery.And(
+                    SearchQuery.Equal(TagConstants.ConnectionKey, myKey),
+                    SearchQuery.Equal(nameof(ConnectionRecord.MultiPartyInvitation), "True")), 5))
+                .SingleOrDefault()
+
+                // Check if key is part of a single party invitation
+                ?? (await connectionService.ListAsync(agentContext,
+                SearchQuery.Equal(TagConstants.ConnectionKey, myKey), 5))
+                .SingleOrDefault();
+
             if (record == null)
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound, $"Connection Record not found for key {myKey}");
 
