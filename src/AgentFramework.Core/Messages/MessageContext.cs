@@ -77,6 +77,13 @@ namespace AgentFramework.Core.Messages
         public ConnectionRecord Connection { get; }
 
         /// <summary>
+        /// Gets the record associated with this message context.
+        /// May be <code>null</code>.
+        /// </summary>
+        /// <value>The context record.</value>
+        public RecordBase ContextRecord { get; set; }
+
+        /// <summary>
         /// The message id of the current message.
         /// </summary>
         public string GetMessageId() =>

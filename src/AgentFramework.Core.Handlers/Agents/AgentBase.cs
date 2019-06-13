@@ -41,6 +41,7 @@ namespace AgentFramework.Core.Handlers
         /// </summary>
         /// <value>The handlers.</value>
         public IList<IMessageHandler> Handlers { get; }
+        public IEnumerable<IAgentMiddleware> Middlewares { get; }
 
         /// <summary>Initializes a new instance of the <see cref="AgentBase"/> class.</summary>
         protected AgentBase(IServiceProvider provider)
@@ -50,6 +51,7 @@ namespace AgentFramework.Core.Handlers
             MessageService = provider.GetRequiredService<IMessageService>();
             Logger = provider.GetRequiredService<ILogger<AgentBase>>();
             Handlers = new List<IMessageHandler>();
+            Middlewares = provider.GetServices<IAgentMiddleware>();
         }
 
         /// <summary>Adds a handler for supporting default connection flow.</summary>
@@ -127,7 +129,14 @@ namespace AgentFramework.Core.Handlers
                     inboundMessageContext.GetMessageType(),
                     inboundMessageContext.Payload.GetUTF8String());
 
+                // Process message in handler
                 var response = await messageHandler.ProcessAsync(agentContext, inboundMessageContext);
+
+                // Process message with any registered middlewares
+                foreach (var middleware in Middlewares)
+                {
+                    await middleware.ProcessMessageAsync(agentContext, inboundMessageContext);
+                }
 
                 if (response != null)
                 {
@@ -136,10 +145,7 @@ namespace AgentFramework.Core.Handlers
                         var result = await MessageService.PrepareAsync(agentContext.Wallet, response, inboundMessageContext.Connection, null, false);
                         return new MessageContext(result, true, inboundMessageContext.Connection);
                     }
-                    else
-                    {
-                        await MessageService.SendAsync(agentContext.Wallet, response, inboundMessageContext.Connection);
-                    }
+                    await MessageService.SendAsync(agentContext.Wallet, response, inboundMessageContext.Connection);
                 }
                 return null;
             }

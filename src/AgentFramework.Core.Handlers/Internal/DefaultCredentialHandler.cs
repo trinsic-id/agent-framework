@@ -48,31 +48,37 @@ namespace AgentFramework.Core.Handlers.Internal
             switch (messageContext.GetMessageType())
             {
                 case MessageTypes.CredentialOffer:
-                {
-                    var offer = messageContext.GetMessage<CredentialOfferMessage>();
-                    await _credentialService.ProcessOfferAsync(
-                        agentContext, offer, messageContext.Connection);
+                    {
+                        var offer = messageContext.GetMessage<CredentialOfferMessage>();
+                        var recordId = await _credentialService.ProcessOfferAsync(
+                            agentContext, offer, messageContext.Connection);
 
-                    return null;
-                }
+                        messageContext.ContextRecord = await _credentialService.GetAsync(agentContext, recordId);
+
+                        return null;
+                    }
 
                 case MessageTypes.CredentialRequest:
-                {
-                    var request = messageContext.GetMessage<CredentialRequestMessage>();
-                    await _credentialService.ProcessCredentialRequestAsync(
-                        agentContext, request, messageContext.Connection);
+                    {
+                        var request = messageContext.GetMessage<CredentialRequestMessage>();
+                        var recordId = await _credentialService.ProcessCredentialRequestAsync(
+                            agentContext, request, messageContext.Connection);
 
-                    return null;
-                }
+                        messageContext.ContextRecord = await _credentialService.GetAsync(agentContext, recordId);
+
+                        return null;
+                    }
 
                 case MessageTypes.Credential:
-                {
-                    var credential = messageContext.GetMessage<CredentialMessage>();
-                    await _credentialService.ProcessCredentialAsync(
-                        agentContext, credential, messageContext.Connection);
+                    {
+                        var credential = messageContext.GetMessage<CredentialMessage>();
+                        var recordId = await _credentialService.ProcessCredentialAsync(
+                            agentContext, credential, messageContext.Connection);
 
-                    return null;
-                }
+                        messageContext.ContextRecord = await _credentialService.GetAsync(agentContext, recordId);
+
+                        return null;
+                    }
                 default:
                     throw new AgentFrameworkException(ErrorCode.InvalidMessage,
                         $"Unsupported message type {messageContext.GetMessageType()}");
