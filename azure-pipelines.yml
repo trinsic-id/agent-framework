@@ -4,18 +4,29 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 trigger:
-- pipelines-yaml
+- master
 
 pool:
-  vmImage: 'ubuntu-latest'
-
+  vmImage: ''
+  
 variables:
   buildConfiguration: 'Release'
 
 steps:
 - script: dotnet restore
   displayName: 'dotnet restore'
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
-- script: dotnet pack
-  displayName: 'dotnet pack'
+- task: projectversionasvariable@1
+  inputs:
+    path: 'Directory.Build.props'
+- task: MSBuild@1
+  inputs:
+    solution: '**/*.sln'
+    msbuildArguments: '/t:pack /p:Version=$(Version.MajorMinorPatch)-preview.$(Build.BuildNumber) /p:Configuration=Release /p:PackageOutputPath=$(Build.ArtifactStagingDirectory)/pre'
+- task: MSBuild@1
+  inputs:
+    solution: '**/*.sln'
+    msbuildArguments: '/t:pack /p:Version=$(Version.MajorMinorPatch) /p:Configuration=Release /p:PackageOutputPath=$(Build.ArtifactStagingDirectory)/release'
+- task: PublishPipelineArtifact@0
+  inputs:
+    artifactName: 'drop'
+    targetPath: '$(Build.ArtifactStagingDirectory)'
