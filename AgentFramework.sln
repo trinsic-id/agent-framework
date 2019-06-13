@@ -3,21 +3,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2003
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgentFramework.Core", "src\AgentFramework.Core\AgentFramework.Core.csproj", "{77223B87-C4DB-4771-BAA5-57257E182B2E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentFramework.Core", "src\AgentFramework.Core\AgentFramework.Core.csproj", "{77223B87-C4DB-4771-BAA5-57257E182B2E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{02ADBA96-A50C-44F0-A9D9-FA0629AA2DF4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Framework", "Framework", "{73FF6DBD-5847-4F2D-94BE-196AE9A80228}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgentFramework.AspNetCore", "src\AgentFramework.AspNetCore\AgentFramework.AspNetCore.csproj", "{2C868A14-7883-4BF5-9C6E-F37263ED7C4C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentFramework.AspNetCore", "src\AgentFramework.AspNetCore\AgentFramework.AspNetCore.csproj", "{2C868A14-7883-4BF5-9C6E-F37263ED7C4C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgentFramework.Core.Handlers", "src\AgentFramework.Core.Handlers\AgentFramework.Core.Handlers.csproj", "{C22E8B65-CF5F-4DFD-9935-BFF43BE944DD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentFramework.Core.Handlers", "src\AgentFramework.Core.Handlers\AgentFramework.Core.Handlers.csproj", "{C22E8B65-CF5F-4DFD-9935-BFF43BE944DD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgentFramework.Core.Tests", "test\AgentFramework.Core.Tests\AgentFramework.Core.Tests.csproj", "{A8311790-E3EF-454D-84A7-920D0B48BFD3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgentFramework.TestHarness", "src\AgentFramework.TestHarness\AgentFramework.TestHarness.csproj", "{2ECD541C-D796-4940-8355-5984A7D41E0B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentFramework.TestHarness", "src\AgentFramework.TestHarness\AgentFramework.TestHarness.csproj", "{2ECD541C-D796-4940-8355-5984A7D41E0B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAgent", "samples\aspnetcore\WebAgent.csproj", "{DCD9F14F-0700-4279-95B5-5028529A56D2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentFramework.Payments.NullPay", "src\AgentFramework.Payments.NullPay\AgentFramework.Payments.NullPay.csproj", "{2DE4F919-FC9A-4BE9-AF6D-CAD3CB0A8F65}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentFramework.Payments.SovrinToken", "src\AgentFramework.Payments.SovrinToken\AgentFramework.Payments.SovrinToken.csproj", "{F2F0D072-5CF9-4C73-BC50-80B8330FA45A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,10 +47,14 @@ Global
 		{2ECD541C-D796-4940-8355-5984A7D41E0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2ECD541C-D796-4940-8355-5984A7D41E0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2ECD541C-D796-4940-8355-5984A7D41E0B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DCD9F14F-0700-4279-95B5-5028529A56D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DCD9F14F-0700-4279-95B5-5028529A56D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DCD9F14F-0700-4279-95B5-5028529A56D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DCD9F14F-0700-4279-95B5-5028529A56D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DE4F919-FC9A-4BE9-AF6D-CAD3CB0A8F65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DE4F919-FC9A-4BE9-AF6D-CAD3CB0A8F65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DE4F919-FC9A-4BE9-AF6D-CAD3CB0A8F65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DE4F919-FC9A-4BE9-AF6D-CAD3CB0A8F65}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2F0D072-5CF9-4C73-BC50-80B8330FA45A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2F0D072-5CF9-4C73-BC50-80B8330FA45A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2F0D072-5CF9-4C73-BC50-80B8330FA45A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2F0D072-5CF9-4C73-BC50-80B8330FA45A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -59,6 +65,8 @@ Global
 		{C22E8B65-CF5F-4DFD-9935-BFF43BE944DD} = {73FF6DBD-5847-4F2D-94BE-196AE9A80228}
 		{A8311790-E3EF-454D-84A7-920D0B48BFD3} = {02ADBA96-A50C-44F0-A9D9-FA0629AA2DF4}
 		{2ECD541C-D796-4940-8355-5984A7D41E0B} = {73FF6DBD-5847-4F2D-94BE-196AE9A80228}
+		{2DE4F919-FC9A-4BE9-AF6D-CAD3CB0A8F65} = {73FF6DBD-5847-4F2D-94BE-196AE9A80228}
+		{F2F0D072-5CF9-4C73-BC50-80B8330FA45A} = {73FF6DBD-5847-4F2D-94BE-196AE9A80228}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4FFA80F9-ADC6-40DB-BBD1-A522B8A68560}
