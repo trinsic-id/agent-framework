@@ -20,11 +20,11 @@ steps:
     path: 'Directory.Build.props'
 - task: MSBuild@1
   inputs:
-    solution: '**/*.sln'
-    msbuildArguments: '/t:pack /p:Version=$(Version.MajorMinorPatch)-preview.$(Build.BuildNumber) /p:Configuration=Release /p:PackageOutputPath=$(Build.ArtifactStagingDirectory)/pre'
+    solution: 'AgentFramework.sln'
+    msbuildArguments: '/t:pack /p:Version=$(Version.MajorMinorPatch)-preview.$(Build.BuildId) /p:Configuration=Release /p:PackageOutputPath=$(Build.ArtifactStagingDirectory)/pre'
 - task: MSBuild@1
   inputs:
-    solution: '**/*.sln'
+    solution: 'AgentFramework.sln'
     msbuildArguments: '/t:pack /p:Version=$(Version.MajorMinorPatch) /p:Configuration=Release /p:PackageOutputPath=$(Build.ArtifactStagingDirectory)/release'
 - task: PublishPipelineArtifact@0
   inputs:
