@@ -1,15 +1,14 @@
 ﻿namespace AgentFramework.Core.Models.Payments
 {
     /// <summary>
-    /// Payment address configuration.
+    /// Payment account configuration.
     /// </summary>
-    public class PaymentAddressConfiguration
+    public class PaymentAccountConfiguration
     {
         /// <summary>
-        /// Gets or sets the address seed.
+        /// Account identifier
         /// </summary>
-        /// <value>The address seed.</value>
-        public string AddressSeed { get; set; }
+        public string AccountId { get; set; }
 
         /// <summary>
         /// Gets or sets the method.

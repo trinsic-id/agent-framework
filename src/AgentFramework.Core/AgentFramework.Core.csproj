@@ -15,5 +15,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\Payments\" />
+    <Folder Include="Decorators\Payments\" />
   </ItemGroup>
 </Project>
