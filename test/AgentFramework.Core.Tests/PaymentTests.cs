@@ -13,6 +13,7 @@ using Xunit;
 using AgentFramework.Core.Extensions;
 using Indy = Hyperledger.Indy.PaymentsApi;
 using Hyperledger.Indy.LedgerApi;
+using Hyperledger.Indy.PoolApi;
 
 namespace AgentFramework.Core.Tests
 {
@@ -57,28 +58,35 @@ namespace AgentFramework.Core.Tests
         [Fact(DisplayName = "Mint Sovrin tokens")]
         public async Task MintSovrinTokens()
         {
-            try
+            await Pool.SetProtocolVersionAsync(2);
+
+            var trustee1 = await Did.CreateAndStoreMyDidAsync(_context.Wallet, new { seed = "000000000000000000000000Trustee1" }.ToJson());
+
+            async Task<CreateAndStoreMyDidResult> promoteTrustee(string seed)
             {
-                var paymentService = _host.Services.GetService<IPaymentService>();
-                var address = await paymentService.CreatePaymentAddressAsync(_context);
-
-                var trustee1 = await Did.CreateAndStoreMyDidAsync(_context.Wallet, new { seed = "000000000000000000000000Trustee1" }.ToJson());
-                var trustee2 = await Did.CreateAndStoreMyDidAsync(_context.Wallet, new { seed = "000000000000000000000000Trustee2" }.ToJson());
-                var trustee3 = await Did.CreateAndStoreMyDidAsync(_context.Wallet, new { seed = "000000000000000000000000Trustee3" }.ToJson());
-
-                var request = await Indy.Payments.BuildMintRequestAsync(_context.Wallet, trustee1.Did, new[] { new { recipient = address.Address, amount = 1000 } }.ToJson(), null);
-                var singedRequest = await Ledger.MultiSignRequestAsync(_context.Wallet, trustee1.Did, request.Result);
-                singedRequest = await Ledger.MultiSignRequestAsync(_context.Wallet, trustee2.Did, singedRequest);
-                singedRequest = await Ledger.MultiSignRequestAsync(_context.Wallet, trustee3.Did, singedRequest);
-
-                var response = await Ledger.SubmitRequestAsync(await _context.Pool, singedRequest);
-
-                Console.WriteLine(response);
+                var trustee = await Did.CreateAndStoreMyDidAsync(_context.Wallet, new { seed = seed }.ToJson());
+                var nymRequest = await Ledger.BuildNymRequestAsync(trustee1.Did, trustee.Did, trustee.VerKey, null, "TRUSTEE");
+                var nymResponse = await Ledger.SignAndSubmitRequestAsync(await _context.Pool, _context.Wallet, trustee1.Did, nymRequest);
+                return trustee;
             }
-            catch(Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            var paymentService = _host.Services.GetService<IPaymentService>();
+            var address = await paymentService.CreatePaymentAddressAsync(_context);
+
+            var trustee2 = await promoteTrustee("000000000000000000000000Trustee2");
+            var trustee3 = await promoteTrustee("000000000000000000000000Trustee3");
+
+            ulong amount = 1234560000;
+            var request = await Indy.Payments.BuildMintRequestAsync(_context.Wallet, trustee1.Did, new[] { new { recipient = address.Address, amount = amount } }.ToJson(), null);
+
+            var singedRequest1 = await Ledger.MultiSignRequestAsync(_context.Wallet, trustee1.Did, request.Result);
+            var singedRequest2 = await Ledger.MultiSignRequestAsync(_context.Wallet, trustee2.Did, singedRequest1);
+            var singedRequest3 = await Ledger.MultiSignRequestAsync(_context.Wallet, trustee3.Did, singedRequest2);
+
+            await Ledger.SubmitRequestAsync(await _context.Pool, singedRequest3);
+
+            var totalAmount = await paymentService.GetBalanceAsync(_context, address, trustee1.Did);
+
+            Assert.Equal(totalAmount.Value, amount.ToString());
         }
     }
 }

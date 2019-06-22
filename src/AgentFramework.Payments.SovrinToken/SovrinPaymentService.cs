@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
@@ -7,6 +9,7 @@ using AgentFramework.Core.Models.Records;
 using AgentFramework.Payments.Abstractions;
 using AgentFramework.Payments.Decorators;
 using AgentFramework.Payments.Records;
+using AgentFramework.Payments.SovrinToken.Models;
 using Hyperledger.Indy.LedgerApi;
 using Indy = Hyperledger.Indy.PaymentsApi;
 
@@ -45,14 +48,19 @@ namespace AgentFramework.Payments.SovrinToken
             return addressRecord;
         }
 
-        public async Task<PaymentAmount> GetBalanceAsync(IAgentContext agentContext, PaymentAddressRecord paymentAddress)
+        public async Task<PaymentAmount> GetBalanceAsync(IAgentContext agentContext, PaymentAddressRecord paymentAddress, string submitterDid)
         {
-            var request = await Indy.Payments.BuildGetPaymentSourcesAsync(agentContext.Wallet, null, paymentAddress.Address);
+            var request = await Indy.Payments.BuildGetPaymentSourcesAsync(agentContext.Wallet, submitterDid, paymentAddress.Address);
             var response = await Ledger.SubmitRequestAsync(await agentContext.Pool, request.Result);
 
             var parsed = await Indy.Payments.ParseGetPaymentSourcesAsync(paymentAddress.Method, response);
-
-            return new PaymentAmount { };
+            var paymentResult = parsed.ToObject<IList<IndyPaymentResult>>();
+            ulong total = 0;
+            foreach (var address in paymentResult)
+            {
+                total = +address.Amount;
+            }
+            return new PaymentAmount { Value = total.ToString() };
         }
 
         public Task MakePaymentAsync(IAgentContext agentContext, PaymentAddressRecord addressRecord, PaymentRecord paymentRecord)

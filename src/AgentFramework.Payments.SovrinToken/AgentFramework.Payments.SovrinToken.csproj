@@ -11,4 +11,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="2.1.1" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
 </Project>
