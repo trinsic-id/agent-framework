@@ -2,7 +2,7 @@
 using AgentFramework.Core.Models.Payments;
 using Newtonsoft.Json;
 
-namespace AgentFramework.Core.Decorators.Payments
+namespace AgentFramework.Payments.Decorators
 {
     public class PaymentRequestDecorator
     {

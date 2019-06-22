@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AgentFramework.Core.Decorators.Payments;
+﻿using System.Threading.Tasks;
+using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Models.Records;
+using AgentFramework.Payments.Decorators;
+using AgentFramework.Payments.Records;
 
-namespace AgentFramework.Core.Contracts
+namespace AgentFramework.Payments.Abstractions
 {
     public interface IPaymentService
     {

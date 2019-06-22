@@ -4,14 +4,10 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Messages;
 
-namespace AgentFramework.Core.Handlers.Internal
+namespace AgentFramework.Payments.Middleware
 {
     public class PaymentsAgentMiddleware : IAgentMiddleware
     {
-        public PaymentsAgentMiddleware()
-        {
-        }
-
         public Task ProcessMessageAsync(IAgentContext agentConext, MessageContext messageContext)
         {
             throw new NotImplementedException();

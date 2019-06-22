@@ -22,7 +22,7 @@ namespace AgentFramework.Core.Handlers
     {
         /// <summary>Gets the provider.</summary>
         /// <value>The provider.</value>
-        protected IServiceProvider Provider { get; }
+        public IServiceProvider Provider { get; }
 
         /// <summary>Gets the connection service.</summary>
         /// <value>The connection service.</value>

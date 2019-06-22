@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Decorators.Payments;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Models.Records;
+using AgentFramework.Payments.Abstractions;
+using AgentFramework.Payments.Decorators;
+using AgentFramework.Payments.Records;
 using Hyperledger.Indy.LedgerApi;
 using Indy = Hyperledger.Indy.PaymentsApi;
 

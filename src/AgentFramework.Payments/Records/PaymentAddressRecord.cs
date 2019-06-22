@@ -1,7 +1,8 @@
 ﻿using System;
+using AgentFramework.Core.Models.Records;
 using Newtonsoft.Json;
 
-namespace AgentFramework.Core.Models.Records
+namespace AgentFramework.Payments.Records
 {
     public class PaymentAddressRecord : RecordBase
     {

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AgentFramework.AspNetCore;
-using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
+using AgentFramework.Payments.Abstractions;
 using AgentFramework.Payments.SovrinToken;
 using AgentFramework.TestHarness.Utils;
 using Hyperledger.Indy.WalletApi;
@@ -48,6 +48,15 @@ namespace AgentFramework.Core.Tests
 
             Assert.NotNull(address);
             Assert.NotNull(address.Address);
+
+            try
+            {
+
+            }
+            catch (Exception e)
+            {
+
+            }
         }
     }
 }

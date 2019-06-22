@@ -1,5 +1,5 @@
 ﻿using System;
-namespace AgentFramework.Core.Decorators.Payments
+namespace AgentFramework.Payments.Decorators
 {
     public class PaymentReceiptDecorator
     {
