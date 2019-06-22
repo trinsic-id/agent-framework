@@ -11,7 +11,7 @@ namespace AgentFramework.TestHarness.Utils
 {
     public class AgentUtils
     {
-        public static async Task<AgentContext> Create(string config, string credentials, bool withPool = false, IList<MessageType> messageTypes = null)
+        public static async Task<AgentContext> Create(string config, string credentials, bool withPool = false, IList<MessageType> supportedMessageTypes = null)
         {
             try
             {
@@ -22,13 +22,13 @@ namespace AgentFramework.TestHarness.Utils
                 // OK
             }
 
-            if (messageTypes == null)
-                messageTypes = GetDefaultMessageTypes();
+            if (supportedMessageTypes == null)
+                supportedMessageTypes = GetDefaultMessageTypes();
 
             return new AgentContext {
                 Wallet = await Wallet.OpenWalletAsync(config, credentials),
                 Pool = withPool ? new PoolAwaitable(PoolUtils.GetPoolAsync) : PoolAwaitable.FromPool(null),
-                SupportedMessages = messageTypes };
+                SupportedMessages = supportedMessageTypes };
         }
 
         public static IList<MessageType> GetDefaultMessageTypes()
