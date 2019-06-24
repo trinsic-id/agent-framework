@@ -25,6 +25,6 @@ namespace AgentFramework.Core.Models.Records
 
         public DateTime SourcesSyncedAt { get; set; }
 
-        public IList<IndyPaymentSource> Sources { get; set; }
+        public IList<IndyPaymentInputSource> Sources { get; set; }
     }
 }

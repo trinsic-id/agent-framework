@@ -7,6 +7,7 @@ using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Models.Wallets;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace AgentFramework.Payments.SovrinToken
 {
@@ -22,7 +23,7 @@ namespace AgentFramework.Payments.SovrinToken
 
         public SovrinTokenConfigurationService(
             IApplicationLifetime applicationLifetime,
-            ProvisioningConfiguration configuration,
+            IOptions<ProvisioningConfiguration> configuration,
             IPaymentService paymentService,
             IProvisioningService provisioningService,
             IAgentProvider agentProvider,
@@ -30,7 +31,7 @@ namespace AgentFramework.Payments.SovrinToken
             ILogger<SovrinTokenConfigurationService> logger)
         {
             applicationLifetime.ApplicationStarted.Register(CreateDefaultPaymentAddress);
-            AgentConfiguration = configuration;
+            AgentConfiguration = configuration.Value;
             this.paymentService = paymentService;
             this.provisioningService = provisioningService;
             this.agentProvider = agentProvider;

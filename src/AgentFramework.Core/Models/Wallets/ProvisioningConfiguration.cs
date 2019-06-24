@@ -9,7 +9,7 @@ namespace AgentFramework.Core.Models.Wallets
     /// <summary>
     /// A configuration object for controlling the provisioning of a new agent.
     /// </summary>
-    public abstract class ProvisioningConfiguration
+    public class ProvisioningConfiguration
     {
         public bool SupportPayments { get; set; }
 
@@ -106,8 +106,8 @@ namespace AgentFramework.Core.Models.Wallets
         /// <returns>The async.</returns>
         /// <param name="record">Record.</param>
         /// <param name="context">Context.</param>
-        public abstract Task ConfigureAsync(ProvisioningRecord record, IAgentContext context);
-        
+        public virtual Task ConfigureAsync(ProvisioningRecord record, IAgentContext context) => Task.CompletedTask;
+
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +

@@ -1,12 +1,26 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Stateless;
 
 namespace AgentFramework.Core.Models.Records
 {
-    public class PaymentRecord : RecordBase
+    /// <summary>
+    /// Represents a payment record
+    /// </summary>
+    /// <seealso cref="AgentFramework.Core.Models.Records.RecordBase" />
+    public sealed class PaymentRecord : RecordBase
     {
         private PaymentState _state;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PaymentRecord"/> class.
+        /// </summary>
+        public PaymentRecord()
+        {
+            Id = Guid.NewGuid().ToString();
+            State = PaymentState.None;
+        }
 
         public override string TypeName => "AF.PaymentRecord";
 
@@ -38,6 +52,8 @@ namespace AgentFramework.Core.Models.Records
             set => Set(value);
         }
 
+        public ulong Amount { get; set; }
+
         public string PaymentDetails { get; set; }
 
         public PaymentState State
@@ -53,15 +69,16 @@ namespace AgentFramework.Core.Models.Records
             var state = new StateMachine<PaymentState, PaymentTrigger>(() => State, x => State = x);
             state.Configure(PaymentState.None).Permit(PaymentTrigger.RequestSent, PaymentState.Requested);
             state.Configure(PaymentState.None).Permit(PaymentTrigger.RequestReceived, PaymentState.RequestReceived);
+            state.Configure(PaymentState.None).Permit(PaymentTrigger.ProcessPayment, PaymentState.Paid);
             state.Configure(PaymentState.Requested).Permit(PaymentTrigger.ReceiptRecieved, PaymentState.ReceiptReceived);
-            state.Configure(PaymentState.RequestReceived).Permit(PaymentTrigger.PaymentProcessed, PaymentState.Paid);
+            state.Configure(PaymentState.RequestReceived).Permit(PaymentTrigger.ProcessPayment, PaymentState.Paid);
             return state;
         }
     }
 
     public enum PaymentState
     {
-        None,
+        None = 0,
         Requested,
         RequestReceived,
         Paid,
@@ -72,7 +89,7 @@ namespace AgentFramework.Core.Models.Records
     {
         RequestSent,
         RequestReceived,
-        PaymentProcessed,
+        ProcessPayment,
         ReceiptRecieved
     }
 }

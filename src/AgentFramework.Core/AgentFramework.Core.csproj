@@ -14,7 +14,6 @@
     <PackageReference Include="System.Reactive.Linq" Version="4.1.2" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Models\Payments\" />
     <Folder Include="Decorators\Payments\" />
   </ItemGroup>
 </Project>

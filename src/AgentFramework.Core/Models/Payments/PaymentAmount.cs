@@ -8,6 +8,6 @@ namespace AgentFramework.Core.Models.Payments
         public string Currency { get; set; }
 
         [JsonProperty("value")]
-        public string Value { get; set; }
+        public ulong Value { get; set; }
     }
 }

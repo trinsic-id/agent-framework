@@ -38,6 +38,11 @@
         /// <summary>
         /// The parameter was in an invalid format
         /// </summary>
-        InvalidParameterFormat
+        InvalidParameterFormat,
+        /// <summary>
+        /// Record has invalid or missing data
+        /// </summary>
+        InvalidRecordData,
+        PaymentInsufficientFunds
     }
 }
