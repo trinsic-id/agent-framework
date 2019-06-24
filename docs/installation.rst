@@ -8,10 +8,18 @@ Using NuGet
 
 To use the agent framework in your project, add the nuget packages.
 
+If using the package manager:
+
 .. code-block:: bash
 
     Install-Package AgentFramework.Core -Source https://www.myget.org/F/agent-framework/api/v3/index.json
 
+If using the .NET CLI:
+
+.. code-block:: bash
+
+    dotnet add package AgentFramework.Core -s https://www.myget.org/F/agent-framework/api/v3/index.json
+    
 Available packages:
 
 - ``AgentFramework.Core`` - core framework package
@@ -47,23 +55,25 @@ Windows
 -------
 
 You can download binaries of libindy and all dependencies from the `Sovrin repo
-<https://repo.sovrin.org/windows/libindy/>`_. The dependcies are under ``deps`` folder and ``libindy`` under one of streams (rc, master, stable). There are two options to link the DLLs
+<https://repo.sovrin.org/windows/libindy/>`_. The dependencies are under ``deps`` folder and ``libindy`` under one of streams (rc, master, stable). There are two options to link the DLLs
 
 - Unzip all files in a directory and add that to your PATH variable (recommended for development)
 - Or copy all DLL files in the publish directory (recommended for published deployments)
 
 More details at the `Indy documentation for setting up Windows environment
-<https://github.com/hyperledger/indy-sdk/blob/master/doc/windows-build.md>`_.
+<https://github.com/hyperledger/indy-sdk/blob/master/docs/build-guides/windows-build.md>`_.
 
 MacOS
 -----
 
 Check `Setup Indy SDK build environment for MacOS
-<https://github.com/hyperledger/indy-sdk/blob/master/doc/mac-build.md>`_.
+<https://github.com/hyperledger/indy-sdk/blob/master/docs/build-guides/mac-build.md>`_.
+
+Copy ``libindy.a`` and ``libindy.dylib`` to the ``/usr/local/lib/`` directory.
 
 Linux
 -----
 
 Build instructions for `Ubuntu based distros
-<https://github.com/hyperledger/indy-sdk/blob/master/doc/ubuntu-build.md>`_ and `RHEL based distros
-<https://github.com/hyperledger/indy-sdk/blob/master/doc/rhel-build.md>`_.
+<https://github.com/hyperledger/indy-sdk/blob/master/docs/build-guides/ubuntu-build.md>`_ and `RHEL based distros
+<https://github.com/hyperledger/indy-sdk/blob/master/doc/build-guides/rhel-build.md>`_.

@@ -12,6 +12,7 @@ The framework runs on any .NET Standard target, including ASP.NET Core and Xamar
     :caption: Initial Setup 
     
     installation
+    gettingstarted
 
 .. toctree::
     :maxdepth: 2
