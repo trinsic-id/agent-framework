@@ -1,8 +1,9 @@
 ﻿using System;
-using AgentFramework.Core.Models.Records;
+using System.Collections.Generic;
+using AgentFramework.Core.Models.Payments;
 using Newtonsoft.Json;
 
-namespace AgentFramework.Payments.Records
+namespace AgentFramework.Core.Models.Records
 {
     public class PaymentAddressRecord : RecordBase
     {
@@ -21,5 +22,9 @@ namespace AgentFramework.Payments.Records
             get => Get();
             set => Set(value);
         }
+
+        public DateTime SourcesSyncedAt { get; set; }
+
+        public IList<IndyPaymentSource> Sources { get; set; }
     }
 }

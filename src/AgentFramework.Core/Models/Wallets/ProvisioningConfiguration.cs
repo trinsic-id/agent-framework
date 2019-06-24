@@ -11,6 +11,10 @@ namespace AgentFramework.Core.Models.Wallets
     /// </summary>
     public abstract class ProvisioningConfiguration
     {
+        public bool SupportPayments { get; set; }
+
+        public string DefaultPaymentAddressSeed { get; set; }
+
         /// <summary>
         /// Gets or sets the name of the owner of the agent
         /// </summary>

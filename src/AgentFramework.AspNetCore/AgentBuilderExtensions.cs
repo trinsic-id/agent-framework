@@ -95,6 +95,7 @@ namespace AgentFramework.AspNetCore
                 obj.GenesisFilename = configuration.GenesisFilename;
             });
 
+            builder.Services.AddSingleton<ProvisioningConfiguration>(configuration);
             builder.Services.AddSingleton<IAgent, TAgent>();
             builder.Services.AddSingleton<IHostedService>(s => new AgentHostedService(
                 configuration,

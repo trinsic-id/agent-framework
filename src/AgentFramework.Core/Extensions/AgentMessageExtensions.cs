@@ -1,10 +1,9 @@
 ﻿using System;
+using AgentFramework.Core.Decorators.Payments;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Models.Records;
-using AgentFramework.Payments.Decorators;
-using AgentFramework.Payments.Records;
 
 namespace AgentFramework.Payments
 {

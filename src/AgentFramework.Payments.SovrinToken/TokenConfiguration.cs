@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace AgentFramework.Payments.SovrinToken
 {
-    public static class Configuration
+    public static class TokenConfiguration
     {
         public const string MethodName = "sov";
 

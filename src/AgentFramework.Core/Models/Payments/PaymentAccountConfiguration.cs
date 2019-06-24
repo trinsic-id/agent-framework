@@ -3,7 +3,7 @@
     /// <summary>
     /// Payment account configuration.
     /// </summary>
-    public class PaymentAccountConfiguration
+    public class PaymentAddressConfiguration
     {
         /// <summary>
         /// Account identifier

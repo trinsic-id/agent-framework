@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AgentFramework.AspNetCore;
+using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
-using AgentFramework.Payments.Abstractions;
 using AgentFramework.Payments.SovrinToken;
 using AgentFramework.TestHarness.Utils;
 using Hyperledger.Indy.DidApi;
@@ -84,7 +84,7 @@ namespace AgentFramework.Core.Tests
 
             await Ledger.SubmitRequestAsync(await _context.Pool, singedRequest3);
 
-            var totalAmount = await paymentService.GetBalanceAsync(_context, address, trustee1.Did);
+            var totalAmount = await paymentService.GetBalanceAsync(_context, address);
 
             Assert.Equal(totalAmount.Value, amount.ToString());
         }

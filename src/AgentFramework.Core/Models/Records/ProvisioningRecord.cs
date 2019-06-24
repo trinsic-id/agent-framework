@@ -100,7 +100,17 @@ namespace AgentFramework.Core.Models.Records
             get => _tailsBaseUri;
             internal set => _tailsBaseUri = value;
         }
-        
+
+        /// <summary>
+        /// Gets or sets the default payment address
+        /// </summary>
+        [JsonIgnore]
+        public string DefaultPaymentAddressId
+        {
+            get => Get();
+            set => Set(value);
+        }
+
         /// <inheritdoc />
         public override string ToString() =>
             $"{GetType().Name}: " +

@@ -1,5 +1,5 @@
-﻿using AgentFramework.Core.Handlers;
-using AgentFramework.Payments.Abstractions;
+﻿using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Handlers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.Payments.SovrinToken

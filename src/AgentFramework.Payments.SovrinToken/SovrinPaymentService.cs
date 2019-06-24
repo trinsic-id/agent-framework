@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Decorators.Payments;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Models.Records;
-using AgentFramework.Payments.Abstractions;
-using AgentFramework.Payments.Decorators;
-using AgentFramework.Payments.Records;
-using AgentFramework.Payments.SovrinToken.Models;
 using Hyperledger.Indy.LedgerApi;
 using Indy = Hyperledger.Indy.PaymentsApi;
 
@@ -31,15 +29,15 @@ namespace AgentFramework.Payments.SovrinToken
             this.provisioningService = provisioningService;
         }
 
-        public async Task<PaymentAddressRecord> CreatePaymentAddressAsync(IAgentContext agentContext, PaymentAccountConfiguration configuration = null)
+        public async Task<PaymentAddressRecord> CreatePaymentAddressAsync(IAgentContext agentContext, PaymentAddressConfiguration configuration = null)
         {
-            var address = await Indy.Payments.CreatePaymentAddressAsync(agentContext.Wallet, Configuration.MethodName,
+            var address = await Indy.Payments.CreatePaymentAddressAsync(agentContext.Wallet, TokenConfiguration.MethodName,
                 new { seed = configuration?.AccountId }.ToJson());
 
             var addressRecord = new PaymentAddressRecord
             {
                 Id = Guid.NewGuid().ToString("N"),
-                Method = Configuration.MethodName,
+                Method = TokenConfiguration.MethodName,
                 Address = address
             };
 
@@ -48,22 +46,42 @@ namespace AgentFramework.Payments.SovrinToken
             return addressRecord;
         }
 
-        public async Task<PaymentAmount> GetBalanceAsync(IAgentContext agentContext, PaymentAddressRecord paymentAddress, string submitterDid)
+        public async Task<PaymentAmount> GetBalanceAsync(IAgentContext agentContext, PaymentAddressRecord paymentAddress = null)
         {
-            var request = await Indy.Payments.BuildGetPaymentSourcesAsync(agentContext.Wallet, submitterDid, paymentAddress.Address);
-            var response = await Ledger.SubmitRequestAsync(await agentContext.Pool, request.Result);
-
-            var parsed = await Indy.Payments.ParseGetPaymentSourcesAsync(paymentAddress.Method, response);
-            var paymentResult = parsed.ToObject<IList<IndyPaymentResult>>();
-            ulong total = 0;
-            foreach (var address in paymentResult)
+            if (paymentAddress == null)
             {
-                total = +address.Amount;
+                var provisioning = await provisioningService.GetProvisioningAsync(agentContext.Wallet);
+                if (provisioning.DefaultPaymentAddressId == null)
+                {
+                    throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Default payment address record not found");
+                }
+
+                paymentAddress = await recordService.GetAsync<PaymentAddressRecord>(agentContext.Wallet, provisioning.DefaultPaymentAddressId);
             }
-            return new PaymentAmount { Value = total.ToString() };
+
+            // Cache sources data in record for one hour
+            if (paymentAddress.SourcesSyncedAt > DateTime.Now.AddHours(-1))
+            {
+                var request = await Indy.Payments.BuildGetPaymentSourcesAsync(agentContext.Wallet, null, paymentAddress.Address);
+                var response = await Ledger.SubmitRequestAsync(await agentContext.Pool, request.Result);
+
+                var parsed = await Indy.Payments.ParseGetPaymentSourcesAsync(paymentAddress.Method, response);
+                var paymentResult = parsed.ToObject<IList<IndyPaymentSource>>();
+                paymentAddress.Sources = paymentResult;
+                paymentAddress.SourcesSyncedAt = DateTime.Now;
+                await recordService.UpdateAsync(agentContext.Wallet, paymentAddress);
+            }
+            return new PaymentAmount
+            {
+                Value = paymentAddress.Sources
+                    .Select(x => x.Amount)
+                    .Aggregate((x, y) => x + y)
+                    .ToString(),
+                Currency = TokenConfiguration.MethodName
+            };
         }
 
-        public Task MakePaymentAsync(IAgentContext agentContext, PaymentAddressRecord addressRecord, PaymentRecord paymentRecord)
+        public Task MakePaymentAsync(IAgentContext agentContext, PaymentRecord paymentRecord, PaymentAddressRecord addressRecord = null)
         {
             throw new NotImplementedException();
         }

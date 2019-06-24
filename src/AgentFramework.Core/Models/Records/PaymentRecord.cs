@@ -1,10 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using AgentFramework.Core.Models.Records;
+﻿using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Stateless;
 
-namespace AgentFramework.Payments.Records
+namespace AgentFramework.Core.Models.Records
 {
     public class PaymentRecord : RecordBase
     {
