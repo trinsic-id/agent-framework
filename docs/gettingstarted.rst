@@ -44,6 +44,31 @@ This file will inherit from the AgentBase class in the AgentFramework, and it ex
 This interface includes only one function named ``Task<MessageResponse>ProcessAsync(IAgentContext context, MessageContext messageContext)``
 This will process any message that is sent to the agent's endpoint. 
 
+Add this code: 
+
+using System;
+using AgentFramework.Core.Handlers;
+using WebAgent.Messages;
+using WebAgent.Protocols.BasicMessage;
+
+namespace WebAgent
+{
+    public class SimpleWebAgent : AgentBase
+    {
+        public SimpleWebAgent(IServiceProvider serviceProvider)
+            : base(serviceProvider)
+        {
+        }
+
+        protected override void ConfigureHandlers()
+        {
+            AddConnectionHandler();
+            AddForwardHandler();
+            AddHandler<BasicMessageHandler>();
+            AddHandler<TrustPingMessageHandler>();
+        }
+    }
+}
 
 
 

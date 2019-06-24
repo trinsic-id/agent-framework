@@ -60,7 +60,7 @@ namespace WebAgent
 
             app.UseStaticFiles();
 
-            // Register agend middleware
+            // Register agent middleware
             app.UseAgentFramework();
 
             // fun identicons
