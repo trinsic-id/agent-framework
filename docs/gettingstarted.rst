@@ -2,19 +2,24 @@
 Getting Started Guide
 *********************
 
-Overview
-=========
+Ch.1 - Creating a New Project
++++++++++++++++++++++++++++++
 
-This getting started guide will show you how to help alice get and present a credential. 
+This getting started guide will show you how to create a custom AspNetCore web application and 
+use the agent framework to create connections and send basic messages.
 
 
-Setting up environment
-======================
-Install visual Studio
-Install dotnet sdk 2.2
 
-Create Project
-==============
+Setting up your developer environment
+=====================================
+
+If you haven't already done so, install Visual Studio community and the .NET Core 2.2.300 SDK
+ - `Install Visual Studio <https://docs.microsoft.com/en-us/visualstudio/install/install-visual-studio?view=vs-2019>`_
+ - `Install .NET Core SDK 2.2 <https://dotnet.microsoft.com/download/dotnet-core/2.2>`_
+
+
+Create an AspNetCore VS Project
+===============================
 
 Open Visual Studio and select new project, then choose Web Application (Model-View-Controller):
 
@@ -27,26 +32,33 @@ Select the .NET Core 2.2, then name your project. I've named mine MyAgent:
    :width: 500
 
 
-Install Required Packages
-=========================
+Install the Required Packages
+=============================
 
-Follow the instructions in installation.rst to install the AgentFramework.Core package into your project. 
-
-Continue with the instructions to build libindy and move it into your PATH
-
+Follow the instructions in the Installation and configuration page 
+to first: 
+ - Load the AgentFramework.Core packages into your project. 
+ - Install libindy on your dev machine.
 
 Configure your Agent
 ====================
+We will first introduce the 5 files that need to be edited and created in order for your project to run using the agent framework. 
 
-The ``Startup.cs`` and ``Program.cs`` files control how the agent begins. 
+When the project was created, ``Startup.cs`` and ``Program.cs`` files were built using a template. These control how your webserver starts. We will 
+edit them to use the agent framework.  
 
-Our first goal is to create the Startup Script. Copy and paste the below code into your ``Startup.cs`` file: 
+-------------
+
+Startup.cs
+~~~~~~~~~~
+
+Our first goal is to edit the Startup file. Copy and paste the below code into your ``Startup.cs`` file: 
 
 .. container:: toggle
     
     .. container:: header
 
-      **Startup.cs (Click to show)**
+      **Startup.cs (click to show/hide)**
 
     .. code-block:: C#
        :linenos:
@@ -88,8 +100,8 @@ Our first goal is to create the Startup Script. Copy and paste the below code in
                         {
                             c.OwnerName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? NameGenerator.GetRandomName();
                             c.EndpointUri = new Uri(Environment.GetEnvironmentVariable("ENDPOINT_HOST") ?? Environment.GetEnvironmentVariable("ASPNETCORE_URLS"));
-                            //c.WalletConfiguration = new WalletConfiguration { Id = "WebAgentWallet" };
-                            //c.WalletCredentials = new WalletCredentials { Key = "MyWalletKey" };
+                            c.WalletConfiguration = new WalletConfiguration { Id = "WebAgentWallet" };
+                            c.WalletCredentials = new WalletCredentials { Key = "MyWalletKey" };
                         });
                     });
 
@@ -125,8 +137,12 @@ Our first goal is to create the Startup Script. Copy and paste the below code in
             }
         }
 
+-------------
 
-Next, we will arrange the ``Program.cs`` file: 
+Program.cs
+~~~~~~~~~~
+
+Next, we will edit the ``Program.cs`` file: 
 
 .. container:: toggle
     
@@ -157,7 +173,12 @@ Next, we will arrange the ``Program.cs`` file:
             }
         }
 
+Once you have finished with this code, take a moment to look over the changes that we've made. 
 
+----------------
+
+SimpleWebAgent.cs
+~~~~~~~~~~~~~~~~~
 Now create a file name ``SimpleWebAgent.cs`` in the main directory
 
 This file will inherit from the AgentBase class in the AgentFramework, and it extends the IAgent Interface. 
@@ -198,6 +219,11 @@ Copy and paste the below code into the file:
             }
         }
 
+-----------
+
+bundleconfig.json
+~~~~~~~~~~~~~~~~~
+
 Create a bundleconfig.json file in your project root directory, and add this json array to it: 
 
 .. container:: toggle
@@ -234,6 +260,11 @@ Create a bundleconfig.json file in your project root directory, and add this jso
         }
         ]
 
+-------------------------
+
+launchSettings.json
+~~~~~~~~~~~~~~~~~~~
+
 Finally, edit the ``Property/launchSettings.json`` 
 
 .. container:: toggle
@@ -259,7 +290,9 @@ Finally, edit the ``Property/launchSettings.json``
         }
 
 
-Click run, you should see your agent appear in your web browser at http://localhost:5000 !
+--------------
+
+Click run, you should see your templaate home page will appear in your web browser at http://localhost:5000. You've successully included the Agent framework into your project. Click next to continue. 
 
 
 
