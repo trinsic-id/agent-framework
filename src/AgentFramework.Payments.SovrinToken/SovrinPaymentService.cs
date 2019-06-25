@@ -19,6 +19,7 @@ namespace AgentFramework.Payments.SovrinToken
         private readonly IWalletRecordService recordService;
         private readonly IPoolService poolService;
         private readonly IProvisioningService provisioningService;
+        private IDictionary<string, ulong> _transactionFees;
 
         public SovrinPaymentService(
             IWalletRecordService recordService,
@@ -77,11 +78,25 @@ namespace AgentFramework.Payments.SovrinToken
             }
             return new PaymentAmount
             {
-                Value = paymentAddress.Sources
+                Value = paymentAddress.Sources.Any() ?
+                    paymentAddress.Sources
                     .Select(x => x.Amount)
-                    .Aggregate((x, y) => x + y),
+                    .Aggregate((x, y) => x + y) : 0,
                 Currency = TokenConfiguration.MethodName
             };
+        }
+
+        public async Task<IDictionary<string, ulong>> GetTransactionFeesAsync(IAgentContext agentContext)
+        {
+            if (_transactionFees == null)
+            {
+                var feesRequest = await Indy.Payments.BuildGetTxnFeesRequestAsync(agentContext.Wallet, null, TokenConfiguration.MethodName);
+                var feesResponse = await Ledger.SubmitRequestAsync(await agentContext.Pool, feesRequest);
+
+                var feesParsed = await Indy.Payments.ParseGetTxnFeesResponseAsync(TokenConfiguration.MethodName, feesResponse);
+                _transactionFees = feesParsed.ToObject<IDictionary<string, ulong>>();
+            }
+            return _transactionFees;
         }
 
         /// <inheritdoc />
@@ -103,9 +118,8 @@ namespace AgentFramework.Payments.SovrinToken
                         "Default PaymentAddressRecord not found");
                 }
 
-                addressRecord =
-                    await recordService.GetAsync<PaymentAddressRecord>(agentContext.Wallet,
-                        provisioning.DefaultPaymentAddressId);
+                addressRecord = await recordService.GetAsync<PaymentAddressRecord>(
+                    agentContext.Wallet, provisioning.DefaultPaymentAddressId);
             }
 
             var balance = await GetBalanceAsync(agentContext, addressRecord);
