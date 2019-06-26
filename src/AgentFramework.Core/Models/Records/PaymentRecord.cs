@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AgentFramework.Core.Models.Payments;
 using Newtonsoft.Json;
 using Stateless;
 
@@ -24,6 +25,10 @@ namespace AgentFramework.Core.Models.Records
 
         public override string TypeName => "AF.PaymentRecord";
 
+        /// <summary>
+        /// Gets or sets the record associated with this payment.
+        /// Ex: CredentialRecord, SchemaRecord, etc.
+        /// </summary>
         [JsonIgnore]
         public string RecordId
         {
@@ -31,6 +36,10 @@ namespace AgentFramework.Core.Models.Records
             set => Set(value);
         }
 
+        /// <summary>
+        /// Gets or sets the receipt for this payment.
+        /// Receipt can be represented as UTXO source.
+        /// </summary>
         [JsonIgnore]
         public string ReceiptId
         {
@@ -45,6 +54,9 @@ namespace AgentFramework.Core.Models.Records
             set => Set(value);
         }
 
+        /// <summary>
+        /// Gets or sets the payment address or Payee Id.
+        /// </summary>
         [JsonIgnore]
         public string Address
         {
@@ -52,10 +64,14 @@ namespace AgentFramework.Core.Models.Records
             set => Set(value);
         }
 
+        /// <summary>
+        /// Gets or sets the payment amount
+        /// </summary>
         public ulong Amount { get; set; }
 
-        public string PaymentDetails { get; set; }
-
+        /// <summary>
+        /// Gets or sets the state of this record.
+        /// </summary>
         public PaymentState State
         {
             get => _state;

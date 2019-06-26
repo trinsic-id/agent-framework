@@ -128,32 +128,35 @@ namespace AgentFramework.Payments.SovrinToken
                 throw new AgentFrameworkException(ErrorCode.PaymentInsufficientFunds,
                     "Address doesn't have enough funds to make this payment");
             }
+            var txnFee = await GetTransactionFeeAsync(agentContext, "10001");
+
+            var (inputs, outputs) = PaymentUtils.ReconcilePaymentSources(addressRecord, paymentRecord, txnFee);
 
             var paymentResult = await Indy.Payments.BuildPaymentRequestAsync(
                 wallet: agentContext.Wallet,
                 submitterDid: null,
-                inputsJson: addressRecord.Sources.Select(x=> x.Source).ToJson(),
-                outputsJson: new[]
-                {
-                    new IndyPaymentOutputSource
-                    {
-                        Amount = paymentRecord.Amount,
-                        Recipient = paymentRecord.Address
-                    },
-                    new IndyPaymentOutputSource
-                    {
-                        Recipient = addressRecord.Address,
-                        Amount = balance.Value - paymentRecord.Amount
-                    }
-                }.ToJson(),
+                inputsJson: inputs.ToJson(),
+                outputsJson: outputs.ToJson(),
                 extra: null);
             var response = await Ledger.SignAndSubmitRequestAsync(await agentContext.Pool, agentContext.Wallet,
                 provisioning.Endpoint.Did, paymentResult.Result);
 
-            var paymentResponse =
-                await Indy.Payments.ParsePaymentResponseAsync(TokenConfiguration.MethodName, response);
+            var paymentResponse = await Indy.Payments.ParsePaymentResponseAsync(TokenConfiguration.MethodName, response);
+            var paymentOutputs = paymentResponse.ToObject<IList<IndyPaymentOutputSource>>();
+            var paymentOutput = paymentOutputs.SingleOrDefault(x => x.Recipient == paymentRecord.Address);
+            paymentRecord.ReceiptId = paymentOutput.Receipt;
 
             await recordService.UpdateAsync(agentContext.Wallet, paymentRecord);
+        }
+
+        public async Task<ulong> GetTransactionFeeAsync(IAgentContext agentContext, string txnType)
+        {
+            var txn = await GetTransactionFeesAsync(agentContext);
+            if (txn.TryGetValue(txnType, out var amount))
+            {
+                return amount;
+            }
+            return 0;
         }
 
         public Task ProcessPaymentReceipt(IAgentContext agentContext, PaymentReceiptDecorator receiptDecorator, RecordBase recordBase = null)
@@ -164,6 +167,15 @@ namespace AgentFramework.Payments.SovrinToken
         public Task ProcessPaymentRequest(IAgentContext agentContext, PaymentRequestDecorator requestDecorator, RecordBase recordBase = null)
         {
             throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public async Task SetDefaultPaymentAddressAsync(IAgentContext agentContext, PaymentAddressRecord addressRecord)
+        {
+            var provisioning = await provisioningService.GetProvisioningAsync(agentContext.Wallet);
+            provisioning.DefaultPaymentAddressId = addressRecord.Id;
+
+            await recordService.UpdateAsync(agentContext.Wallet, provisioning);
         }
     }
 }

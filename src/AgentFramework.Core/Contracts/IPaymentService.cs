@@ -8,6 +8,10 @@ namespace AgentFramework.Core.Contracts
 {
     public interface IPaymentService
     {
+        Task SetDefaultPaymentAddressAsync(IAgentContext agentContext, PaymentAddressRecord addressRecord);
+
+        Task<ulong> GetTransactionFeeAsync(IAgentContext agentContext, string transactionType);
+
         Task<IDictionary<string, ulong>> GetTransactionFeesAsync(IAgentContext agentContext);
 
         Task<PaymentAddressRecord> CreatePaymentAddressAsync(IAgentContext agentContext, PaymentAddressConfiguration configuration = null);
