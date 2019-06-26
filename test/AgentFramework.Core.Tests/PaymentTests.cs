@@ -39,7 +39,7 @@ namespace AgentFramework.Core.Tests
 
             var amount = (ulong)new Random().Next(100, int.MaxValue);
             var request = await Indy.Payments.BuildMintRequestAsync(Context.Wallet, Trustee.Did,
-                new[] { new { recipient = address.Address, amount = amount } }.ToJson(), null);
+                new[] { new IndyPaymentOutputSource { Recipient = address.Address, Amount = amount } }.ToJson(), null);
 
             var mintResponse = await TrusteeMultiSignAndSubmitRequestAsync(request.Result);
 
@@ -62,17 +62,33 @@ namespace AgentFramework.Core.Tests
         [Fact(DisplayName = "Transfer funds between Sovrin addresses")]
         public async Task TransferFundsAsync()
         {
-            //var address2 = await paymentService.CreatePaymentAddressAsync(Context, new PaymentAddressConfiguration
-            //{
-            //    AccountId = "000000000000000000000000Account1"
-            //});
+            // Generate from address
+            var paymentService = Host.Services.GetService<IPaymentService>();
+            var addressFrom = await paymentService.CreatePaymentAddressAsync(Context);
 
-            //var paymentRecord = new PaymentRecord
-            //{
-            //    Address = address2.Address,
-            //    Amount = (ulong)new Random().Next(100)
-            //};
-            //await paymentService.MakePaymentAsync(Context, paymentRecord, address);
+            // Mint tokens to the address to fund initially
+            var request = await Indy.Payments.BuildMintRequestAsync(Context.Wallet, Trustee.Did,
+                new[] { new { recipient = addressFrom.Address, amount = 15 } }.ToJson(), null);
+            await TrusteeMultiSignAndSubmitRequestAsync(request.Result);
+
+            // Generate destination address
+            var addressTo = await paymentService.CreatePaymentAddressAsync(Context);
+
+            // Create payment record and make payment
+            var paymentRecord = new PaymentRecord
+            {
+                Address = addressTo.Address,
+                Amount = 10
+            };
+            await paymentService.MakePaymentAsync(Context, paymentRecord, addressFrom);
+
+            var fee = await paymentService.GetTransactionFeeAsync(Context, "10001");
+
+            var balanceFrom = await paymentService.GetBalanceAsync(Context, addressFrom);
+            var balanceTo = await paymentService.GetBalanceAsync(Context, addressTo);
+
+            Assert.Equal(10UL, balanceTo.Value + fee);
+            Assert.Equal(5UL - fee, balanceFrom.Value);
         }
 
         /*
@@ -94,12 +110,20 @@ namespace AgentFramework.Core.Tests
             var request = await Indy.Payments.BuildSetTxnFeesRequestAsync(Context.Wallet, Trustee.Did, TokenConfiguration.MethodName,
                 new Dictionary<string, ulong>
                 {
-                    { "101", 0 }
+                    { "101", 1 }
                 }.ToJson());
             var response = await TrusteeMultiSignAndSubmitRequestAsync(request);
             var jResponse = JObject.Parse(response);
 
             Assert.Equal(jResponse["op"].ToString(), "REPLY");
+
+            // Cleanup and revert back fees to 0
+            request = await Indy.Payments.BuildSetTxnFeesRequestAsync(Context.Wallet, Trustee.Did, TokenConfiguration.MethodName,
+                new Dictionary<string, ulong>
+                {
+                    { "101", 0 }
+                }.ToJson());
+            await TrusteeMultiSignAndSubmitRequestAsync(request);
         }
     }
 }
