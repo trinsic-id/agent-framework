@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using AgentFramework.Core.Models.Ledger;
 using Hyperledger.Indy.LedgerApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
@@ -10,6 +12,13 @@ namespace AgentFramework.Core.Contracts
     /// </summary>
     public interface ILedgerService
     {
+        /// <summary>
+        /// Gets a list of all authorization rules for the given pool
+        /// </summary>
+        /// <param name="pool"></param>
+        /// <returns></returns>
+        Task<IList<AuthorizationRule>> LookupAuthorizationRulesAsync(Pool pool);
+
         /// <summary>
         /// Looks up an attribute value on the ledger.
         /// </summary>

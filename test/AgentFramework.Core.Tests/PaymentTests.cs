@@ -16,6 +16,8 @@ using AgentFramework.Payments.SovrinToken;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using Polly;
+using System.Linq;
+using AgentFramework.Core.Models.Ledger;
 
 namespace AgentFramework.Core.Tests
 {
@@ -43,11 +45,9 @@ namespace AgentFramework.Core.Tests
 
             var mintResponse = await TrusteeMultiSignAndSubmitRequestAsync(request.Result);
 
-            var totalAmount = await Policy.HandleResult<PaymentAmount>(x => x.Value == 0)
-                .WaitAndRetryAsync(5, x => TimeSpan.FromSeconds(2))
-                .ExecuteAsync(() => paymentService.GetBalanceAsync(Context, true, address));
+            await paymentService.GetBalanceAsync(Context, address);
 
-            Assert.Equal(totalAmount.Value, amount);
+            Assert.Equal(address.Balance, amount);
         }
 
         [Fact(DisplayName = "Get transaction fees from ledger")]
@@ -99,13 +99,13 @@ namespace AgentFramework.Core.Tests
             await recordService.AddAsync(Context.Wallet, paymentRecord);
             await paymentService.MakePaymentAsync(Context, paymentRecord, addressFrom);
 
-            var fee = await paymentService.GetTransactionFeeAsync(Context, "10001");
+            var fee = await paymentService.GetTransactionFeeAsync(Context, TransactionTypes.XFER_PUBLIC);
 
-            var balanceFrom = await paymentService.GetBalanceAsync(Context, true, addressFrom);
-            var balanceTo = await paymentService.GetBalanceAsync(Context, true, addressTo);
+            await paymentService.GetBalanceAsync(Context, addressFrom);
+            await paymentService.GetBalanceAsync(Context, addressTo);
 
-            Assert.Equal(10UL, balanceTo.Value);
-            Assert.Equal(5UL - fee, balanceFrom.Value);
+            Assert.Equal(10UL, addressTo.Balance);
+            Assert.Equal(5UL - fee, addressTo.Balance);
         }
 
         /*
@@ -124,10 +124,22 @@ namespace AgentFramework.Core.Tests
         [Fact(DisplayName = "Get auth rules from the ledger")]
         public async Task GetAuthRules()
         {
-            var request = await Ledger.BuildGetAuthRuleRequestAsync(null, null, null, null, null, null);
-            var respinse = await Ledger.SubmitRequestAsync(await Context.Pool, request);
+            var ledgerService = Host.Services.GetService<ILedgerService>();
 
-            Console.WriteLine(respinse);
+            var rules = await ledgerService.LookupAuthorizationRulesAsync(await Context.Pool);
+
+            Assert.NotNull(rules);
+            Assert.True(rules.Any());
+            Assert.True(rules.Count > 0);
+        }
+
+        [Fact(DisplayName = "Get transaction fees for a specific type")]
+        public async Task GetTxnFeesAsync()
+        {
+            var paymentService = Host.Services.GetService<IPaymentService>();
+            _ = await paymentService.GetTransactionFeeAsync(Context, TransactionTypes.SCHEMA);
+
+            Assert.True(true);
         }
 
         /*

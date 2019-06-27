@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AgentFramework.Core.Models.Payments;
 using Newtonsoft.Json;
 
@@ -10,6 +11,7 @@ namespace AgentFramework.Core.Models.Records
         public PaymentAddressRecord()
         {
             Id = Guid.NewGuid().ToString();
+            Sources = new List<IndyPaymentInputSource>();
         }
 
         public override string TypeName => "AF.PaymentAddress";
@@ -27,6 +29,12 @@ namespace AgentFramework.Core.Models.Records
             get => Get();
             set => Set(value);
         }
+
+        [JsonIgnore]
+        public ulong Balance =>
+            Sources.Any()
+            ? Sources.Select(x => x.Amount).Aggregate((x, y) => x + y)
+            : 0;
 
         public DateTime SourcesSyncedAt { get; set; }
 

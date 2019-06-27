@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Models.Ledger;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.LedgerApi;
@@ -69,7 +71,7 @@ namespace AgentFramework.Core.Handlers.Agents
 
             return await Ledger.ParseGetRevocRegResponseAsync(res);
         }
-        
+
         /// <inheritdoc />
         public virtual async Task RegisterSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string schemaJson)
         {
@@ -78,7 +80,7 @@ namespace AgentFramework.Core.Handlers.Agents
 
             EnsureSuccessResponse(res);
         }
-        
+
         /// <inheritdoc />
         public virtual async Task RegisterCredentialDefinitionAsync(Wallet wallet, Pool pool, string submitterDid, string data)
         {
@@ -87,7 +89,7 @@ namespace AgentFramework.Core.Handlers.Agents
 
             EnsureSuccessResponse(res);
         }
-        
+
         /// <inheritdoc />
         public virtual async Task RegisterRevocationRegistryDefinitionAsync(Wallet wallet, Pool pool, string submitterDid,
             string data)
@@ -127,7 +129,7 @@ namespace AgentFramework.Core.Handlers.Agents
         {
             var req = await Ledger.BuildGetAttribRequestAsync(null, targetDid, attributeName, null, null);
             var res = await Ledger.SubmitRequestAsync(pool, req);
-            
+
             return null;
         }
 
@@ -152,14 +154,7 @@ namespace AgentFramework.Core.Handlers.Agents
             EnsureSuccessResponse(res);
         }
 
-        void EnsureSuccessResponse(string res)
-        {
-            var response = JObject.Parse(res);
-
-            if (!response["op"].ToObject<string>().Equals("reply", StringComparison.OrdinalIgnoreCase))
-                throw new AgentFrameworkException(ErrorCode.LedgerOperationRejected, "Ledger operation rejected");
-        }
-
+        /// <inheritdoc />
         public async Task<string> LookupNymAsync(Pool pool, string did)
         {
             var req = await Ledger.BuildGetNymRequestAsync(null, did);
@@ -168,6 +163,26 @@ namespace AgentFramework.Core.Handlers.Agents
             EnsureSuccessResponse(res);
 
             return res;
+        }
+
+        /// <inheritdoc />
+        public async Task<IList<AuthorizationRule>> LookupAuthorizationRulesAsync(Pool pool)
+        {
+            var req = await Ledger.BuildGetAuthRuleRequestAsync(null, null, null, null, null, null);
+            var res = await Ledger.SubmitRequestAsync(pool, req);
+
+            EnsureSuccessResponse(res);
+
+            var jobj = JObject.Parse(res);
+            return jobj["result"]["data"].ToObject<IList<AuthorizationRule>>();
+        }
+
+        void EnsureSuccessResponse(string res)
+        {
+            var response = JObject.Parse(res);
+
+            if (!response["op"].ToObject<string>().Equals("reply", StringComparison.OrdinalIgnoreCase))
+                throw new AgentFrameworkException(ErrorCode.LedgerOperationRejected, "Ledger operation rejected");
         }
     }
 }

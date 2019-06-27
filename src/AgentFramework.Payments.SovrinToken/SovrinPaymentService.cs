@@ -9,6 +9,7 @@ using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Models.Records;
 using Hyperledger.Indy.LedgerApi;
+using Microsoft.Extensions.Logging;
 using Indy = Hyperledger.Indy.PaymentsApi;
 // ReSharper disable All
 
@@ -18,17 +19,23 @@ namespace AgentFramework.Payments.SovrinToken
     {
         private readonly IWalletRecordService recordService;
         private readonly IPoolService poolService;
+        private readonly ILedgerService ledgerService;
         private readonly IProvisioningService provisioningService;
+        private readonly ILogger<SovrinPaymentService> logger;
         private IDictionary<string, ulong> _transactionFees;
 
         public SovrinPaymentService(
             IWalletRecordService recordService,
             IPoolService poolService,
-            IProvisioningService provisioningService)
+            ILedgerService ledgerService,
+            IProvisioningService provisioningService,
+            ILogger<SovrinPaymentService> logger)
         {
             this.recordService = recordService;
             this.poolService = poolService;
+            this.ledgerService = ledgerService;
             this.provisioningService = provisioningService;
+            this.logger = logger;
         }
 
         /// <inheritdoc />
@@ -51,7 +58,7 @@ namespace AgentFramework.Payments.SovrinToken
         }
 
         /// <inheritdoc />
-        public async Task<PaymentAmount> GetBalanceAsync(IAgentContext agentContext, bool forceRefresh, PaymentAddressRecord paymentAddress = null)
+        public async Task GetBalanceAsync(IAgentContext agentContext, PaymentAddressRecord paymentAddress = null)
         {
             if (paymentAddress == null)
             {
@@ -65,25 +72,14 @@ namespace AgentFramework.Payments.SovrinToken
             }
 
             // Cache sources data in record for one hour
-            if (paymentAddress.SourcesSyncedAt < DateTime.Now.AddHours(-1) || forceRefresh)
-            {
-                var request = await Indy.Payments.BuildGetPaymentSourcesAsync(agentContext.Wallet, null, paymentAddress.Address);
-                var response = await Ledger.SubmitRequestAsync(await agentContext.Pool, request.Result);
+            var request = await Indy.Payments.BuildGetPaymentSourcesAsync(agentContext.Wallet, null, paymentAddress.Address);
+            var response = await Ledger.SubmitRequestAsync(await agentContext.Pool, request.Result);
 
-                var parsed = await Indy.Payments.ParseGetPaymentSourcesAsync(paymentAddress.Method, response);
-                var paymentResult = parsed.ToObject<IList<IndyPaymentInputSource>>();
-                paymentAddress.Sources = paymentResult;
-                paymentAddress.SourcesSyncedAt = DateTime.Now;
-                await recordService.UpdateAsync(agentContext.Wallet, paymentAddress);
-            }
-            return new PaymentAmount
-            {
-                Value = paymentAddress.Sources.Any() ?
-                    paymentAddress.Sources
-                    .Select(x => x.Amount)
-                    .Aggregate((x, y) => x + y) : 0,
-                Currency = TokenConfiguration.MethodName
-            };
+            var parsed = await Indy.Payments.ParseGetPaymentSourcesAsync(paymentAddress.Method, response);
+            var paymentResult = parsed.ToObject<IList<IndyPaymentInputSource>>();
+            paymentAddress.Sources = paymentResult;
+            paymentAddress.SourcesSyncedAt = DateTime.Now;
+            await recordService.UpdateAsync(agentContext.Wallet, paymentAddress);
         }
 
         public async Task<IDictionary<string, ulong>> GetTransactionFeesAsync(IAgentContext agentContext)
@@ -122,8 +118,8 @@ namespace AgentFramework.Payments.SovrinToken
                     agentContext.Wallet, provisioning.DefaultPaymentAddressId);
             }
 
-            var balance = await GetBalanceAsync(agentContext, true, addressFromRecord);
-            if (balance.Value < paymentRecord.Amount)
+            await GetBalanceAsync(agentContext, addressFromRecord);
+            if (addressFromRecord.Balance < paymentRecord.Amount)
             {
                 throw new AgentFrameworkException(ErrorCode.PaymentInsufficientFunds,
                     "Address doesn't have enough funds to make this payment");
@@ -165,8 +161,42 @@ namespace AgentFramework.Payments.SovrinToken
 
         public async Task<ulong> GetTransactionFeeAsync(IAgentContext agentContext, string txnType)
         {
-            var txn = await GetTransactionFeesAsync(agentContext);
-            if (txn.TryGetValue(txnType, out var amount))
+            var feeAliases = await GetTransactionFeesAsync(agentContext);
+            var authRules = await ledgerService.LookupAuthorizationRulesAsync(await agentContext.Pool);
+
+            // TODO: Add better selective logic that takes action and role into account
+            // Ex: ADD action may have fees, but EDIT may not have any
+            // Ex: Steward costs may be different than TrustAnchor costs, etc.
+
+            var constraints = authRules
+                .Where(x => x.TransactionType == txnType)
+                .Select(x => x.Constraint)
+                .Where(x => x.Metadata?.Fee != null);
+
+            if (constraints.Count() > 1)
+            {
+                logger.LogWarning("Multiple fees found for {TransactionType} {Fees}", txnType, constraints.ToArray());
+            }
+
+            var constraint = constraints.FirstOrDefault();
+            if (constraint != null && feeAliases.TryGetValue(constraint.Metadata.Fee, out var amount))
+            {
+                return amount;
+            }
+
+            constraints = authRules
+                .Where(x => x.TransactionType == txnType)
+                .Where(x => x.Constraint.Constraints != null)
+                .SelectMany(x => x.Constraint.Constraints)
+                .Where(x => x.Metadata?.Fee != null);
+
+            if (constraints.Count() > 1)
+            {
+                logger.LogWarning("Multiple fees found for {TransactionType} {Fees}", txnType, constraints.ToArray());
+            }
+
+            constraint = constraints.FirstOrDefault();
+            if (constraint != null && feeAliases.TryGetValue(constraint.Metadata.Fee, out amount))
             {
                 return amount;
             }
