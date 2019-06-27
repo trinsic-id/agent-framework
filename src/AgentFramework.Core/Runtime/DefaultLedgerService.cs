@@ -159,5 +159,15 @@ namespace AgentFramework.Core.Handlers.Agents
             if (!response["op"].ToObject<string>().Equals("reply", StringComparison.OrdinalIgnoreCase))
                 throw new AgentFrameworkException(ErrorCode.LedgerOperationRejected, "Ledger operation rejected");
         }
+
+        public async Task<string> LookupNymAsync(Pool pool, string did)
+        {
+            var req = await Ledger.BuildGetNymRequestAsync(null, did);
+            var res = await Ledger.SubmitRequestAsync(pool, req);
+
+            EnsureSuccessResponse(res);
+
+            return res;
+        }
     }
 }

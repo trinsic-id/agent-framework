@@ -45,7 +45,7 @@ namespace AgentFramework.Core.Tests
 
             var totalAmount = await Policy.HandleResult<PaymentAmount>(x => x.Value == 0)
                 .WaitAndRetryAsync(5, x => TimeSpan.FromSeconds(2))
-                .ExecuteAsync(() => paymentService.GetBalanceAsync(Context, address));
+                .ExecuteAsync(() => paymentService.GetBalanceAsync(Context, true, address));
 
             Assert.Equal(totalAmount.Value, amount);
         }
@@ -59,11 +59,27 @@ namespace AgentFramework.Core.Tests
             Assert.NotNull(fees);
         }
 
+        [Fact(DisplayName = "Create schema")]
+        public async Task CreateSchemaWithFeesAsync()
+        {
+            var provService = Host.Services.GetService<IProvisioningService>();
+            var schemaService = Host.Services.GetService<ISchemaService>();
+            var ledgerService = Host.Services.GetService<ILedgerService>();
+
+            var prov = await provService.GetProvisioningAsync(Context.Wallet);
+
+            var request = await Ledger.BuildNymRequestAsync(Trustee.Did, prov.IssuerDid, prov.IssuerVerkey, null, "TRUST_ANCHOR");
+            var response = await Ledger.SignAndSubmitRequestAsync(await Context.Pool, Context.Wallet, Trustee.Did, request);
+
+            await schemaService.CreateSchemaAsync(await Context.Pool, Context.Wallet, $"test{Guid.NewGuid().ToString("N")}", "1.0", new[] { "name-one" });
+        }
+
         [Fact(DisplayName = "Transfer funds between Sovrin addresses")]
         public async Task TransferFundsAsync()
         {
             // Generate from address
             var paymentService = Host.Services.GetService<IPaymentService>();
+            var recordService = Host.Services.GetService<IWalletRecordService>();
             var addressFrom = await paymentService.CreatePaymentAddressAsync(Context);
 
             // Mint tokens to the address to fund initially
@@ -80,14 +96,15 @@ namespace AgentFramework.Core.Tests
                 Address = addressTo.Address,
                 Amount = 10
             };
+            await recordService.AddAsync(Context.Wallet, paymentRecord);
             await paymentService.MakePaymentAsync(Context, paymentRecord, addressFrom);
 
             var fee = await paymentService.GetTransactionFeeAsync(Context, "10001");
 
-            var balanceFrom = await paymentService.GetBalanceAsync(Context, addressFrom);
-            var balanceTo = await paymentService.GetBalanceAsync(Context, addressTo);
+            var balanceFrom = await paymentService.GetBalanceAsync(Context, true, addressFrom);
+            var balanceTo = await paymentService.GetBalanceAsync(Context, true, addressTo);
 
-            Assert.Equal(10UL, balanceTo.Value + fee);
+            Assert.Equal(10UL, balanceTo.Value);
             Assert.Equal(5UL - fee, balanceFrom.Value);
         }
 
@@ -104,13 +121,112 @@ namespace AgentFramework.Core.Tests
                 XFER_PUBLIC, 10001 '''
         */
 
+        [Fact(DisplayName = "Get auth rules from the ledger")]
+        public async Task GetAuthRules()
+        {
+            var request = await Ledger.BuildGetAuthRuleRequestAsync(null, null, null, null, null, null);
+            var respinse = await Ledger.SubmitRequestAsync(await Context.Pool, request);
+
+            Console.WriteLine(respinse);
+        }
+
+        /*
+              {
+        "auth_type": "101",
+        "new_value": "*",
+        "field": "*",
+        "auth_action": "ADD",
+        "constraint": {
+          "constraint_id": "OR",
+          "auth_constraints": [
+            {
+              "metadata": {
+                
+              },
+              "constraint_id": "ROLE",
+              "need_to_be_owner": false,
+              "role": "0",
+              "sig_count": 1
+            },
+            {
+              "metadata": {
+                
+              },
+              "constraint_id": "ROLE",
+              "need_to_be_owner": false,
+              "role": "2",
+              "sig_count": 1
+            },
+            {
+              "metadata": {
+                
+              },
+              "constraint_id": "ROLE",
+              "need_to_be_owner": false,
+              "role": "101",
+              "sig_count": 1
+            }
+          ]
+        }
+      },
+             */
+
+        [Fact(DisplayName = "Set auth rules for 101 (SCHEMA) transactions to use fees")]
+        public async Task SetFeesForSchemaTransactionsAsync()
+        {
+            var request = await Indy.Payments.BuildSetTxnFeesRequestAsync(Context.Wallet, Trustee.Did, TokenConfiguration.MethodName,
+                new Dictionary<string, ulong>
+                {
+                                { "fees_for_schema", 10 }
+                }.ToJson());
+            var response = await TrusteeMultiSignAndSubmitRequestAsync(request);
+
+            request = await Ledger.BuildAuthRuleRequestAsync(Trustee.Did, "101", "ADD", "*", "*", "*", new
+            {
+                constraint_id = "OR",
+                auth_constraints = new[] {
+                    new {
+                        metadata = new {
+                            fees = "fees_for_schema"
+                        },
+                      constraint_id = "ROLE",
+                      need_to_be_owner = false,
+                      role = "0",
+                      sig_count = 1
+                    },
+                    new {
+                        metadata= new {
+                            fees = "fees_for_schema"
+                        },
+                      constraint_id= "ROLE",
+                      need_to_be_owner= false,
+                      role= "2",
+                      sig_count= 1
+                    },
+                    new {
+                        metadata= new {
+                            fees = "fees_for_schema"
+                        },
+                      constraint_id= "ROLE",
+                      need_to_be_owner= false,
+                      role= "101",
+                      sig_count= 1
+                    }
+                }
+            }.ToJson());
+            response = await TrusteeMultiSignAndSubmitRequestAsync(request);
+
+            Console.WriteLine(response);
+        }
+
         [Fact(DisplayName = "Set transaction fees")]
         public async Task SetTransactionFees()
         {
             var request = await Indy.Payments.BuildSetTxnFeesRequestAsync(Context.Wallet, Trustee.Did, TokenConfiguration.MethodName,
                 new Dictionary<string, ulong>
                 {
-                    { "101", 1 }
+                    { "101", 1 },
+                    { "10001", 2 }
                 }.ToJson());
             var response = await TrusteeMultiSignAndSubmitRequestAsync(request);
             var jResponse = JObject.Parse(response);
@@ -121,7 +237,8 @@ namespace AgentFramework.Core.Tests
             request = await Indy.Payments.BuildSetTxnFeesRequestAsync(Context.Wallet, Trustee.Did, TokenConfiguration.MethodName,
                 new Dictionary<string, ulong>
                 {
-                    { "101", 0 }
+                    { "101", 0 },
+                    { "10001", 0 }
                 }.ToJson());
             await TrusteeMultiSignAndSubmitRequestAsync(request);
         }

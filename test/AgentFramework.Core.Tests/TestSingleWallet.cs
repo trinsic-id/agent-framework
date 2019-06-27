@@ -46,7 +46,7 @@ namespace AgentFramework.Core.Tests
                 .ConfigureServices(services =>
                     services.AddAgentFramework(builder =>
                         builder
-                            .AddBasicAgent(config =>
+                            .AddIssuerAgent(config =>
                             {
                                 config.EndpointUri = new Uri("http://test");
                                 config.SupportPayments = true;

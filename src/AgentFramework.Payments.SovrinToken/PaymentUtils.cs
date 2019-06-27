@@ -9,12 +9,12 @@ namespace AgentFramework.Payments.SovrinToken
 {
     internal static class PaymentUtils
     {
-        internal static (IEnumerable<string> inputs, IEnumerable<IndyPaymentOutputSource> outputs) ReconcilePaymentSources(PaymentAddressRecord addressRecord, PaymentRecord paymentRecord, ulong txnFee)
+        internal static (IEnumerable<string> inputs, IEnumerable<IndyPaymentOutputSource> outputs, IEnumerable<IndyPaymentOutputSource> feesOutputs) ReconcilePaymentSources(PaymentAddressRecord addressRecord, PaymentRecord paymentRecord, ulong txnFee)
         {
             return ReconcilePaymentSources(addressRecord.Sources, paymentRecord.Address, paymentRecord.Amount, txnFee);
         }
 
-        private static (IEnumerable<string> inputs, IEnumerable<IndyPaymentOutputSource> outputs) ReconcilePaymentSources(IList<IndyPaymentInputSource> sources, string address, ulong amount, ulong txnFee)
+        private static (IEnumerable<string> inputs, IEnumerable<IndyPaymentOutputSource> outputs, IEnumerable<IndyPaymentOutputSource> feesOutputs) ReconcilePaymentSources(IList<IndyPaymentInputSource> sources, string address, ulong amount, ulong txnFee)
         {
             if (amount == 0) throw new ArgumentOutOfRangeException(nameof(amount), "Cannot make a 0 payment");
             if (address == null) throw new ArgumentNullException(nameof(address), "Address must be specified");
@@ -36,11 +36,18 @@ namespace AgentFramework.Payments.SovrinToken
                     new IndyPaymentOutputSource
                     {
                         Amount = amount,
-                        Recipient = selectedInputs.First().PaymentAddress
+                        Recipient = address
                     },
                     new IndyPaymentOutputSource
                     {
-                        Recipient = address,
+                        Recipient = selectedInputs.First().PaymentAddress,
+                        Amount = Total(selectedInputs) - amount - txnFee
+                    }
+                }, new[]
+                {
+                   new IndyPaymentOutputSource
+                    {
+                        Recipient = selectedInputs.First().PaymentAddress,
                         Amount = Total(selectedInputs) - amount - txnFee
                     }
                 });

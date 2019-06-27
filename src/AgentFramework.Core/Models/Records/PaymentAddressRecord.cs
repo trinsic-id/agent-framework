@@ -7,6 +7,11 @@ namespace AgentFramework.Core.Models.Records
 {
     public class PaymentAddressRecord : RecordBase
     {
+        public PaymentAddressRecord()
+        {
+            Id = Guid.NewGuid().ToString();
+        }
+
         public override string TypeName => "AF.PaymentAddress";
 
         [JsonIgnore]

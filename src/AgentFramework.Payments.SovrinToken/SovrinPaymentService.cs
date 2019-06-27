@@ -51,7 +51,7 @@ namespace AgentFramework.Payments.SovrinToken
         }
 
         /// <inheritdoc />
-        public async Task<PaymentAmount> GetBalanceAsync(IAgentContext agentContext, PaymentAddressRecord paymentAddress = null)
+        public async Task<PaymentAmount> GetBalanceAsync(IAgentContext agentContext, bool forceRefresh, PaymentAddressRecord paymentAddress = null)
         {
             if (paymentAddress == null)
             {
@@ -65,7 +65,7 @@ namespace AgentFramework.Payments.SovrinToken
             }
 
             // Cache sources data in record for one hour
-            if (paymentAddress.SourcesSyncedAt < DateTime.Now.AddHours(-1))
+            if (paymentAddress.SourcesSyncedAt < DateTime.Now.AddHours(-1) || forceRefresh)
             {
                 var request = await Indy.Payments.BuildGetPaymentSourcesAsync(agentContext.Wallet, null, paymentAddress.Address);
                 var response = await Ledger.SubmitRequestAsync(await agentContext.Pool, request.Result);
@@ -101,7 +101,7 @@ namespace AgentFramework.Payments.SovrinToken
 
         /// <inheritdoc />
         public async Task MakePaymentAsync(IAgentContext agentContext, PaymentRecord paymentRecord,
-            PaymentAddressRecord addressRecord = null)
+            PaymentAddressRecord addressFromRecord = null)
         {
             await paymentRecord.TriggerAsync(PaymentTrigger.ProcessPayment);
             if (paymentRecord.Address == null)
@@ -110,7 +110,7 @@ namespace AgentFramework.Payments.SovrinToken
             }
 
             var provisioning = await provisioningService.GetProvisioningAsync(agentContext.Wallet);
-            if (addressRecord == null)
+            if (addressFromRecord == null)
             {
                 if (provisioning.DefaultPaymentAddressId == null)
                 {
@@ -118,11 +118,11 @@ namespace AgentFramework.Payments.SovrinToken
                         "Default PaymentAddressRecord not found");
                 }
 
-                addressRecord = await recordService.GetAsync<PaymentAddressRecord>(
+                addressFromRecord = await recordService.GetAsync<PaymentAddressRecord>(
                     agentContext.Wallet, provisioning.DefaultPaymentAddressId);
             }
 
-            var balance = await GetBalanceAsync(agentContext, addressRecord);
+            var balance = await GetBalanceAsync(agentContext, true, addressFromRecord);
             if (balance.Value < paymentRecord.Amount)
             {
                 throw new AgentFrameworkException(ErrorCode.PaymentInsufficientFunds,
@@ -130,7 +130,7 @@ namespace AgentFramework.Payments.SovrinToken
             }
             var txnFee = await GetTransactionFeeAsync(agentContext, "10001");
 
-            var (inputs, outputs) = PaymentUtils.ReconcilePaymentSources(addressRecord, paymentRecord, txnFee);
+            var (inputs, outputs, feesOutputs) = PaymentUtils.ReconcilePaymentSources(addressFromRecord, paymentRecord, txnFee);
 
             var paymentResult = await Indy.Payments.BuildPaymentRequestAsync(
                 wallet: agentContext.Wallet,
@@ -138,8 +138,22 @@ namespace AgentFramework.Payments.SovrinToken
                 inputsJson: inputs.ToJson(),
                 outputsJson: outputs.ToJson(),
                 extra: null);
+
+            var request = paymentResult.Result;
+            if (txnFee > 0)
+            {
+                var feesRequest = await Indy.Payments.AddRequestFeesAsync(
+                    agentContext.Wallet,
+                    null,
+                    request,
+                    inputs.ToJson(),
+                    feesOutputs.ToJson(),
+                    null);
+                request = feesRequest.Result;
+            }
+
             var response = await Ledger.SignAndSubmitRequestAsync(await agentContext.Pool, agentContext.Wallet,
-                provisioning.Endpoint.Did, paymentResult.Result);
+                provisioning.Endpoint.Did, request);
 
             var paymentResponse = await Indy.Payments.ParsePaymentResponseAsync(TokenConfiguration.MethodName, response);
             var paymentOutputs = paymentResponse.ToObject<IList<IndyPaymentOutputSource>>();

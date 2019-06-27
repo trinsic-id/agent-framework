@@ -18,7 +18,7 @@ namespace AgentFramework.Core.Contracts
 
         Task MakePaymentAsync(IAgentContext agentContext, PaymentRecord paymentRecord, PaymentAddressRecord addressRecord = null);
 
-        Task<PaymentAmount> GetBalanceAsync(IAgentContext agentContext, PaymentAddressRecord paymentAddress = null);
+        Task<PaymentAmount> GetBalanceAsync(IAgentContext agentContext, bool forceRefresh = false, PaymentAddressRecord paymentAddress = null);
 
         Task ProcessPaymentRequest(IAgentContext agentContext, PaymentRequestDecorator requestDecorator, RecordBase recordBase = null);
 

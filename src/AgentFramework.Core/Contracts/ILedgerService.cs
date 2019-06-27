@@ -43,6 +43,14 @@ namespace AgentFramework.Core.Contracts
         Task<ParseResponseResult> LookupSchemaAsync(Pool pool, string schemaId);
 
         /// <summary>
+        /// Lookup NYM record on the ledger
+        /// </summary>
+        /// <param name="pool"></param>
+        /// <param name="did"></param>
+        /// <returns></returns>
+        Task<string> LookupNymAsync(Pool pool, string did);
+
+        /// <summary>
         /// Lookup the ledger transaction async.
         /// </summary>
         /// <param name="pool">The pool.</param>

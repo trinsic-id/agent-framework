@@ -15,7 +15,7 @@ namespace AgentFramework.Core.Runtime
             throw new NotSupportedException();
         }
 
-        public Task<PaymentAmount> GetBalanceAsync(IAgentContext agentContext, PaymentAddressRecord paymentAddress = null)
+        public Task<PaymentAmount> GetBalanceAsync(IAgentContext agentContext, bool forceRefresh = false, PaymentAddressRecord paymentAddress = null)
         {
             throw new NotSupportedException();
         }
