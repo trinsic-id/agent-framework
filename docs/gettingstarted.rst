@@ -2,8 +2,6 @@
 Getting Started Guide
 *********************
 
-.. toctree::
-
 Creating a New Project
 +++++++++++++++++++++++++++++
 
