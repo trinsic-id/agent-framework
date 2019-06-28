@@ -376,7 +376,7 @@ namespace AgentFramework.Core.Tests
 
             await paymentService.GetBalanceAsync(Context, address[0]);
             await paymentService.GetBalanceAsync(Context, address[2]);
-            Assert.Equal(expectedBalX, address[1].Balance);
+            Assert.Equal(expectedBalX, address[0].Balance);
             Assert.Equal(expectedBalY, address[2].Balance);
         }
     }
