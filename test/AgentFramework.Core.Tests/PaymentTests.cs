@@ -111,7 +111,7 @@ namespace AgentFramework.Core.Tests
             await paymentService.GetBalanceAsync(Context, addressTo);
 
             Assert.Equal(10UL, addressTo.Balance);
-            Assert.Equal(5UL - fee, addressTo.Balance);
+            Assert.Equal(5UL - fee, addressFrom.Balance);
         }
 
         /*

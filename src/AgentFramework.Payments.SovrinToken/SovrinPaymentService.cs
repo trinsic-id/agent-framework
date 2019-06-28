@@ -126,7 +126,7 @@ namespace AgentFramework.Payments.SovrinToken
             }
             var txnFee = await GetTransactionFeeAsync(agentContext, "10001");
 
-            var (inputs, outputs, feesOutputs) = PaymentUtils.ReconcilePaymentSources(addressFromRecord, paymentRecord, txnFee);
+            var (inputs, outputs) = PaymentUtils.ReconcilePaymentSources(addressFromRecord, paymentRecord, txnFee);
 
             var paymentResult = await Indy.Payments.BuildPaymentRequestAsync(
                 wallet: agentContext.Wallet,
@@ -138,14 +138,14 @@ namespace AgentFramework.Payments.SovrinToken
             var request = paymentResult.Result;
             if (txnFee > 0)
             {
-                var feesRequest = await Indy.Payments.AddRequestFeesAsync(
-                    agentContext.Wallet,
-                    null,
-                    request,
-                    inputs.ToJson(),
-                    feesOutputs.ToJson(),
-                    null);
-                request = feesRequest.Result;
+                //var feesRequest = await Indy.Payments.AddRequestFeesAsync(
+                //    agentContext.Wallet,
+                //    null,
+                //    request,
+                //    inputs.ToJson(),
+                //    feesOutputs.ToJson(),
+                //    null);
+                //request = feesRequest.Result;
             }
 
             var response = await Ledger.SignAndSubmitRequestAsync(await agentContext.Pool, agentContext.Wallet,

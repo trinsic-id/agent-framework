@@ -9,29 +9,20 @@ namespace AgentFramework.Payments.SovrinToken
 {
     internal static class PaymentUtils
     {
-        internal static (IEnumerable<string> inputs, IEnumerable<IndyPaymentOutputSource> outputs, IEnumerable<IndyPaymentOutputSource> feesOutputs) ReconcilePaymentSources(PaymentAddressRecord addressRecord, PaymentRecord paymentRecord, ulong txnFee)
+        internal static (IEnumerable<string> inputs, IEnumerable<IndyPaymentOutputSource> outputs) ReconcilePaymentSources(PaymentAddressRecord addressRecord, PaymentRecord paymentRecord, ulong txnFee)
         {
             return ReconcilePaymentSources(addressRecord.Sources, paymentRecord.Address, paymentRecord.Amount, txnFee);
         }
 
-        private static (IEnumerable<string> inputs, IEnumerable<IndyPaymentOutputSource> outputs, IEnumerable<IndyPaymentOutputSource> feesOutputs) ReconcilePaymentSources(IList<IndyPaymentInputSource> sources, string address, ulong amount, ulong txnFee)
+        private static (IEnumerable<string> inputs, IEnumerable<IndyPaymentOutputSource> outputs) ReconcilePaymentSources(IList<IndyPaymentInputSource> inputs, string address, ulong amount, ulong txnFee)
         {
             if (amount == 0) throw new ArgumentOutOfRangeException(nameof(amount), "Cannot make a 0 payment");
             if (address == null) throw new ArgumentNullException(nameof(address), "Address must be specified");
 
-            var selectedInputs = new List<IndyPaymentInputSource>();
-            foreach (var input in sources)
-            {
-                selectedInputs.Add(input);
-                if (Total(selectedInputs) + txnFee >= amount)
-                {
-                    break;
-                }
-            }
 
-            if (!selectedInputs.Any()) throw new AgentFrameworkException(ErrorCode.PaymentInsufficientFunds, "Insufficient funds");
+            if (!inputs.Any()) throw new AgentFrameworkException(ErrorCode.PaymentInsufficientFunds, "Insufficient funds");
 
-            return (selectedInputs.Select(x => x.Source), new[]
+            return (inputs.Select(x => x.Source), new[]
                 {
                     new IndyPaymentOutputSource
                     {
@@ -40,15 +31,8 @@ namespace AgentFramework.Payments.SovrinToken
                     },
                     new IndyPaymentOutputSource
                     {
-                        Recipient = selectedInputs.First().PaymentAddress,
-                        Amount = Total(selectedInputs) - amount - txnFee
-                    }
-                }, new[]
-                {
-                   new IndyPaymentOutputSource
-                    {
-                        Recipient = selectedInputs.First().PaymentAddress,
-                        Amount = Total(selectedInputs) - amount - txnFee
+                        Recipient = inputs.First().PaymentAddress,
+                        Amount = Total(inputs) - amount - txnFee
                     }
                 });
         }
