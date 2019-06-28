@@ -332,3 +332,6 @@ ASALocalRun/
 # ReadTheDocs build directory
 
 docs/_build
+
+# vs code config
+.vscode/

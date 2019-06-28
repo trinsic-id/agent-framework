@@ -5,9 +5,9 @@
     <PublishWithAspNetCoreTargetManifest>false</PublishWithAspNetCoreTargetManifest>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
-    <StartAction>Project</StartAction>
-    <ApplicationURL>http://localhost:5000/</ApplicationURL>
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">	
+    <StartAction>Project</StartAction>	
+    <ApplicationURL>http://localhost:5000/</ApplicationURL>	
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
