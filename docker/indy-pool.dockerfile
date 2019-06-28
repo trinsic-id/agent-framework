@@ -1,3 +1,33 @@
+########################################################
+##  Creates a pool of nodes that uses 
+##  the payment plugins with plenum.
+##
+##	run the following commands to build and start
+##	the pool.
+##	
+##	localhost
+##  	docker build -f indy-pool.dockerfile -t indy_pool .
+##		docker run -itd -p 9701-9708:9701-9708 indy_pool
+##	
+##	specific IP address
+##		# replace 192.168.179.90 with your wifi IP address
+##		docker build --build-arg pool_ip=192.168.179.90 -f ci/indy-pool.dockerfile -t indy_pool .
+##		docker run -itd -p 192.168.179.90:9701-9708:9701-9708 indy_pool
+##  
+##	docker network
+##		docker network create --subnet 10.0.0.0/8 indy_pool_network
+##		docker build --build-arg pool_ip=10.0.0.2 -f ci/indy-pool.dockerfile -t indy_pool .
+##		docker run -d --ip="10.0.0.2" --net=indy_pool_network indy_pool
+##	
+##	'docker ps' will show the container id
+##
+##  To connect to the shell of the container you can use 
+##	the following exec command replacing the <container_id> 
+##  with the id of the running container.
+##
+##  docker exec -it <container_id> /bin/bash
+##
+########################################################FROM ubuntu:16.04
 FROM ubuntu:16.04
 
 ARG uid=1000
@@ -19,24 +49,26 @@ RUN pip3 install -U \
 	setuptools
 
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 68DB5E88
-ARG indy_stream=master
+ARG indy_stream=stable
 RUN echo "deb https://repo.sovrin.org/deb xenial $indy_stream" >> /etc/apt/sources.list
 
 RUN useradd -ms /bin/bash -u $uid indy
 
-ARG indy_plenum_ver=1.6.520
-ARG indy_anoncreds_ver=1.0.32
-ARG indy_node_ver=1.6.576
-ARG python3_indy_crypto_ver=0.4.3
-ARG indy_crypto_ver=0.4.3
+ARG indy_plenum_ver=1.8.1
+ARG indy_node_ver=1.8.1
+ARG python3_indy_crypto_ver=0.4.5
+ARG indy_crypto_ver=0.4.5
+ARG sovtoken_ver=0.9.13
+ARG sovtokenfees_ver=0.9.13
 
 RUN apt-get update -y && apt-get install -y \
-        indy-plenum=${indy_plenum_ver} \
-#        indy-anoncreds=${indy_anoncreds_ver} \
-        indy-node=${indy_node_ver} \
-        python3-indy-crypto=${python3_indy_crypto_ver} \
-        libindy-crypto=${indy_crypto_ver} \
-        vim
+    indy-plenum=${indy_plenum_ver} \
+    indy-node=${indy_node_ver} \
+    python3-indy-crypto=${python3_indy_crypto_ver} \
+    libindy-crypto=${indy_crypto_ver} \
+	sovtoken=${sovtoken_ver} \
+	sovtokenfees=${sovtokenfees_ver} \
+    vim
 
 RUN echo "[supervisord]\n\
 logfile = /tmp/supervisord.log\n\
