@@ -287,7 +287,6 @@ namespace AgentFramework.Core.Tests
             }
 
             // Mint tokens to the address to fund initially
-            // Mint 20 token to a1
             var request = await Indy.Payments.BuildMintRequestAsync(Context.Wallet, Trustee.Did,
                 new[] { new { recipient = address[0].Address, amount = beginningAmount } }.ToJson(), null);
             await TrusteeMultiSignAndSubmitRequestAsync(request.Result);
@@ -297,42 +296,61 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(address[0].Balance, beginningAmount);
 
             //transfer an amount of tokens to another address twice in a row
-            for (int i = 0; i < recurringCount; i++)
+            // --- Payment 1 ---
+            expectedBalX = address[0].Balance - transferAmount;
+            expectedBalY = address[1].Balance + transferAmount - fee;
+            // Create payment record and make payment
+            var paymentRecord = new PaymentRecord
             {
+                Address = address[1].Address,
+                Amount = transferAmount
+            };
+            await recordService.AddAsync(Context.Wallet, paymentRecord);
 
-                expectedBalX = address[0].Balance - transferAmount;
-                expectedBalY = address[1].Balance + transferAmount - fee;
-                // Create payment record and make payment
-                var paymentRecord = new PaymentRecord
-                {
-                    Address = address[1].Address,
-                    Amount = transferAmount
-                };
-                await recordService.AddAsync(Context.Wallet, paymentRecord);
+            // transfer tokens between two agents
+            await paymentService.MakePaymentAsync(Context, paymentRecord, address[0]);
 
-                // transfer tokens between two agents
-                await paymentService.MakePaymentAsync(Context, paymentRecord, address[0]);
+            await paymentService.GetBalanceAsync(Context, address[0]);
+            await paymentService.GetBalanceAsync(Context, address[1]);
 
-                await paymentService.GetBalanceAsync(Context, address[0]);
-                await paymentService.GetBalanceAsync(Context, address[1]);
+            Assert.Equal(expectedBalX, address[0].Balance);
+            Assert.Equal(expectedBalY, address[1].Balance);
 
-                Assert.Equal(expectedBalX, address[0].Balance);
-                Assert.Equal(expectedBalY, address[1].Balance);
-            }
 
-            // -- payment from recipient to new address
-            expectedBalX = address[1].Balance - transferAmount;
-            expectedBalY = address[2].Balance + transferAmount - fee;
-
+            // --- Payment 2 ---
+            expectedBalX = address[0].Balance - transferAmount;
+            expectedBalY = address[1].Balance + transferAmount - fee;
+            // Create payment record and make payment
             var paymentRecord1 = new PaymentRecord
             {
-                Address = address[2].Address,
+                Address = address[1].Address,
                 Amount = transferAmount
             };
             await recordService.AddAsync(Context.Wallet, paymentRecord1);
 
+            // transfer tokens between two agents
+            await paymentService.MakePaymentAsync(Context, paymentRecord1, address[0]);
+
+            await paymentService.GetBalanceAsync(Context, address[0]);
+            await paymentService.GetBalanceAsync(Context, address[1]);
+
+            Assert.Equal(expectedBalX, address[0].Balance);
+            Assert.Equal(expectedBalY, address[1].Balance);
+
+
+            // --- payment 3 --- from recipient to new address
+            expectedBalX = address[1].Balance - transferAmount;
+            expectedBalY = address[2].Balance + transferAmount - fee;
+
+            var paymentRecord2 = new PaymentRecord
+            {
+                Address = address[2].Address,
+                Amount = transferAmount
+            };
+            await recordService.AddAsync(Context.Wallet, paymentRecord2);
+
             // transfer tokens from second to third agent
-            await paymentService.MakePaymentAsync(Context, paymentRecord1, address[1]);
+            await paymentService.MakePaymentAsync(Context, paymentRecord2, address[1]);
             await paymentService.GetBalanceAsync(Context, address[1]);
             await paymentService.GetBalanceAsync(Context, address[2]);
 
@@ -344,7 +362,7 @@ namespace AgentFramework.Core.Tests
             // no balances should change
             expectedBalX = address[0].Balance;
             expectedBalY = address[2].Balance;
-            var paymentRecord2 = new PaymentRecord
+            var paymentRecord3 = new PaymentRecord
             {
                 Address = address[2].Address,
                 Amount = beginningAmount
@@ -352,7 +370,7 @@ namespace AgentFramework.Core.Tests
 
             // transfer tokens between two agents
             var ex = await Assert.ThrowsAsync<AgentFrameworkException>( async () =>
-               await paymentService.MakePaymentAsync(Context, paymentRecord2, address[0]));
+               await paymentService.MakePaymentAsync(Context, paymentRecord3, address[0]));
 
             Assert.Equal(ErrorCode.PaymentInsufficientFunds, ex.ErrorCode);
 
