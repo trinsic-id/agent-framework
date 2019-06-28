@@ -17,7 +17,10 @@ using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using Polly;
 using System.Linq;
+using System.Diagnostics;
 using AgentFramework.Core.Models.Ledger;
+using AgentFramework.Core.Exceptions;
+
 
 namespace AgentFramework.Core.Tests
 {
@@ -32,6 +35,7 @@ namespace AgentFramework.Core.Tests
             Assert.NotNull(address);
             Assert.NotNull(address.Address);
         }
+
 
         [Fact(DisplayName = "Mint Sovrin tokens")]
         public async Task MintSovrinTokens()
@@ -259,27 +263,103 @@ namespace AgentFramework.Core.Tests
 
 
         [Fact]
-        public async Task Test()
+        
+        public async Task SendRecurringPaymentsAndCheckOverSpend()
         {
-            // Create address 1
-            // Create address 2
-            // Create address 3
+            int addressCount = 3;
+            int recurringCount = 2;
 
-            // check all address for 0 balance
+            ulong beginningAmount = 20;
+            ulong transferAmount = 5;
+            ulong expectedBalX = beginningAmount;
+            ulong expectedBalY = transferAmount;
 
-            // Mint 20 tokens to a1
-            // check balance of a1 = 20
+            var paymentService = Host.Services.GetService<IPaymentService>();
+            var recordService = Host.Services.GetService<IWalletRecordService>();
+            var fee = await paymentService.GetTransactionFeeAsync(Context, TransactionTypes.XFER_PUBLIC);
+            PaymentAddressRecord[] address = new PaymentAddressRecord[addressCount];
+           
+            // check all addresses for 0 beginning
+            for (int i = 0; i < addressCount; i++)
+            {
+                address[i] = await paymentService.CreatePaymentAddressAsync(Context);
+                Assert.Equal(0UL, address[i].Balance);
+            }
 
-            // transfer 5 tokens from a1 to a2
-            // check balance a1 = 15, a2 = 5
+            // Mint tokens to the address to fund initially
+            // Mint 20 token to a1
+            var request = await Indy.Payments.BuildMintRequestAsync(Context.Wallet, Trustee.Did,
+                new[] { new { recipient = address[0].Address, amount = beginningAmount } }.ToJson(), null);
+            await TrusteeMultiSignAndSubmitRequestAsync(request.Result);
 
-            // transfer 3 tokens from a1 to a2
-            // check balance a1 = 12, a2 = 8
+            // check beginning balance
+            await paymentService.GetBalanceAsync(Context, address[0]);
+            Assert.Equal(address[0].Balance, beginningAmount);
 
-            // transfer 4 tokens from a2 to a3
-            // check balances
+            //transfer an amount of tokens to another address twice in a row
+            for (int i = 0; i < recurringCount; i++)
+            {
 
-            // BONUS: transfer 50 tokens from a1 to a2, show throw
+                expectedBalX = address[0].Balance - transferAmount;
+                expectedBalY = address[1].Balance + transferAmount - fee;
+                // Create payment record and make payment
+                var paymentRecord = new PaymentRecord
+                {
+                    Address = address[1].Address,
+                    Amount = transferAmount
+                };
+                await recordService.AddAsync(Context.Wallet, paymentRecord);
+
+                // transfer tokens between two agents
+                await paymentService.MakePaymentAsync(Context, paymentRecord, address[0]);
+
+                await paymentService.GetBalanceAsync(Context, address[0]);
+                await paymentService.GetBalanceAsync(Context, address[1]);
+
+                Assert.Equal(expectedBalX, address[0].Balance);
+                Assert.Equal(expectedBalY, address[1].Balance);
+            }
+
+            // -- payment from recipient to new address
+            expectedBalX = address[1].Balance - transferAmount;
+            expectedBalY = address[2].Balance + transferAmount - fee;
+
+            var paymentRecord1 = new PaymentRecord
+            {
+                Address = address[2].Address,
+                Amount = transferAmount
+            };
+            await recordService.AddAsync(Context.Wallet, paymentRecord1);
+
+            // transfer tokens from second to third agent
+            await paymentService.MakePaymentAsync(Context, paymentRecord1, address[1]);
+            await paymentService.GetBalanceAsync(Context, address[1]);
+            await paymentService.GetBalanceAsync(Context, address[2]);
+
+            Assert.Equal(expectedBalX, address[1].Balance);
+            Assert.Equal(expectedBalY, address[2].Balance);
+
+
+            // --- Overspend Payment ---
+            // no balances should change
+            expectedBalX = address[0].Balance;
+            expectedBalY = address[2].Balance;
+            var paymentRecord2 = new PaymentRecord
+            {
+                Address = address[2].Address,
+                Amount = beginningAmount
+            };
+
+            // transfer tokens between two agents
+            var ex = await Assert.ThrowsAsync<AgentFrameworkException>( async () =>
+               await paymentService.MakePaymentAsync(Context, paymentRecord2, address[0]));
+
+            Assert.Equal(ErrorCode.PaymentInsufficientFunds, ex.ErrorCode);
+
+            await paymentService.GetBalanceAsync(Context, address[0]);
+            await paymentService.GetBalanceAsync(Context, address[2]);
+            Assert.Equal(expectedBalX, address[1].Balance);
+            Assert.Equal(expectedBalY, address[2].Balance);
         }
     }
 }
