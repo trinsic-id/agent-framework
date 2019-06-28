@@ -39,6 +39,8 @@ namespace AgentFramework.Core.Tests
             var paymentService = Host.Services.GetService<IPaymentService>();
             var address = await paymentService.CreatePaymentAddressAsync(Context);
 
+            Assert.Equal(address.Balance, 0UL);
+
             var amount = (ulong)new Random().Next(100, int.MaxValue);
             var request = await Indy.Payments.BuildMintRequestAsync(Context.Wallet, Trustee.Did,
                 new[] { new IndyPaymentOutputSource { Recipient = address.Address, Amount = amount } }.ToJson(), null);
@@ -253,6 +255,31 @@ namespace AgentFramework.Core.Tests
                     { "10001", 0 }
                 }.ToJson());
             await TrusteeMultiSignAndSubmitRequestAsync(request);
+        }
+
+
+        [Fact]
+        public async Task Test()
+        {
+            // Create address 1
+            // Create address 2
+            // Create address 3
+
+            // check all address for 0 balance
+
+            // Mint 20 tokens to a1
+            // check balance of a1 = 20
+
+            // transfer 5 tokens from a1 to a2
+            // check balance a1 = 15, a2 = 5
+
+            // transfer 3 tokens from a1 to a2
+            // check balance a1 = 12, a2 = 8
+
+            // transfer 4 tokens from a2 to a3
+            // check balances
+
+            // BONUS: transfer 50 tokens from a1 to a2, show throw
         }
     }
 }
