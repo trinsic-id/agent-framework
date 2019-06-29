@@ -46,7 +46,7 @@ namespace AgentFramework.Payments.SovrinToken
                 var context = await agentProvider.GetContextAsync();
 
                 var provisioning = await provisioningService.GetProvisioningAsync(context.Wallet);
-                if (provisioning.DefaultPaymentAddressId == null && AgentConfiguration.SupportPayments)
+                if (provisioning.DefaultPaymentAddressId == null)
                 {
                     var address = await paymentService.CreatePaymentAddressAsync(context,
                         new PaymentAddressConfiguration

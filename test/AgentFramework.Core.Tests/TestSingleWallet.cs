@@ -18,6 +18,7 @@ using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.LedgerApi;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Exceptions;
+using IndyPayments = Hyperledger.Indy.PaymentsApi.Payments;
 
 namespace AgentFramework.Core.Tests
 {
@@ -27,6 +28,11 @@ namespace AgentFramework.Core.Tests
         public CreateAndStoreMyDidResult Trustee { get; private set; }
         public CreateAndStoreMyDidResult Trustee2 { get; private set; }
         public CreateAndStoreMyDidResult Trustee3 { get; private set; }
+
+        protected IProvisioningService provisioningService;
+        protected IWalletRecordService recordService;
+        protected IPaymentService paymentService;
+
         protected IHost Host { get; private set; }
 
         public async Task DisposeAsync()
@@ -51,7 +57,6 @@ namespace AgentFramework.Core.Tests
                             .AddIssuerAgent(config =>
                             {
                                 config.EndpointUri = new Uri("http://test");
-                                config.SupportPayments = true;
                                 config.WalletConfiguration = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
                                 config.WalletCredentials = new WalletCredentials { Key = "test" };
                                 config.GenesisFilename = Path.GetFullPath("pool_genesis.txn");
@@ -69,6 +74,10 @@ namespace AgentFramework.Core.Tests
                 new { seed = "000000000000000000000000Trustee1" }.ToJson());
             Trustee2 = await PromoteTrustee("000000000000000000000000Trustee2");
             Trustee3 = await PromoteTrustee("000000000000000000000000Trustee3");
+
+            provisioningService = Host.Services.GetService<IProvisioningService>();
+            recordService = Host.Services.GetService<IWalletRecordService>();
+            paymentService = Host.Services.GetService<IPaymentService>();
         }
 
         async Task<CreateAndStoreMyDidResult> PromoteTrustee(string seed)
@@ -87,8 +96,9 @@ namespace AgentFramework.Core.Tests
                 await Ledger.BuildNymRequestAsync(Trustee.Did, did, verkey, null, "TRUST_ANCHOR"));
         }
 
-        protected async Task PromoteTrustAnchor(ProvisioningRecord record)
+        protected async Task PromoteTrustAnchor()
         {
+            var record = await Host.Services.GetService<IProvisioningService>().GetProvisioningAsync(Context.Wallet);
             if (record.IssuerDid == null || record.IssuerVerkey == null)
                 throw new AgentFrameworkException(ErrorCode.InvalidRecordData, "Agent not set up as issuer");
 
@@ -103,6 +113,22 @@ namespace AgentFramework.Core.Tests
             var singedRequest3 = await Ledger.MultiSignRequestAsync(Context.Wallet, Trustee3.Did, singedRequest2);
 
             return await Ledger.SubmitRequestAsync(await Context.Pool, singedRequest3);
+        }
+
+        protected async Task FundDefaultAccountAsync(ulong amount)
+        {
+            var paymentService = Host.Services.GetService<IPaymentService>();
+            var recordService = Host.Services.GetService<IWalletRecordService>();
+            var provisioningService = Host.Services.GetService<IProvisioningService>();
+            var record = await provisioningService.GetProvisioningAsync(Context.Wallet);
+            var addressRecord = await recordService.GetAsync<PaymentAddressRecord>(Context.Wallet, record.DefaultPaymentAddressId);
+
+            // Mint tokens to the address to fund initially
+            var request = await IndyPayments.BuildMintRequestAsync(Context.Wallet, Trustee.Did,
+                new[] { new { recipient = addressRecord.Address, amount = amount } }.ToJson(), null);
+            await TrusteeMultiSignAndSubmitRequestAsync(request.Result);
+
+            await paymentService.GetBalanceAsync(Context, addressRecord);
         }
     }
 }

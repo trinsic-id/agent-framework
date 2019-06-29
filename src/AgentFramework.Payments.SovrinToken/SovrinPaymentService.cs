@@ -61,9 +61,25 @@ namespace AgentFramework.Payments.SovrinToken
             return addressRecord;
         }
 
-        public Task<PaymentInfo> CreatePaymentInfoAsync(Pool pool, Wallet wallet, string transactionType)
+        public async Task<PaymentInfo> CreatePaymentInfoAsync(IAgentContext context, string transactionType)
         {
-            return Task.FromResult<PaymentInfo>(null);
+            var provisioning = await provisioningService.GetProvisioningAsync(context.Wallet);
+            if (provisioning.DefaultPaymentAddressId == null)
+            {
+                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Default PaymentAddressRecord not found");
+            }
+
+            var paymentAddress = await recordService.GetAsync<PaymentAddressRecord>(context.Wallet, provisioning.DefaultPaymentAddressId);
+
+            var fees = await GetTransactionFeeAsync(context, transactionType);
+
+            return new PaymentInfo
+            {
+                Amount = fees,
+                From = paymentAddress,
+                PaymentMethod = "sov",
+                To = paymentAddress.Address
+            };
         }
 
         /// <inheritdoc />
@@ -81,7 +97,7 @@ namespace AgentFramework.Payments.SovrinToken
             }
 
             // Cache sources data in record for one hour
-            var request = await Indy.Payments.BuildGetPaymentSourcesAsync(agentContext.Wallet, null, paymentAddress.Address);
+            var request = await IndyPayments.BuildGetPaymentSourcesAsync(agentContext.Wallet, null, paymentAddress.Address);
             var response = await Ledger.SubmitRequestAsync(await agentContext.Pool, request.Result);
 
             var sourcesJson = await Indy.Payments.ParseGetPaymentSourcesAsync(paymentAddress.Method, response);

@@ -217,7 +217,7 @@ namespace AgentFramework.TestHarness
             // Create a schema and credential definition for this issuer
             var schemaId = await schemaService.CreateSchemaAsync(context, issuerDid,
                 $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", attributeValues);
-            return (await schemaService.CreateCredentialDefinitionAsync(await context.Pool, context.Wallet, schemaId,  issuerDid, "Tag", false, 100, new Uri("http://mock/tails")), schemaId);
+            return (await schemaService.CreateCredentialDefinitionAsync(context, schemaId,  issuerDid, "Tag", false, 100, new Uri("http://mock/tails")), schemaId);
         }
 
         private static T FindContentMessage<T>(IEnumerable<AgentMessage> collection)

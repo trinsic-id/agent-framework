@@ -45,15 +45,14 @@ namespace AgentFramework.Core.Tests
 
             Assert.Equal(address.Balance, 0UL);
 
-            var amount = (ulong)new Random().Next(100, int.MaxValue);
             var request = await Indy.Payments.BuildMintRequestAsync(Context.Wallet, Trustee.Did,
-                new[] { new IndyPaymentOutputSource { Recipient = address.Address, Amount = amount } }.ToJson(), null);
+                new[] { new IndyPaymentOutputSource { Recipient = address.Address, Amount = 42UL } }.ToJson(), null);
 
             var mintResponse = await TrusteeMultiSignAndSubmitRequestAsync(request.Result);
 
             await paymentService.GetBalanceAsync(Context, address);
 
-            Assert.Equal(address.Balance, amount);
+            Assert.Equal(address.Balance, 42UL);
         }
 
         [Fact(DisplayName = "Get fees from ledger for schema transaction type")]
@@ -65,27 +64,32 @@ namespace AgentFramework.Core.Tests
             Assert.True(fee >= 0);
         }
 
-        [Fact(DisplayName = "Create schema")]
+        [Fact(DisplayName = "Create schema with non-zero fees")]
         public async Task CreateSchemaWithFeesAsync()
         {
-            var provService = Host.Services.GetService<IProvisioningService>();
             var schemaService = Host.Services.GetService<ISchemaService>();
-            var ledgerService = Host.Services.GetService<ILedgerService>();
+            var prov = await provisioningService.GetProvisioningAsync(Context.Wallet);
 
-            var prov = await provService.GetProvisioningAsync(Context.Wallet);
+            await PromoteTrustAnchor(prov.IssuerDid, prov.IssuerVerkey);
 
-            var request = await Ledger.BuildNymRequestAsync(Trustee.Did, prov.IssuerDid, prov.IssuerVerkey, null, "TRUST_ANCHOR");
-            var response = await Ledger.SignAndSubmitRequestAsync(await Context.Pool, Context.Wallet, Trustee.Did, request);
+            await FundDefaultAccountAsync(10);
+            await SetFeesForSchemaTransactionsAsync(3);
 
-            await schemaService.CreateSchemaAsync(Context, $"test{Guid.NewGuid().ToString("N")}", "1.0", new[] { "name-one" });
+            var schemaId = await schemaService.CreateSchemaAsync(Context, $"test{Guid.NewGuid().ToString("N")}", "1.0", new[] { "name-one" });
+
+            Assert.NotNull(schemaId);
+
+            var address = await recordService.GetAsync<PaymentAddressRecord>(Context.Wallet, prov.DefaultPaymentAddressId);
+
+            Assert.Equal(address.Balance, 7UL);
+
+            await UnsetFeesForSchemaTransactionsAsync();
         }
 
         [Fact(DisplayName = "Transfer funds between Sovrin addresses")]
         public async Task TransferFundsAsync()
         {
             // Generate from address
-            var paymentService = Host.Services.GetService<IPaymentService>();
-            var recordService = Host.Services.GetService<IWalletRecordService>();
             var addressFrom = await paymentService.CreatePaymentAddressAsync(Context);
 
             // Mint tokens to the address to fund initially
@@ -180,13 +184,12 @@ namespace AgentFramework.Core.Tests
       },
              */
 
-        [Fact(DisplayName = "Set auth rules for 101 (SCHEMA) transactions to use fees")]
-        public async Task SetFeesForSchemaTransactionsAsync()
+        public async Task SetFeesForSchemaTransactionsAsync(ulong amount)
         {
             var request = await Indy.Payments.BuildSetTxnFeesRequestAsync(Context.Wallet, Trustee.Did, TokenConfiguration.MethodName,
                 new Dictionary<string, ulong>
                 {
-                                { "fees_for_schema", 10 }
+                                { "fees_for_schema", amount }
                 }.ToJson());
             var response = await TrusteeMultiSignAndSubmitRequestAsync(request);
 
@@ -228,6 +231,50 @@ namespace AgentFramework.Core.Tests
             Console.WriteLine(response);
         }
 
+        public async Task UnsetFeesForSchemaTransactionsAsync()
+        {
+            var request = await Indy.Payments.BuildSetTxnFeesRequestAsync(Context.Wallet, Trustee.Did, TokenConfiguration.MethodName,
+                new Dictionary<string, ulong>
+                {
+                                { "fees_for_schema", 0 }
+                }.ToJson());
+            await TrusteeMultiSignAndSubmitRequestAsync(request);
+
+            request = await Ledger.BuildAuthRuleRequestAsync(Trustee.Did, "101", "ADD", "*", "*", "*", new
+            {
+                constraint_id = "OR",
+                auth_constraints = new[] {
+                    new {
+                        metadata = new {
+                        },
+                      constraint_id = "ROLE",
+                      need_to_be_owner = false,
+                      role = "0",
+                      sig_count = 1
+                    },
+                    new {
+                        metadata= new {
+                        },
+                      constraint_id= "ROLE",
+                      need_to_be_owner= false,
+                      role= "2",
+                      sig_count= 1
+                    },
+                    new {
+                        metadata= new {
+                        },
+                      constraint_id= "ROLE",
+                      need_to_be_owner= false,
+                      role= "101",
+                      sig_count= 1
+                    }
+                }
+            }.ToJson());
+            var response = await TrusteeMultiSignAndSubmitRequestAsync(request);
+
+            Console.WriteLine(response);
+        }
+
         [Fact(DisplayName = "Set transaction fees")]
         public async Task SetTransactionFees()
         {
@@ -265,8 +312,6 @@ namespace AgentFramework.Core.Tests
             ulong expectedBalX = beginningAmount;
             ulong expectedBalY = transferAmount;
 
-            var paymentService = Host.Services.GetService<IPaymentService>();
-            var recordService = Host.Services.GetService<IWalletRecordService>();
             var fee = await paymentService.GetTransactionFeeAsync(Context, TransactionTypes.XFER_PUBLIC);
             PaymentAddressRecord[] address = new PaymentAddressRecord[addressCount];
            

@@ -51,7 +51,7 @@ namespace AgentFramework.Core.Contracts
         /// his parameter is only used if <paramref name="supportsRevocation" /> is <c>true</c>.</param>
         /// <returns>The credential definition identifier of the stored definition record.
         /// This identifier can be used for ledger definition lookup.</returns>
-        Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId, string issuerDid,
+        Task<string> CreateCredentialDefinitionAsync(IAgentContext context, string schemaId, string issuerDid,
             string tag, bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri);
 
         /// <summary>Creates the credential definition and registers it on the ledger.</summary>
@@ -62,7 +62,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="supportsRevocation">if set to <c>true</c> [supports revocation].</param>
         /// <param name="maxCredentialCount">The maximum credential count.</param>
         /// <returns></returns>
-        Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
+        Task<string> CreateCredentialDefinitionAsync(IAgentContext context, string schemaId,
             string tag, bool supportsRevocation, int maxCredentialCount);
 
         /// <summary>

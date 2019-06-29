@@ -22,7 +22,7 @@ namespace AgentFramework.Core.Contracts
 
         Task ProcessPaymentReceipt(IAgentContext agentContext, PaymentReceiptDecorator receiptDecorator, RecordBase recordBase = null);
 
-        Task<PaymentInfo> CreatePaymentInfoAsync(Pool pool, Wallet wallet, string transactionType);
+        Task<PaymentInfo> CreatePaymentInfoAsync(IAgentContext context, string transactionType);
 
         /// <summary>
         /// Gets the fees associated with a given transaction type

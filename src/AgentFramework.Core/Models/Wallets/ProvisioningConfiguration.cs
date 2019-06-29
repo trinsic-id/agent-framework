@@ -11,8 +11,6 @@ namespace AgentFramework.Core.Models.Wallets
     /// </summary>
     public class ProvisioningConfiguration
     {
-        public bool SupportPayments { get; set; }
-
         public string DefaultPaymentAddressSeed { get; set; }
 
         /// <summary>

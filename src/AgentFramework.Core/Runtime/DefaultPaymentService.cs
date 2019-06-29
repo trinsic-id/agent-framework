@@ -17,7 +17,7 @@ namespace AgentFramework.Core.Runtime
             throw new NotSupportedException();
         }
 
-        public Task<PaymentInfo> CreatePaymentInfoAsync(Pool pool, Wallet wallet, string transactionType)
+        public Task<PaymentInfo> CreatePaymentInfoAsync(IAgentContext context, string transactionType)
         {
             return Task.FromResult<PaymentInfo>(null);
         }

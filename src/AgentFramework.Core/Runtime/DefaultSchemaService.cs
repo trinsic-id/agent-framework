@@ -65,7 +65,7 @@ namespace AgentFramework.Core.Handlers.Agents
                 AttributeNames = attributeNames
             };
 
-            var paymentInfo = await paymentService.CreatePaymentInfoAsync(await context.Pool, context.Wallet, TransactionTypes.SCHEMA);
+            var paymentInfo = await paymentService.CreatePaymentInfoAsync(context, TransactionTypes.SCHEMA);
             await LedgerService.RegisterSchemaAsync(await context.Pool, context.Wallet, issuerDid, schema.SchemaJson, paymentInfo);
 
             await RecordService.AddAsync(context.Wallet, schemaRecord);
@@ -152,17 +152,17 @@ namespace AgentFramework.Core.Handlers.Agents
             RecordService.SearchAsync<SchemaRecord>(wallet, null, null, 100);
 
         /// <inheritdoc />
-        public virtual async Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
+        public virtual async Task<string> CreateCredentialDefinitionAsync(IAgentContext context, string schemaId,
             string issuerDid, string tag, bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri)
         {
             var definitionRecord = new DefinitionRecord();
-            var schema = await LedgerService.LookupSchemaAsync(pool, schemaId);
+            var schema = await LedgerService.LookupSchemaAsync(await context.Pool, schemaId);
 
-            var credentialDefinition = await AnonCreds.IssuerCreateAndStoreCredentialDefAsync(wallet, issuerDid,
+            var credentialDefinition = await AnonCreds.IssuerCreateAndStoreCredentialDefAsync(context.Wallet, issuerDid,
                 schema.ObjectJson, tag, null, new { support_revocation = supportsRevocation }.ToJson());
 
-            await LedgerService.RegisterCredentialDefinitionAsync(wallet, pool, issuerDid, credentialDefinition.CredDefJson,
-                await paymentService.CreatePaymentInfoAsync(pool, wallet, TransactionTypes.CRED_DEF));
+            await LedgerService.RegisterCredentialDefinitionAsync(context.Wallet, await context.Pool, issuerDid, credentialDefinition.CredDefJson,
+                await paymentService.CreatePaymentInfoAsync(context, TransactionTypes.CRED_DEF));
 
             definitionRecord.SupportsRevocation = supportsRevocation;
             definitionRecord.Id = credentialDefinition.CredDefId;
@@ -175,7 +175,7 @@ namespace AgentFramework.Core.Handlers.Agents
 
                 var revRegDefConfig =
                     new { issuance_type = "ISSUANCE_ON_DEMAND", max_cred_num = maxCredentialCount }.ToJson();
-                var revocationRegistry = await AnonCreds.IssuerCreateAndStoreRevocRegAsync(wallet, issuerDid, null,
+                var revocationRegistry = await AnonCreds.IssuerCreateAndStoreRevocRegAsync(context.Wallet, issuerDid, null,
                     "Tag2", credentialDefinition.CredDefId, revRegDefConfig, tailsHandle);
 
                 // Update tails location URI
@@ -183,12 +183,12 @@ namespace AgentFramework.Core.Handlers.Agents
                 var tailsfile = Path.GetFileName(revocationDefinition["value"]["tailsLocation"].ToObject<string>());
                 revocationDefinition["value"]["tailsLocation"] = new Uri(tailsBaseUri, tailsfile).ToString();
 
-                await LedgerService.RegisterRevocationRegistryDefinitionAsync(wallet, pool, issuerDid,
-                    revocationDefinition.ToString(), await paymentService.CreatePaymentInfoAsync(pool, wallet, TransactionTypes.REVOC_REG_DEF));
+                await LedgerService.RegisterRevocationRegistryDefinitionAsync(context.Wallet, await context.Pool, issuerDid,
+                    revocationDefinition.ToString(), await paymentService.CreatePaymentInfoAsync(context, TransactionTypes.REVOC_REG_DEF));
 
-                await LedgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid,
+                await LedgerService.SendRevocationRegistryEntryAsync(context.Wallet, await context.Pool, issuerDid,
                     revocationRegistry.RevRegId, "CL_ACCUM", revocationRegistry.RevRegEntryJson,
-                    await paymentService.CreatePaymentInfoAsync(pool, wallet, TransactionTypes.REVOC_REG_ENTRY));
+                    await paymentService.CreatePaymentInfoAsync(context, TransactionTypes.REVOC_REG_ENTRY));
 
                 var revocationRecord = new RevocationRegistryRecord
                 {
@@ -196,26 +196,26 @@ namespace AgentFramework.Core.Handlers.Agents
                     TailsFile = tailsfile,
                     CredentialDefinitionId = credentialDefinition.CredDefId
                 };
-                await RecordService.AddAsync(wallet, revocationRecord);
+                await RecordService.AddAsync(context.Wallet, revocationRecord);
             }
 
-            await RecordService.AddAsync(wallet, definitionRecord);
+            await RecordService.AddAsync(context.Wallet, definitionRecord);
 
             return credentialDefinition.CredDefId;
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
+        public virtual async Task<string> CreateCredentialDefinitionAsync(IAgentContext context, string schemaId,
             string tag, bool supportsRevocation, int maxCredentialCount)
         {
-            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+            var provisioning = await ProvisioningService.GetProvisioningAsync(context.Wallet);
             if (provisioning?.IssuerDid == null)
             {
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound,
                     "This wallet is not provisioned with issuer");
             }
 
-            return await CreateCredentialDefinitionAsync(pool, wallet, schemaId, provisioning.IssuerDid, tag,
+            return await CreateCredentialDefinitionAsync(context, schemaId, provisioning.IssuerDid, tag,
                 supportsRevocation, maxCredentialCount, new Uri(provisioning.TailsBaseUri));
         }
 

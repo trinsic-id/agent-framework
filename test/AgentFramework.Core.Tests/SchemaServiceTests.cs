@@ -1,15 +1,6 @@
 ﻿using System;
-using System.Net.Http;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Extensions;
-using AgentFramework.Core.Handlers.Agents;
-using AgentFramework.TestHarness;
-using AgentFramework.TestHarness.Utils;
-using Hyperledger.Indy.DidApi;
-using Hyperledger.Indy.PoolApi;
-using Hyperledger.Indy.WalletApi;
-using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,7 +17,7 @@ namespace AgentFramework.Core.Tests
 
             var record = await provisioningService.GetProvisioningAsync(Context.Wallet);
 
-            await PromoteTrustAnchor(record);
+            await PromoteTrustAnchor(record.IssuerDid, record.IssuerVerkey);
 
             var schemaName = $"Test-Schema-{Guid.NewGuid().ToString("N")}";
             var schemaVersion = "1.0";
@@ -64,7 +55,7 @@ namespace AgentFramework.Core.Tests
 
             var record = await provisioningService.GetProvisioningAsync(Context.Wallet);
 
-            await PromoteTrustAnchor(record);
+            await PromoteTrustAnchor(record.IssuerDid, record.IssuerVerkey);
 
             var schemaName = $"Test-Schema-{Guid.NewGuid().ToString()}";
             var schemaVersion = "1.0";
@@ -74,7 +65,7 @@ namespace AgentFramework.Core.Tests
             var schemaId = await schemaService.CreateSchemaAsync(Context, record.IssuerDid,
                 schemaName, schemaVersion, schemaAttrNames);
 
-            var credId = await schemaService.CreateCredentialDefinitionAsync(await Context.Pool, Context.Wallet, schemaId,
+            var credId = await schemaService.CreateCredentialDefinitionAsync(Context, schemaId,
                 record.IssuerDid, "Tag", false, 100, new Uri("http://mock/tails"));
 
             var credDef =
