@@ -5,6 +5,7 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Models;
+using AgentFramework.Core.Runtime;
 using AgentFramework.Core.Runtime.Transport;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -62,6 +63,7 @@ namespace AgentFramework.AspNetCore
             builder.TryAddSingleton<ITailsService, DefaultTailsService>();
             builder.TryAddSingleton<IWalletRecordService, DefaultWalletRecordService>();
             builder.TryAddSingleton<IWalletService, DefaultWalletService>();
+            builder.TryAddSingleton<IPaymentService, DefaultPaymentService>();
 
             return builder;
         }

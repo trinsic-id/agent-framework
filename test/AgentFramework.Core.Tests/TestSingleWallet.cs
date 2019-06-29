@@ -16,6 +16,8 @@ using Microsoft.Extensions.Options;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.LedgerApi;
+using AgentFramework.Core.Models.Records;
+using AgentFramework.Core.Exceptions;
 
 namespace AgentFramework.Core.Tests
 {
@@ -77,6 +79,21 @@ namespace AgentFramework.Core.Tests
                 await Ledger.BuildNymRequestAsync(Trustee.Did, trustee.Did, trustee.VerKey, null, "TRUSTEE"));
 
             return trustee;
+        }
+
+        protected async Task PromoteTrustAnchor(string did, string verkey)
+        {
+            await Ledger.SignAndSubmitRequestAsync(await Context.Pool, Context.Wallet, Trustee.Did,
+                await Ledger.BuildNymRequestAsync(Trustee.Did, did, verkey, null, "TRUST_ANCHOR"));
+        }
+
+        protected async Task PromoteTrustAnchor(ProvisioningRecord record)
+        {
+            if (record.IssuerDid == null || record.IssuerVerkey == null)
+                throw new AgentFrameworkException(ErrorCode.InvalidRecordData, "Agent not set up as issuer");
+
+            await Ledger.SignAndSubmitRequestAsync(await Context.Pool, Context.Wallet, Trustee.Did,
+                await Ledger.BuildNymRequestAsync(Trustee.Did, record.IssuerDid, record.IssuerVerkey, null, "TRUST_ANCHOR"));
         }
 
         protected async Task<string> TrusteeMultiSignAndSubmitRequestAsync(string request)

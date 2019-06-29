@@ -10,9 +10,12 @@ using AgentFramework.Core.Models.Ledger;
 using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Models.Records;
 using Hyperledger.Indy.LedgerApi;
+using Hyperledger.Indy.PoolApi;
+using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using Indy = Hyperledger.Indy.PaymentsApi;
-// ReSharper disable All
+using IndyPayments = Hyperledger.Indy.PaymentsApi.Payments;
 
 namespace AgentFramework.Payments.SovrinToken
 {
@@ -22,22 +25,20 @@ namespace AgentFramework.Payments.SovrinToken
         private readonly IPoolService poolService;
         private readonly ILedgerService ledgerService;
         private readonly IProvisioningService provisioningService;
-        private readonly IFeesService feesService;
         private readonly ILogger<SovrinPaymentService> logger;
+        private IDictionary<string, ulong> _transactionFees;
 
         public SovrinPaymentService(
             IWalletRecordService recordService,
             IPoolService poolService,
             ILedgerService ledgerService,
             IProvisioningService provisioningService,
-            IFeesService feesService,
             ILogger<SovrinPaymentService> logger)
         {
             this.recordService = recordService;
             this.poolService = poolService;
             this.ledgerService = ledgerService;
             this.provisioningService = provisioningService;
-            this.feesService = feesService;
             this.logger = logger;
         }
 
@@ -60,6 +61,11 @@ namespace AgentFramework.Payments.SovrinToken
             return addressRecord;
         }
 
+        public Task<PaymentInfo> CreatePaymentInfoAsync(Pool pool, Wallet wallet, string transactionType)
+        {
+            return Task.FromResult<PaymentInfo>(null);
+        }
+
         /// <inheritdoc />
         public async Task GetBalanceAsync(IAgentContext agentContext, PaymentAddressRecord paymentAddress = null)
         {
@@ -78,10 +84,11 @@ namespace AgentFramework.Payments.SovrinToken
             var request = await Indy.Payments.BuildGetPaymentSourcesAsync(agentContext.Wallet, null, paymentAddress.Address);
             var response = await Ledger.SubmitRequestAsync(await agentContext.Pool, request.Result);
 
-            var parsed = await Indy.Payments.ParseGetPaymentSourcesAsync(paymentAddress.Method, response);
-            var paymentResult = parsed.ToObject<IList<IndyPaymentInputSource>>();
-            paymentAddress.Sources = paymentResult;
+            var sourcesJson = await Indy.Payments.ParseGetPaymentSourcesAsync(paymentAddress.Method, response);
+            var sources = sourcesJson.ToObject<IList<IndyPaymentInputSource>>();
+            paymentAddress.Sources = sources;
             paymentAddress.SourcesSyncedAt = DateTime.Now;
+
             await recordService.UpdateAsync(agentContext.Wallet, paymentAddress);
         }
 
@@ -114,7 +121,7 @@ namespace AgentFramework.Payments.SovrinToken
                 throw new AgentFrameworkException(ErrorCode.PaymentInsufficientFunds,
                     "Address doesn't have enough funds to make this payment");
             }
-            var txnFee = await feesService.GetTransactionFeeAsync(agentContext, TransactionTypes.XFER_PUBLIC);
+            var txnFee = await GetTransactionFeeAsync(agentContext, TransactionTypes.XFER_PUBLIC);
 
             var (inputs, outputs) = PaymentUtils.ReconcilePaymentSources(addressFromRecord, paymentRecord, txnFee);
 
@@ -166,6 +173,84 @@ namespace AgentFramework.Payments.SovrinToken
             provisioning.DefaultPaymentAddressId = addressRecord.Id;
 
             await recordService.UpdateAsync(agentContext.Wallet, provisioning);
+        }
+
+
+        public async Task<ulong> GetTransactionFeeAsync(IAgentContext agentContext, string txnType)
+        {
+            var feeAliases = await GetTransactionFeesAsync(agentContext);
+            var authRules = await LookupAuthorizationRulesAsync(await agentContext.Pool);
+
+            // TODO: Add better selective logic that takes action and role into account
+            // Ex: ADD action may have fees, but EDIT may not have any
+            // Ex: Steward costs may be different than TrustAnchor costs, etc.
+
+            var constraints = authRules
+                .Where(x => x.TransactionType == txnType)
+                .Select(x => x.Constraint)
+                .Where(x => x.Metadata?.Fee != null);
+
+            if (constraints.Count() > 1)
+            {
+                logger.LogWarning("Multiple fees found for {TransactionType} {Fees}", txnType, constraints.ToArray());
+            }
+
+            var constraint = constraints.FirstOrDefault();
+            if (constraint != null && feeAliases.TryGetValue(constraint.Metadata.Fee, out var amount))
+            {
+                return amount;
+            }
+
+            constraints = authRules
+                .Where(x => x.TransactionType == txnType)
+                .Where(x => x.Constraint.Constraints != null)
+                .SelectMany(x => x.Constraint.Constraints)
+                .Where(x => x.Metadata?.Fee != null);
+
+            if (constraints.Count() > 1)
+            {
+                logger.LogWarning("Multiple fees found for {TransactionType} {Fees}", txnType, constraints.ToArray());
+            }
+
+            constraint = constraints.FirstOrDefault();
+            if (constraint != null && feeAliases.TryGetValue(constraint.Metadata.Fee, out amount))
+            {
+                return amount;
+            }
+            return 0;
+        }
+
+        /// <inheritdoc />
+        public async Task<IList<AuthorizationRule>> LookupAuthorizationRulesAsync(Pool pool)
+        {
+            var req = await Ledger.BuildGetAuthRuleRequestAsync(null, null, null, null, null, null);
+            var res = await Ledger.SubmitRequestAsync(pool, req);
+
+            EnsureSuccessResponse(res);
+
+            var jobj = JObject.Parse(res);
+            return jobj["result"]["data"].ToObject<IList<AuthorizationRule>>();
+        }
+
+        void EnsureSuccessResponse(string res)
+        {
+            var response = JObject.Parse(res);
+
+            if (!response["op"].ToObject<string>().Equals("reply", StringComparison.OrdinalIgnoreCase))
+                throw new AgentFrameworkException(ErrorCode.LedgerOperationRejected, "Ledger operation rejected");
+        }
+
+        private async Task<IDictionary<string, ulong>> GetTransactionFeesAsync(IAgentContext agentContext)
+        {
+            if (_transactionFees == null)
+            {
+                var feesRequest = await IndyPayments.BuildGetTxnFeesRequestAsync(agentContext.Wallet, null, TokenConfiguration.MethodName);
+                var feesResponse = await Ledger.SubmitRequestAsync(await agentContext.Pool, feesRequest);
+
+                var feesParsed = await IndyPayments.ParseGetTxnFeesResponseAsync(TokenConfiguration.MethodName, feesResponse);
+                _transactionFees = feesParsed.ToObject<IDictionary<string, ulong>>();
+            }
+            return _transactionFees;
         }
     }
 }

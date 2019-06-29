@@ -59,8 +59,8 @@ namespace AgentFramework.Core.Tests
         [Fact(DisplayName = "Get fees from ledger for schema transaction type")]
         public async Task GetTransactionFeesAsync()
         {
-            var feesService = Host.Services.GetService<IFeesService>();
-            var fee = await feesService.GetTransactionFeeAsync(Context, TransactionTypes.SCHEMA);
+            var paymentService = Host.Services.GetService<IPaymentService>();
+            var fee = await paymentService.GetTransactionFeeAsync(Context, TransactionTypes.SCHEMA);
 
             Assert.True(fee >= 0);
         }
@@ -77,7 +77,7 @@ namespace AgentFramework.Core.Tests
             var request = await Ledger.BuildNymRequestAsync(Trustee.Did, prov.IssuerDid, prov.IssuerVerkey, null, "TRUST_ANCHOR");
             var response = await Ledger.SignAndSubmitRequestAsync(await Context.Pool, Context.Wallet, Trustee.Did, request);
 
-            await schemaService.CreateSchemaAsync(await Context.Pool, Context.Wallet, $"test{Guid.NewGuid().ToString("N")}", "1.0", new[] { "name-one" });
+            await schemaService.CreateSchemaAsync(Context, $"test{Guid.NewGuid().ToString("N")}", "1.0", new[] { "name-one" });
         }
 
         [Fact(DisplayName = "Transfer funds between Sovrin addresses")]
@@ -85,7 +85,6 @@ namespace AgentFramework.Core.Tests
         {
             // Generate from address
             var paymentService = Host.Services.GetService<IPaymentService>();
-            var feesService = Host.Services.GetService<IFeesService>();
             var recordService = Host.Services.GetService<IWalletRecordService>();
             var addressFrom = await paymentService.CreatePaymentAddressAsync(Context);
 
@@ -106,7 +105,7 @@ namespace AgentFramework.Core.Tests
             await recordService.AddAsync(Context.Wallet, paymentRecord);
             await paymentService.MakePaymentAsync(Context, paymentRecord, addressFrom);
 
-            var fee = await feesService.GetTransactionFeeAsync(Context, TransactionTypes.XFER_PUBLIC);
+            var fee = await paymentService.GetTransactionFeeAsync(Context, TransactionTypes.XFER_PUBLIC);
 
             await paymentService.GetBalanceAsync(Context, addressFrom);
             await paymentService.GetBalanceAsync(Context, addressTo);
@@ -267,9 +266,8 @@ namespace AgentFramework.Core.Tests
             ulong expectedBalY = transferAmount;
 
             var paymentService = Host.Services.GetService<IPaymentService>();
-            var feesService = Host.Services.GetService<IFeesService>();
             var recordService = Host.Services.GetService<IWalletRecordService>();
-            var fee = await feesService.GetTransactionFeeAsync(Context, TransactionTypes.XFER_PUBLIC);
+            var fee = await paymentService.GetTransactionFeeAsync(Context, TransactionTypes.XFER_PUBLIC);
             PaymentAddressRecord[] address = new PaymentAddressRecord[addressCount];
            
             // check all addresses for 0 beginning

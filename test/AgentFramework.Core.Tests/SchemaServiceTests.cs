@@ -12,45 +12,32 @@ using Hyperledger.Indy.WalletApi;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.Core.Tests
 {
-    public class SchemaServiceTests : IAsyncLifetime
+    public class SchemaServiceTests : TestSingleWallet
     {
-        private readonly ISchemaService _schemaService;
-
-        private readonly string _issuerConfig = $"{{\"id\":\"{Guid.NewGuid()}\"}}";
-        private const string Credentials = "{\"key\":\"test_wallet_key\"}";
-
-        private Pool _pool;
-        private Wallet _issuerWallet;
-
-        public SchemaServiceTests()
-        {
-            var walletService = new DefaultWalletRecordService();
-            var ledgerService = new DefaultLedgerService();
-            var tailsService = new DefaultTailsService(ledgerService, new HttpClientHandler());
-
-            var provisioningMock = new Mock<IProvisioningService>();
-            _schemaService = new DefaultSchemaService(provisioningMock.Object, walletService, ledgerService, tailsService);
-        }
-
         [Fact]
         public async Task CanCreateAndResolveSchema()
         {
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
-                new { seed = TestConstants.StewartDid }.ToJson());
+            var schemaService = Host.Services.GetService<ISchemaService>();
+            var provisioningService = Host.Services.GetService<IProvisioningService>();
+
+            var record = await provisioningService.GetProvisioningAsync(Context.Wallet);
+
+            await PromoteTrustAnchor(record);
 
             var schemaName = $"Test-Schema-{Guid.NewGuid().ToString("N")}";
             var schemaVersion = "1.0";
             var schemaAttrNames = new[] {"test_attr_1", "test_attr_2"};
 
             //Create a dummy schema
-            var schemaId = await _schemaService.CreateSchemaAsync(_pool, _issuerWallet, issuer.Did, schemaName, schemaVersion,
-                schemaAttrNames);
+            var schemaId = await schemaService.CreateSchemaAsync(Context, record.IssuerDid,
+                schemaName, schemaVersion, schemaAttrNames);
 
             //Resolve it from the ledger with its identifier
-            var resultSchema = await _schemaService.LookupSchemaAsync(_pool, schemaId);
+            var resultSchema = await schemaService.LookupSchemaAsync(await Context.Pool, schemaId);
 
             var resultSchemaName = JObject.Parse(resultSchema)["name"].ToString();
             var resultSchemaVersion = JObject.Parse(resultSchema)["version"].ToString();
@@ -60,7 +47,7 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(schemaVersion, resultSchemaVersion);
 
             //Resolve it from the ledger with its sequence Id
-            var secondResultSchema = await _schemaService.LookupSchemaAsync(_pool, sequenceId);
+            var secondResultSchema = await schemaService.LookupSchemaAsync(await Context.Pool, sequenceId);
 
             var secondResultSchemaName = JObject.Parse(secondResultSchema)["name"].ToString();
             var secondResultSchemaVersion = JObject.Parse(secondResultSchema)["version"].ToString();
@@ -72,27 +59,32 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task CanCreateAndResolveCredentialDefinitionAndSchema()
         {
-            var issuer = await Did.CreateAndStoreMyDidAsync(_issuerWallet,
-                new { seed = TestConstants.StewartDid }.ToJson());
+            var schemaService = Host.Services.GetService<ISchemaService>();
+            var provisioningService = Host.Services.GetService<IProvisioningService>();
+
+            var record = await provisioningService.GetProvisioningAsync(Context.Wallet);
+
+            await PromoteTrustAnchor(record);
 
             var schemaName = $"Test-Schema-{Guid.NewGuid().ToString()}";
             var schemaVersion = "1.0";
             var schemaAttrNames = new[] { "test_attr_1", "test_attr_2" };
 
             //Create a dummy schema
-            var schemaId = await _schemaService.CreateSchemaAsync(_pool, _issuerWallet, issuer.Did, schemaName, schemaVersion,
-                schemaAttrNames);
+            var schemaId = await schemaService.CreateSchemaAsync(Context, record.IssuerDid,
+                schemaName, schemaVersion, schemaAttrNames);
 
-            var credId = await _schemaService.CreateCredentialDefinitionAsync(_pool, _issuerWallet, schemaId, issuer.Did, "Tag", false, 100, new Uri("http://mock/tails"));
+            var credId = await schemaService.CreateCredentialDefinitionAsync(await Context.Pool, Context.Wallet, schemaId,
+                record.IssuerDid, "Tag", false, 100, new Uri("http://mock/tails"));
 
             var credDef =
-                await _schemaService.LookupCredentialDefinitionAsync(_pool, credId);
+                await schemaService.LookupCredentialDefinitionAsync(await Context.Pool, credId);
 
             var resultCredId = JObject.Parse(credDef)["id"].ToString();
 
             Assert.Equal(credId, resultCredId);
 
-            var result = await _schemaService.LookupSchemaFromCredentialDefinitionAsync(_pool, credId);
+            var result = await schemaService.LookupSchemaFromCredentialDefinitionAsync(await Context.Pool, credId);
 
             var resultSchemaName = JObject.Parse(result)["name"].ToString();
             var resultSchemaVersion = JObject.Parse(result)["version"].ToString();
@@ -100,34 +92,9 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(schemaName, resultSchemaName);
             Assert.Equal(schemaVersion, resultSchemaVersion);
 
-            var recordResult = await _schemaService.GetCredentialDefinitionAsync(_issuerWallet, credId);
+            var recordResult = await schemaService.GetCredentialDefinitionAsync(Context.Wallet, credId);
 
             Assert.Equal(schemaId, recordResult.SchemaId);
-        }
-
-        public async Task InitializeAsync()
-        {
-            try
-            {
-                await Wallet.CreateWalletAsync(_issuerConfig, Credentials);
-            }
-            catch (WalletExistsException)
-            {
-                // OK
-            }
-
-            _issuerWallet = await Wallet.OpenWalletAsync(_issuerConfig, Credentials);
-
-            _pool = await PoolUtils.GetPoolAsync();
-        }
-
-        public async Task DisposeAsync()
-        {
-            if (_issuerWallet != null) await _issuerWallet.CloseAsync();
-
-            _issuerWallet?.Dispose();
-
-            await Wallet.DeleteWalletAsync(_issuerConfig, Credentials);
         }
     }
 }

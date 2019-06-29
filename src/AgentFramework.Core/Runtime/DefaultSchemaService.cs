@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Models.Ledger;
 using AgentFramework.Core.Models.Records;
 using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.PoolApi;
@@ -23,6 +24,8 @@ namespace AgentFramework.Core.Handlers.Agents
         protected readonly IWalletRecordService RecordService;
         /// <summary>The ledger service</summary>
         protected readonly ILedgerService LedgerService;
+        private readonly IPaymentService paymentService;
+
         /// <summary>The tails service</summary>
         protected readonly ITailsService TailsService;   
         // ReSharper restore InconsistentNaming
@@ -38,16 +41,18 @@ namespace AgentFramework.Core.Handlers.Agents
             IProvisioningService provisioningService,
             IWalletRecordService recordService,
             ILedgerService ledgerService,
+            IPaymentService paymentService,
             ITailsService tailsService)
         {
             ProvisioningService = provisioningService;
             RecordService = recordService;
             LedgerService = ledgerService;
+            this.paymentService = paymentService;
             TailsService = tailsService;
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string name,
+        public virtual async Task<string> CreateSchemaAsync(IAgentContext context, string issuerDid, string name,
             string version, string[] attributeNames)
         {
             var schema = await AnonCreds.IssuerCreateSchemaAsync(issuerDid, name, version, attributeNames.ToJson());
@@ -60,23 +65,30 @@ namespace AgentFramework.Core.Handlers.Agents
                 AttributeNames = attributeNames
             };
 
-            await LedgerService.RegisterSchemaAsync(pool, wallet, issuerDid, schema.SchemaJson);
-            await RecordService.AddAsync(wallet, schemaRecord);
+            var paymentInfo = await paymentService.CreatePaymentInfoAsync(await context.Pool, context.Wallet, TransactionTypes.SCHEMA);
+            await LedgerService.RegisterSchemaAsync(await context.Pool, context.Wallet, issuerDid, schema.SchemaJson, paymentInfo);
+
+            await RecordService.AddAsync(context.Wallet, schemaRecord);
+
+            if (paymentInfo != null)
+            {
+                await paymentService.GetBalanceAsync(context);
+            }
 
             return schemaRecord.Id;
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string name,
+        public virtual async Task<string> CreateSchemaAsync(IAgentContext context, string name,
             string version, string[] attributeNames)
         {
-            var provisioning = await ProvisioningService.GetProvisioningAsync(wallet);
+            var provisioning = await ProvisioningService.GetProvisioningAsync(context.Wallet);
             if (provisioning?.IssuerDid == null)
             {
                 throw new AgentFrameworkException(ErrorCode.RecordNotFound, "This wallet is not provisioned with issuer");
             }
 
-            return await CreateSchemaAsync(pool, wallet, provisioning.IssuerDid, name, version, attributeNames);
+            return await CreateSchemaAsync(context, provisioning.IssuerDid, name, version, attributeNames);
         }
 
         /// <inheritdoc />
@@ -149,8 +161,8 @@ namespace AgentFramework.Core.Handlers.Agents
             var credentialDefinition = await AnonCreds.IssuerCreateAndStoreCredentialDefAsync(wallet, issuerDid,
                 schema.ObjectJson, tag, null, new { support_revocation = supportsRevocation }.ToJson());
 
-            await LedgerService.RegisterCredentialDefinitionAsync(wallet, pool, issuerDid,
-                credentialDefinition.CredDefJson);
+            await LedgerService.RegisterCredentialDefinitionAsync(wallet, pool, issuerDid, credentialDefinition.CredDefJson,
+                await paymentService.CreatePaymentInfoAsync(pool, wallet, TransactionTypes.CRED_DEF));
 
             definitionRecord.SupportsRevocation = supportsRevocation;
             definitionRecord.Id = credentialDefinition.CredDefId;
@@ -172,10 +184,11 @@ namespace AgentFramework.Core.Handlers.Agents
                 revocationDefinition["value"]["tailsLocation"] = new Uri(tailsBaseUri, tailsfile).ToString();
 
                 await LedgerService.RegisterRevocationRegistryDefinitionAsync(wallet, pool, issuerDid,
-                    revocationDefinition.ToString());
+                    revocationDefinition.ToString(), await paymentService.CreatePaymentInfoAsync(pool, wallet, TransactionTypes.REVOC_REG_DEF));
 
                 await LedgerService.SendRevocationRegistryEntryAsync(wallet, pool, issuerDid,
-                    revocationRegistry.RevRegId, "CL_ACCUM", revocationRegistry.RevRegEntryJson);
+                    revocationRegistry.RevRegId, "CL_ACCUM", revocationRegistry.RevRegEntryJson,
+                    await paymentService.CreatePaymentInfoAsync(pool, wallet, TransactionTypes.REVOC_REG_ENTRY));
 
                 var revocationRecord = new RevocationRegistryRecord
                 {

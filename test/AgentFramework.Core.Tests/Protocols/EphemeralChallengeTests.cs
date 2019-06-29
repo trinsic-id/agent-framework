@@ -64,10 +64,10 @@ namespace AgentFramework.Core.Tests.Protocols
                 .Returns(Task.FromResult<MessageContext>(null));
 
             var provisioningMock = ServiceUtils.GetDefaultMockProvisioningService();
-
+            var paymentMock = new Mock<IPaymentService>();
             var tailsService = new DefaultTailsService(ledgerService, new HttpClientHandler());
 
-            _schemaService = new DefaultSchemaService(provisioningMock, recordService, ledgerService, tailsService);
+            _schemaService = new DefaultSchemaService(provisioningMock, recordService, ledgerService, paymentMock.Object, tailsService);
 
             _connectionService = new DefaultConnectionService(
                 eventAggregator,

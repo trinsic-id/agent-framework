@@ -24,7 +24,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="attributeNames">The attribute names.</param>
         /// <returns>The schema identifier of the stored schema object.
         /// This identifier can be used for ledger schema lookup.</returns>
-        Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string name, string version,
+        Task<string> CreateSchemaAsync(IAgentContext context, string issuerDid, string name, string version,
             string[] attributeNames);
 
         /// <summary>
@@ -36,7 +36,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="version">The version.</param>
         /// <param name="attributeNames">The attribute names.</param>
         /// <returns></returns>
-        Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string name, string version, string[] attributeNames);
+        Task<string> CreateSchemaAsync(IAgentContext context, string name, string version, string[] attributeNames);
 
         /// <summary>Creates the credential definition and registers it on the ledger.</summary>
         /// <param name="pool">The pool.</param>

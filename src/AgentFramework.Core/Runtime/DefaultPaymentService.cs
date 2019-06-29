@@ -5,6 +5,8 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Decorators.Payments;
 using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Models.Records;
+using Hyperledger.Indy.PoolApi;
+using Hyperledger.Indy.WalletApi;
 
 namespace AgentFramework.Core.Runtime
 {
@@ -13,6 +15,11 @@ namespace AgentFramework.Core.Runtime
         public Task<PaymentAddressRecord> CreatePaymentAddressAsync(IAgentContext agentContext, PaymentAddressConfiguration configuration = null)
         {
             throw new NotSupportedException();
+        }
+
+        public Task<PaymentInfo> CreatePaymentInfoAsync(Pool pool, Wallet wallet, string transactionType)
+        {
+            return Task.FromResult<PaymentInfo>(null);
         }
 
         public Task GetBalanceAsync(IAgentContext agentContext, PaymentAddressRecord paymentAddress = null)

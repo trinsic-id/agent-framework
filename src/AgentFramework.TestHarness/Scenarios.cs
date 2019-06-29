@@ -215,7 +215,7 @@ namespace AgentFramework.TestHarness
         public static async Task<(string,string)> CreateDummySchemaAndNonRevokableCredDef(IAgentContext context, ISchemaService schemaService, string issuerDid, string[] attributeValues)
         {
             // Create a schema and credential definition for this issuer
-            var schemaId = await schemaService.CreateSchemaAsync(await context.Pool, context.Wallet, issuerDid,
+            var schemaId = await schemaService.CreateSchemaAsync(context, issuerDid,
                 $"Test-Schema-{Guid.NewGuid().ToString()}", "1.0", attributeValues);
             return (await schemaService.CreateCredentialDefinitionAsync(await context.Pool, context.Wallet, schemaId,  issuerDid, "Tag", false, 100, new Uri("http://mock/tails")), schemaId);
         }

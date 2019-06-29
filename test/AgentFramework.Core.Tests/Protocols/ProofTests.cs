@@ -52,9 +52,10 @@ namespace AgentFramework.Core.Tests.Protocols
             _eventAggregator = new EventAggregator();
             
             var provisioning = ServiceUtils.GetDefaultMockProvisioningService();
+            var paymentMock = new Mock<IPaymentService>();
 
             var tailsService = new DefaultTailsService(ledgerService, new HttpClientHandler());
-            _schemaService = new DefaultSchemaService(provisioning, recordService, ledgerService, tailsService);
+            _schemaService = new DefaultSchemaService(provisioning, recordService, ledgerService, paymentMock.Object, tailsService);
 
             _connectionService = new DefaultConnectionService(
                 _eventAggregator,
