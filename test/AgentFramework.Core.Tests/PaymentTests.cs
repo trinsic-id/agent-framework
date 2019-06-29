@@ -56,13 +56,13 @@ namespace AgentFramework.Core.Tests
             Assert.Equal(address.Balance, amount);
         }
 
-        [Fact(DisplayName = "Get transaction fees from ledger")]
+        [Fact(DisplayName = "Get fees from ledger for schema transaction type")]
         public async Task GetTransactionFeesAsync()
         {
-            var paymentService = Host.Services.GetService<IPaymentService>();
-            var fees = await paymentService.GetTransactionFeesAsync(Context);
+            var feesService = Host.Services.GetService<IFeesService>();
+            var fee = await feesService.GetTransactionFeeAsync(Context, TransactionTypes.SCHEMA);
 
-            Assert.NotNull(fees);
+            Assert.True(fee >= 0);
         }
 
         [Fact(DisplayName = "Create schema")]
@@ -85,6 +85,7 @@ namespace AgentFramework.Core.Tests
         {
             // Generate from address
             var paymentService = Host.Services.GetService<IPaymentService>();
+            var feesService = Host.Services.GetService<IFeesService>();
             var recordService = Host.Services.GetService<IWalletRecordService>();
             var addressFrom = await paymentService.CreatePaymentAddressAsync(Context);
 
@@ -105,7 +106,7 @@ namespace AgentFramework.Core.Tests
             await recordService.AddAsync(Context.Wallet, paymentRecord);
             await paymentService.MakePaymentAsync(Context, paymentRecord, addressFrom);
 
-            var fee = await paymentService.GetTransactionFeeAsync(Context, TransactionTypes.XFER_PUBLIC);
+            var fee = await feesService.GetTransactionFeeAsync(Context, TransactionTypes.XFER_PUBLIC);
 
             await paymentService.GetBalanceAsync(Context, addressFrom);
             await paymentService.GetBalanceAsync(Context, addressTo);
@@ -137,15 +138,6 @@ namespace AgentFramework.Core.Tests
             Assert.NotNull(rules);
             Assert.True(rules.Any());
             Assert.True(rules.Count > 0);
-        }
-
-        [Fact(DisplayName = "Get transaction fees for a specific type")]
-        public async Task GetTxnFeesAsync()
-        {
-            var paymentService = Host.Services.GetService<IPaymentService>();
-            _ = await paymentService.GetTransactionFeeAsync(Context, TransactionTypes.SCHEMA);
-
-            Assert.True(true);
         }
 
         /*
@@ -275,8 +267,9 @@ namespace AgentFramework.Core.Tests
             ulong expectedBalY = transferAmount;
 
             var paymentService = Host.Services.GetService<IPaymentService>();
+            var feesService = Host.Services.GetService<IFeesService>();
             var recordService = Host.Services.GetService<IWalletRecordService>();
-            var fee = await paymentService.GetTransactionFeeAsync(Context, TransactionTypes.XFER_PUBLIC);
+            var fee = await feesService.GetTransactionFeeAsync(Context, TransactionTypes.XFER_PUBLIC);
             PaymentAddressRecord[] address = new PaymentAddressRecord[addressCount];
            
             // check all addresses for 0 beginning

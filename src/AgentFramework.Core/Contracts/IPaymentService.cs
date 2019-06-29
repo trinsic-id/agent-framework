@@ -10,16 +10,6 @@ namespace AgentFramework.Core.Contracts
     {
         Task SetDefaultPaymentAddressAsync(IAgentContext agentContext, PaymentAddressRecord addressRecord);
 
-        Task<ulong> GetTransactionFeeAsync(IAgentContext agentContext, string transactionType);
-
-        /// <summary>
-        /// Gets a list of fees aliases set for this ledger.
-        /// The fees aliases will be used in the authorization rules metadata.
-        /// </summary>
-        /// <param name="agentContext"></param>
-        /// <returns></returns>
-        Task<IDictionary<string, ulong>> GetTransactionFeesAsync(IAgentContext agentContext);
-
         Task<PaymentAddressRecord> CreatePaymentAddressAsync(IAgentContext agentContext, PaymentAddressConfiguration configuration = null);
 
         Task MakePaymentAsync(IAgentContext agentContext, PaymentRecord paymentRecord, PaymentAddressRecord addressRecord = null);
