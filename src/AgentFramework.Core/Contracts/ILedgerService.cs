@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.Core.Models.Ledger;
+using AgentFramework.Core.Models.Payments;
 using Hyperledger.Indy.LedgerApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
@@ -39,7 +40,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="attributeName">Attribute name.</param>
         /// <param name="value">The attribute value.</param>
         Task RegisterAttributeAsync(Pool pool, Wallet wallet, string submittedDid, string targetDid,
-            string attributeName, object value);
+            string attributeName, object value, PaymentInfo paymentInfo = null);
 
         /// <summary>
         /// Lookup the schema async.
@@ -122,7 +123,7 @@ namespace AgentFramework.Core.Contracts
         /// Registration async.
         /// </returns>
         Task RegisterNymAsync(Wallet wallet, Pool pool, string submitterDid, string theirDid,
-            string theirVerkey, string role);
+            string theirVerkey, string role, PaymentInfo paymentInfo = null);
 
         /// <summary>
         /// Registers the credential definition async.
@@ -134,7 +135,8 @@ namespace AgentFramework.Core.Contracts
         /// <returns>
         /// The credential definition async.
         /// </returns>
-        Task RegisterCredentialDefinitionAsync(Wallet wallet, Pool pool, string submitterDid, string data);
+        Task RegisterCredentialDefinitionAsync(Wallet wallet, Pool pool, string submitterDid,
+            string data, PaymentInfo paymentInfo = null);
 
         /// <summary>
         /// Registers the revocation registry definition asynchronous.
@@ -144,7 +146,8 @@ namespace AgentFramework.Core.Contracts
         /// <param name="submitterDid">The submitter did.</param>
         /// <param name="data">The data.</param>
         /// <returns></returns>
-        Task RegisterRevocationRegistryDefinitionAsync(Wallet wallet, Pool pool, string submitterDid, string data);
+        Task RegisterRevocationRegistryDefinitionAsync(Wallet wallet, Pool pool, string submitterDid,
+            string data, PaymentInfo paymentInfo = null);
 
         /// <summary>
         /// Sends the revocation registry entry asynchronous.
@@ -156,8 +159,8 @@ namespace AgentFramework.Core.Contracts
         /// <param name="revocationDefinitionType">Type of the revocation definition.</param>
         /// <param name="value">The value.</param>
         /// <returns></returns>
-        Task SendRevocationRegistryEntryAsync(Wallet wallet, Pool pool, string issuerDid,
-            string revocationRegistryDefinitionId, string revocationDefinitionType, string value);
+        Task SendRevocationRegistryEntryAsync(Wallet wallet, Pool pool, string issuerDid, string revocationRegistryDefinitionId,
+            string revocationDefinitionType, string value, PaymentInfo paymentInfo = null);
 
         /// <summary>
         /// Registers the schema asynchronous.
@@ -167,6 +170,6 @@ namespace AgentFramework.Core.Contracts
         /// <param name="issuerDid">The issuer did.</param>
         /// <param name="schemaJson">The schema json.</param>
         /// <returns></returns>
-        Task RegisterSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string schemaJson);
+        Task RegisterSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string schemaJson, PaymentInfo paymentInfo = null);
     }
 }

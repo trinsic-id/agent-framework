@@ -3,29 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Models.Ledger;
 using Hyperledger.Indy.LedgerApi;
+using Hyperledger.Indy.PoolApi;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using IndyPayments = Hyperledger.Indy.PaymentsApi.Payments;
 
 namespace AgentFramework.Payments.SovrinToken
 {
     public class SovrinFeesService : IFeesService
     {
-        private readonly ILedgerService ledgerService;
         private readonly ILogger<SovrinFeesService> logger;
         private IDictionary<string, ulong> _transactionFees;
 
-        public SovrinFeesService(ILedgerService ledgerService, ILogger<SovrinFeesService> logger)
+        public SovrinFeesService(ILogger<SovrinFeesService> logger)
         {
-            this.ledgerService = ledgerService;
             this.logger = logger;
         }
 
         public async Task<ulong> GetTransactionFeeAsync(IAgentContext agentContext, string txnType)
         {
             var feeAliases = await GetTransactionFeesAsync(agentContext);
-            var authRules = await ledgerService.LookupAuthorizationRulesAsync(await agentContext.Pool);
+            var authRules = await LookupAuthorizationRulesAsync(await agentContext.Pool);
 
             // TODO: Add better selective logic that takes action and role into account
             // Ex: ADD action may have fees, but EDIT may not have any
@@ -64,6 +66,26 @@ namespace AgentFramework.Payments.SovrinToken
                 return amount;
             }
             return 0;
+        }
+
+        /// <inheritdoc />
+        public async Task<IList<AuthorizationRule>> LookupAuthorizationRulesAsync(Pool pool)
+        {
+            var req = await Ledger.BuildGetAuthRuleRequestAsync(null, null, null, null, null, null);
+            var res = await Ledger.SubmitRequestAsync(pool, req);
+
+            EnsureSuccessResponse(res);
+
+            var jobj = JObject.Parse(res);
+            return jobj["result"]["data"].ToObject<IList<AuthorizationRule>>();
+        }
+
+        void EnsureSuccessResponse(string res)
+        {
+            var response = JObject.Parse(res);
+
+            if (!response["op"].ToObject<string>().Equals("reply", StringComparison.OrdinalIgnoreCase))
+                throw new AgentFrameworkException(ErrorCode.LedgerOperationRejected, "Ledger operation rejected");
         }
 
         private async Task<IDictionary<string, ulong>> GetTransactionFeesAsync(IAgentContext agentContext)
