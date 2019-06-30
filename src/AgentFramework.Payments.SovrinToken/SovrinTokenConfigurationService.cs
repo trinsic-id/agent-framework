@@ -49,9 +49,9 @@ namespace AgentFramework.Payments.SovrinToken
                 if (provisioning.DefaultPaymentAddressId == null)
                 {
                     var address = await paymentService.CreatePaymentAddressAsync(context,
-                        new PaymentAddressConfiguration
+                        new AddressOptions
                         {
-                            AccountId = AgentConfiguration.DefaultPaymentAddressSeed,
+                            Seed = AgentConfiguration.AddressSeed,
                             Method = TokenConfiguration.MethodName
                         });
                     provisioning.DefaultPaymentAddressId = address.Id;

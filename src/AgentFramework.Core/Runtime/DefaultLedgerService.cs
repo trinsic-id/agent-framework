@@ -79,24 +79,14 @@ namespace AgentFramework.Core.Handlers.Agents
         public virtual async Task RegisterSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string schemaJson, PaymentInfo paymentInfo = null)
         {
             var req = await Ledger.BuildSchemaRequestAsync(issuerDid, schemaJson);
-            req = await ProcessPaymentAsync(wallet, req, paymentInfo);
-            var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, issuerDid, req);
-
-            EnsureSuccessResponse(res);
-
-            await ProcessResponseAsync(res, paymentInfo);
+            var res = await SignAndSubmitAsync(pool, wallet, issuerDid, req, paymentInfo);
         }
 
         /// <inheritdoc />
         public virtual async Task RegisterCredentialDefinitionAsync(Wallet wallet, Pool pool, string submitterDid, string data, PaymentInfo paymentInfo = null)
         {
             var req = await Ledger.BuildCredDefRequestAsync(submitterDid, data);
-            req = await ProcessPaymentAsync(wallet, req, paymentInfo);
-            var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, req);
-
-            EnsureSuccessResponse(res);
-
-            await ProcessResponseAsync(res, paymentInfo);
+            var res = await SignAndSubmitAsync(pool, wallet, submitterDid, req, paymentInfo);
         }
 
         /// <inheritdoc />
@@ -104,12 +94,7 @@ namespace AgentFramework.Core.Handlers.Agents
             string data, PaymentInfo paymentInfo = null)
         {
             var req = await Ledger.BuildRevocRegDefRequestAsync(submitterDid, data);
-            req = await ProcessPaymentAsync(wallet, req, paymentInfo);
-            var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, req);
-
-            EnsureSuccessResponse(res);
-
-            await ProcessResponseAsync(res, paymentInfo);
+            var res = await SignAndSubmitAsync(pool, wallet, submitterDid, req, paymentInfo);
         }
 
         /// <inheritdoc />
@@ -118,12 +103,7 @@ namespace AgentFramework.Core.Handlers.Agents
         {
             var req = await Ledger.BuildRevocRegEntryRequestAsync(issuerDid, revocationRegistryDefinitionId,
                 revocationDefinitionType, value);
-            req = await ProcessPaymentAsync(wallet, req, paymentInfo);
-            var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, issuerDid, req);
-
-            EnsureSuccessResponse(res);
-
-            await ProcessResponseAsync(res, paymentInfo);
+            var res = await SignAndSubmitAsync(pool, wallet, issuerDid, req, paymentInfo);
         }
 
         /// <inheritdoc />
@@ -134,12 +114,7 @@ namespace AgentFramework.Core.Handlers.Agents
                 theirVerkey = await Did.AbbreviateVerkeyAsync(theirDid, theirVerkey);
 
             var req = await Ledger.BuildNymRequestAsync(submitterDid, theirDid, theirVerkey, null, role);
-            req = await ProcessPaymentAsync(wallet, req, paymentInfo);
-            var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, req);
-
-            EnsureSuccessResponse(res);
-
-            await ProcessResponseAsync(res, paymentInfo);
+            var res = await SignAndSubmitAsync(pool, wallet, submitterDid, req, paymentInfo);
         }
 
         /// <inheritdoc />
@@ -167,49 +142,7 @@ namespace AgentFramework.Core.Handlers.Agents
             var data = $"{{\"{attributeName}\": {value.ToJson()}}}";
 
             var req = await Ledger.BuildAttribRequestAsync(submittedDid, targetDid, null, data, null);
-            req = await ProcessPaymentAsync(wallet, req, paymentInfo);
-            var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submittedDid, req);
-
-            EnsureSuccessResponse(res);
-
-            await ProcessResponseAsync(res, paymentInfo);
-        }
-
-        private async Task ProcessResponseAsync(string response, PaymentInfo paymentInfo)
-        {
-            if (paymentInfo == null) return;
-
-            var paymentResponse = await IndyPayments.ParsePaymentResponseAsync(paymentInfo.PaymentMethod, response);
-            var paymentOutputs = paymentResponse.ToObject<IList<IndyPaymentOutputSource>>();
-            paymentInfo.From.Sources = paymentOutputs.Select(x => new IndyPaymentInputSource
-            {
-                Amount = x.Amount,
-                Source = x.Receipt,
-                PaymentAddress = x.Recipient
-            }).ToList();
-        }
-
-        private async Task<string> ProcessPaymentAsync(Wallet wallet, string req, PaymentInfo paymentInfo)
-        {
-            if (paymentInfo != null)
-            {
-                var requestWithFees = await IndyPayments.AddRequestFeesAsync(
-                    wallet: wallet,
-                    submitterDid: null,
-                    reqJson: req,
-                    inputsJson: paymentInfo.From.Sources.Select(x => x.Source).ToJson(),
-                    outputsJson: new[]
-                    {
-                        new IndyPaymentOutputSource
-                        {
-                            Recipient = paymentInfo.From.Address,
-                            Amount = paymentInfo.From.Balance - paymentInfo.Amount
-                        }
-                    }.ToJson(),
-                    extra: null);
-                return requestWithFees.Result;
-            }
-            return req;
+            var res = await SignAndSubmitAsync(pool, wallet, submittedDid, req, paymentInfo);
         }
 
         /// <inheritdoc />
@@ -233,6 +166,47 @@ namespace AgentFramework.Core.Handlers.Agents
 
             var jobj = JObject.Parse(res);
             return jobj["result"]["data"].ToObject<IList<AuthorizationRule>>();
+        }
+
+        private async Task<string> SignAndSubmitAsync(Pool pool, Wallet wallet, string submitterDid, string request, PaymentInfo paymentInfo)
+        {
+            if (paymentInfo != null)
+            {
+                var requestWithFees = await IndyPayments.AddRequestFeesAsync(
+                    wallet: wallet,
+                    submitterDid: null,
+                    reqJson: request,
+                    inputsJson: paymentInfo.From.Sources.Select(x => x.Source).ToJson(),
+                    outputsJson: new[]
+                    {
+                        new IndyPaymentOutputSource
+                        {
+                            Recipient = paymentInfo.From.Address,
+                            Amount = paymentInfo.From.Balance - paymentInfo.Amount
+                        }
+                    }.ToJson(),
+                    extra: null);
+                request = requestWithFees.Result;
+            }
+            var response = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, request);
+
+            EnsureSuccessResponse(response);
+
+            if (paymentInfo != null)
+            {
+                var responsePayment = await IndyPayments.ParseResponseWithFeesAsync(paymentInfo.PaymentMethod, response);
+                var paymentOutputs = responsePayment.ToObject<IList<IndyPaymentOutputSource>>();
+                paymentInfo.From.Sources = paymentOutputs
+                    .Where(x => x.Recipient == paymentInfo.From.Address)
+                    .Select(x => new IndyPaymentInputSource
+                    {
+                        Amount = x.Amount,
+                        PaymentAddress = x.Recipient,
+                        Source = x.Receipt
+                    })
+                    .ToList();
+            }
+            return response;
         }
 
         void EnsureSuccessResponse(string res)

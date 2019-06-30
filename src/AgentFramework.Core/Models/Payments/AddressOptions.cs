@@ -3,12 +3,12 @@
     /// <summary>
     /// Payment account configuration.
     /// </summary>
-    public class PaymentAddressConfiguration
+    public class AddressOptions
     {
         /// <summary>
         /// Account identifier
         /// </summary>
-        public string AccountId { get; set; }
+        public string Seed { get; set; }
 
         /// <summary>
         /// Gets or sets the method.

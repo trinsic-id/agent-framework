@@ -43,10 +43,10 @@ namespace AgentFramework.Payments.SovrinToken
         }
 
         /// <inheritdoc />
-        public async Task<PaymentAddressRecord> CreatePaymentAddressAsync(IAgentContext agentContext, PaymentAddressConfiguration configuration = null)
+        public async Task<PaymentAddressRecord> CreatePaymentAddressAsync(IAgentContext agentContext, AddressOptions configuration = null)
         {
-            var address = await Indy.Payments.CreatePaymentAddressAsync(agentContext.Wallet, TokenConfiguration.MethodName,
-                new { seed = configuration?.AccountId }.ToJson());
+            var address = await IndyPayments.CreatePaymentAddressAsync(agentContext.Wallet, TokenConfiguration.MethodName,
+                new { seed = configuration?.Seed }.ToJson());
 
             var addressRecord = new PaymentAddressRecord
             {
@@ -61,25 +61,30 @@ namespace AgentFramework.Payments.SovrinToken
             return addressRecord;
         }
 
-        public async Task<PaymentInfo> CreatePaymentInfoAsync(IAgentContext context, string transactionType)
+        public async Task<PaymentInfo> CreatePaymentInfoAsync(IAgentContext context, string transactionType, PaymentAddressRecord addressRecord = null)
         {
-            var provisioning = await provisioningService.GetProvisioningAsync(context.Wallet);
-            if (provisioning.DefaultPaymentAddressId == null)
-            {
-                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Default PaymentAddressRecord not found");
-            }
-
-            var paymentAddress = await recordService.GetAsync<PaymentAddressRecord>(context.Wallet, provisioning.DefaultPaymentAddressId);
-
             var fees = await GetTransactionFeeAsync(context, transactionType);
-
-            return new PaymentInfo
+            if (fees > 0)
             {
-                Amount = fees,
-                From = paymentAddress,
-                PaymentMethod = "sov",
-                To = paymentAddress.Address
-            };
+                if (addressRecord == null)
+                {
+                    var provisioning = await provisioningService.GetProvisioningAsync(context.Wallet);
+                    if (provisioning.DefaultPaymentAddressId == null)
+                    {
+                        throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Default PaymentAddressRecord not found");
+                    }
+                    addressRecord = await recordService.GetAsync<PaymentAddressRecord>(context.Wallet, provisioning.DefaultPaymentAddressId);
+                }
+
+                return new PaymentInfo
+                {
+                    Amount = fees,
+                    From = addressRecord,
+                    PaymentMethod = "sov",
+                    To = addressRecord.Address
+                };
+            }
+            return null;
         }
 
         /// <inheritdoc />

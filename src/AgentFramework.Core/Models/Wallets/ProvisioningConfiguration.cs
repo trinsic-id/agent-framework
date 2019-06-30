@@ -11,7 +11,10 @@ namespace AgentFramework.Core.Models.Wallets
     /// </summary>
     public class ProvisioningConfiguration
     {
-        public string DefaultPaymentAddressSeed { get; set; }
+        /// <summary>
+        /// Gets or sets the defalt payment address seed
+        /// </summary>
+        public string AddressSeed { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the owner of the agent

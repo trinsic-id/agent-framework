@@ -12,12 +12,12 @@ namespace AgentFramework.Core.Runtime
 {
     public class DefaultPaymentService : IPaymentService
     {
-        public Task<PaymentAddressRecord> CreatePaymentAddressAsync(IAgentContext agentContext, PaymentAddressConfiguration configuration = null)
+        public Task<PaymentAddressRecord> CreatePaymentAddressAsync(IAgentContext agentContext, AddressOptions configuration = null)
         {
             throw new NotSupportedException();
         }
 
-        public Task<PaymentInfo> CreatePaymentInfoAsync(IAgentContext context, string transactionType)
+        public Task<PaymentInfo> CreatePaymentInfoAsync(IAgentContext context, string transactionType, PaymentAddressRecord addressRecord = null)
         {
             return Task.FromResult<PaymentInfo>(null);
         }
@@ -30,12 +30,6 @@ namespace AgentFramework.Core.Runtime
         public Task<ulong> GetTransactionFeeAsync(IAgentContext agentContext, string transactionType)
         {
             return Task.FromResult(0UL);
-        }
-
-        public async Task<IDictionary<string, ulong>> GetTransactionFeesAsync(IAgentContext agentContext)
-        {
-            await Task.Yield();
-            return new Dictionary<string, ulong>();
         }
 
         public Task MakePaymentAsync(IAgentContext agentContext, PaymentRecord paymentRecord, PaymentAddressRecord addressRecord = null)

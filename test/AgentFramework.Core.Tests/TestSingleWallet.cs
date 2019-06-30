@@ -117,9 +117,6 @@ namespace AgentFramework.Core.Tests
 
         protected async Task FundDefaultAccountAsync(ulong amount)
         {
-            var paymentService = Host.Services.GetService<IPaymentService>();
-            var recordService = Host.Services.GetService<IWalletRecordService>();
-            var provisioningService = Host.Services.GetService<IProvisioningService>();
             var record = await provisioningService.GetProvisioningAsync(Context.Wallet);
             var addressRecord = await recordService.GetAsync<PaymentAddressRecord>(Context.Wallet, record.DefaultPaymentAddressId);
 

@@ -9,6 +9,7 @@ using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Events;
+using AgentFramework.Core.Models.Ledger;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Utils;
@@ -51,6 +52,12 @@ namespace AgentFramework.Core.Handlers.Agents
         /// The provisioning service
         /// </summary>
         protected readonly IProvisioningService ProvisioningService;
+
+        /// <summary>
+        /// Payment Service
+        /// </summary>
+        protected readonly IPaymentService PaymentService;
+
         /// <summary>
         /// The logger
         /// </summary>
@@ -75,6 +82,7 @@ namespace AgentFramework.Core.Handlers.Agents
             ISchemaService schemaService,
             ITailsService tailsService,
             IProvisioningService provisioningService,
+            IPaymentService paymentService,
             ILogger<DefaultCredentialService> logger)
         {
             EventAggregator = eventAggregator;
@@ -84,6 +92,7 @@ namespace AgentFramework.Core.Handlers.Agents
             SchemaService = schemaService;
             TailsService = tailsService;
             ProvisioningService = provisioningService;
+            PaymentService = paymentService;
             Logger = logger;
         }
 
@@ -396,10 +405,21 @@ namespace AgentFramework.Core.Handlers.Agents
 
             if (definitionRecord.SupportsRevocation)
             {
-                await LedgerService.SendRevocationRegistryEntryAsync(agentContext.Wallet, await agentContext.Pool, issuerDid,
-                    revocationRegistryId,
-                    "CL_ACCUM", issuedCredential.RevocRegDeltaJson);
+                var paymentInfo = await PaymentService.CreatePaymentInfoAsync(agentContext, TransactionTypes.REVOC_REG_ENTRY);
+
+                await LedgerService.SendRevocationRegistryEntryAsync(wallet: agentContext.Wallet,
+                                                                     pool: await agentContext.Pool,
+                                                                     issuerDid: issuerDid,
+                                                                     revocationRegistryDefinitionId: revocationRegistryId,
+                                                                     revocationDefinitionType: "CL_ACCUM",
+                                                                     value: issuedCredential.RevocRegDeltaJson,
+                                                                     paymentInfo: paymentInfo);
                 credential.CredentialRevocationId = issuedCredential.RevocId;
+
+                if (paymentInfo != null)
+                {
+                    await RecordService.UpdateAsync(agentContext.Wallet, paymentInfo.From);
+                }
             }
 
             await credential.TriggerAsync(CredentialTrigger.Issue);
@@ -440,10 +460,21 @@ namespace AgentFramework.Core.Handlers.Agents
             var revocRegistryDeltaJson = await AnonCreds.IssuerRevokeCredentialAsync(agentContext.Wallet, tailsReader,
                 revocationRecord.Id, credential.CredentialRevocationId);
 
+            var paymentInfo = await PaymentService.CreatePaymentInfoAsync(agentContext, TransactionTypes.REVOC_REG_ENTRY);
+
             // Write the delta state on the ledger for the corresponding revocation registry
-            await LedgerService.SendRevocationRegistryEntryAsync(agentContext.Wallet, await agentContext.Pool, issuerDid,
-                revocationRecord.Id,
-                "CL_ACCUM", revocRegistryDeltaJson);
+            await LedgerService.SendRevocationRegistryEntryAsync(wallet: agentContext.Wallet,
+                                                                 pool: await agentContext.Pool,
+                                                                 issuerDid: issuerDid,
+                                                                 revocationRegistryDefinitionId: revocationRecord.Id,
+                                                                 revocationDefinitionType: "CL_ACCUM",
+                                                                 value: revocRegistryDeltaJson,
+                                                                 paymentInfo: paymentInfo);
+
+            if (paymentInfo != null)
+            {
+                await RecordService.UpdateAsync(agentContext.Wallet, paymentInfo.From);
+            }
 
             // Update local credential record
             await RecordService.UpdateAsync(agentContext.Wallet, credential);
