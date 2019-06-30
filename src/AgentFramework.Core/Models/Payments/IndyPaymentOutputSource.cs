@@ -19,7 +19,7 @@ namespace AgentFramework.Core.Models.Payments
         /// <value>
         /// The amount.
         /// </value>
-        [JsonProperty("amount")]
+        [JsonProperty("amount", NullValueHandling = NullValueHandling.Ignore)]
         public ulong Amount { get; set; }
 
         /// <summary>

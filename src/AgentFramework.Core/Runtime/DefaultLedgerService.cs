@@ -83,6 +83,8 @@ namespace AgentFramework.Core.Handlers.Agents
             var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, issuerDid, req);
 
             EnsureSuccessResponse(res);
+
+            await ProcessResponseAsync(res, paymentInfo);
         }
 
         /// <inheritdoc />
@@ -93,6 +95,8 @@ namespace AgentFramework.Core.Handlers.Agents
             var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, req);
 
             EnsureSuccessResponse(res);
+
+            await ProcessResponseAsync(res, paymentInfo);
         }
 
         /// <inheritdoc />
@@ -104,6 +108,8 @@ namespace AgentFramework.Core.Handlers.Agents
             var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, req);
 
             EnsureSuccessResponse(res);
+
+            await ProcessResponseAsync(res, paymentInfo);
         }
 
         /// <inheritdoc />
@@ -116,6 +122,8 @@ namespace AgentFramework.Core.Handlers.Agents
             var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, issuerDid, req);
 
             EnsureSuccessResponse(res);
+
+            await ProcessResponseAsync(res, paymentInfo);
         }
 
         /// <inheritdoc />
@@ -130,6 +138,8 @@ namespace AgentFramework.Core.Handlers.Agents
             var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, req);
 
             EnsureSuccessResponse(res);
+
+            await ProcessResponseAsync(res, paymentInfo);
         }
 
         /// <inheritdoc />
@@ -161,6 +171,22 @@ namespace AgentFramework.Core.Handlers.Agents
             var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submittedDid, req);
 
             EnsureSuccessResponse(res);
+
+            await ProcessResponseAsync(res, paymentInfo);
+        }
+
+        private async Task ProcessResponseAsync(string response, PaymentInfo paymentInfo)
+        {
+            if (paymentInfo == null) return;
+
+            var paymentResponse = await IndyPayments.ParsePaymentResponseAsync(paymentInfo.PaymentMethod, response);
+            var paymentOutputs = paymentResponse.ToObject<IList<IndyPaymentOutputSource>>();
+            paymentInfo.From.Sources = paymentOutputs.Select(x => new IndyPaymentInputSource
+            {
+                Amount = x.Amount,
+                Source = x.Receipt,
+                PaymentAddress = x.Recipient
+            }).ToList();
         }
 
         private async Task<string> ProcessPaymentAsync(Wallet wallet, string req, PaymentInfo paymentInfo)

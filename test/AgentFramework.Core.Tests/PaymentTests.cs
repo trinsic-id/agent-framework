@@ -91,6 +91,7 @@ namespace AgentFramework.Core.Tests
         {
             // Generate from address
             var addressFrom = await paymentService.CreatePaymentAddressAsync(Context);
+            await SetFeesForPublicXferTransactionsAsync(2);
 
             // Mint tokens to the address to fund initially
             var request = await Indy.Payments.BuildMintRequestAsync(Context.Wallet, Trustee.Did,
@@ -110,26 +111,16 @@ namespace AgentFramework.Core.Tests
             await paymentService.MakePaymentAsync(Context, paymentRecord, addressFrom);
 
             var fee = await paymentService.GetTransactionFeeAsync(Context, TransactionTypes.XFER_PUBLIC);
+            Assert.Equal(2UL, fee);
 
             await paymentService.GetBalanceAsync(Context, addressFrom);
             await paymentService.GetBalanceAsync(Context, addressTo);
 
             Assert.Equal(10UL, addressTo.Balance);
-            Assert.Equal(5UL - fee, addressFrom.Balance);
-        }
+            Assert.Equal(3UL, addressFrom.Balance);
 
-        /*
-         * ''' txn codes 
-            DOMAIN LEDGER
-                NYM, 1
-                ATTRIB, 100
-                SCHEMA, 101
-                CRED_DEF, 102
-                REVOC_REG_DEF, 113
-                REVOC_REG_ENTRY, 114
-            PAYMENT LEDGER
-                XFER_PUBLIC, 10001 '''
-        */
+            await UnsetFeesForPublicXferTransactionsAsync();
+        }
 
         [Fact(DisplayName = "Get auth rules from the ledger")]
         public async Task GetAuthRules()
@@ -142,47 +133,6 @@ namespace AgentFramework.Core.Tests
             Assert.True(rules.Any());
             Assert.True(rules.Count > 0);
         }
-
-        /*
-              {
-        "auth_type": "101",
-        "new_value": "*",
-        "field": "*",
-        "auth_action": "ADD",
-        "constraint": {
-          "constraint_id": "OR",
-          "auth_constraints": [
-            {
-              "metadata": {
-                
-              },
-              "constraint_id": "ROLE",
-              "need_to_be_owner": false,
-              "role": "0",
-              "sig_count": 1
-            },
-            {
-              "metadata": {
-                
-              },
-              "constraint_id": "ROLE",
-              "need_to_be_owner": false,
-              "role": "2",
-              "sig_count": 1
-            },
-            {
-              "metadata": {
-                
-              },
-              "constraint_id": "ROLE",
-              "need_to_be_owner": false,
-              "role": "101",
-              "sig_count": 1
-            }
-          ]
-        }
-      },
-             */
 
         public async Task SetFeesForSchemaTransactionsAsync(ulong amount)
         {
@@ -225,6 +175,54 @@ namespace AgentFramework.Core.Tests
                       sig_count= 1
                     }
                 }
+            }.ToJson());
+            response = await TrusteeMultiSignAndSubmitRequestAsync(request);
+
+            Console.WriteLine(response);
+        }
+
+        public async Task SetFeesForPublicXferTransactionsAsync(ulong amount)
+        {
+            Utils.EnableIndyLogging();
+
+            var request = await Indy.Payments.BuildSetTxnFeesRequestAsync(Context.Wallet, Trustee.Did, TokenConfiguration.MethodName,
+                new Dictionary<string, ulong>
+                {
+                                { "fees_for_xfer", amount }
+                }.ToJson());
+            var response = await TrusteeMultiSignAndSubmitRequestAsync(request);
+
+            request = await Ledger.BuildAuthRuleRequestAsync(Trustee.Did, "10001", "ADD", "*", "*", "*", new
+            {
+                constraint_id = "ROLE",
+                metadata = new {
+                    fees = "fees_for_xfer"
+                },
+                need_to_be_owner = false,
+                role = "*",
+                sig_count = 0
+            }.ToJson());
+            response = await TrusteeMultiSignAndSubmitRequestAsync(request);
+
+            Console.WriteLine(response);
+        }
+
+        public async Task UnsetFeesForPublicXferTransactionsAsync()
+        {
+            var request = await Indy.Payments.BuildSetTxnFeesRequestAsync(Context.Wallet, Trustee.Did, TokenConfiguration.MethodName,
+                new Dictionary<string, ulong>
+                {
+                                { "fees_for_xfer", 0 }
+                }.ToJson());
+            var response = await TrusteeMultiSignAndSubmitRequestAsync(request);
+
+            request = await Ledger.BuildAuthRuleRequestAsync(Trustee.Did, "10001", "ADD", "*", "*", "*", new
+            {
+                constraint_id = "ROLE",
+                metadata = new { },
+                need_to_be_owner = false,
+                role = "*",
+                sig_count = 0
             }.ToJson());
             response = await TrusteeMultiSignAndSubmitRequestAsync(request);
 
