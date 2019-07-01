@@ -8,7 +8,7 @@ namespace AgentFramework.Payments.Middleware
 {
     public class PaymentsAgentMiddleware : IAgentMiddleware
     {
-        public Task ProcessMessageAsync(IAgentContext agentConext, MessageContext messageContext)
+        public Task OnMessageAsync(IAgentContext agentConext, MessageContext messageContext)
         {
             throw new NotImplementedException();
         }

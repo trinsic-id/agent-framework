@@ -7,6 +7,6 @@ namespace AgentFramework.Core.Handlers.Agents
 {
     public interface IAgentMiddleware
     {
-        Task ProcessMessageAsync(IAgentContext agentConext, MessageContext messageContext);
+        Task OnMessageAsync(IAgentContext agentConext, MessageContext messageContext);
     }
 }

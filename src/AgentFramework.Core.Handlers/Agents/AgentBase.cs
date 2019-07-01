@@ -135,7 +135,7 @@ namespace AgentFramework.Core.Handlers
                 // Process message with any registered middlewares
                 foreach (var middleware in Middlewares)
                 {
-                    await middleware.ProcessMessageAsync(agentContext, inboundMessageContext);
+                    await middleware.OnMessageAsync(agentContext, inboundMessageContext);
                 }
 
                 if (response != null)
