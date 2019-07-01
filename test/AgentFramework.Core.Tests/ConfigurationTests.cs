@@ -205,7 +205,7 @@ namespace AgentFramework.Core.Tests
             .Be((int)HttpStatusCode.OK);
         }
 
-        [Fact(DisplayName = "Agent middleware calls next gelegate if invalid http method")]
+        [Fact(DisplayName = "Agent middleware calls next delegate if invalid http method")]
         public async Task AgentMiddlewareCallsNextDelegateOnInvalidHttpMethod()
         {
             var mockedContext = new Mock<IAgentProvider>();
