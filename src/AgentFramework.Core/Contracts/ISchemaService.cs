@@ -15,8 +15,7 @@ namespace AgentFramework.Core.Contracts
         /// <summary>
         /// Creates and registers schema on the ledger
         /// </summary>
-        /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
+        /// <param name="context">The agent context</param>
         /// <param name="issuerDid">The issuer did.
         /// <remarks>The DID must have `TRUST_ANCHOR` permissions on the ledger.</remarks></param>
         /// <param name="name">The name.</param>
@@ -30,8 +29,7 @@ namespace AgentFramework.Core.Contracts
         /// <summary>
         /// Creates and registers schema on the ledger
         /// </summary>
-        /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
+        /// <param name="context">The agent context</param>
         /// <param name="name">The name.</param>
         /// <param name="version">The version.</param>
         /// <param name="attributeNames">The attribute names.</param>
@@ -39,8 +37,7 @@ namespace AgentFramework.Core.Contracts
         Task<string> CreateSchemaAsync(IAgentContext context, string name, string version, string[] attributeNames);
 
         /// <summary>Creates the credential definition and registers it on the ledger.</summary>
-        /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
+        /// <param name="context">The agent context</param>
         /// <param name="schemaId">The schema identifier.</param>
         /// <param name="issuerDid">The issuer did.</param>
         /// <param name="tag">The tag.</param>
@@ -55,8 +52,7 @@ namespace AgentFramework.Core.Contracts
             string tag, bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri);
 
         /// <summary>Creates the credential definition and registers it on the ledger.</summary>
-        /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
+        /// <param name="context">The agent context</param>
         /// <param name="schemaId">The schema identifier.</param>
         /// <param name="tag">The tag.</param>
         /// <param name="supportsRevocation">if set to <c>true</c> [supports revocation].</param>

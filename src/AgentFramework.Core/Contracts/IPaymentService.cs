@@ -9,6 +9,9 @@ using Hyperledger.Indy.WalletApi;
 
 namespace AgentFramework.Core.Contracts
 {
+    /// <summary>
+    /// Payment Service Interface
+    /// </summary>
     public interface IPaymentService
     {
         Task SetDefaultPaymentAddressAsync(IAgentContext agentContext, PaymentAddressRecord addressRecord);

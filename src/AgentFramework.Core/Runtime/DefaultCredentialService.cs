@@ -73,6 +73,7 @@ namespace AgentFramework.Core.Handlers.Agents
         /// <param name="schemaService">The schema service.</param>
         /// <param name="tailsService">The tails service.</param>
         /// <param name="provisioningService">The provisioning service.</param>
+        /// <param name="paymentService">The payment service.</param>
         /// <param name="logger">The logger.</param>
         public DefaultCredentialService(
             IEventAggregator eventAggregator,

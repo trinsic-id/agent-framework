@@ -6,14 +6,13 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Decorators.Transport;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
-using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace AgentFramework.Core.Handlers
+namespace AgentFramework.Core.Handlers.Agents
 {
     /// <summary>
     /// Base agent implementation

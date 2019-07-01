@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AgentFramework.AspNetCore;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
+using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Wallets;
 using AgentFramework.TestHarness.Utils;

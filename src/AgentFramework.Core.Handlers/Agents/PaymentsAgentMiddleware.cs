@@ -1,24 +1,22 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Decorators.Payments;
-using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Models.Records;
 
-namespace AgentFramework.Payments.Middleware
+namespace AgentFramework.Core.Handlers.Agents
 {
     public class PaymentsAgentMiddleware : IAgentMiddleware
     {
-        private readonly IPaymentService paymentService;
-        private readonly IWalletRecordService recordService;
+        private readonly IPaymentService _paymentService;
+        private readonly IWalletRecordService _recordService;
 
         public PaymentsAgentMiddleware(
             IPaymentService paymentService,
             IWalletRecordService recordService)
         {
-            this.paymentService = paymentService;
-            this.recordService = recordService;
+            _paymentService = paymentService;
+            _recordService = recordService;
         }
 
         public async Task OnMessageAsync(IAgentContext agentContext, MessageContext messageContext)
@@ -32,12 +30,12 @@ namespace AgentFramework.Payments.Middleware
                     Details = decorator.Details
                 };
                 await record.TriggerAsync(PaymentTrigger.RequestReceived);
-                await recordService.AddAsync(agentContext.Wallet, record);
+                await _recordService.AddAsync(agentContext.Wallet, record);
 
                 if (messageContext.ContextRecord != null)
                 {
                     messageContext.ContextRecord.SetTag("PaymentRecordId", record.Id);
-                    await recordService.UpdateAsync(agentContext.Wallet, messageContext.ContextRecord);
+                    await _recordService.UpdateAsync(agentContext.Wallet, messageContext.ContextRecord);
                 }
             }
         }
