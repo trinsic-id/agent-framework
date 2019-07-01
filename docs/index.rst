@@ -30,5 +30,7 @@ The framework runs on any .NET Standard target, including ASP.NET Core and Xamar
 .. toctree::
     :maxdepth: 2
     :caption: Example Agents
-
+    
+    gettingstarted
     samples
+    
