@@ -86,7 +86,7 @@ namespace AgentFramework.Core.Tests
             await UnsetFeesForSchemaTransactionsAsync();
         }
 
-        //[Fact(DisplayName = "Transfer funds between Sovrin addresses")]
+        [Fact(DisplayName = "Transfer funds between Sovrin addresses with ledger fees")]
         public async Task TransferFundsAsync()
         {
             // Generate from address
