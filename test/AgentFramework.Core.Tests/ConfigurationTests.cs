@@ -114,6 +114,8 @@ namespace AgentFramework.Core.Tests
             var hostBuilder = new HostBuilder()
                 .ConfigureServices(services =>
                 {
+                    services.Configure<ConsoleLifetimeOptions>(options =>
+                        options.SuppressStatusMessages = true);
                     services.AddAgentFramework(b => b.AddBasicAgent(c => { }));
                     services.AddSingleton(provisioningMock.Object);
                 })
@@ -139,6 +141,8 @@ namespace AgentFramework.Core.Tests
             var hostBuilder = new HostBuilder()
                 .ConfigureServices(services =>
                 {
+                    services.Configure<ConsoleLifetimeOptions>(options =>
+                        options.SuppressStatusMessages = true);
                     services.AddAgentFramework(b => b.AddIssuerAgent(c =>
                     {
                         c.WalletCredentials = walletCredentials;

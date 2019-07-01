@@ -19,6 +19,7 @@ using Hyperledger.Indy.LedgerApi;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Exceptions;
 using IndyPayments = Hyperledger.Indy.PaymentsApi.Payments;
+using Microsoft.Extensions.Logging;
 
 namespace AgentFramework.Core.Tests
 {
@@ -52,6 +53,9 @@ namespace AgentFramework.Core.Tests
         {
             Host = new HostBuilder()
                 .ConfigureServices(services =>
+                {
+                    services.Configure<ConsoleLifetimeOptions>(options =>
+                        options.SuppressStatusMessages = true);
                     services.AddAgentFramework(builder =>
                         builder
                             .AddIssuerAgent(config =>
@@ -62,7 +66,8 @@ namespace AgentFramework.Core.Tests
                                 config.GenesisFilename = Path.GetFullPath("pool_genesis.txn");
                                 config.PoolName = "TestPool";
                             })
-                            .AddSovrinToken()))
+                            .AddSovrinToken());
+                })
                 .Build();
 
             await Host.StartAsync();

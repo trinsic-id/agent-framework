@@ -183,8 +183,6 @@ namespace AgentFramework.Core.Tests
 
         public async Task SetFeesForPublicXferTransactionsAsync(ulong amount)
         {
-            Utils.EnableIndyLogging();
-
             var request = await Indy.Payments.BuildSetTxnFeesRequestAsync(Context.Wallet, Trustee.Did, TokenConfiguration.MethodName,
                 new Dictionary<string, ulong>
                 {
