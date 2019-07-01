@@ -78,6 +78,11 @@ namespace AgentFramework.Core.Models.Records
             set => Set(value, ref _state);
         }
 
+        /// <summary>
+        /// Gets or sets the payment details for this payment
+        /// </summary>
+        public PaymentDetails Details { get; set; }
+
         public Task TriggerAsync(PaymentTrigger trigger) => GetStateMachine().FireAsync(trigger);
 
         private StateMachine<PaymentState, PaymentTrigger> GetStateMachine()

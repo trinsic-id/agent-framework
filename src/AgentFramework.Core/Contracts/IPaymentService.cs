@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.Core.Decorators.Payments;
+using AgentFramework.Core.Messages;
 using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Models.Records;
 using Hyperledger.Indy.PoolApi;
@@ -13,6 +14,8 @@ namespace AgentFramework.Core.Contracts
         Task SetDefaultPaymentAddressAsync(IAgentContext agentContext, PaymentAddressRecord addressRecord);
 
         Task<PaymentAddressRecord> CreatePaymentAddressAsync(IAgentContext agentContext, AddressOptions configuration = null);
+
+        Task<PaymentRecord> AttachPaymentRequestAsync(IAgentContext context, AgentMessage agentMessage, PaymentDetails details, PaymentAddressRecord addressRecord);
 
         Task MakePaymentAsync(IAgentContext agentContext, PaymentRecord paymentRecord, PaymentAddressRecord addressRecord = null);
 

@@ -1,4 +1,5 @@
-﻿using AgentFramework.Core.Exceptions;
+﻿using System;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Models.Records;
 using Newtonsoft.Json;
@@ -12,6 +13,11 @@ namespace AgentFramework.Core.Messages
     public sealed class MessageContext
     {
         private readonly JObject _messageJson;
+
+        internal bool HasDecorator(string v)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>Initializes a new instance of the <see cref="MessageContext"/> class.</summary>
         /// <param name="message">The message.</param>

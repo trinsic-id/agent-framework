@@ -1,17 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Decorators.Payments;
+using AgentFramework.Core.Messages;
 using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Models.Records;
-using Hyperledger.Indy.PoolApi;
-using Hyperledger.Indy.WalletApi;
 
 namespace AgentFramework.Core.Runtime
 {
     public class DefaultPaymentService : IPaymentService
     {
+        public Task<PaymentRecord> AttachPaymentRequestAsync(IAgentContext context, AgentMessage agentMessage, PaymentDetails details, PaymentAddressRecord addressRecord)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<PaymentAddressRecord> CreatePaymentAddressAsync(IAgentContext agentContext, AddressOptions configuration = null)
         {
             throw new NotSupportedException();

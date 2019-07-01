@@ -64,7 +64,7 @@ namespace AgentFramework.Core.Handlers.Agents
         }
 
         /// <inheritdoc />
-        public virtual async Task UpdateAsync<T>(Wallet wallet, T record) where T : RecordBase, new()
+        public virtual async Task UpdateAsync(Wallet wallet, RecordBase record)
         {
             record.UpdatedAtUtc = DateTime.UtcNow;
 

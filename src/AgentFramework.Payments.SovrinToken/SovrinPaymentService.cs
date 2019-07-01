@@ -6,6 +6,7 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Decorators.Payments;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Messages;
 using AgentFramework.Core.Models.Ledger;
 using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Models.Records;
@@ -278,6 +279,39 @@ namespace AgentFramework.Payments.SovrinToken
                 _transactionFees = feesParsed.ToObject<IDictionary<string, ulong>>();
             }
             return _transactionFees;
+        }
+
+        public async Task<PaymentRecord> AttachPaymentRequestAsync(IAgentContext context, AgentMessage agentMessage, PaymentDetails details, PaymentAddressRecord addressRecord)
+        {
+            // TODO: Add validation
+
+            var paymentRecord = new PaymentRecord
+            {
+                Address = addressRecord.Address,
+                Method = "sov",
+                Amount = details.Total.Amount.Value,
+                Details = details
+            };
+            await paymentRecord.TriggerAsync(PaymentTrigger.RequestSent);
+            await recordService.AddAsync(context.Wallet, paymentRecord);
+
+            details.Id = paymentRecord.Id;
+
+            agentMessage.AddDecorator(new PaymentRequestDecorator
+            {
+                Method = new PaymentMethod
+                {
+                    SupportedMethods = "sov",
+                    Data = new PaymentMethodData
+                    {
+                        PayeeId = addressRecord.Address,
+                        SupportedNetworks = new[] { "Sovrin MainNet" }
+                    }
+                },
+                Details = details
+            }, "payment_request");
+
+            return paymentRecord;
         }
     }
 }

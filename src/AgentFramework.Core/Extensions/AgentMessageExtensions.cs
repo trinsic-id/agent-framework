@@ -9,10 +9,11 @@ namespace AgentFramework.Payments
 {
     public static class AgentMessageExtensions
     {
-        public static (AgentMessage, PaymentRecord) AddPaymentRequest(this AgentMessage agentMessage, PaymentDetails details, PaymentAddressRecord addressRecord)
+        public static (AgentMessage, PaymentRecord) AddPaymentRequest(this AgentMessage agentMessage, PaymentMethod method, PaymentDetails details, PaymentAddressRecord addressRecord)
         {
-            agentMessage.AddDecorator(new PaymentRequestDecorator()
+            agentMessage.AddDecorator(new PaymentRequestDecorator
             {
+                Method = method,
                 Details = details
             }, "payment_request");
 
