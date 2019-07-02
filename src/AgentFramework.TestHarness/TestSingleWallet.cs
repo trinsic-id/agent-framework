@@ -21,7 +21,7 @@ using AgentFramework.Core.Exceptions;
 using IndyPayments = Hyperledger.Indy.PaymentsApi.Payments;
 using Microsoft.Extensions.Logging;
 
-namespace AgentFramework.Core.Tests
+namespace AgentFramework.TestHarness
 {
     public abstract class TestSingleWallet : IAsyncLifetime
     {

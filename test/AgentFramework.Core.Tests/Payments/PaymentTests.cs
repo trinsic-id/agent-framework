@@ -8,12 +8,14 @@ using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Models.Ledger;
 using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Models.Records;
+using AgentFramework.TestHarness;
 using AgentFramework.Payments.SovrinToken;
 using Hyperledger.Indy.LedgerApi;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Indy = Hyperledger.Indy.PaymentsApi;
+
 
 
 namespace AgentFramework.Core.Tests.Payments

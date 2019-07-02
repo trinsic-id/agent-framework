@@ -7,6 +7,7 @@ using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Models.Ledger;
 using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Models.Records;
+using AgentFramework.TestHarness;
 using Xunit;
 
 namespace AgentFramework.Core.Tests.Payments

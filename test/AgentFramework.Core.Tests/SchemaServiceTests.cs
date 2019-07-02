@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
+using AgentFramework.TestHarness;
 using Newtonsoft.Json.Linq;
 using Xunit;
 using Microsoft.Extensions.DependencyInjection;
