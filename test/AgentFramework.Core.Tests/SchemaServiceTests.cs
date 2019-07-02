@@ -13,8 +13,6 @@ namespace AgentFramework.Core.Tests
         public async Task CanCreateAndResolveSchema()
         {
             var schemaService = Host.Services.GetService<ISchemaService>();
-            var provisioningService = Host.Services.GetService<IProvisioningService>();
-
             var record = await provisioningService.GetProvisioningAsync(Context.Wallet);
 
             await PromoteTrustAnchor(record.IssuerDid, record.IssuerVerkey);

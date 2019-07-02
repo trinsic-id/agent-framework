@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using Xunit;
+
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace AgentFramework.Core.Tests
 {
