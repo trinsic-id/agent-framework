@@ -71,7 +71,9 @@ namespace AgentFramework.Core.Handlers.Agents
         /// <summary>Adds a default forwarding handler.</summary>
         protected void AddEphemeralChallengeHandler() => Handlers.Add(Provider.GetRequiredService<DefaultEphemeralChallengeHandler>());
 
-        /// <summary>Adds a default forwarding handler.</summary>
+        /// <summary>Adds a default basic message handler.</summary>
+        protected void AddBasicMessageHandler() => Handlers.Add(Provider.GetRequiredService<DefaultBasicMessageHandler>());
+
         protected void AddDiscoveryHandler() => Handlers.Add(Provider.GetRequiredService<DefaultDiscoveryHandler>());
 
         /// <summary>Adds a custom the handler using dependency injection.</summary>

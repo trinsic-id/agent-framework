@@ -29,6 +29,7 @@ namespace AgentFramework.Core.Handlers
             collection.AddTransient<DefaultTrustPingMessageHandler>();
             collection.AddTransient<DefaultDiscoveryHandler>();
             collection.AddTransient<DefaultEphemeralChallengeHandler>();
+            collection.AddTransient<DefaultBasicMessageHandler>();
         }
 
         internal static AgentContext AsAgentContext(this IAgentContext context)

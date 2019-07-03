@@ -43,6 +43,7 @@ namespace AgentFramework.TestHarness.Mock
             AddForwardHandler();
             AddProofHandler();
             AddEphemeralChallengeHandler();
+            AddBasicMessageHandler();
         }
 
         #region Factory methods
