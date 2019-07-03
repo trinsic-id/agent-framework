@@ -29,6 +29,10 @@ namespace AgentFramework.TestHarness.Mock
 
         public IHost Host { get; }
         public IAgentContext Context { get; private set; }
+        public IWalletRecordService Records => Host.Services.GetService<IWalletRecordService>();
+        public IConnectionService Connections => Host.Services.GetService<IConnectionService>();
+        public IMessageService Messages => Host.Services.GetService<IMessageService>();
+        public IPaymentService Payments => Host.Services.GetService<IPaymentService>();
 
         internal Task<MessageResponse> HandleAsync(byte[] data) => 
             ProcessAsync(Context, new MessageContext(data, true));

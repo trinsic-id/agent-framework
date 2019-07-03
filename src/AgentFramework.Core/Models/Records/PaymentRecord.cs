@@ -83,6 +83,20 @@ namespace AgentFramework.Core.Models.Records
         /// </summary>
         public PaymentDetails Details { get; set; }
 
+        [JsonIgnore]
+        public string ConnectionId
+        {
+            get => Get();
+            set => Set(value);
+        }
+
+        [JsonIgnore]
+        public string ReferenceId
+        {
+            get => Get();
+            set => Set(value);
+        }
+
         public Task TriggerAsync(PaymentTrigger trigger) => GetStateMachine().FireAsync(trigger);
 
         private StateMachine<PaymentState, PaymentTrigger> GetStateMachine()

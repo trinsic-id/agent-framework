@@ -14,6 +14,8 @@ namespace AgentFramework.Core.Contracts
     /// </summary>
     public interface IPaymentService
     {
+        Task<PaymentAddressRecord> GetDefaultPaymentAddressAsync(IAgentContext agentContext);
+
         Task SetDefaultPaymentAddressAsync(IAgentContext agentContext, PaymentAddressRecord addressRecord);
 
         Task<PaymentAddressRecord> CreatePaymentAddressAsync(IAgentContext agentContext, AddressOptions configuration = null);

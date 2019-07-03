@@ -18,16 +18,16 @@ namespace AgentFramework.Core.Handlers.Internal
 
         protected override async Task<AgentMessage> ProcessAsync(BasicMessage message, IAgentContext agentContext, MessageContext messageContext)
         {
-            Console.WriteLine($"Processing message by {messageContext.Connection.Id}");
-
-            await _recordService.AddAsync(agentContext.Wallet, new BasicMessageRecord
+            var record = new BasicMessageRecord
             {
                 Id = Guid.NewGuid().ToString(),
                 ConnectionId = messageContext.Connection.Id,
                 Text = message.Content,
                 SentTime = DateTime.TryParse(message.SentTime, out var dateTime) ? dateTime : DateTime.UtcNow,
                 Direction = MessageDirection.Incoming
-            });
+            };
+            await _recordService.AddAsync(agentContext.Wallet, record);
+            messageContext.ContextRecord = record;
 
             return null;
         }

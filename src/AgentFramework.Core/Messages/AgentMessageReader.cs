@@ -22,7 +22,7 @@ namespace AgentFramework.Core.Messages
         {
             var item = JObject.Load(reader);
 
-            var decorators = item.Properties().Where(_ => _.Name.StartsWith("~"));
+            var decorators = item.Properties().Where(_ => _.Name.StartsWith("~", StringComparison.Ordinal));
 
             var obj = new T();
             obj.SetDecorators(decorators.ToList());

@@ -313,5 +313,16 @@ namespace AgentFramework.Payments.SovrinToken
 
             return paymentRecord;
         }
+
+        public async Task<PaymentAddressRecord> GetDefaultPaymentAddressAsync(IAgentContext agentContext)
+        {
+            var provisioning = await provisioningService.GetProvisioningAsync(agentContext.Wallet);
+            if (provisioning.DefaultPaymentAddressId == null)
+            {
+                throw new AgentFrameworkException(ErrorCode.RecordNotFound, "Default PaymentAddressRecord not found");
+            }
+            var paymentAddress = await recordService.GetAsync<PaymentAddressRecord>(agentContext.Wallet, provisioning.DefaultPaymentAddressId);
+            return paymentAddress;
+        }
     }
 }

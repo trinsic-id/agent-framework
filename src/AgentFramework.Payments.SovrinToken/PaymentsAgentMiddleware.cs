@@ -28,7 +28,9 @@ namespace AgentFramework.Payments.SovrinToken
             {
                 var record = new PaymentRecord
                 {
-                    Details = decorator.Details
+                    ConnectionId = messageContext.Connection.Id,
+                    Details = decorator.Details,
+                    ReferenceId = decorator.Details.Id
                 };
                 await record.TriggerAsync(PaymentTrigger.RequestReceived);
                 await _recordService.AddAsync(agentContext.Wallet, record);

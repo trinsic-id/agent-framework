@@ -35,6 +35,11 @@ namespace AgentFramework.Core.Runtime
             throw new NotSupportedException();
         }
 
+        public Task<PaymentAddressRecord> GetDefaultPaymentAddressAsync(IAgentContext agentContext)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <inheritdoc />
         public Task<ulong> GetTransactionFeeAsync(IAgentContext agentContext, string transactionType)
         {
