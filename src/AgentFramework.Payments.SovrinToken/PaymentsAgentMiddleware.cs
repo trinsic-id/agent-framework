@@ -1,10 +1,11 @@
 ﻿using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Decorators.Payments;
+using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Models.Records;
 
-namespace AgentFramework.Core.Handlers.Agents
+namespace AgentFramework.Payments.SovrinToken
 {
     public class PaymentsAgentMiddleware : IAgentMiddleware
     {

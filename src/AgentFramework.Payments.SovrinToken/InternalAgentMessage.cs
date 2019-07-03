@@ -1,7 +1,7 @@
 ﻿using System;
 using AgentFramework.Core.Messages;
 
-namespace AgentFramework.Core.Handlers.Agents
+namespace AgentFramework.Payments.SovrinToken
 {
     internal class InternalAgentMessage : AgentMessage
     {

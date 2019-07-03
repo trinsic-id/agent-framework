@@ -1,5 +1,6 @@
 ﻿using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
+using AgentFramework.Core.Handlers.Agents;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.Payments.SovrinToken
@@ -10,6 +11,7 @@ namespace AgentFramework.Payments.SovrinToken
         {
             agentBuilder.Services.AddHostedService<SovrinTokenConfigurationService>();
             agentBuilder.Services.AddSingleton<IPaymentService, SovrinPaymentService>();
+            agentBuilder.Services.AddSingleton<IAgentMiddleware, PaymentsAgentMiddleware>();
             return agentBuilder;
         }
     }

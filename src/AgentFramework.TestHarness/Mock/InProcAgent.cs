@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AgentFramework.AspNetCore;
@@ -7,6 +8,8 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Messages;
+using AgentFramework.Core.Models.Connections;
+using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Wallets;
 using AgentFramework.Payments.SovrinToken;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,7 +47,7 @@ namespace AgentFramework.TestHarness.Mock
 
         #region Factory methods
 
-        public static async Task<(InProcAgent agent1, InProcAgent agent2)> CreatePairedAsync()
+        public static async Task<PairedAgents> CreatePairedAsync(bool establishConnection)
         {
             var handler1 = new InProcMessageHandler();
             var handler2 = new InProcMessageHandler();
@@ -58,7 +61,30 @@ namespace AgentFramework.TestHarness.Mock
             await agent1.InitializeAsync();
             await agent2.InitializeAsync();
 
-            return (agent1, agent2);
+            var result = new PairedAgents
+            {
+                Agent1 = agent1,
+                Agent2 = agent2
+            };
+
+            if (establishConnection)
+            {
+                (result.Connection1, result.Connection2) = await ConnectAsync(agent1, agent2);
+            }
+            return result;
+        }
+
+        private static async Task<(ConnectionRecord agent1Connection, ConnectionRecord agent2Connection)> ConnectAsync(InProcAgent agent1, InProcAgent agent2)
+        {
+            var (invitation, agent1Connection) = await agent1.Provider.GetService<IConnectionService>().CreateInvitationAsync(agent1.Context, new InviteConfiguration { AutoAcceptConnection = true });
+
+            var (request, agent2Connection) = await agent2.Provider.GetService<IConnectionService>().CreateRequestAsync(agent2.Context, invitation);
+            _ = await agent2.Provider.GetService<IMessageService>().SendAsync(agent2.Context.Wallet, request, agent2Connection, invitation.RecipientKeys.First());
+
+            agent1Connection = await agent1.Provider.GetService<IWalletRecordService>().GetAsync<ConnectionRecord>(agent1.Context.Wallet, agent1Connection.Id);
+            agent2Connection = await agent2.Provider.GetService<IWalletRecordService>().GetAsync<ConnectionRecord>(agent2.Context.Wallet, agent2Connection.Id);
+
+            return (agent1Connection, agent2Connection);
         }
 
         private static InProcAgent Create(HttpMessageHandler handler) =>
@@ -91,5 +117,16 @@ namespace AgentFramework.TestHarness.Mock
 
         /// <inheritdoc />
         public Task DisposeAsync() => Host.StopAsync(TimeSpan.FromSeconds(10));
+
+        public class PairedAgents
+        {
+            public InProcAgent Agent1 { get; set; }
+
+            public InProcAgent Agent2 { get; set; }
+
+            public ConnectionRecord Connection1 { get; set; }
+
+            public ConnectionRecord Connection2 { get; set; }
+        }
     }
 }
