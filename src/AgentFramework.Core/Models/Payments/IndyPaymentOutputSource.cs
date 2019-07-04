@@ -2,6 +2,9 @@
 
 namespace AgentFramework.Core.Models.Payments
 {
+    /// <summary>
+    /// Payment output source data
+    /// </summary>
     public class IndyPaymentOutputSource
     {
         /// <summary>

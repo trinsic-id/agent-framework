@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Decorators.Payments;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Models.Records;
@@ -11,6 +10,7 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultPaymentService : IPaymentService
     {
+        /// <inheritdoc />
         public void AttachPaymentReceipt(IAgentContext context, AgentMessage agentMessage, PaymentRecord paymentRecord)
         {
             throw new NotImplementedException();
@@ -29,17 +29,18 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public Task<PaymentInfo> CreatePaymentInfoAsync(IAgentContext context, string transactionType, PaymentAddressRecord addressRecord = null)
+        public Task<TransactionCost> GetTransactionCostAsync(IAgentContext context, string transactionType, PaymentAddressRecord addressRecord = null)
         {
-            return Task.FromResult<PaymentInfo>(null);
+            return Task.FromResult<TransactionCost>(null);
         }
 
         /// <inheritdoc />
-        public Task GetBalanceAsync(IAgentContext agentContext, PaymentAddressRecord paymentAddress = null)
+        public Task RefreshBalanceAsync(IAgentContext agentContext, PaymentAddressRecord paymentAddress = null)
         {
             throw new NotSupportedException();
         }
 
+        /// <inheritdoc />
         public Task<PaymentAddressRecord> GetDefaultPaymentAddressAsync(IAgentContext agentContext)
         {
             throw new NotImplementedException();
@@ -58,23 +59,12 @@ namespace AgentFramework.Core.Runtime
         }
 
         /// <inheritdoc />
-        public Task ProcessPaymentReceipt(IAgentContext agentContext, PaymentReceiptDecorator receiptDecorator, RecordBase recordBase = null)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <inheritdoc />
-        public Task ProcessPaymentRequest(IAgentContext agentContext, PaymentRequestDecorator requestDecorator, RecordBase recordBase = null)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <inheritdoc />
         public Task SetDefaultPaymentAddressAsync(IAgentContext agentContext, PaymentAddressRecord addressRecord)
         {
             throw new NotSupportedException();
         }
 
+        /// <inheritdoc />
         public Task<bool> VerifyPaymentAsync(IAgentContext context, PaymentRecord paymentRecord)
         {
             throw new NotImplementedException();

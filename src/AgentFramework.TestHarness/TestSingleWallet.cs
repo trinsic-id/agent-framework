@@ -19,7 +19,6 @@ using Hyperledger.Indy.LedgerApi;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Exceptions;
 using IndyPayments = Hyperledger.Indy.PaymentsApi.Payments;
-using Microsoft.Extensions.Logging;
 
 namespace AgentFramework.TestHarness
 {
@@ -130,7 +129,7 @@ namespace AgentFramework.TestHarness
                 new[] { new { recipient = addressRecord.Address, amount = amount } }.ToJson(), null);
             await TrusteeMultiSignAndSubmitRequestAsync(request.Result);
 
-            await paymentService.GetBalanceAsync(Context, addressRecord);
+            await paymentService.RefreshBalanceAsync(Context, addressRecord);
         }
 
         protected async Task FundAccountAsync(ulong amount, string address)

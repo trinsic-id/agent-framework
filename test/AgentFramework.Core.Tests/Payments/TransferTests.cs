@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Models.Ledger;
@@ -35,7 +32,7 @@ namespace AgentFramework.Core.Tests.Payments
 
             var mintResponse = await TrusteeMultiSignAndSubmitRequestAsync(request.Result);
 
-            await paymentService.GetBalanceAsync(Context, address);
+            await paymentService.RefreshBalanceAsync(Context, address);
 
             Assert.Equal(42UL, address.Balance);
         }
@@ -64,7 +61,7 @@ namespace AgentFramework.Core.Tests.Payments
             await TrusteeMultiSignAndSubmitRequestAsync(request.Result);
 
             // check beginning balance
-            await paymentService.GetBalanceAsync(Context, address[0]);
+            await paymentService.RefreshBalanceAsync(Context, address[0]);
             Assert.Equal(address[0].Balance, beginningAmount);
 
             //transfer an amount of tokens to another address twice in a row
@@ -82,8 +79,8 @@ namespace AgentFramework.Core.Tests.Payments
             // transfer tokens between two agents
             await paymentService.MakePaymentAsync(Context, paymentRecord, address[0]);
 
-            await paymentService.GetBalanceAsync(Context, address[0]);
-            await paymentService.GetBalanceAsync(Context, address[1]);
+            await paymentService.RefreshBalanceAsync(Context, address[0]);
+            await paymentService.RefreshBalanceAsync(Context, address[1]);
 
             Assert.Equal(expectedBalX, address[0].Balance);
             Assert.Equal(expectedBalY, address[1].Balance);
@@ -103,8 +100,8 @@ namespace AgentFramework.Core.Tests.Payments
             // transfer tokens between two agents
             await paymentService.MakePaymentAsync(Context, paymentRecord1, address[0]);
 
-            await paymentService.GetBalanceAsync(Context, address[0]);
-            await paymentService.GetBalanceAsync(Context, address[1]);
+            await paymentService.RefreshBalanceAsync(Context, address[0]);
+            await paymentService.RefreshBalanceAsync(Context, address[1]);
 
             Assert.Equal(expectedBalX, address[0].Balance);
             Assert.Equal(expectedBalY, address[1].Balance);
@@ -123,8 +120,8 @@ namespace AgentFramework.Core.Tests.Payments
 
             // transfer tokens from second to third agent
             await paymentService.MakePaymentAsync(Context, paymentRecord2, address[1]);
-            await paymentService.GetBalanceAsync(Context, address[1]);
-            await paymentService.GetBalanceAsync(Context, address[2]);
+            await paymentService.RefreshBalanceAsync(Context, address[1]);
+            await paymentService.RefreshBalanceAsync(Context, address[2]);
 
             Assert.Equal(expectedBalX, address[1].Balance);
             Assert.Equal(expectedBalY, address[2].Balance);
@@ -146,8 +143,8 @@ namespace AgentFramework.Core.Tests.Payments
 
             Assert.Equal(ErrorCode.PaymentInsufficientFunds, ex.ErrorCode);
 
-            await paymentService.GetBalanceAsync(Context, address[0]);
-            await paymentService.GetBalanceAsync(Context, address[2]);
+            await paymentService.RefreshBalanceAsync(Context, address[0]);
+            await paymentService.RefreshBalanceAsync(Context, address[2]);
             Assert.Equal(expectedBalX, address[0].Balance);
             Assert.Equal(expectedBalY, address[2].Balance);
         }

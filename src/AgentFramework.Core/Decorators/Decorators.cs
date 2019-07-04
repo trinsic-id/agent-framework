@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AgentFramework.Core.Decorators
+﻿namespace AgentFramework.Core.Decorators
 {
     /// <summary>
     /// Decleration of attachment identifiers.

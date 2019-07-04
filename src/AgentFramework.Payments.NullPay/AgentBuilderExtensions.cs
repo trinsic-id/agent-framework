@@ -1,5 +1,4 @@
-﻿using System;
-using AgentFramework.Core.Handlers;
+﻿using AgentFramework.Core.Handlers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.Payments.NullPay

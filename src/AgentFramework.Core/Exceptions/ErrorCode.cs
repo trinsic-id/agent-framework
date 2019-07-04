@@ -43,6 +43,9 @@
         /// Record has invalid or missing data
         /// </summary>
         InvalidRecordData,
+        /// <summary>
+        /// Insufficient funds at the specified address
+        /// </summary>
         PaymentInsufficientFunds
     }
 }

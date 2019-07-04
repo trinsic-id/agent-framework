@@ -1,5 +1,4 @@
-﻿using System;
-using AgentFramework.Core.Messages;
+﻿using AgentFramework.Core.Messages;
 
 namespace AgentFramework.Payments.SovrinToken
 {

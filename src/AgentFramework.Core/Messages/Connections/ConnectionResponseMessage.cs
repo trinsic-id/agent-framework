@@ -1,6 +1,5 @@
 ﻿using System;
 using AgentFramework.Core.Decorators.Signature;
-using AgentFramework.Core.Models.Connections;
 using Newtonsoft.Json;
 
 namespace AgentFramework.Core.Messages.Connections

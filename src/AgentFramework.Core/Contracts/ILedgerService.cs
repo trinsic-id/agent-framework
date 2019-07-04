@@ -41,7 +41,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="value">The attribute value.</param>
         /// <param name="paymentInfo">Payment information</param>
         Task RegisterAttributeAsync(Pool pool, Wallet wallet, string submittedDid, string targetDid,
-            string attributeName, object value, PaymentInfo paymentInfo = null);
+            string attributeName, object value, TransactionCost paymentInfo = null);
 
         /// <summary>
         /// Lookup the schema async.
@@ -125,7 +125,7 @@ namespace AgentFramework.Core.Contracts
         /// Registration async.
         /// </returns>
         Task RegisterNymAsync(Wallet wallet, Pool pool, string submitterDid, string theirDid,
-            string theirVerkey, string role, PaymentInfo paymentInfo = null);
+            string theirVerkey, string role, TransactionCost paymentInfo = null);
 
         /// <summary>
         /// Registers the credential definition async.
@@ -139,7 +139,7 @@ namespace AgentFramework.Core.Contracts
         /// The credential definition async.
         /// </returns>
         Task RegisterCredentialDefinitionAsync(Wallet wallet, Pool pool, string submitterDid,
-            string data, PaymentInfo paymentInfo = null);
+            string data, TransactionCost paymentInfo = null);
 
         /// <summary>
         /// Registers the revocation registry definition asynchronous.
@@ -151,7 +151,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="paymentInfo">Payment information</param>
         /// <returns></returns>
         Task RegisterRevocationRegistryDefinitionAsync(Wallet wallet, Pool pool, string submitterDid,
-            string data, PaymentInfo paymentInfo = null);
+            string data, TransactionCost paymentInfo = null);
 
         /// <summary>
         /// Sends the revocation registry entry asynchronous.
@@ -166,7 +166,7 @@ namespace AgentFramework.Core.Contracts
         /// <returns></returns>
         Task SendRevocationRegistryEntryAsync(Wallet wallet, Pool pool, string issuerDid,
             string revocationRegistryDefinitionId, string revocationDefinitionType, string value,
-            PaymentInfo paymentInfo = null);
+            TransactionCost paymentInfo = null);
 
         /// <summary>
         /// Registers the schema asynchronous.
@@ -178,6 +178,6 @@ namespace AgentFramework.Core.Contracts
         /// <param name="paymentInfo">Payment information</param>
         /// <returns></returns>
         Task RegisterSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string schemaJson,
-            PaymentInfo paymentInfo = null);
+            TransactionCost paymentInfo = null);
     }
 }

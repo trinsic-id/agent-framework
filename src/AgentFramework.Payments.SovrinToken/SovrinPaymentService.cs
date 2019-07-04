@@ -12,7 +12,6 @@ using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Models.Records;
 using Hyperledger.Indy.LedgerApi;
 using Hyperledger.Indy.PoolApi;
-using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Indy = Hyperledger.Indy.PaymentsApi;
@@ -62,7 +61,7 @@ namespace AgentFramework.Payments.SovrinToken
             return addressRecord;
         }
 
-        public async Task<PaymentInfo> CreatePaymentInfoAsync(IAgentContext context, string transactionType, PaymentAddressRecord addressRecord = null)
+        public async Task<TransactionCost> GetTransactionCostAsync(IAgentContext context, string transactionType, PaymentAddressRecord addressRecord = null)
         {
             var fees = await GetTransactionFeeAsync(context, transactionType);
             if (fees > 0)
@@ -77,19 +76,18 @@ namespace AgentFramework.Payments.SovrinToken
                     addressRecord = await recordService.GetAsync<PaymentAddressRecord>(context.Wallet, provisioning.DefaultPaymentAddressId);
                 }
 
-                return new PaymentInfo
+                return new TransactionCost
                 {
                     Amount = fees,
-                    From = addressRecord,
-                    PaymentMethod = "sov",
-                    To = addressRecord.Address
+                    PaymentAddress = addressRecord,
+                    PaymentMethod = "sov"
                 };
             }
             return null;
         }
 
         /// <inheritdoc />
-        public async Task GetBalanceAsync(IAgentContext agentContext, PaymentAddressRecord paymentAddress = null)
+        public async Task RefreshBalanceAsync(IAgentContext agentContext, PaymentAddressRecord paymentAddress = null)
         {
             if (paymentAddress == null)
             {
@@ -135,7 +133,7 @@ namespace AgentFramework.Payments.SovrinToken
                 addressFromRecord = await GetDefaultPaymentAddressAsync(agentContext);
             }
 
-            await GetBalanceAsync(agentContext, addressFromRecord);
+            await RefreshBalanceAsync(agentContext, addressFromRecord);
             if (addressFromRecord.Balance < paymentRecord.Amount)
             {
                 throw new AgentFrameworkException(ErrorCode.PaymentInsufficientFunds,
@@ -180,16 +178,6 @@ namespace AgentFramework.Payments.SovrinToken
 
             await recordService.UpdateAsync(agentContext.Wallet, paymentRecord);
             await recordService.UpdateAsync(agentContext.Wallet, addressFromRecord);
-        }
-
-        public Task ProcessPaymentReceipt(IAgentContext agentContext, PaymentReceiptDecorator receiptDecorator, RecordBase recordBase = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task ProcessPaymentRequest(IAgentContext agentContext, PaymentRequestDecorator requestDecorator, RecordBase recordBase = null)
-        {
-            throw new NotImplementedException();
         }
 
         /// <inheritdoc />

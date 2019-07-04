@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using AgentFramework.Core.Extensions;
+﻿using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
-using AgentFramework.Core.Models.Proofs;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;

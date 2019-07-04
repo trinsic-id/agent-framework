@@ -8,7 +8,6 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.EphemeralChallenge;
-using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.EphemeralChallenge;
 using AgentFramework.Core.Models.Proofs;

@@ -7,7 +7,8 @@ using Stateless;
 namespace AgentFramework.Core.Models.Records
 {
     /// <summary>
-    /// Represents a payment record
+    /// Payment record representing an abstraction of payment workflow as described in aries-rfc
+    /// https://github.com/hyperledger/aries-rfcs/tree/master/features/0075-payment-decorators
     /// </summary>
     /// <seealso cref="AgentFramework.Core.Models.Records.RecordBase" />
     public sealed class PaymentRecord : RecordBase
@@ -23,6 +24,9 @@ namespace AgentFramework.Core.Models.Records
             State = PaymentState.None;
         }
 
+        /// <summary>
+        /// Gets the name of the type.
+        /// </summary>
         public override string TypeName => "AF.PaymentRecord";
 
         /// <summary>
@@ -47,6 +51,12 @@ namespace AgentFramework.Core.Models.Records
             set => Set(value);
         }
 
+        /// <summary>
+        /// Gets or sets the method.
+        /// </summary>
+        /// <value>
+        /// The method.
+        /// </value>
         [JsonIgnore]
         public string Method
         {
@@ -67,11 +77,17 @@ namespace AgentFramework.Core.Models.Records
         /// <summary>
         /// Gets or sets the payment amount
         /// </summary>
+        /// <value>
+        /// The amount.
+        /// </value>
         public ulong Amount { get; set; }
 
         /// <summary>
         /// Gets or sets the state of this record.
         /// </summary>
+        /// <value>
+        /// The state.
+        /// </value>
         public PaymentState State
         {
             get => _state;
@@ -83,6 +99,12 @@ namespace AgentFramework.Core.Models.Records
         /// </summary>
         public PaymentDetails Details { get; set; }
 
+        /// <summary>
+        /// Gets or sets the connection identifier.
+        /// </summary>
+        /// <value>
+        /// The connection identifier.
+        /// </value>
         [JsonIgnore]
         public string ConnectionId
         {
@@ -90,6 +112,12 @@ namespace AgentFramework.Core.Models.Records
             set => Set(value);
         }
 
+        /// <summary>
+        /// Gets or sets the reference identifier.
+        /// </summary>
+        /// <value>
+        /// The reference identifier.
+        /// </value>
         [JsonIgnore]
         public string ReferenceId
         {
@@ -97,6 +125,11 @@ namespace AgentFramework.Core.Models.Records
             set => Set(value);
         }
 
+        /// <summary>
+        /// Triggers the asynchronous.
+        /// </summary>
+        /// <param name="trigger">The trigger.</param>
+        /// <returns></returns>
         public Task TriggerAsync(PaymentTrigger trigger) => GetStateMachine().FireAsync(trigger);
 
         private StateMachine<PaymentState, PaymentTrigger> GetStateMachine()
@@ -112,20 +145,53 @@ namespace AgentFramework.Core.Models.Records
         }
     }
 
+    /// <summary>
+    /// Payment state
+    /// </summary>
     public enum PaymentState
     {
+        /// <summary>
+        /// Default state
+        /// </summary>
         None = 0,
+        /// <summary>
+        /// Payment request sent
+        /// </summary>
         Requested,
+        /// <summary>
+        /// Payment request received
+        /// </summary>
         RequestReceived,
+        /// <summary>
+        /// Payment processed
+        /// </summary>
         Paid,
+        /// <summary>
+        /// Payment receipt received
+        /// </summary>
         ReceiptReceived
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public enum PaymentTrigger
     {
+        /// <summary>
+        /// The request sent
+        /// </summary>
         RequestSent,
+        /// <summary>
+        /// The request received
+        /// </summary>
         RequestReceived,
+        /// <summary>
+        /// The process payment
+        /// </summary>
         ProcessPayment,
+        /// <summary>
+        /// The receipt received
+        /// </summary>
         ReceiptReceived
     }
 }

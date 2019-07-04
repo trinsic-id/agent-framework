@@ -40,7 +40,11 @@ namespace AgentFramework.Core.Handlers.Agents
         /// </summary>
         /// <value>The handlers.</value>
         public IList<IMessageHandler> Handlers { get; }
-        public IEnumerable<IAgentMiddleware> Middlewares { get; }
+
+        /// <summary>
+        /// Gets a collecrion of registered agent middlewares
+        /// </summary>
+        protected IEnumerable<IAgentMiddleware> Middlewares { get; }
 
         /// <summary>Initializes a new instance of the <see cref="AgentBase"/> class.</summary>
         protected AgentBase(IServiceProvider provider)
@@ -74,6 +78,7 @@ namespace AgentFramework.Core.Handlers.Agents
         /// <summary>Adds a default basic message handler.</summary>
         protected void AddBasicMessageHandler() => Handlers.Add(Provider.GetRequiredService<DefaultBasicMessageHandler>());
 
+        /// <summary>Adds a default discovery handler.</summary>
         protected void AddDiscoveryHandler() => Handlers.Add(Provider.GetRequiredService<DefaultDiscoveryHandler>());
 
         /// <summary>Adds a custom the handler using dependency injection.</summary>

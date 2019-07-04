@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.TestHarness.Mock;
 using Xunit;

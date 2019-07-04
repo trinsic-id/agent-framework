@@ -27,15 +27,16 @@ namespace AgentFramework.Core.Handlers.Agents
         private readonly IPaymentService paymentService;
 
         /// <summary>The tails service</summary>
-        protected readonly ITailsService TailsService;   
+        protected readonly ITailsService TailsService;
         // ReSharper restore InconsistentNaming
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultSchemaService"/> class.
+        /// Initializes a new instance of the <see cref="DefaultSchemaService" /> class.
         /// </summary>
         /// <param name="provisioningService">Provisioning service.</param>
         /// <param name="recordService">Record service.</param>
         /// <param name="ledgerService">Ledger service.</param>
+        /// <param name="paymentService">The payment service.</param>
         /// <param name="tailsService">Tails service.</param>
         public DefaultSchemaService(
             IProvisioningService provisioningService,
@@ -59,20 +60,20 @@ namespace AgentFramework.Core.Handlers.Agents
 
             var schemaRecord = new SchemaRecord
             {
-                Id = schema.SchemaId, 
-                Name = name, 
-                Version = version, 
+                Id = schema.SchemaId,
+                Name = name,
+                Version = version,
                 AttributeNames = attributeNames
             };
 
-            var paymentInfo = await paymentService.CreatePaymentInfoAsync(context, TransactionTypes.SCHEMA);
+            var paymentInfo = await paymentService.GetTransactionCostAsync(context, TransactionTypes.SCHEMA);
             await LedgerService.RegisterSchemaAsync(await context.Pool, context.Wallet, issuerDid, schema.SchemaJson, paymentInfo);
 
             await RecordService.AddAsync(context.Wallet, schemaRecord);
 
             if (paymentInfo != null)
             {
-                await RecordService.UpdateAsync(context.Wallet, paymentInfo.From);
+                await RecordService.UpdateAsync(context.Wallet, paymentInfo.PaymentAddress);
             }
 
             return schemaRecord.Id;
@@ -161,14 +162,14 @@ namespace AgentFramework.Core.Handlers.Agents
             var credentialDefinition = await AnonCreds.IssuerCreateAndStoreCredentialDefAsync(context.Wallet, issuerDid,
                 schema.ObjectJson, tag, null, new { support_revocation = supportsRevocation }.ToJson());
 
-            var paymentInfo = await paymentService.CreatePaymentInfoAsync(context, TransactionTypes.CRED_DEF);
+            var paymentInfo = await paymentService.GetTransactionCostAsync(context, TransactionTypes.CRED_DEF);
 
             await LedgerService.RegisterCredentialDefinitionAsync(wallet: context.Wallet,
                                                                   pool: await context.Pool,
                                                                   submitterDid: issuerDid,
                                                                   data: credentialDefinition.CredDefJson,
                                                                   paymentInfo: paymentInfo);
-            if (paymentInfo != null) await RecordService.UpdateAsync(context.Wallet, paymentInfo.From);
+            if (paymentInfo != null) await RecordService.UpdateAsync(context.Wallet, paymentInfo.PaymentAddress);
 
             definitionRecord.SupportsRevocation = supportsRevocation;
             definitionRecord.Id = credentialDefinition.CredDefId;
@@ -189,15 +190,15 @@ namespace AgentFramework.Core.Handlers.Agents
                 var tailsfile = Path.GetFileName(revocationDefinition["value"]["tailsLocation"].ToObject<string>());
                 revocationDefinition["value"]["tailsLocation"] = new Uri(tailsBaseUri, tailsfile).ToString();
 
-                paymentInfo = await paymentService.CreatePaymentInfoAsync(context, TransactionTypes.REVOC_REG_DEF);
+                paymentInfo = await paymentService.GetTransactionCostAsync(context, TransactionTypes.REVOC_REG_DEF);
                 await LedgerService.RegisterRevocationRegistryDefinitionAsync(wallet: context.Wallet,
                                                                               pool: await context.Pool,
                                                                               submitterDid: issuerDid,
                                                                               data: revocationDefinition.ToString(),
                                                                               paymentInfo: paymentInfo);
-                if (paymentInfo != null) await RecordService.UpdateAsync(context.Wallet, paymentInfo.From);
+                if (paymentInfo != null) await RecordService.UpdateAsync(context.Wallet, paymentInfo.PaymentAddress);
 
-                paymentInfo = await paymentService.CreatePaymentInfoAsync(context, TransactionTypes.REVOC_REG_ENTRY);
+                paymentInfo = await paymentService.GetTransactionCostAsync(context, TransactionTypes.REVOC_REG_ENTRY);
                 await LedgerService.SendRevocationRegistryEntryAsync(wallet: context.Wallet,
                                                                      pool: await context.Pool,
                                                                      issuerDid: issuerDid,
@@ -205,7 +206,7 @@ namespace AgentFramework.Core.Handlers.Agents
                                                                      revocationDefinitionType: "CL_ACCUM",
                                                                      value: revocationRegistry.RevRegEntryJson,
                                                                      paymentInfo: paymentInfo);
-                if (paymentInfo != null) await RecordService.UpdateAsync(context.Wallet, paymentInfo.From);
+                if (paymentInfo != null) await RecordService.UpdateAsync(context.Wallet, paymentInfo.PaymentAddress);
 
                 var revocationRecord = new RevocationRegistryRecord
                 {

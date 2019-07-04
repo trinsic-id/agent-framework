@@ -1,12 +1,9 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
-using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.TestHarness;
-using Hyperledger.Indy.WalletApi;
 using Xunit;
 
 namespace AgentFramework.Core.Tests

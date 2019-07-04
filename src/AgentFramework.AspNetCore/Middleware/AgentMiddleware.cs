@@ -1,14 +1,10 @@
 ﻿using System;
 using System.IO;
-using System.Net.Http;
 using System.Threading.Tasks;
-using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
-using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Handlers.Agents;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.AspNetCore.Middleware
 {

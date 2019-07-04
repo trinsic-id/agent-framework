@@ -76,14 +76,14 @@ namespace AgentFramework.Core.Handlers.Agents
         }
 
         /// <inheritdoc />
-        public virtual async Task RegisterSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string schemaJson, PaymentInfo paymentInfo = null)
+        public virtual async Task RegisterSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string schemaJson, TransactionCost paymentInfo = null)
         {
             var req = await Ledger.BuildSchemaRequestAsync(issuerDid, schemaJson);
             var res = await SignAndSubmitAsync(pool, wallet, issuerDid, req, paymentInfo);
         }
 
         /// <inheritdoc />
-        public virtual async Task RegisterCredentialDefinitionAsync(Wallet wallet, Pool pool, string submitterDid, string data, PaymentInfo paymentInfo = null)
+        public virtual async Task RegisterCredentialDefinitionAsync(Wallet wallet, Pool pool, string submitterDid, string data, TransactionCost paymentInfo = null)
         {
             var req = await Ledger.BuildCredDefRequestAsync(submitterDid, data);
             var res = await SignAndSubmitAsync(pool, wallet, submitterDid, req, paymentInfo);
@@ -91,7 +91,7 @@ namespace AgentFramework.Core.Handlers.Agents
 
         /// <inheritdoc />
         public virtual async Task RegisterRevocationRegistryDefinitionAsync(Wallet wallet, Pool pool, string submitterDid,
-            string data, PaymentInfo paymentInfo = null)
+            string data, TransactionCost paymentInfo = null)
         {
             var req = await Ledger.BuildRevocRegDefRequestAsync(submitterDid, data);
             var res = await SignAndSubmitAsync(pool, wallet, submitterDid, req, paymentInfo);
@@ -99,7 +99,7 @@ namespace AgentFramework.Core.Handlers.Agents
 
         /// <inheritdoc />
         public virtual async Task SendRevocationRegistryEntryAsync(Wallet wallet, Pool pool, string issuerDid,
-            string revocationRegistryDefinitionId, string revocationDefinitionType, string value, PaymentInfo paymentInfo = null)
+            string revocationRegistryDefinitionId, string revocationDefinitionType, string value, TransactionCost paymentInfo = null)
         {
             var req = await Ledger.BuildRevocRegEntryRequestAsync(issuerDid, revocationRegistryDefinitionId,
                 revocationDefinitionType, value);
@@ -108,7 +108,7 @@ namespace AgentFramework.Core.Handlers.Agents
 
         /// <inheritdoc />
         public virtual async Task RegisterNymAsync(Wallet wallet, Pool pool, string submitterDid, string theirDid,
-            string theirVerkey, string role, PaymentInfo paymentInfo = null)
+            string theirVerkey, string role, TransactionCost paymentInfo = null)
         {
             if (DidUtils.IsFullVerkey(theirVerkey))
                 theirVerkey = await Did.AbbreviateVerkeyAsync(theirDid, theirVerkey);
@@ -137,7 +137,7 @@ namespace AgentFramework.Core.Handlers.Agents
 
         /// <inheritdoc />
         public virtual async Task RegisterAttributeAsync(Pool pool, Wallet wallet, string submittedDid, string targetDid,
-            string attributeName, object value, PaymentInfo paymentInfo = null)
+            string attributeName, object value, TransactionCost paymentInfo = null)
         {
             var data = $"{{\"{attributeName}\": {value.ToJson()}}}";
 
@@ -168,7 +168,7 @@ namespace AgentFramework.Core.Handlers.Agents
             return jobj["result"]["data"].ToObject<IList<AuthorizationRule>>();
         }
 
-        private async Task<string> SignAndSubmitAsync(Pool pool, Wallet wallet, string submitterDid, string request, PaymentInfo paymentInfo)
+        private async Task<string> SignAndSubmitAsync(Pool pool, Wallet wallet, string submitterDid, string request, TransactionCost paymentInfo)
         {
             if (paymentInfo != null)
             {
@@ -176,13 +176,13 @@ namespace AgentFramework.Core.Handlers.Agents
                     wallet: wallet,
                     submitterDid: null,
                     reqJson: request,
-                    inputsJson: paymentInfo.From.Sources.Select(x => x.Source).ToJson(),
+                    inputsJson: paymentInfo.PaymentAddress.Sources.Select(x => x.Source).ToJson(),
                     outputsJson: new[]
                     {
                         new IndyPaymentOutputSource
                         {
-                            Recipient = paymentInfo.From.Address,
-                            Amount = paymentInfo.From.Balance - paymentInfo.Amount
+                            Recipient = paymentInfo.PaymentAddress.Address,
+                            Amount = paymentInfo.PaymentAddress.Balance - paymentInfo.Amount
                         }
                     }.ToJson(),
                     extra: null);
@@ -196,8 +196,8 @@ namespace AgentFramework.Core.Handlers.Agents
             {
                 var responsePayment = await IndyPayments.ParseResponseWithFeesAsync(paymentInfo.PaymentMethod, response);
                 var paymentOutputs = responsePayment.ToObject<IList<IndyPaymentOutputSource>>();
-                paymentInfo.From.Sources = paymentOutputs
-                    .Where(x => x.Recipient == paymentInfo.From.Address)
+                paymentInfo.PaymentAddress.Sources = paymentOutputs
+                    .Where(x => x.Recipient == paymentInfo.PaymentAddress.Address)
                     .Select(x => new IndyPaymentInputSource
                     {
                         Amount = x.Amount,

@@ -1,36 +1,24 @@
 ﻿using System.Threading.Tasks;
-using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Messages.Common;
 using AgentFramework.TestHarness;
 using AgentFramework.TestHarness.Mock;
 using Xunit;
-using Microsoft.Extensions.DependencyInjection;
-using AgentFramework.Core.Models.Connections;
 using System.Linq;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Decorators.Payments;
 using System.Collections.Generic;
 using AgentFramework.Core.Models.Records.Search;
-using System;
-using IndyPayments = Hyperledger.Indy.PaymentsApi.Payments;
-using Hyperledger.Indy.LedgerApi;
 
 namespace AgentFramework.Core.Tests.Payments
 {
     public class ProtocolTests : TestSingleWallet
     {
-        [Fact(DisplayName = "Send a payment request as decorator to basic message")]
+        [Fact(DisplayName = "Payment full integration test - request, pay, receipt, verify")]
         public async Task SendPaymentRequest()
         {
             // Create two agent hosts and establish pairwise connection between them
             var agents = await InProcAgent.CreatePairedAsync(true);
-
-            // Setup a basic use case for payments by using basic messages
-            // Any AgentMessage can be used to attach payment requests and receipts
-            var basicMessage = new BasicMessage { Content = "This is payment request" };
-            var basicRecord = new BasicMessageRecord { Text = basicMessage.Content };
-            await agents.Agent1.Records.AddAsync(agents.Agent1.Context.Wallet, basicRecord);
 
             // Get each agent payment address records
             var paymentAddress1 = await agents.Agent1.Payments.GetDefaultPaymentAddressAsync(agents.Agent1.Context);
@@ -38,6 +26,10 @@ namespace AgentFramework.Core.Tests.Payments
 
             // Internal reference number for this payment
             const string paymentReference = "INVOICE# 0001";
+
+            // Setup a basic use case for payments by using basic messages
+            // Any AgentMessage can be used to attach payment requests and receipts
+            var basicMessage = new BasicMessage { Content = "This is payment request" };
 
             // Attach the payment request to the agent message
             var paymentRecord1 = await agents.Agent1.Payments.AttachPaymentRequestAsync(
@@ -61,7 +53,7 @@ namespace AgentFramework.Core.Tests.Payments
                         Label = "Total"
                     }
                 },
-                addressRecord: paymentAddress1);
+                payeeAddress: paymentAddress1);
 
             // PaymentRecord expectations
             Assert.NotNull(paymentRecord1);
@@ -82,12 +74,10 @@ namespace AgentFramework.Core.Tests.Payments
                 wallet: agents.Agent2.Context.Wallet,
                 query: SearchQuery.And(
                     SearchQuery.Equal(nameof(PaymentRecord.ReferenceId), paymentReference),
-                    SearchQuery.Equal(nameof(PaymentRecord.ConnectionId), agents.Connection2.Id)),
-                options: null,
-                count: 5);
+                    SearchQuery.Equal(nameof(PaymentRecord.ConnectionId), agents.Connection2.Id)));
             var paymentRecord2 = search.FirstOrDefault();
 
-            Assert.Equal(1, search.Count);
+            Assert.Single(search);
             Assert.NotNull(paymentRecord2);
             Assert.Equal(PaymentState.RequestReceived, paymentRecord2.State);
 
@@ -95,7 +85,7 @@ namespace AgentFramework.Core.Tests.Payments
             await FundAccountAsync(50UL, paymentAddress2.Address);
 
             // Refresh balance to ensure it is funded correctly
-            await agents.Agent2.Payments.GetBalanceAsync(agents.Agent2.Context, paymentAddress2);
+            await agents.Agent2.Payments.RefreshBalanceAsync(agents.Agent2.Context, paymentAddress2);
 
             Assert.Equal(50UL, paymentAddress2.Balance);
 
@@ -123,6 +113,11 @@ namespace AgentFramework.Core.Tests.Payments
 
             Assert.Equal(PaymentState.ReceiptReceived, paymentRecord1.State);
             Assert.NotNull(paymentRecord1.ReceiptId);
+
+            // Check agent 1 balance
+            await agents.Agent1.Payments.RefreshBalanceAsync(agents.Agent1.Context, paymentAddress1);
+
+            Assert.Equal(10UL, paymentAddress1.Balance);
 
             // Verify the payment receipt on the ledger
             var verified = await agents.Agent1.Payments.VerifyPaymentAsync(agents.Agent1.Context, paymentRecord1);

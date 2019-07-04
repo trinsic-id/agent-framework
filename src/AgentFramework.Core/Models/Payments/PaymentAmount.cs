@@ -20,7 +20,7 @@ namespace AgentFramework.Core.Models.Payments
         public ulong Value { get; set; }
 
         /// <summary>
-        /// Implcit assignment operator
+        /// Implicit assignment operator
         /// </summary>
         /// <param name="value"></param>
         public static implicit operator PaymentAmount(ulong value)

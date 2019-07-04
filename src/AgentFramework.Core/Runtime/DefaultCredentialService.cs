@@ -107,7 +107,7 @@ namespace AgentFramework.Core.Handlers.Agents
 
             return record;
         }
-        
+
         /// <inheritdoc />
         public virtual Task<List<CredentialRecord>> ListAsync(IAgentContext agentContext, ISearchQuery query = null, int count = 100) =>
             RecordService.SearchAsync<CredentialRecord>(agentContext.Wallet, query, null, count);
@@ -241,7 +241,7 @@ namespace AgentFramework.Core.Handlers.Agents
         }
 
         /// <inheritdoc />
-        public virtual async Task<(CredentialOfferMessage, CredentialRecord)> 
+        public virtual async Task<(CredentialOfferMessage, CredentialRecord)>
             CreateOfferAsync(IAgentContext agentContext, OfferConfiguration config, string connectionId = null)
         {
             Logger.LogInformation(LoggingEvents.CreateCredentialOffer, "DefinitionId {0}, IssuerDid {1}",
@@ -281,7 +281,7 @@ namespace AgentFramework.Core.Handlers.Agents
                 CredentialAttributesValues = config.CredentialAttributeValues,
                 State = CredentialState.Offered,
             };
-            
+
             credentialRecord.SetTag(TagConstants.LastThreadId, threadId);
             credentialRecord.SetTag(TagConstants.Role, TagConstants.Issuer);
 
@@ -324,7 +324,7 @@ namespace AgentFramework.Core.Handlers.Agents
         public virtual async Task<string> ProcessCredentialRequestAsync(IAgentContext agentContext, CredentialRequestMessage credentialRequest, ConnectionRecord connection)
         {
             Logger.LogInformation(LoggingEvents.StoreCredentialRequest, "Type {0},", credentialRequest.Type);
-           
+
             var credential = await this.GetByThreadIdAsync(agentContext, credentialRequest.GetThreadId());
 
             if (credential.State != CredentialState.Offered)
@@ -406,7 +406,7 @@ namespace AgentFramework.Core.Handlers.Agents
 
             if (definitionRecord.SupportsRevocation)
             {
-                var paymentInfo = await PaymentService.CreatePaymentInfoAsync(agentContext, TransactionTypes.REVOC_REG_ENTRY);
+                var paymentInfo = await PaymentService.GetTransactionCostAsync(agentContext, TransactionTypes.REVOC_REG_ENTRY);
 
                 await LedgerService.SendRevocationRegistryEntryAsync(wallet: agentContext.Wallet,
                                                                      pool: await agentContext.Pool,
@@ -419,7 +419,7 @@ namespace AgentFramework.Core.Handlers.Agents
 
                 if (paymentInfo != null)
                 {
-                    await RecordService.UpdateAsync(agentContext.Wallet, paymentInfo.From);
+                    await RecordService.UpdateAsync(agentContext.Wallet, paymentInfo.PaymentAddress);
                 }
             }
 
@@ -427,7 +427,7 @@ namespace AgentFramework.Core.Handlers.Agents
             await RecordService.UpdateAsync(agentContext.Wallet, credential);
             var threadId = credential.GetTag(TagConstants.LastThreadId);
 
-            var credentialMsg =  new CredentialMessage
+            var credentialMsg = new CredentialMessage
             {
                 CredentialJson = issuedCredential.CredentialJson,
                 RevocationRegistryId = revocationRegistryId
@@ -461,7 +461,7 @@ namespace AgentFramework.Core.Handlers.Agents
             var revocRegistryDeltaJson = await AnonCreds.IssuerRevokeCredentialAsync(agentContext.Wallet, tailsReader,
                 revocationRecord.Id, credential.CredentialRevocationId);
 
-            var paymentInfo = await PaymentService.CreatePaymentInfoAsync(agentContext, TransactionTypes.REVOC_REG_ENTRY);
+            var paymentInfo = await PaymentService.GetTransactionCostAsync(agentContext, TransactionTypes.REVOC_REG_ENTRY);
 
             // Write the delta state on the ledger for the corresponding revocation registry
             await LedgerService.SendRevocationRegistryEntryAsync(wallet: agentContext.Wallet,
@@ -474,7 +474,7 @@ namespace AgentFramework.Core.Handlers.Agents
 
             if (paymentInfo != null)
             {
-                await RecordService.UpdateAsync(agentContext.Wallet, paymentInfo.From);
+                await RecordService.UpdateAsync(agentContext.Wallet, paymentInfo.PaymentAddress);
             }
 
             // Update local credential record

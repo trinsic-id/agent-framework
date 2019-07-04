@@ -5,7 +5,6 @@ using AgentFramework.Core.Messages;
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AgentFramework.Core.Runtime.Transport

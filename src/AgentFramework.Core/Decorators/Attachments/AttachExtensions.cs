@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using AgentFramework.Core.Messages;
 
 namespace AgentFramework.Core.Decorators.Attachments

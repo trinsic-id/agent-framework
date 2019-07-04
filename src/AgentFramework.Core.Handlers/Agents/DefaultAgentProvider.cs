@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Models;
 using Microsoft.Extensions.Options;

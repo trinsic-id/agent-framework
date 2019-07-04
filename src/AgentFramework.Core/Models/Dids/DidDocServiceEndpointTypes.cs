@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AgentFramework.Core.Models.Dids
+﻿namespace AgentFramework.Core.Models.Dids
 {
     /// <summary>
     /// Did document service endpoint types.

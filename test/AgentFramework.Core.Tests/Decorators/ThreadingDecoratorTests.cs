@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Threading.Tasks;
-using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Decorators.Threading;
 using AgentFramework.Core.Exceptions;
-using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Messages.Connections;
-using Hyperledger.Indy.WalletApi;
 using Xunit;
 
 namespace AgentFramework.Core.Tests.Decorators

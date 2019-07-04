@@ -4,7 +4,6 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
-using AgentFramework.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.Core.Handlers
