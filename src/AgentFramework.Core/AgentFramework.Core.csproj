@@ -13,8 +13,5 @@
     <PackageReference Include="Hyperledger.Indy.Sdk" Version="1.9.0" />
     <PackageReference Include="System.Reactive.Linq" Version="4.1.2" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Decorators\Payments\" />
-    <Folder Include="Models\Ledger\" />
-  </ItemGroup>
+  
 </Project>
