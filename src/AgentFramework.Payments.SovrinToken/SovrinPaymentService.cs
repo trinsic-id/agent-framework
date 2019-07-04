@@ -118,6 +118,11 @@ namespace AgentFramework.Payments.SovrinToken
         public async Task MakePaymentAsync(IAgentContext agentContext, PaymentRecord paymentRecord,
             PaymentAddressRecord addressFromRecord = null)
         {
+            if (paymentRecord.Amount == 0)
+            {
+                throw new AgentFrameworkException(ErrorCode.InvalidRecordData, "Cannot make a payment with 0 amount");
+            }
+
             await paymentRecord.TriggerAsync(PaymentTrigger.ProcessPayment);
             if (paymentRecord.Address == null)
             {
@@ -127,14 +132,7 @@ namespace AgentFramework.Payments.SovrinToken
             var provisioning = await provisioningService.GetProvisioningAsync(agentContext.Wallet);
             if (addressFromRecord == null)
             {
-                if (provisioning.DefaultPaymentAddressId == null)
-                {
-                    throw new AgentFrameworkException(ErrorCode.RecordNotFound,
-                        "Default PaymentAddressRecord not found");
-                }
-
-                addressFromRecord = await recordService.GetAsync<PaymentAddressRecord>(
-                    agentContext.Wallet, provisioning.DefaultPaymentAddressId);
+                addressFromRecord = await GetDefaultPaymentAddressAsync(agentContext);
             }
 
             await GetBalanceAsync(agentContext, addressFromRecord);
@@ -281,7 +279,7 @@ namespace AgentFramework.Payments.SovrinToken
             return _transactionFees;
         }
 
-        public async Task<PaymentRecord> AttachPaymentRequestAsync(IAgentContext context, AgentMessage agentMessage, PaymentDetails details, PaymentAddressRecord addressRecord)
+        public async Task<PaymentRecord> AttachPaymentRequestAsync(IAgentContext context, AgentMessage agentMessage, PaymentDetails details, PaymentAddressRecord addressRecord = null)
         {
             // TODO: Add validation
 
@@ -292,10 +290,13 @@ namespace AgentFramework.Payments.SovrinToken
                 Amount = details.Total.Amount.Value,
                 Details = details
             };
+            details.Id = details.Id ?? paymentRecord.Id;
+            paymentRecord.ReferenceId = details.Id;
+
             await paymentRecord.TriggerAsync(PaymentTrigger.RequestSent);
             await recordService.AddAsync(context.Wallet, paymentRecord);
 
-            details.Id = paymentRecord.Id;
+            
 
             agentMessage.AddDecorator(new PaymentRequestDecorator
             {
@@ -314,6 +315,23 @@ namespace AgentFramework.Payments.SovrinToken
             return paymentRecord;
         }
 
+        public void AttachPaymentReceipt(IAgentContext context, AgentMessage agentMessage, PaymentRecord paymentRecord)
+        {
+            if (paymentRecord.State != PaymentState.Paid)
+            {
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState, "Payment record must be in state Paid to attach receipts");
+            }
+
+            agentMessage.AddDecorator(new PaymentReceiptDecorator
+            {
+                RequestId = paymentRecord.ReferenceId,
+                Amount = paymentRecord.Amount,
+                TransactionId = paymentRecord.ReceiptId,
+                PayeeId = paymentRecord.Address,
+                SelectedMethod = "sov"
+            }, "payment_receipt");
+        }
+
         public async Task<PaymentAddressRecord> GetDefaultPaymentAddressAsync(IAgentContext agentContext)
         {
             var provisioning = await provisioningService.GetProvisioningAsync(agentContext.Wallet);
@@ -323,6 +341,29 @@ namespace AgentFramework.Payments.SovrinToken
             }
             var paymentAddress = await recordService.GetAsync<PaymentAddressRecord>(agentContext.Wallet, provisioning.DefaultPaymentAddressId);
             return paymentAddress;
+        }
+
+        public async Task<bool> VerifyPaymentAsync(IAgentContext context, PaymentRecord paymentRecord)
+        {
+            if (paymentRecord.State != PaymentState.Paid && paymentRecord.State != PaymentState.ReceiptReceived)
+            {
+                throw new AgentFrameworkException(ErrorCode.RecordInInvalidState,
+                    "Payment record must be in state Paid or ReceiptReceived to verify it");
+            }
+
+            var req = await IndyPayments.BuildVerifyPaymentRequestAsync(context.Wallet, null, paymentRecord.ReceiptId);
+            var res = await Ledger.SubmitRequestAsync(await context.Pool, req.Result);
+
+            var resParsed = JObject.Parse(await IndyPayments.ParseVerifyPaymentResponseAsync("sov", res));
+            var receipts = resParsed["receipts"].ToObject<IList<IndyPaymentOutputSource>>()
+                .Where(x => x.Recipient == paymentRecord.Address)
+                .ToList();
+
+            if (receipts.Any() && receipts.Select(x => x.Amount).Aggregate((x, y) => x + y) == paymentRecord.Amount)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

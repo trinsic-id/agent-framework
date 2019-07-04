@@ -105,7 +105,8 @@ namespace AgentFramework.Core.Models.Records
             state.Configure(PaymentState.None).Permit(PaymentTrigger.RequestSent, PaymentState.Requested);
             state.Configure(PaymentState.None).Permit(PaymentTrigger.RequestReceived, PaymentState.RequestReceived);
             state.Configure(PaymentState.None).Permit(PaymentTrigger.ProcessPayment, PaymentState.Paid);
-            state.Configure(PaymentState.Requested).Permit(PaymentTrigger.ReceiptRecieved, PaymentState.ReceiptReceived);
+            state.Configure(PaymentState.None).Permit(PaymentTrigger.ReceiptReceived, PaymentState.ReceiptReceived);
+            state.Configure(PaymentState.Requested).Permit(PaymentTrigger.ReceiptReceived, PaymentState.ReceiptReceived);
             state.Configure(PaymentState.RequestReceived).Permit(PaymentTrigger.ProcessPayment, PaymentState.Paid);
             return state;
         }
@@ -125,6 +126,6 @@ namespace AgentFramework.Core.Models.Records
         RequestSent,
         RequestReceived,
         ProcessPayment,
-        ReceiptRecieved
+        ReceiptReceived
     }
 }

@@ -10,26 +10,16 @@ using System.Linq;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Decorators.Payments;
+using System.Collections.Generic;
+using AgentFramework.Core.Models.Records.Search;
+using System;
+using IndyPayments = Hyperledger.Indy.PaymentsApi.Payments;
+using Hyperledger.Indy.LedgerApi;
 
 namespace AgentFramework.Core.Tests.Payments
 {
     public class ProtocolTests : TestSingleWallet
     {
-        [Fact(DisplayName = "Create two InProc agents and establish connection")]
-        public async Task CreateInProcAgentsAndConnect()
-        {
-            var agents = await InProcAgent.CreatePairedAsync(true);
-
-            Assert.NotNull(agents.Agent1);
-            Assert.NotNull(agents.Agent2);
-
-            Assert.Equal(ConnectionState.Connected, agents.Connection1.State);
-            Assert.Equal(ConnectionState.Connected, agents.Connection2.State);
-
-            await agents.Agent1.DisposeAsync();
-            await agents.Agent2.DisposeAsync();
-        }
-
         [Fact(DisplayName = "Send a payment request as decorator to basic message")]
         public async Task SendPaymentRequest()
         {
@@ -37,40 +27,109 @@ namespace AgentFramework.Core.Tests.Payments
             var agents = await InProcAgent.CreatePairedAsync(true);
 
             // Setup a basic use case for payments by using basic messages
-            // Any AgentMessage can be used
+            // Any AgentMessage can be used to attach payment requests and receipts
             var basicMessage = new BasicMessage { Content = "This is payment request" };
             var basicRecord = new BasicMessageRecord { Text = basicMessage.Content };
             await agents.Agent1.Records.AddAsync(agents.Agent1.Context.Wallet, basicRecord);
 
-            var paymentAddress = await agents.Agent1.Payments.GetDefaultPaymentAddressAsync(agents.Agent1.Context);
+            // Get each agent payment address records
+            var paymentAddress1 = await agents.Agent1.Payments.GetDefaultPaymentAddressAsync(agents.Agent1.Context);
+            var paymentAddress2 = await agents.Agent2.Payments.GetDefaultPaymentAddressAsync(agents.Agent2.Context);
+
+            // Internal reference number for this payment
+            const string paymentReference = "INVOICE# 0001";
 
             // Attach the payment request to the agent message
-            var paymentRecord = await agents.Agent1.Payments.AttachPaymentRequestAsync(agents.Agent1.Context, basicMessage, new PaymentDetails
-            {
-                Id = basicRecord.Id,
-                Total = new PaymentItem
+            var paymentRecord1 = await agents.Agent1.Payments.AttachPaymentRequestAsync(
+                context: agents.Agent1.Context,
+                agentMessage: basicMessage,
+                details: new PaymentDetails
                 {
-                    Amount = new PaymentAmount
+                    Id = paymentReference,
+                    Items = new List<PaymentItem>
                     {
-                        Currency = "sov",
-                        Value = 10
+                        new PaymentItem { Label = "Item 1", Amount = 8 },
+                        new PaymentItem { Label = "Tax", Amount = 2 }
                     },
-                    Label = "Total"
-                }
-            }, paymentAddress);
+                    Total = new PaymentItem
+                    {
+                        Amount = new PaymentAmount
+                        {
+                            Currency = "sov",
+                            Value = 10
+                        },
+                        Label = "Total"
+                    }
+                },
+                addressRecord: paymentAddress1);
 
             // PaymentRecord expectations
-            Assert.NotNull(paymentRecord);
-            Assert.Equal(10UL, paymentRecord.Amount);
-            Assert.Equal(paymentAddress.Address, paymentRecord.Address);
-            Assert.Equal(PaymentState.Requested, paymentRecord.State);
+            Assert.NotNull(paymentRecord1);
+            Assert.Equal(10UL, paymentRecord1.Amount);
+            Assert.Equal(paymentAddress1.Address, paymentRecord1.Address);
+            Assert.Equal(PaymentState.Requested, paymentRecord1.State);
 
+            // Ensure the payment request is attached to the message
             var decorator = basicMessage.FindDecorator<PaymentRequestDecorator>("payment_request");
 
             Assert.NotNull(decorator);
 
-            var response = await agents.Agent1.Messages.SendAsync(agents.Agent1.Context.Wallet, basicMessage, agents.Connection1);
+            // Send the message to agent 2
+            _ = await agents.Agent1.Messages.SendAsync(agents.Agent1.Context.Wallet, basicMessage, agents.Connection1);
 
+            // Find the payment record in the context of agent 2
+            var search = await agents.Agent2.Records.SearchAsync<PaymentRecord>(
+                wallet: agents.Agent2.Context.Wallet,
+                query: SearchQuery.And(
+                    SearchQuery.Equal(nameof(PaymentRecord.ReferenceId), paymentReference),
+                    SearchQuery.Equal(nameof(PaymentRecord.ConnectionId), agents.Connection2.Id)),
+                options: null,
+                count: 5);
+            var paymentRecord2 = search.FirstOrDefault();
+
+            Assert.Equal(1, search.Count);
+            Assert.NotNull(paymentRecord2);
+            Assert.Equal(PaymentState.RequestReceived, paymentRecord2.State);
+
+            // Fund payment address of agent 2 so we can make payment to agent 1
+            await FundAccountAsync(50UL, paymentAddress2.Address);
+
+            // Refresh balance to ensure it is funded correctly
+            await agents.Agent2.Payments.GetBalanceAsync(agents.Agent2.Context, paymentAddress2);
+
+            Assert.Equal(50UL, paymentAddress2.Balance);
+
+            // Make payment for received request
+            await agents.Agent2.Payments.MakePaymentAsync(agents.Agent2.Context, paymentRecord2, paymentAddress2);
+
+            Assert.Equal(PaymentState.Paid, paymentRecord2.State);
+            Assert.Equal(40UL, paymentAddress2.Balance);
+            Assert.NotNull(paymentRecord2.ReceiptId);
+
+            // Send a basic message back to agent 1 and attach a payment receipt
+            var message2 = new BasicMessage { Content = "Here's a receipt" };
+
+            // Attach a payment receipt to the basic message
+            // Receipts can be attached to any agent message
+            agents.Agent2.Payments.AttachPaymentReceipt(agents.Agent2.Context, message2, paymentRecord2);
+
+            // Send the message to agent 1
+            await agents.Agent2.Messages.SendAsync(agents.Agent2.Context.Wallet, message2, agents.Connection2);
+
+            // Fetch payment record 1 again, to refresh state
+            paymentRecord1 = await agents.Agent1.Records.GetAsync<PaymentRecord>(agents.Agent1.Context.Wallet, paymentRecord1.Id);
+
+            // Check payment record 1 for receipt
+
+            Assert.Equal(PaymentState.ReceiptReceived, paymentRecord1.State);
+            Assert.NotNull(paymentRecord1.ReceiptId);
+
+            // Verify the payment receipt on the ledger
+            var verified = await agents.Agent1.Payments.VerifyPaymentAsync(agents.Agent1.Context, paymentRecord1);
+
+            Assert.True(verified);
+
+            // Clean things up and shut down hosts gracefully
             await agents.Agent1.DisposeAsync();
             await agents.Agent2.DisposeAsync();
         }

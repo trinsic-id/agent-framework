@@ -11,8 +11,13 @@ namespace AgentFramework.Core.Runtime
     /// <inheritdoc />
     public class DefaultPaymentService : IPaymentService
     {
+        public void AttachPaymentReceipt(IAgentContext context, AgentMessage agentMessage, PaymentRecord paymentRecord)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <inheritdoc />
-        public Task<PaymentRecord> AttachPaymentRequestAsync(IAgentContext context, AgentMessage agentMessage, PaymentDetails details, PaymentAddressRecord addressRecord)
+        public Task<PaymentRecord> AttachPaymentRequestAsync(IAgentContext context, AgentMessage agentMessage, PaymentDetails details, PaymentAddressRecord addressRecord = null)
         {
             throw new NotImplementedException();
         }
@@ -68,6 +73,11 @@ namespace AgentFramework.Core.Runtime
         public Task SetDefaultPaymentAddressAsync(IAgentContext agentContext, PaymentAddressRecord addressRecord)
         {
             throw new NotSupportedException();
+        }
+
+        public Task<bool> VerifyPaymentAsync(IAgentContext context, PaymentRecord paymentRecord)
+        {
+            throw new NotImplementedException();
         }
     }
 }

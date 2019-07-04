@@ -20,7 +20,9 @@ namespace AgentFramework.Core.Contracts
 
         Task<PaymentAddressRecord> CreatePaymentAddressAsync(IAgentContext agentContext, AddressOptions configuration = null);
 
-        Task<PaymentRecord> AttachPaymentRequestAsync(IAgentContext context, AgentMessage agentMessage, PaymentDetails details, PaymentAddressRecord addressRecord);
+        Task<PaymentRecord> AttachPaymentRequestAsync(IAgentContext context, AgentMessage agentMessage, PaymentDetails details, PaymentAddressRecord addressRecord = null);
+
+        void AttachPaymentReceipt(IAgentContext context, AgentMessage agentMessage, PaymentRecord paymentRecord);
 
         Task MakePaymentAsync(IAgentContext agentContext, PaymentRecord paymentRecord, PaymentAddressRecord addressRecord = null);
 
@@ -31,6 +33,8 @@ namespace AgentFramework.Core.Contracts
         Task ProcessPaymentReceipt(IAgentContext agentContext, PaymentReceiptDecorator receiptDecorator, RecordBase recordBase = null);
 
         Task<PaymentInfo> CreatePaymentInfoAsync(IAgentContext context, string transactionType, PaymentAddressRecord addressRecord = null);
+
+        Task<bool> VerifyPaymentAsync(IAgentContext context, PaymentRecord paymentRecord);
 
         /// <summary>
         /// Gets the fees associated with a given transaction type

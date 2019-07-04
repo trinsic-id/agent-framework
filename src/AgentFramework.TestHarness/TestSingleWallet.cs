@@ -132,5 +132,12 @@ namespace AgentFramework.TestHarness
 
             await paymentService.GetBalanceAsync(Context, addressRecord);
         }
+
+        protected async Task FundAccountAsync(ulong amount, string address)
+        {
+            var request = await IndyPayments.BuildMintRequestAsync(Context.Wallet, Trustee.Did,
+                new[] { new { recipient = address, amount = amount } }.ToJson(), null);
+            await TrusteeMultiSignAndSubmitRequestAsync(request.Result);
+        }
     }
 }

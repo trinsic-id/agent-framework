@@ -18,5 +18,14 @@ namespace AgentFramework.Core.Models.Payments
         /// </summary>
         [JsonProperty("value")]
         public ulong Value { get; set; }
+
+        /// <summary>
+        /// Implcit assignment operator
+        /// </summary>
+        /// <param name="value"></param>
+        public static implicit operator PaymentAmount(ulong value)
+        {
+            return new PaymentAmount { Value = value };
+        }
     }
 }
