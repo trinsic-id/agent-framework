@@ -18,7 +18,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace AgentFramework.Core.Handlers.Agents
+namespace AgentFramework.Core.Runtime
 {
     /// <inheritdoc />
     public class DefaultEphemeralChallengeService : IEphemeralChallengeService

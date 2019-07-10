@@ -11,7 +11,7 @@ using Hyperledger.Indy.BlobStorageApi;
 using Hyperledger.Indy.PoolApi;
 using Newtonsoft.Json.Linq;
 
-namespace AgentFramework.Core.Handlers.Agents
+namespace AgentFramework.Core.Runtime
 {
     /// <inheritdoc />
     public class DefaultTailsService : ITailsService

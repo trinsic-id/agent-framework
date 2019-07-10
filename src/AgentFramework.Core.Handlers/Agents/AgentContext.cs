@@ -1,9 +1,8 @@
 ﻿using System.Collections.Concurrent;
-using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Models;
 
-namespace AgentFramework.Core.Handlers
+namespace AgentFramework.Core.Handlers.Agents
 {
     /// <summary>
     /// Agent context that represents the context of a current agent.

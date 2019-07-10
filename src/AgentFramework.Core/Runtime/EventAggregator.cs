@@ -3,7 +3,7 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using AgentFramework.Core.Contracts;
 
-namespace AgentFramework.Core.Handlers.Agents
+namespace AgentFramework.Core.Runtime
 {
     /// <inheritdoc />
     //Modified from https://github.com/shiftkey/Reactive.EventAggregator

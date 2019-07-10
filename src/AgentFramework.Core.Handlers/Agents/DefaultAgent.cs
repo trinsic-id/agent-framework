@@ -1,7 +1,6 @@
 ﻿using System;
-using AgentFramework.Core.Handlers;
 
-namespace AgentFramework.AspNetCore
+namespace AgentFramework.Core.Handlers.Agents
 {
     /// <summary>
     /// Default agent.
@@ -9,7 +8,7 @@ namespace AgentFramework.AspNetCore
     public class DefaultAgent : AgentBase
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:AgentFramework.AspNetCore.DefaultAgent"/> class.
+        /// Initializes a new instance of the <see cref="T:AgentFramework.Core.Handlers.Agents.DefaultAgent"/> class.
         /// </summary>
         /// <param name="provider">Provider.</param>
         public DefaultAgent(IServiceProvider provider) : base(provider)

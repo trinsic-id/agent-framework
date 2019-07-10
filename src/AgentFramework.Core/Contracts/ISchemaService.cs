@@ -15,8 +15,7 @@ namespace AgentFramework.Core.Contracts
         /// <summary>
         /// Creates and registers schema on the ledger
         /// </summary>
-        /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
+        /// <param name="context">The agent context</param>
         /// <param name="issuerDid">The issuer did.
         /// <remarks>The DID must have `TRUST_ANCHOR` permissions on the ledger.</remarks></param>
         /// <param name="name">The name.</param>
@@ -24,23 +23,21 @@ namespace AgentFramework.Core.Contracts
         /// <param name="attributeNames">The attribute names.</param>
         /// <returns>The schema identifier of the stored schema object.
         /// This identifier can be used for ledger schema lookup.</returns>
-        Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string name, string version,
+        Task<string> CreateSchemaAsync(IAgentContext context, string issuerDid, string name, string version,
             string[] attributeNames);
 
         /// <summary>
         /// Creates and registers schema on the ledger
         /// </summary>
-        /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
+        /// <param name="context">The agent context</param>
         /// <param name="name">The name.</param>
         /// <param name="version">The version.</param>
         /// <param name="attributeNames">The attribute names.</param>
         /// <returns></returns>
-        Task<string> CreateSchemaAsync(Pool pool, Wallet wallet, string name, string version, string[] attributeNames);
+        Task<string> CreateSchemaAsync(IAgentContext context, string name, string version, string[] attributeNames);
 
         /// <summary>Creates the credential definition and registers it on the ledger.</summary>
-        /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
+        /// <param name="context">The agent context</param>
         /// <param name="schemaId">The schema identifier.</param>
         /// <param name="issuerDid">The issuer did.</param>
         /// <param name="tag">The tag.</param>
@@ -51,18 +48,17 @@ namespace AgentFramework.Core.Contracts
         /// his parameter is only used if <paramref name="supportsRevocation" /> is <c>true</c>.</param>
         /// <returns>The credential definition identifier of the stored definition record.
         /// This identifier can be used for ledger definition lookup.</returns>
-        Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId, string issuerDid,
+        Task<string> CreateCredentialDefinitionAsync(IAgentContext context, string schemaId, string issuerDid,
             string tag, bool supportsRevocation, int maxCredentialCount, Uri tailsBaseUri);
 
         /// <summary>Creates the credential definition and registers it on the ledger.</summary>
-        /// <param name="pool">The pool.</param>
-        /// <param name="wallet">The wallet.</param>
+        /// <param name="context">The agent context</param>
         /// <param name="schemaId">The schema identifier.</param>
         /// <param name="tag">The tag.</param>
         /// <param name="supportsRevocation">if set to <c>true</c> [supports revocation].</param>
         /// <param name="maxCredentialCount">The maximum credential count.</param>
         /// <returns></returns>
-        Task<string> CreateCredentialDefinitionAsync(Pool pool, Wallet wallet, string schemaId,
+        Task<string> CreateCredentialDefinitionAsync(IAgentContext context, string schemaId,
             string tag, bool supportsRevocation, int maxCredentialCount);
 
         /// <summary>

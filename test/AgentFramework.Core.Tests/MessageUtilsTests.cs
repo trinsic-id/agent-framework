@@ -4,7 +4,6 @@ using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Utils;
 using FluentAssertions;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace AgentFramework.Core.Tests

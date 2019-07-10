@@ -8,7 +8,6 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.EphemeralChallenge;
-using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.EphemeralChallenge;
 using AgentFramework.Core.Models.Proofs;
@@ -20,6 +19,7 @@ using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using AgentFramework.Core.Runtime;
 
 namespace AgentFramework.Core.Tests.Protocols
 {
@@ -64,10 +64,10 @@ namespace AgentFramework.Core.Tests.Protocols
                 .Returns(Task.FromResult<MessageContext>(null));
 
             var provisioningMock = ServiceUtils.GetDefaultMockProvisioningService();
-
+            var paymentService = new DefaultPaymentService();
             var tailsService = new DefaultTailsService(ledgerService, new HttpClientHandler());
 
-            _schemaService = new DefaultSchemaService(provisioningMock, recordService, ledgerService, tailsService);
+            _schemaService = new DefaultSchemaService(provisioningMock, recordService, ledgerService, paymentService, tailsService);
 
             _connectionService = new DefaultConnectionService(
                 eventAggregator,
@@ -83,6 +83,7 @@ namespace AgentFramework.Core.Tests.Protocols
                 _schemaService,
                 tailsService,
                 provisioningMock,
+                paymentService,
                 new Mock<ILogger<DefaultCredentialService>>().Object);
 
             _proofService = new DefaultProofService(

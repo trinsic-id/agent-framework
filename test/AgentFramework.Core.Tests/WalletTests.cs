@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AgentFramework.Core.Models.Wallets;
 using AgentFramework.Core.Handlers.Agents;
+using AgentFramework.Core.Runtime;
 using Hyperledger.Indy.WalletApi;
 using Xunit;
 

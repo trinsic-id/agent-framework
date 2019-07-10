@@ -4,7 +4,6 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
-using AgentFramework.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.Core.Handlers
@@ -28,6 +27,8 @@ namespace AgentFramework.Core.Handlers
             collection.AddTransient<DefaultForwardHandler>();
             collection.AddTransient<DefaultTrustPingMessageHandler>();
             collection.AddTransient<DefaultDiscoveryHandler>();
+            collection.AddTransient<DefaultEphemeralChallengeHandler>();
+            collection.AddTransient<DefaultBasicMessageHandler>();
         }
 
         internal static AgentContext AsAgentContext(this IAgentContext context)

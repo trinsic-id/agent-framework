@@ -1,5 +1,7 @@
 ﻿using System;
+using AgentFramework.AspNetCore.Hosting;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Wallets;
@@ -94,6 +96,7 @@ namespace AgentFramework.AspNetCore
                 obj.GenesisFilename = configuration.GenesisFilename;
             });
 
+            builder.Services.AddSingleton<ProvisioningConfiguration>(configuration);
             builder.Services.AddSingleton<IAgent, TAgent>();
             builder.Services.AddSingleton<IHostedService>(s => new AgentHostedService(
                 configuration,

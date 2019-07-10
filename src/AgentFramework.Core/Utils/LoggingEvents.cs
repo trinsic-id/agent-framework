@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace AgentFramework.Core.Utils
+﻿namespace AgentFramework.Core.Utils
 {
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public class LoggingEvents

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Utils;
 
 namespace AgentFramework.Core.Messages

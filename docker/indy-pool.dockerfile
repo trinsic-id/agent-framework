@@ -61,7 +61,7 @@ ARG indy_crypto_ver=0.4.5
 ARG sovtoken_ver=0.9.13
 ARG sovtokenfees_ver=0.9.13
 
-RUN apt-get update -y && apt-get install -y \
+RUN apt-get update -y && apt-get install -y --allow-unauthenticated \
     indy-plenum=${indy_plenum_ver} \
     indy-node=${indy_node_ver} \
     python3-indy-crypto=${python3_indy_crypto_ver} \

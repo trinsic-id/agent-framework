@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Messages;
@@ -10,6 +11,11 @@ namespace AgentFramework.Core.Handlers.Agents
     /// </summary>
     public interface IAgent
     {
+        /// <summary>
+        /// Gets the service provider used by this agent instance
+        /// </summary>
+        IServiceProvider Provider { get; }
+
         /// <summary>
         /// Processes the async.
         /// </summary>

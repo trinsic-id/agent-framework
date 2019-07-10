@@ -2,6 +2,7 @@
 using AgentFramework.Core.Handlers.Agents;
 using System;
 using System.Threading.Tasks;
+using AgentFramework.Core.Runtime;
 using Xunit;
 
 namespace AgentFramework.Core.Tests

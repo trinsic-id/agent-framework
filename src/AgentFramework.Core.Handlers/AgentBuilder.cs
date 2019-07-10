@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AgentFramework.AspNetCore
+namespace AgentFramework.Core.Handlers
 {
     /// <summary>
     /// Agent Configuration Builder

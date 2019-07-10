@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using AgentFramework.Core.Messages.Discovery;
+﻿using AgentFramework.Core.Messages.Discovery;
 
 namespace AgentFramework.Core.Contracts
 {

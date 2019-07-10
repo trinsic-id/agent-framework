@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using AgentFramework.Core.Messages;
-using AgentFramework.Core.Models.Credentials;
-using AgentFramework.Core.Models.Proofs;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

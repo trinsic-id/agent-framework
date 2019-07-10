@@ -4,7 +4,6 @@ using AgentFramework.Core.Models.Connections;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Stateless;
-using Stateless.Graph;
 
 namespace AgentFramework.Core.Models.Records
 {

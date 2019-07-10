@@ -1,16 +1,21 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Models.Ledger;
+using AgentFramework.Core.Models.Payments;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.LedgerApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Newtonsoft.Json.Linq;
+using IndyPayments = Hyperledger.Indy.PaymentsApi.Payments;
 
-namespace AgentFramework.Core.Handlers.Agents
+namespace AgentFramework.Core.Runtime
 {
     /// <inheritdoc />
     public class DefaultLedgerService : ILedgerService
@@ -69,57 +74,47 @@ namespace AgentFramework.Core.Handlers.Agents
 
             return await Ledger.ParseGetRevocRegResponseAsync(res);
         }
-        
+
         /// <inheritdoc />
-        public virtual async Task RegisterSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string schemaJson)
+        public virtual async Task RegisterSchemaAsync(Pool pool, Wallet wallet, string issuerDid, string schemaJson, TransactionCost paymentInfo = null)
         {
             var req = await Ledger.BuildSchemaRequestAsync(issuerDid, schemaJson);
-            var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, issuerDid, req);
-
-            EnsureSuccessResponse(res);
+            var res = await SignAndSubmitAsync(pool, wallet, issuerDid, req, paymentInfo);
         }
-        
+
         /// <inheritdoc />
-        public virtual async Task RegisterCredentialDefinitionAsync(Wallet wallet, Pool pool, string submitterDid, string data)
+        public virtual async Task RegisterCredentialDefinitionAsync(Wallet wallet, Pool pool, string submitterDid, string data, TransactionCost paymentInfo = null)
         {
             var req = await Ledger.BuildCredDefRequestAsync(submitterDid, data);
-            var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, req);
-
-            EnsureSuccessResponse(res);
+            var res = await SignAndSubmitAsync(pool, wallet, submitterDid, req, paymentInfo);
         }
-        
+
         /// <inheritdoc />
         public virtual async Task RegisterRevocationRegistryDefinitionAsync(Wallet wallet, Pool pool, string submitterDid,
-            string data)
+            string data, TransactionCost paymentInfo = null)
         {
             var req = await Ledger.BuildRevocRegDefRequestAsync(submitterDid, data);
-            var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, req);
-
-            EnsureSuccessResponse(res);
+            var res = await SignAndSubmitAsync(pool, wallet, submitterDid, req, paymentInfo);
         }
 
         /// <inheritdoc />
         public virtual async Task SendRevocationRegistryEntryAsync(Wallet wallet, Pool pool, string issuerDid,
-            string revocationRegistryDefinitionId, string revocationDefinitionType, string value)
+            string revocationRegistryDefinitionId, string revocationDefinitionType, string value, TransactionCost paymentInfo = null)
         {
             var req = await Ledger.BuildRevocRegEntryRequestAsync(issuerDid, revocationRegistryDefinitionId,
                 revocationDefinitionType, value);
-            var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, issuerDid, req);
-
-            EnsureSuccessResponse(res);
+            var res = await SignAndSubmitAsync(pool, wallet, issuerDid, req, paymentInfo);
         }
 
         /// <inheritdoc />
         public virtual async Task RegisterNymAsync(Wallet wallet, Pool pool, string submitterDid, string theirDid,
-            string theirVerkey, string role)
+            string theirVerkey, string role, TransactionCost paymentInfo = null)
         {
             if (DidUtils.IsFullVerkey(theirVerkey))
                 theirVerkey = await Did.AbbreviateVerkeyAsync(theirDid, theirVerkey);
 
             var req = await Ledger.BuildNymRequestAsync(submitterDid, theirDid, theirVerkey, null, role);
-            var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, req);
-
-            EnsureSuccessResponse(res);
+            var res = await SignAndSubmitAsync(pool, wallet, submitterDid, req, paymentInfo);
         }
 
         /// <inheritdoc />
@@ -127,7 +122,7 @@ namespace AgentFramework.Core.Handlers.Agents
         {
             var req = await Ledger.BuildGetAttribRequestAsync(null, targetDid, attributeName, null, null);
             var res = await Ledger.SubmitRequestAsync(pool, req);
-            
+
             return null;
         }
 
@@ -142,14 +137,76 @@ namespace AgentFramework.Core.Handlers.Agents
 
         /// <inheritdoc />
         public virtual async Task RegisterAttributeAsync(Pool pool, Wallet wallet, string submittedDid, string targetDid,
-            string attributeName, object value)
+            string attributeName, object value, TransactionCost paymentInfo = null)
         {
             var data = $"{{\"{attributeName}\": {value.ToJson()}}}";
 
             var req = await Ledger.BuildAttribRequestAsync(submittedDid, targetDid, null, data, null);
-            var res = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submittedDid, req);
+            var res = await SignAndSubmitAsync(pool, wallet, submittedDid, req, paymentInfo);
+        }
+
+        /// <inheritdoc />
+        public async Task<string> LookupNymAsync(Pool pool, string did)
+        {
+            var req = await Ledger.BuildGetNymRequestAsync(null, did);
+            var res = await Ledger.SubmitRequestAsync(pool, req);
 
             EnsureSuccessResponse(res);
+
+            return res;
+        }
+
+        /// <inheritdoc />
+        public async Task<IList<AuthorizationRule>> LookupAuthorizationRulesAsync(Pool pool)
+        {
+            var req = await Ledger.BuildGetAuthRuleRequestAsync(null, null, null, null, null, null);
+            var res = await Ledger.SubmitRequestAsync(pool, req);
+
+            EnsureSuccessResponse(res);
+
+            var jobj = JObject.Parse(res);
+            return jobj["result"]["data"].ToObject<IList<AuthorizationRule>>();
+        }
+
+        private async Task<string> SignAndSubmitAsync(Pool pool, Wallet wallet, string submitterDid, string request, TransactionCost paymentInfo)
+        {
+            if (paymentInfo != null)
+            {
+                var requestWithFees = await IndyPayments.AddRequestFeesAsync(
+                    wallet: wallet,
+                    submitterDid: null,
+                    reqJson: request,
+                    inputsJson: paymentInfo.PaymentAddress.Sources.Select(x => x.Source).ToJson(),
+                    outputsJson: new[]
+                    {
+                        new IndyPaymentOutputSource
+                        {
+                            Recipient = paymentInfo.PaymentAddress.Address,
+                            Amount = paymentInfo.PaymentAddress.Balance - paymentInfo.Amount
+                        }
+                    }.ToJson(),
+                    extra: null);
+                request = requestWithFees.Result;
+            }
+            var response = await Ledger.SignAndSubmitRequestAsync(pool, wallet, submitterDid, request);
+
+            EnsureSuccessResponse(response);
+
+            if (paymentInfo != null)
+            {
+                var responsePayment = await IndyPayments.ParseResponseWithFeesAsync(paymentInfo.PaymentMethod, response);
+                var paymentOutputs = responsePayment.ToObject<IList<IndyPaymentOutputSource>>();
+                paymentInfo.PaymentAddress.Sources = paymentOutputs
+                    .Where(x => x.Recipient == paymentInfo.PaymentAddress.Address)
+                    .Select(x => new IndyPaymentInputSource
+                    {
+                        Amount = x.Amount,
+                        PaymentAddress = x.Recipient,
+                        Source = x.Receipt
+                    })
+                    .ToList();
+            }
+            return response;
         }
 
         void EnsureSuccessResponse(string res)

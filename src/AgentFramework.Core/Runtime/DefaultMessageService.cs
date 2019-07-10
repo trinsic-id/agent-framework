@@ -1,21 +1,19 @@
 ﻿using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Decorators.Transport;
 using AgentFramework.Core.Exceptions;
+using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Messages.Routing;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Logging;
-using AgentFramework.Core.Decorators.Transport;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace AgentFramework.Core.Handlers.Agents
+namespace AgentFramework.Core.Runtime
 {
     /// <inheritdoc />
     public class DefaultMessageService : IMessageService

@@ -1,4 +1,5 @@
-﻿using AgentFramework.Core.Exceptions;
+﻿using System;
+using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Models.Records;
 using Newtonsoft.Json;
@@ -12,6 +13,11 @@ namespace AgentFramework.Core.Messages
     public sealed class MessageContext
     {
         private readonly JObject _messageJson;
+
+        internal bool HasDecorator(string v)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>Initializes a new instance of the <see cref="MessageContext"/> class.</summary>
         /// <param name="message">The message.</param>
@@ -75,6 +81,13 @@ namespace AgentFramework.Core.Messages
         /// </summary>
         /// <returns>The associated connection to the message.</returns>
         public ConnectionRecord Connection { get; }
+
+        /// <summary>
+        /// Gets the record associated with this message context.
+        /// May be <code>null</code>.
+        /// </summary>
+        /// <value>The context record.</value>
+        public RecordBase ContextRecord { get; set; }
 
         /// <summary>
         /// The message id of the current message.
