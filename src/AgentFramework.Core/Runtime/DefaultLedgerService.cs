@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
@@ -11,11 +12,10 @@ using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.LedgerApi;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
-using IndyPayments = Hyperledger.Indy.PaymentsApi.Payments;
 using Newtonsoft.Json.Linq;
-using System.Linq;
+using IndyPayments = Hyperledger.Indy.PaymentsApi.Payments;
 
-namespace AgentFramework.Core.Handlers.Agents
+namespace AgentFramework.Core.Runtime
 {
     /// <inheritdoc />
     public class DefaultLedgerService : ILedgerService

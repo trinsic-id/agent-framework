@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Handlers.Agents;
+using AgentFramework.Core.Runtime;
 using Microsoft.AspNetCore.Http;
 
 namespace AgentFramework.AspNetCore.Middleware

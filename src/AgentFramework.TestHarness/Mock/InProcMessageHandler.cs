@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using AgentFramework.Core.Handlers.Agents;
+using AgentFramework.Core.Runtime;
 
 namespace AgentFramework.TestHarness.Mock
 {

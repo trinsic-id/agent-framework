@@ -6,14 +6,14 @@ using AgentFramework.Core.Decorators.Attachments;
 using AgentFramework.Core.Decorators.Signature;
 using AgentFramework.Core.Decorators.Threading;
 using AgentFramework.Core.Exceptions;
-using AgentFramework.Core.Messages.Connections;
-using AgentFramework.Core.Models.Connections;
-using AgentFramework.Core.Models.Records;
-using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Extensions;
+using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models;
+using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Dids;
 using AgentFramework.Core.Models.Events;
+using AgentFramework.Core.Models.Records;
+using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Utils;
 using Hyperledger.Indy.CryptoApi;
 using Hyperledger.Indy.DidApi;
@@ -21,7 +21,7 @@ using Hyperledger.Indy.PairwiseApi;
 using Microsoft.Extensions.Logging;
 using ConnectionState = AgentFramework.Core.Models.Records.ConnectionState;
 
-namespace AgentFramework.Core.Handlers.Agents
+namespace AgentFramework.Core.Runtime
 {
     /// <inheritdoc />
     public class DefaultConnectionService : IConnectionService

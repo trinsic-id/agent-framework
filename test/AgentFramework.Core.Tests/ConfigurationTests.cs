@@ -20,6 +20,7 @@ using Xunit;
 using System.Net;
 using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Messages;
+using AgentFramework.Core.Runtime;
 
 namespace AgentFramework.Core.Tests
 {
