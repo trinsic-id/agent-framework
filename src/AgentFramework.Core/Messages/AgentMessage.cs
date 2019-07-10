@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
@@ -41,7 +42,7 @@ namespace AgentFramework.Core.Messages
         /// Gets the decorators on the message.
         /// </summary>
         /// <returns>The decorators as a JObject.</returns>
-        public IEnumerable<JProperty> GetDecorators() => _decorators;
+        public IReadOnlyList<JProperty> GetDecorators() => new ReadOnlyCollection<JProperty>(_decorators);
 
         /// <summary>
         /// Internal set method for setting the collection of decorators attached to the message.

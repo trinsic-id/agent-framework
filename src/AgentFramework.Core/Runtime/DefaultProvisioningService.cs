@@ -11,7 +11,7 @@ using Hyperledger.Indy.AnonCredsApi;
 using Hyperledger.Indy.DidApi;
 using Hyperledger.Indy.WalletApi;
 
-namespace AgentFramework.Core.Handlers.Agents
+namespace AgentFramework.Core.Runtime
 {
     /// <inheritdoc />
     public class DefaultProvisioningService : IProvisioningService

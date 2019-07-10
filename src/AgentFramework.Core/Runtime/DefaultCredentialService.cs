@@ -9,6 +9,7 @@ using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages.Credentials;
 using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.Events;
+using AgentFramework.Core.Models.Ledger;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
 using AgentFramework.Core.Utils;
@@ -17,7 +18,7 @@ using Hyperledger.Indy.BlobStorageApi;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
-namespace AgentFramework.Core.Handlers.Agents
+namespace AgentFramework.Core.Runtime
 {
     /// <inheritdoc />
     public class DefaultCredentialService : ICredentialService
@@ -51,6 +52,12 @@ namespace AgentFramework.Core.Handlers.Agents
         /// The provisioning service
         /// </summary>
         protected readonly IProvisioningService ProvisioningService;
+
+        /// <summary>
+        /// Payment Service
+        /// </summary>
+        protected readonly IPaymentService PaymentService;
+
         /// <summary>
         /// The logger
         /// </summary>
@@ -66,6 +73,7 @@ namespace AgentFramework.Core.Handlers.Agents
         /// <param name="schemaService">The schema service.</param>
         /// <param name="tailsService">The tails service.</param>
         /// <param name="provisioningService">The provisioning service.</param>
+        /// <param name="paymentService">The payment service.</param>
         /// <param name="logger">The logger.</param>
         public DefaultCredentialService(
             IEventAggregator eventAggregator,
@@ -75,6 +83,7 @@ namespace AgentFramework.Core.Handlers.Agents
             ISchemaService schemaService,
             ITailsService tailsService,
             IProvisioningService provisioningService,
+            IPaymentService paymentService,
             ILogger<DefaultCredentialService> logger)
         {
             EventAggregator = eventAggregator;
@@ -84,6 +93,7 @@ namespace AgentFramework.Core.Handlers.Agents
             SchemaService = schemaService;
             TailsService = tailsService;
             ProvisioningService = provisioningService;
+            PaymentService = paymentService;
             Logger = logger;
         }
 
@@ -97,7 +107,7 @@ namespace AgentFramework.Core.Handlers.Agents
 
             return record;
         }
-        
+
         /// <inheritdoc />
         public virtual Task<List<CredentialRecord>> ListAsync(IAgentContext agentContext, ISearchQuery query = null, int count = 100) =>
             RecordService.SearchAsync<CredentialRecord>(agentContext.Wallet, query, null, count);
@@ -231,7 +241,7 @@ namespace AgentFramework.Core.Handlers.Agents
         }
 
         /// <inheritdoc />
-        public virtual async Task<(CredentialOfferMessage, CredentialRecord)> 
+        public virtual async Task<(CredentialOfferMessage, CredentialRecord)>
             CreateOfferAsync(IAgentContext agentContext, OfferConfiguration config, string connectionId = null)
         {
             Logger.LogInformation(LoggingEvents.CreateCredentialOffer, "DefinitionId {0}, IssuerDid {1}",
@@ -271,7 +281,7 @@ namespace AgentFramework.Core.Handlers.Agents
                 CredentialAttributesValues = config.CredentialAttributeValues,
                 State = CredentialState.Offered,
             };
-            
+
             credentialRecord.SetTag(TagConstants.LastThreadId, threadId);
             credentialRecord.SetTag(TagConstants.Role, TagConstants.Issuer);
 
@@ -314,7 +324,7 @@ namespace AgentFramework.Core.Handlers.Agents
         public virtual async Task<string> ProcessCredentialRequestAsync(IAgentContext agentContext, CredentialRequestMessage credentialRequest, ConnectionRecord connection)
         {
             Logger.LogInformation(LoggingEvents.StoreCredentialRequest, "Type {0},", credentialRequest.Type);
-           
+
             var credential = await this.GetByThreadIdAsync(agentContext, credentialRequest.GetThreadId());
 
             if (credential.State != CredentialState.Offered)
@@ -396,17 +406,28 @@ namespace AgentFramework.Core.Handlers.Agents
 
             if (definitionRecord.SupportsRevocation)
             {
-                await LedgerService.SendRevocationRegistryEntryAsync(agentContext.Wallet, await agentContext.Pool, issuerDid,
-                    revocationRegistryId,
-                    "CL_ACCUM", issuedCredential.RevocRegDeltaJson);
+                var paymentInfo = await PaymentService.GetTransactionCostAsync(agentContext, TransactionTypes.REVOC_REG_ENTRY);
+
+                await LedgerService.SendRevocationRegistryEntryAsync(wallet: agentContext.Wallet,
+                                                                     pool: await agentContext.Pool,
+                                                                     issuerDid: issuerDid,
+                                                                     revocationRegistryDefinitionId: revocationRegistryId,
+                                                                     revocationDefinitionType: "CL_ACCUM",
+                                                                     value: issuedCredential.RevocRegDeltaJson,
+                                                                     paymentInfo: paymentInfo);
                 credential.CredentialRevocationId = issuedCredential.RevocId;
+
+                if (paymentInfo != null)
+                {
+                    await RecordService.UpdateAsync(agentContext.Wallet, paymentInfo.PaymentAddress);
+                }
             }
 
             await credential.TriggerAsync(CredentialTrigger.Issue);
             await RecordService.UpdateAsync(agentContext.Wallet, credential);
             var threadId = credential.GetTag(TagConstants.LastThreadId);
 
-            var credentialMsg =  new CredentialMessage
+            var credentialMsg = new CredentialMessage
             {
                 CredentialJson = issuedCredential.CredentialJson,
                 RevocationRegistryId = revocationRegistryId
@@ -440,10 +461,21 @@ namespace AgentFramework.Core.Handlers.Agents
             var revocRegistryDeltaJson = await AnonCreds.IssuerRevokeCredentialAsync(agentContext.Wallet, tailsReader,
                 revocationRecord.Id, credential.CredentialRevocationId);
 
+            var paymentInfo = await PaymentService.GetTransactionCostAsync(agentContext, TransactionTypes.REVOC_REG_ENTRY);
+
             // Write the delta state on the ledger for the corresponding revocation registry
-            await LedgerService.SendRevocationRegistryEntryAsync(agentContext.Wallet, await agentContext.Pool, issuerDid,
-                revocationRecord.Id,
-                "CL_ACCUM", revocRegistryDeltaJson);
+            await LedgerService.SendRevocationRegistryEntryAsync(wallet: agentContext.Wallet,
+                                                                 pool: await agentContext.Pool,
+                                                                 issuerDid: issuerDid,
+                                                                 revocationRegistryDefinitionId: revocationRecord.Id,
+                                                                 revocationDefinitionType: "CL_ACCUM",
+                                                                 value: revocRegistryDeltaJson,
+                                                                 paymentInfo: paymentInfo);
+
+            if (paymentInfo != null)
+            {
+                await RecordService.UpdateAsync(agentContext.Wallet, paymentInfo.PaymentAddress);
+            }
 
             // Update local credential record
             await RecordService.UpdateAsync(agentContext.Wallet, credential);

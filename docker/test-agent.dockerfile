@@ -1,4 +1,4 @@
-FROM streetcred/dotnet-indy:1.8.0-preview.1
+FROM streetcred/dotnet-indy:1.9.0
 WORKDIR /app
 
 COPY . .

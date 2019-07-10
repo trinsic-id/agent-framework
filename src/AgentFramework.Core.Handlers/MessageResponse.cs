@@ -44,19 +44,19 @@ namespace AgentFramework.Core.Handlers
         public byte[] GetData() => (Stream as MemoryStream).ToArray();
 
         #region IDisposable Support
-        private bool disposedValue;
+        private bool _disposedValue;
 
         /// <inheritdoc />
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
                     Stream.Flush();
                     Stream.Dispose();
                 }
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
 

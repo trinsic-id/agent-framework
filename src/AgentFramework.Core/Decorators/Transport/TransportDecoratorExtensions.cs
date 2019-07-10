@@ -1,5 +1,4 @@
 ﻿using System;
-using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Messages;
 

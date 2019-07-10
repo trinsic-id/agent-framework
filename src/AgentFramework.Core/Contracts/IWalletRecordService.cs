@@ -29,7 +29,7 @@ namespace AgentFramework.Core.Contracts
         /// <param name="options">Options.</param>
         /// <param name="count">The number of items to return</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
-        Task<List<T>> SearchAsync<T>(Wallet wallet, ISearchQuery query, SearchOptions options, int count) where T : RecordBase, new();
+        Task<List<T>> SearchAsync<T>(Wallet wallet, ISearchQuery query = null, SearchOptions options = null, int count = 10) where T : RecordBase, new();
 
         /// <summary>
         /// Updates the record async.
@@ -37,8 +37,7 @@ namespace AgentFramework.Core.Contracts
         /// <returns>The record async.</returns>
         /// <param name="wallet">Wallet.</param>
         /// <param name="record">Credential record.</param>
-        /// <typeparam name="T">The 1st type parameter.</typeparam>
-        Task UpdateAsync<T>(Wallet wallet, T record) where T : RecordBase, new();
+        Task UpdateAsync(Wallet wallet, RecordBase record);
 
         /// <summary>
         /// Gets the record async.

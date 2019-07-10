@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AgentFramework.Core.Messages;
-
-namespace AgentFramework.Core.Models.Events
+﻿namespace AgentFramework.Core.Models.Events
 {
     /// <summary>
     /// Representation of a message processing event.

@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.EphemeralChallenge;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Stateless;
-using Stateless.Graph;
 
 namespace AgentFramework.Core.Models.Records
 {

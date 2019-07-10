@@ -1,55 +1,24 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
-using AgentFramework.Core.Handlers.Agents;
-using Hyperledger.Indy.WalletApi;
+using AgentFramework.TestHarness;
 using Xunit;
 
 namespace AgentFramework.Core.Tests
 {
-    public class RecordTests : IAsyncLifetime
+    public class RecordTests : TestSingleWallet
     {
-        private readonly string Config = "{\"id\":\""+ Guid.NewGuid().ToString() + "\"}";
-        private const string Credentials = "{\"key\":\"test_wallet_key\"}";
-
-        private DateTime _currentDatetime = DateTime.UtcNow;
-
-        private Wallet _wallet;
-
-        private readonly IWalletRecordService _recordService;
-
-        public RecordTests()
-        {
-            _recordService = new DefaultWalletRecordService();
-        }
-
-        public async Task InitializeAsync()
-        {
-            try
-            {
-                await Wallet.CreateWalletAsync(Config, Credentials);
-            }
-            catch (WalletExistsException)
-            {
-            }
-            finally
-            {
-                _wallet = await Wallet.OpenWalletAsync(Config, Credentials);
-            }
-        }
-
         [Fact]
         public async Task CanStoreAndRetrieveRecordWithTags()
         {
             var record = new ConnectionRecord { Id = "123" };
             record.SetTag("tag1", "tagValue1");
 
-            await _recordService.AddAsync(_wallet, record);
+            await recordService.AddAsync(Context.Wallet, record);
 
-            var retrieved = await _recordService.GetAsync<ConnectionRecord>(_wallet, "123");
+            var retrieved = await recordService.GetAsync<ConnectionRecord>(Context.Wallet, "123");
 
             Assert.NotNull(retrieved);
             Assert.Equal(retrieved.Id, record.Id);
@@ -66,10 +35,10 @@ namespace AgentFramework.Core.Tests
             var record = new ConnectionRecord { Id = Guid.NewGuid().ToString() };
             record.SetTag(tagName, tagValue);
 
-            await _recordService.AddAsync(_wallet, record);
+            await recordService.AddAsync(Context.Wallet, record);
 
             var search =
-                await _recordService.SearchAsync<ConnectionRecord>(_wallet,
+                await recordService.SearchAsync<ConnectionRecord>(Context.Wallet,
                     SearchQuery.Equal(tagName, tagValue), null, 100);
 
             var retrieved = search.Single();
@@ -91,16 +60,16 @@ namespace AgentFramework.Core.Tests
             var record = new ConnectionRecord { Id = id };
             record.SetTag(tagName, tagValue);
 
-            await _recordService.AddAsync(_wallet, record);
+            await recordService.AddAsync(Context.Wallet, record);
 
-            var retrieved = await _recordService.GetAsync<ConnectionRecord>(_wallet, id);
+            var retrieved = await recordService.GetAsync<ConnectionRecord>(Context.Wallet, id);
 
             retrieved.MyDid = "123";
             retrieved.SetTag(tagName, "value");
 
-            await _recordService.UpdateAsync(_wallet, retrieved);
+            await recordService.UpdateAsync(Context.Wallet, retrieved);
 
-            var updated = await _recordService.GetAsync<ConnectionRecord>(_wallet, id);
+            var updated = await recordService.GetAsync<ConnectionRecord>(Context.Wallet, id);
 
             Assert.NotNull(updated);
             Assert.Equal(updated.Id, record.Id);
@@ -112,15 +81,15 @@ namespace AgentFramework.Core.Tests
         [Fact]
         public async Task ReturnsNullForNonExistentRecord()
         {
-            var record = await _recordService.GetAsync<ConnectionRecord>(_wallet, Guid.NewGuid().ToString());
+            var record = await recordService.GetAsync<ConnectionRecord>(Context.Wallet, Guid.NewGuid().ToString());
             Assert.Null(record);
         }
 
         [Fact]
         public async Task ReturnsEmptyListForNonExistentRecord()
         {
-            var record = await _recordService.SearchAsync<ConnectionRecord>(
-                _wallet,
+            var record = await recordService.SearchAsync<ConnectionRecord>(
+                Context.Wallet,
                 SearchQuery.Equal(Guid.NewGuid().ToString(), Guid.NewGuid().ToString()), null, 100);
             Assert.False(record.Any());
         }
@@ -150,9 +119,9 @@ namespace AgentFramework.Core.Tests
 
             Assert.Null(record.CreatedAtUtc);
 
-            await _recordService.AddAsync(_wallet, record);
+            await recordService.AddAsync(Context.Wallet, record);
 
-            var retrieved = await _recordService.GetAsync<ConnectionRecord>(_wallet, "123");
+            var retrieved = await recordService.GetAsync<ConnectionRecord>(Context.Wallet, "123");
 
             Assert.NotNull(retrieved);
             Assert.Equal(retrieved.Id, record.Id);
@@ -164,17 +133,17 @@ namespace AgentFramework.Core.Tests
         {
             var record = new ConnectionRecord { Id = "123" };
 
-            await _recordService.AddAsync(_wallet, record);
+            await recordService.AddAsync(Context.Wallet, record);
 
-            var retrieved = await _recordService.GetAsync<ConnectionRecord>(_wallet, "123");
+            var retrieved = await recordService.GetAsync<ConnectionRecord>(Context.Wallet, "123");
 
             Assert.NotNull(retrieved);
             Assert.Equal(retrieved.Id, record.Id);
             Assert.Null(retrieved.UpdatedAtUtc);
 
-            await _recordService.UpdateAsync(_wallet, retrieved);
+            await recordService.UpdateAsync(Context.Wallet, retrieved);
 
-            retrieved = await _recordService.GetAsync<ConnectionRecord>(_wallet, "123");
+            retrieved = await recordService.GetAsync<ConnectionRecord>(Context.Wallet, "123");
 
             Assert.NotNull(retrieved);
             Assert.Equal(retrieved.Id, record.Id);
@@ -185,27 +154,21 @@ namespace AgentFramework.Core.Tests
         public async Task ReturnsRecordsFilteredByCreatedAt()
         {
             var record = new ConnectionRecord { Id = "123" };
-            await _recordService.AddAsync(_wallet, record);
+            await recordService.AddAsync(Context.Wallet, record);
 
             await Task.Delay(TimeSpan.FromSeconds(1));
             var now = DateTime.UtcNow;
             await Task.Delay(TimeSpan.FromSeconds(1));
 
             record = new ConnectionRecord {Id = "456"};
-            await _recordService.AddAsync(_wallet, record);
+            await recordService.AddAsync(Context.Wallet, record);
 
-            var records = await _recordService.SearchAsync<ConnectionRecord>(
-                _wallet,
+            var records = await recordService.SearchAsync<ConnectionRecord>(
+                Context.Wallet,
                 SearchQuery.Greater(nameof(ConnectionRecord.CreatedAtUtc), now), null, 100);
 
             Assert.True(records.Count == 1);
             Assert.True(records[0].Id == "456");
-        }
-
-        public async Task DisposeAsync()
-        {
-            await _wallet.CloseAsync();
-            await Wallet.DeleteWalletAsync(Config, Credentials);
         }
     }
 }

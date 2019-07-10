@@ -20,6 +20,7 @@ using Xunit;
 using System.Net;
 using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Messages;
+using AgentFramework.Core.Runtime;
 
 namespace AgentFramework.Core.Tests
 {
@@ -114,6 +115,8 @@ namespace AgentFramework.Core.Tests
             var hostBuilder = new HostBuilder()
                 .ConfigureServices(services =>
                 {
+                    services.Configure<ConsoleLifetimeOptions>(options =>
+                        options.SuppressStatusMessages = true);
                     services.AddAgentFramework(b => b.AddBasicAgent(c => { }));
                     services.AddSingleton(provisioningMock.Object);
                 })
@@ -139,6 +142,8 @@ namespace AgentFramework.Core.Tests
             var hostBuilder = new HostBuilder()
                 .ConfigureServices(services =>
                 {
+                    services.Configure<ConsoleLifetimeOptions>(options =>
+                        options.SuppressStatusMessages = true);
                     services.AddAgentFramework(b => b.AddIssuerAgent(c =>
                     {
                         c.WalletCredentials = walletCredentials;
@@ -201,7 +206,7 @@ namespace AgentFramework.Core.Tests
             .Be((int)HttpStatusCode.OK);
         }
 
-        [Fact(DisplayName = "Agent middleware calls next gelegate if invalid http method")]
+        [Fact(DisplayName = "Agent middleware calls next delegate if invalid http method")]
         public async Task AgentMiddlewareCallsNextDelegateOnInvalidHttpMethod()
         {
             var mockedContext = new Mock<IAgentProvider>();

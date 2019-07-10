@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System;
 using System.Threading.Tasks;
+using AgentFramework.Core.Runtime;
 using Xunit;
 
 namespace AgentFramework.Core.Tests.Protocols

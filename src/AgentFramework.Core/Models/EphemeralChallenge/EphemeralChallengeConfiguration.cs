@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AgentFramework.Core.Models.Records;
+﻿using AgentFramework.Core.Models.Records;
 
 namespace AgentFramework.Core.Models.EphemeralChallenge
 {

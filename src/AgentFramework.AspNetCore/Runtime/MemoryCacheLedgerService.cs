@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AgentFramework.Core.Handlers.Agents;
+using AgentFramework.Core.Runtime;
 using Hyperledger.Indy.LedgerApi;
 using Hyperledger.Indy.PoolApi;
 using Microsoft.Extensions.Caching.Memory;

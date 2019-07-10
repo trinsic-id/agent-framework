@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
+using AgentFramework.Core.Runtime;
 
 namespace AgentFramework.Core.Tests.Protocols
 {
@@ -52,9 +53,10 @@ namespace AgentFramework.Core.Tests.Protocols
             _eventAggregator = new EventAggregator();
             
             var provisioning = ServiceUtils.GetDefaultMockProvisioningService();
+            var paymentService = new DefaultPaymentService();
 
             var tailsService = new DefaultTailsService(ledgerService, new HttpClientHandler());
-            _schemaService = new DefaultSchemaService(provisioning, recordService, ledgerService, tailsService);
+            _schemaService = new DefaultSchemaService(provisioning, recordService, ledgerService, paymentService, tailsService);
 
             _connectionService = new DefaultConnectionService(
                 _eventAggregator,
@@ -70,6 +72,7 @@ namespace AgentFramework.Core.Tests.Protocols
                 _schemaService,
                 tailsService,
                 provisioning,
+                paymentService,
                 new Mock<ILogger<DefaultCredentialService>>().Object);
 
             _proofService = new DefaultProofService(

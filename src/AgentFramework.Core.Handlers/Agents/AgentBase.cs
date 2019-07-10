@@ -6,14 +6,13 @@ using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Decorators.Transport;
 using AgentFramework.Core.Exceptions;
 using AgentFramework.Core.Extensions;
-using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Handlers.Internal;
 using AgentFramework.Core.Messages;
 using AgentFramework.Core.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace AgentFramework.Core.Handlers
+namespace AgentFramework.Core.Handlers.Agents
 {
     /// <summary>
     /// Base agent implementation
@@ -22,7 +21,7 @@ namespace AgentFramework.Core.Handlers
     {
         /// <summary>Gets the provider.</summary>
         /// <value>The provider.</value>
-        protected IServiceProvider Provider { get; }
+        public IServiceProvider Provider { get; }
 
         /// <summary>Gets the connection service.</summary>
         /// <value>The connection service.</value>
@@ -42,6 +41,11 @@ namespace AgentFramework.Core.Handlers
         /// <value>The handlers.</value>
         public IList<IMessageHandler> Handlers { get; }
 
+        /// <summary>
+        /// Gets a collecrion of registered agent middlewares
+        /// </summary>
+        protected IEnumerable<IAgentMiddleware> Middlewares { get; }
+
         /// <summary>Initializes a new instance of the <see cref="AgentBase"/> class.</summary>
         protected AgentBase(IServiceProvider provider)
         {
@@ -50,6 +54,7 @@ namespace AgentFramework.Core.Handlers
             MessageService = provider.GetRequiredService<IMessageService>();
             Logger = provider.GetRequiredService<ILogger<AgentBase>>();
             Handlers = new List<IMessageHandler>();
+            Middlewares = provider.GetServices<IAgentMiddleware>();
         }
 
         /// <summary>Adds a handler for supporting default connection flow.</summary>
@@ -70,7 +75,10 @@ namespace AgentFramework.Core.Handlers
         /// <summary>Adds a default forwarding handler.</summary>
         protected void AddEphemeralChallengeHandler() => Handlers.Add(Provider.GetRequiredService<DefaultEphemeralChallengeHandler>());
 
-        /// <summary>Adds a default forwarding handler.</summary>
+        /// <summary>Adds a default basic message handler.</summary>
+        protected void AddBasicMessageHandler() => Handlers.Add(Provider.GetRequiredService<DefaultBasicMessageHandler>());
+
+        /// <summary>Adds a default discovery handler.</summary>
         protected void AddDiscoveryHandler() => Handlers.Add(Provider.GetRequiredService<DefaultDiscoveryHandler>());
 
         /// <summary>Adds a custom the handler using dependency injection.</summary>
@@ -127,7 +135,14 @@ namespace AgentFramework.Core.Handlers
                     inboundMessageContext.GetMessageType(),
                     inboundMessageContext.Payload.GetUTF8String());
 
+                // Process message in handler
                 var response = await messageHandler.ProcessAsync(agentContext, inboundMessageContext);
+
+                // Process message with any registered middlewares
+                foreach (var middleware in Middlewares)
+                {
+                    await middleware.OnMessageAsync(agentContext, inboundMessageContext);
+                }
 
                 if (response != null)
                 {
@@ -136,10 +151,7 @@ namespace AgentFramework.Core.Handlers
                         var result = await MessageService.PrepareAsync(agentContext.Wallet, response, inboundMessageContext.Connection, null, false);
                         return new MessageContext(result, true, inboundMessageContext.Connection);
                     }
-                    else
-                    {
-                        await MessageService.SendAsync(agentContext.Wallet, response, inboundMessageContext.Connection);
-                    }
+                    await MessageService.SendAsync(agentContext.Wallet, response, inboundMessageContext.Connection);
                 }
                 return null;
             }

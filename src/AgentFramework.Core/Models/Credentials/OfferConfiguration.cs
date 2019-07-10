@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using AgentFramework.Core.Messages.Credentials;
 
 namespace AgentFramework.Core.Models.Credentials
 {
