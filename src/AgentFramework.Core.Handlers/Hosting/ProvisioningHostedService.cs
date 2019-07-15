@@ -1,21 +1,21 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using AgentFramework.Core.Configuration.Options;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Exceptions;
-using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Wallets;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.WalletApi;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
-namespace AgentFramework.AspNetCore.Hosting
+namespace AgentFramework.Core.Handlers.Hosting
 {
     /// <inheritdoc />
     /// <summary>
     /// Agent hosted service.
     /// </summary>
-    public class AgentHostedService : IHostedService
+    public class ProvisioningHostedService : IHostedService
     {
         private readonly IProvisioningService _provisioningService;
         private readonly IPoolService _poolService;
@@ -28,7 +28,7 @@ namespace AgentFramework.AspNetCore.Hosting
         /// <param name="provisioningConfiguration">Provisioning configuration.</param>
         /// <param name="poolService">Pool service.</param>
         /// <param name="poolOptions">Pool options.</param>
-        public AgentHostedService(
+        public ProvisioningHostedService(
             ProvisioningConfiguration provisioningConfiguration,
             IProvisioningService provisioningService,
             IPoolService poolService,

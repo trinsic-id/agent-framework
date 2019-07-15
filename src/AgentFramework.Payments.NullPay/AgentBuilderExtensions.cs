@@ -1,14 +1,14 @@
-﻿using AgentFramework.Core.Handlers;
+﻿using AgentFramework.Core.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AgentFramework.Payments.NullPay
 {
     public static class AgentBuilderExtensions
     {
-        public static AgentBuilder AddNullPay(this AgentBuilder agentBuilder)
+        public static AgentFrameworkBuilder AddNullPay(this AgentFrameworkBuilder agentFrameworkBuilder)
         {
-            agentBuilder.Services.AddHostedService<NullPayConfigurationService>();
-            return agentBuilder;
+            agentFrameworkBuilder.Services.AddHostedService<NullPayConfigurationService>();
+            return agentFrameworkBuilder;
         }
     }
 }

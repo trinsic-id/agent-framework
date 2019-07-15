@@ -1,4 +1,4 @@
-﻿namespace AgentFramework.Core.Models
+﻿namespace AgentFramework.Core.Configuration.Options
 {
     /// <summary>
     /// Pool options.

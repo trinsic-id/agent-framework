@@ -25,13 +25,19 @@ namespace AgentFramework.AspNetCore.Middleware
             _contextProvider = contextProvider;
         }
 
-        /// <inheritdoc />
-        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+        /// <summary>
+        /// Invokes the agent processing pipeline
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="next"></param>
+        /// <param name="contextProvider"></param>
+        /// <returns></returns>
+        public static async Task InvokeAsync(HttpContext context, Func<Task> next, IAgentProvider contextProvider)
         {
             if (!HttpMethods.IsPost(context.Request.Method)
                 || !context.Request.ContentType.Equals(DefaultMessageService.AgentWireMessageMimeType))
             {
-                await next(context);
+                await next();
                 return;
             }
 
@@ -41,9 +47,9 @@ namespace AgentFramework.AspNetCore.Middleware
             {
                 var body = await stream.ReadToEndAsync();
 
-                var agent = await _contextProvider.GetAgentAsync();
+                var agent = await contextProvider.GetAgentAsync();
                 var response = await agent.ProcessAsync(
-                    context: await _contextProvider.GetContextAsync(), //TODO assumes all recieved messages are packed 
+                    context: await contextProvider.GetContextAsync(), //TODO assumes all received messages are packed 
                     messageContext: new MessageContext(body.GetUTF8Bytes(), true));
 
                 context.Response.StatusCode = 200;
@@ -57,5 +63,9 @@ namespace AgentFramework.AspNetCore.Middleware
                     await context.Response.WriteAsync(string.Empty);
             }
         }
+
+        /// <inheritdoc />
+        public Task InvokeAsync(HttpContext context, RequestDelegate next) =>
+            InvokeAsync(context, async () => await next(context), _contextProvider);
     }
 }

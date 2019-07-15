@@ -12,7 +12,6 @@ using AgentFramework.Core.Models.Credentials;
 using AgentFramework.Core.Models.EphemeralChallenge;
 using AgentFramework.Core.Models.Proofs;
 using AgentFramework.Core.Models.Records;
-using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.TestHarness;
 using AgentFramework.TestHarness.Utils;
 using Hyperledger.Indy.WalletApi;

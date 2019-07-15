@@ -1,5 +1,4 @@
-﻿using AgentFramework.AspNetCore;
-using AgentFramework.Core.Contracts;
+﻿using AgentFramework.Core.Contracts;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;

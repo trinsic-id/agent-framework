@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AgentFramework.AspNetCore;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Payments.SovrinToken;
 using Hyperledger.Indy.WalletApi;
@@ -11,7 +10,7 @@ using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Models.Wallets;
 using AgentFramework.Core.Handlers.Agents;
 using System.IO;
-using AgentFramework.Core.Models;
+using AgentFramework.Core.Configuration.Options;
 using Microsoft.Extensions.Options;
 using Hyperledger.Indy.PoolApi;
 using Hyperledger.Indy.DidApi;
@@ -55,17 +54,16 @@ namespace AgentFramework.TestHarness
                 {
                     services.Configure<ConsoleLifetimeOptions>(options =>
                         options.SuppressStatusMessages = true);
-                    services.AddAgentFramework(builder =>
-                        builder
-                            .AddIssuerAgent(config =>
-                            {
-                                config.EndpointUri = new Uri("http://test");
-                                config.WalletConfiguration = new WalletConfiguration { Id = Guid.NewGuid().ToString() };
-                                config.WalletCredentials = new WalletCredentials { Key = "test" };
-                                config.GenesisFilename = Path.GetFullPath("pool_genesis.txn");
-                                config.PoolName = "TestPool";
-                            })
-                            .AddSovrinToken());
+                    services.AddAgentFramework(builder => builder
+                        .AddIssuerAgent(config =>
+                        {
+                            config.EndpointUri = new Uri("http://test");
+                            config.WalletConfiguration = new WalletConfiguration {Id = Guid.NewGuid().ToString()};
+                            config.WalletCredentials = new WalletCredentials {Key = "test"};
+                            config.GenesisFilename = Path.GetFullPath("pool_genesis.txn");
+                            config.PoolName = "TestPool";
+                        })
+                        .AddSovrinToken());
                 })
                 .Build();
 
@@ -75,7 +73,7 @@ namespace AgentFramework.TestHarness
             Context = await Host.Services.GetService<IAgentProvider>().GetContextAsync();
 
             Trustee = await Did.CreateAndStoreMyDidAsync(Context.Wallet,
-                new { seed = "000000000000000000000000Trustee1" }.ToJson());
+                new {seed = "000000000000000000000000Trustee1"}.ToJson());
             Trustee2 = await PromoteTrustee("000000000000000000000000Trustee2");
             Trustee3 = await PromoteTrustee("000000000000000000000000Trustee3");
 
