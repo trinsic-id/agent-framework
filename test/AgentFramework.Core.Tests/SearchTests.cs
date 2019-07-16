@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using AgentFramework.Core.Contracts;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
-using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Runtime;
 using Hyperledger.Indy.WalletApi;
 using Xunit;

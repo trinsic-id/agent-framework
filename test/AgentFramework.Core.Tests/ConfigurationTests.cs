@@ -3,7 +3,6 @@ using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using AgentFramework.AspNetCore;
 using AgentFramework.AspNetCore.Middleware;
 using AgentFramework.Core.Extensions;
 using AgentFramework.Core.Contracts;

@@ -1,6 +1,6 @@
 ﻿using AgentFramework.Core.Models.Wallets;
 
-namespace AgentFramework.Core.Models
+namespace AgentFramework.Core.Configuration.Options
 {
     /// <summary>Wallet options</summary>
     public class WalletOptions

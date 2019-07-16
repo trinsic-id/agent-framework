@@ -1,4 +1,5 @@
 ﻿using AgentFramework.AspNetCore.Middleware;
+using AgentFramework.Core.Handlers.Agents;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,7 +14,8 @@ namespace AgentFramework.AspNetCore
         /// Allows default agent configuration
         /// </summary>
         /// <param name="app">App.</param>
-        public static void UseAgentFramework(this IApplicationBuilder app) => UseAgentFramework<AgentMiddleware>(app);
+        public static void UseAgentFramework(this IApplicationBuilder app) => app.Use((context, func) =>
+            AgentMiddleware.InvokeAsync(context, func, app.ApplicationServices.GetService<IAgentProvider>()));
 
         /// <summary>
         /// Allows agent configuration by specifying a custom middleware

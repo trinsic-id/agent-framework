@@ -15,7 +15,6 @@ using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Records;
 using AgentFramework.Core.Models.Records.Search;
-using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Runtime;
 using AgentFramework.Core.Runtime.Transport;
 using AgentFramework.Core.Utils;
