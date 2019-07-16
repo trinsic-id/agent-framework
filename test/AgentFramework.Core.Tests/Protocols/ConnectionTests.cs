@@ -10,7 +10,6 @@ using AgentFramework.Core.Messages.Connections;
 using AgentFramework.Core.Models.Connections;
 using AgentFramework.Core.Models.Events;
 using AgentFramework.Core.Models.Records;
-using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Runtime;
 using AgentFramework.TestHarness;
 using AgentFramework.TestHarness.Utils;

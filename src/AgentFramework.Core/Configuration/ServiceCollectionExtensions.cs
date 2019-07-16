@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Net.Http;
-using AgentFramework.AspNetCore.Middleware;
+using AgentFramework.Core.Configuration;
+using AgentFramework.Core.Configuration.Options;
 using AgentFramework.Core.Contracts;
-using AgentFramework.Core.Handlers;
-using AgentFramework.Core.Handlers.Agents;
-using AgentFramework.Core.Models;
 using AgentFramework.Core.Runtime;
 using AgentFramework.Core.Runtime.Transport;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace AgentFramework.AspNetCore
+// ReSharper disable once CheckNamespace
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
     /// Service builder extensions.
@@ -25,11 +23,9 @@ namespace AgentFramework.AspNetCore
         {
             services.AddOptions<WalletOptions>();
             services.AddOptions<PoolOptions>();
-            services.AddSingleton<AgentMiddleware>();
             services.AddLogging();
 
             services.AddDefaultServices();
-            services.AddDefaultMessageHandlers();
         }
 
         /// <summary>
@@ -37,17 +33,15 @@ namespace AgentFramework.AspNetCore
         /// </summary>
         /// <param name="services">Services.</param>
         /// <param name="builder">Builder.</param>
-        public static void AddAgentFramework(this IServiceCollection services, Action<AgentBuilder> builder)
+        public static void AddAgentFramework(this IServiceCollection services, Action<AgentFrameworkBuilder> builder)
         {
             AddAgentFramework(services);
-            builder.Invoke(new AgentBuilder(services));
+            builder.Invoke(new AgentFrameworkBuilder(services));
         }
 
         internal static IServiceCollection AddDefaultServices(this IServiceCollection builder)
         {
             builder.TryAddSingleton<IEventAggregator, EventAggregator>();
-            builder.TryAddSingleton<IAgentProvider, DefaultAgentProvider>();
-            builder.TryAddSingleton<IAgent, DefaultAgent>();
             builder.TryAddSingleton<IConnectionService, DefaultConnectionService>();
             builder.TryAddSingleton<ICredentialService, DefaultCredentialService>();
             builder.TryAddSingleton<ILedgerService, DefaultLedgerService>();
@@ -65,34 +59,6 @@ namespace AgentFramework.AspNetCore
             builder.TryAddSingleton<IWalletService, DefaultWalletService>();
             builder.TryAddSingleton<IPaymentService, DefaultPaymentService>();
 
-            return builder;
-        }
-
-        /// <summary>
-        /// Adds the message handler.
-        /// </summary>
-        /// <returns>The message handler.</returns>
-        /// <param name="builder">Builder.</param>
-        /// <typeparam name="TMessageHandler">The 1st type parameter.</typeparam>
-        public static IServiceCollection AddMessageHandler<TMessageHandler>(this IServiceCollection builder) where TMessageHandler : class,
-            IMessageHandler
-        {
-            builder.AddSingleton<IMessageHandler, TMessageHandler>();
-            builder.TryAddSingleton<TMessageHandler>();
-            return builder;
-        }
-
-        /// <summary>
-        /// Overrides the default agent context provider.
-        /// </summary>
-        /// <returns>The default agent context provider.</returns>
-        /// <param name="builder">Builder.</param>
-        /// <typeparam name="TProvider">The 1st type parameter.</typeparam>
-        public static IServiceCollection OverrideDefaultAgentContextProvider<TProvider>(
-            this IServiceCollection builder)
-            where TProvider : class, IAgentProvider
-        {
-            builder.AddSingleton<IAgentProvider, TProvider>();
             return builder;
         }
 

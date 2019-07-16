@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using AgentFramework.AspNetCore;
 using AgentFramework.Core.Contracts;
+using AgentFramework.Core.Handlers;
 using AgentFramework.Core.Handlers.Agents;
 using AgentFramework.Core.Models;
 using AgentFramework.Core.Models.Wallets;
@@ -18,6 +18,7 @@ namespace AgentFramework.TestHarness.Mock
             var services = new ServiceCollection();
 
             services.AddAgentFramework();
+            services.AddDefaultMessageHandlers();
             services.AddLogging();
             services.AddSingleton<MockAgentMessageProcessor>();
             services.AddSingleton<HttpMessageHandler>(handler);
