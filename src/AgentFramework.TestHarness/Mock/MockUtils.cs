@@ -21,8 +21,7 @@ namespace AgentFramework.TestHarness.Mock
             services.AddDefaultMessageHandlers();
             services.AddLogging();
             services.AddSingleton<MockAgentMessageProcessor>();
-            services.AddSingleton<HttpMessageHandler>(handler);
-            services.AddSingleton(p => new HttpClient(p.GetRequiredService<HttpMessageHandler>()));
+            services.AddSingleton<IHttpClientFactory>(new InProcAgent.InProcFactory(handler));
 
             return await CreateAsync(agentName, configuration, credentials, services, issuerSeed);
         }

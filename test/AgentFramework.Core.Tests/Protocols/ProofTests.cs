@@ -54,7 +54,11 @@ namespace AgentFramework.Core.Tests.Protocols
             var provisioning = ServiceUtils.GetDefaultMockProvisioningService();
             var paymentService = new DefaultPaymentService();
 
-            var tailsService = new DefaultTailsService(ledgerService, new HttpClientHandler());
+            var clientFactory = new Mock<IHttpClientFactory>();
+            clientFactory.Setup(x => x.CreateClient(It.IsAny<string>()))
+                .Returns(new HttpClient());
+
+            var tailsService = new DefaultTailsService(ledgerService, clientFactory.Object);
             _schemaService = new DefaultSchemaService(provisioning, recordService, ledgerService, paymentService, tailsService);
 
             _connectionService = new DefaultConnectionService(

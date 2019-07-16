@@ -24,6 +24,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddOptions<WalletOptions>();
             services.AddOptions<PoolOptions>();
             services.AddLogging();
+            services.AddHttpClient();
 
             services.AddDefaultServices();
         }
@@ -52,7 +53,6 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.TryAddSingleton<IProvisioningService, DefaultProvisioningService>();
             builder.TryAddSingleton<IMessageService, DefaultMessageService>();
             builder.TryAddSingleton<IMessageDispatcher, HttpMessageDispatcher>();
-            builder.TryAddSingleton<HttpMessageHandler, HttpClientHandler>();
             builder.TryAddSingleton<ISchemaService, DefaultSchemaService>();
             builder.TryAddSingleton<ITailsService, DefaultTailsService>();
             builder.TryAddSingleton<IWalletRecordService, DefaultWalletRecordService>();

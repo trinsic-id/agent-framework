@@ -107,7 +107,7 @@ namespace AgentFramework.TestHarness.Mock
                                 config.PoolName = "TestPool";
                             })
                             .AddSovrinToken());
-                    services.AddSingleton(handler);
+                    services.AddSingleton<IHttpClientFactory>(new InProcFactory(handler));
                 }).Build());
 
         #endregion
@@ -131,6 +131,22 @@ namespace AgentFramework.TestHarness.Mock
             public ConnectionRecord Connection1 { get; set; }
 
             public ConnectionRecord Connection2 { get; set; }
+        }
+
+        public class InProcFactory : IHttpClientFactory
+        {
+            public InProcFactory(HttpMessageHandler handler)
+            {
+                Handler = handler;
+            }
+
+            public HttpMessageHandler Handler { get; set; }
+
+            /// <inheritdoc />
+            public HttpClient CreateClient(string name)
+            {
+                return new HttpClient(Handler);
+            }
         }
     }
 }
