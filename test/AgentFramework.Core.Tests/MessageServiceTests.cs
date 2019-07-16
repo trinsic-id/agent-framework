@@ -65,11 +65,15 @@ namespace AgentFramework.Core.Tests
                 })
                 .Verifiable();
 
+            var clientFactory = new Mock<IHttpClientFactory>();
+            clientFactory.Setup(x => x.CreateClient(It.IsAny<string>()))
+                .Returns(new HttpClient(handlerMock.Object));
+
             var mockConnectionService = new Mock<IConnectionService>();
             mockConnectionService.Setup(_ => _.ListAsync(It.IsAny<IAgentContext>(), It.IsAny<ISearchQuery>(), It.IsAny<int>()))
                 .Returns(Task.FromResult(new List<ConnectionRecord> {new ConnectionRecord()}));
 
-            var httpMessageDispatcher = new HttpMessageDispatcher(handlerMock.Object);
+            var httpMessageDispatcher = new HttpMessageDispatcher(clientFactory.Object);
 
             _messagingService =
                 new DefaultMessageService(new Mock<ILogger<DefaultMessageService>>().Object, new[] { httpMessageDispatcher });

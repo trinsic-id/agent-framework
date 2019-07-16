@@ -19,10 +19,10 @@ namespace AgentFramework.Core.Runtime.Transport
         /// <summary>
         /// Default constructor.
         /// </summary>
-        /// <param name="httpMessageHandler">Http message handler.</param>
-        public HttpMessageDispatcher(HttpMessageHandler httpMessageHandler)
+        /// <param name="httpClientFactory">The HTTP client factory.</param>
+        public HttpMessageDispatcher(IHttpClientFactory httpClientFactory)
         {
-            HttpClient = new HttpClient(httpMessageHandler);
+            HttpClient = httpClientFactory.CreateClient();
         }
 
         /// <inheritdoc />
