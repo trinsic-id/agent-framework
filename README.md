@@ -1,3 +1,5 @@
+## Repository has moved to [hyperleder/aries-framework-dotnet](https://github.com/hyperledger/aries-framework-dotnet)
+---
 # Agent Framework
 
 ## .NET Core library for building Sovrin agents
